@@ -933,8 +933,8 @@ class testMainClass {
             }
         } else {
             // built-in types like strings, numbers, booleans
-            $sanitized_new_output = (!$new_output) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
-            $sanitized_stored_output = (!$stored_output) ? null : $stored_output;
+            $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
+            $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
             $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
             $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
@@ -955,7 +955,7 @@ class testMainClass {
                 $is_string = $is_computed_string || $is_stored_string;
                 $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
-                    if ($this->lang === 'C#') {
+                    if (($this->lang === 'C#') || ($this->lang === 'GO')) {
                         // tmp c# number comparsion
                         $is_number = false;
                         try {
@@ -1429,6 +1429,30 @@ class testMainClass {
         assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
         assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
+        $create_orders_request = null;
+        try {
+            $orders = [array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'limit',
+    'side' => 'sell',
+    'amount' => 1,
+    'price' => 100000,
+), array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'market',
+    'side' => 'buy',
+    'amount' => 1,
+)];
+            $exchange->create_orders($orders);
+        } catch(\Throwable $e) {
+            $create_orders_request = $this->urlencoded_to_dict($exchange->last_request_body);
+        }
+        $batch_orders = $create_orders_request['batchOrders'];
+        for ($i = 0; $i < count($batch_orders); $i++) {
+            $current = $batch_orders[$i];
+            $current_client_order_id = $current['newClientOrderId'];
+            assert(str_starts_with($current_client_order_id, $swap_id_string), 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+        }
         if (!is_sync()) {
             close($exchange);
         }

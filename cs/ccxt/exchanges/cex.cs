@@ -23,6 +23,7 @@ public partial class cex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },

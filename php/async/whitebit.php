@@ -31,7 +31,7 @@ class whitebit extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => true,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'cancelAllOrders' => true,
@@ -81,7 +81,10 @@ class whitebit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
+                'fetchPositionHistory' => true,
                 'fetchPositionMode' => false,
+                'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -3067,6 +3070,223 @@ class whitebit extends Exchange {
             'price' => $this->safe_number($conversion, 'rate'),
             'fee' => null,
         );
+    }
+
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#$positions-history
+             *
+             * @param {string} $symbol unified contract $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $positions for
+             * @param {int} [$limit] the maximum amount of records to fetch
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->positionId] the id of the requested position
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['startDate'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('endDate', $request, $params);
+            $response = Async\await($this->v4PrivatePostCollateralAccountPositionsHistory ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "positionId" => 479975679,
+            //             "market" => "BTC_PERP",
+            //             "openDate" => 1741941025.309887,
+            //             "modifyDate" => 1741941025.309887,
+            //             "amount" => "0.001",
+            //             "basePrice" => "82498.7",
+            //             "realizedFunding" => "0",
+            //             "liquidationPrice" => "0",
+            //             "liquidationState" => null,
+            //             "orderDetail" => {
+            //                 "id" => 1224727949521,
+            //                 "tradeAmount" => "0.001",
+            //                 "price" => "82498.7",
+            //                 "tradeFee" => "0.028874545",
+            //                 "fundingFee" => "0",
+            //                 "realizedPnl" => "-0.028874545"
+            //             }
+            //         }
+            //     )
+            //
+            $positions = $this->parse_positions($response);
+            return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open positions
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+             *
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->v4PrivatePostCollateralAccountPositionsOpen ($params));
+            //
+            //     array(
+            //         {
+            //             "positionId" => 479975679,
+            //             "market" => "BTC_PERP",
+            //             "openDate" => 1741941025.3098869,
+            //             "modifyDate" => 1741941025.3098869,
+            //             "amount" => "0.001",
+            //             "basePrice" => "82498.7",
+            //             "liquidationPrice" => "70177.2",
+            //             "pnl" => "0",
+            //             "pnlPercent" => "0.00",
+            //             "margin" => "4.2",
+            //             "freeMargin" => "9.9",
+            //             "funding" => "0",
+            //             "unrealizedFunding" => "0",
+            //             "liquidationState" => null,
+            //             "tpsl" => null
+            //         }
+            //     )
+            //
+            return $this->parse_positions($response, $symbols);
+        }) ();
+    }
+
+    public function fetch_position(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch $data on a single open contract trade position
+             *
+             * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+             *
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->v4PrivatePostCollateralAccountPositionsOpen ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "positionId" => 479975679,
+            //             "market" => "BTC_PERP",
+            //             "openDate" => 1741941025.3098869,
+            //             "modifyDate" => 1741941025.3098869,
+            //             "amount" => "0.001",
+            //             "basePrice" => "82498.7",
+            //             "liquidationPrice" => "70177.2",
+            //             "pnl" => "0",
+            //             "pnlPercent" => "0.00",
+            //             "margin" => "4.2",
+            //             "freeMargin" => "9.9",
+            //             "funding" => "0",
+            //             "unrealizedFunding" => "0",
+            //             "liquidationState" => null,
+            //             "tpsl" => null
+            //         }
+            //     )
+            //
+            $data = $this->safe_dict($response, 0, array());
+            return $this->parse_position($data, $market);
+        }) ();
+    }
+
+    public function parse_position(array $position, ?array $market = null): array {
+        //
+        // fetchPosition, fetchPositions
+        //
+        //     {
+        //         "positionId" => 479975679,
+        //         "market" => "BTC_PERP",
+        //         "openDate" => 1741941025.3098869,
+        //         "modifyDate" => 1741941025.3098869,
+        //         "amount" => "0.001",
+        //         "basePrice" => "82498.7",
+        //         "liquidationPrice" => "70177.2",
+        //         "pnl" => "0",
+        //         "pnlPercent" => "0.00",
+        //         "margin" => "4.2",
+        //         "freeMargin" => "9.9",
+        //         "funding" => "0",
+        //         "unrealizedFunding" => "0",
+        //         "liquidationState" => null,
+        //         "tpsl" => null
+        //     }
+        //
+        // fetchPositionHistory
+        //
+        //     {
+        //         "positionId" => 479975679,
+        //         "market" => "BTC_PERP",
+        //         "openDate" => 1741941025.309887,
+        //         "modifyDate" => 1741941025.309887,
+        //         "amount" => "0.001",
+        //         "basePrice" => "82498.7",
+        //         "realizedFunding" => "0",
+        //         "liquidationPrice" => "0",
+        //         "liquidationState" => null,
+        //         "orderDetail" => {
+        //             "id" => 1224727949521,
+        //             "tradeAmount" => "0.001",
+        //             "price" => "82498.7",
+        //             "tradeFee" => "0.028874545",
+        //             "fundingFee" => "0",
+        //             "realizedPnl" => "-0.028874545"
+        //         }
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'market');
+        $timestamp = $this->safe_timestamp($position, 'openDate');
+        $tpsl = $this->safe_dict($position, 'tpsl', array());
+        $orderDetail = $this->safe_dict($position, 'orderDetail', array());
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 'positionId'),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
+            'entryPrice' => $this->safe_number($position, 'basePrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'pnl'),
+            'realizedPnl' => $this->safe_number($orderDetail, 'realizedPnl'),
+            'percentage' => $this->safe_number($position, 'pnlPercent'),
+            'contracts' => null,
+            'contractSize' => null,
+            'markPrice' => null,
+            'lastPrice' => null,
+            'side' => null,
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => $this->safe_timestamp($position, 'modifyDate'),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => $this->safe_number($position, 'margin'),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+            'stopLossPrice' => $this->safe_number($tpsl, 'stopLoss'),
+            'takeProfitPrice' => $this->safe_number($tpsl, 'takeProfit'),
+        ));
     }
 
     public function is_fiat(string $currency): bool {

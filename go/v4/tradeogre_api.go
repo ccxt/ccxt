@@ -71,6 +71,22 @@ func (this *tradeogre) PublicGetHistoryMarket (args ...interface{}) <-chan inter
    return ch
 }
 
+func (this *tradeogre) PublicGetChartIntervalMarketTimestamp (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarketTimestamp", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *tradeogre) PublicGetChartIntervalMarket (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -82,22 +98,6 @@ func (this *tradeogre) PublicGetChartIntervalMarket (args ...interface{}) <-chan
            }
        }()
        ch <- (<-this.callEndpoint ("publicGetChartIntervalMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *tradeogre) PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBalance", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -210,6 +210,22 @@ func (this *tradeogre) PrivatePostAccountOrders (args ...interface{}) <-chan int
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostAccountOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *tradeogre) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountBalance", parameters))
        PanicOnError(ch)
    }()
    return ch

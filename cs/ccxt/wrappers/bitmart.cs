@@ -1484,6 +1484,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>

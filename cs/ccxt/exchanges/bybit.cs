@@ -228,6 +228,7 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan/loanable-data", 5 },
                         { "v5/ins-loan/product-infos", 5 },
                         { "v5/ins-loan/ensure-tokens-convert", 5 },
+                        { "v5/earn/product", 5 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -368,6 +369,8 @@ public partial class bybit : Exchange
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
                         { "v5/broker/asset/query-sub-member-deposit-record", 10 },
+                        { "v5/earn/order", 5 },
+                        { "v5/earn/position", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/v3/private/order", 2.5 },
@@ -485,6 +488,7 @@ public partial class bybit : Exchange
                         { "v5/broker/award/info", 5 },
                         { "v5/broker/award/distribute-award", 5 },
                         { "v5/broker/award/distribution-record", 5 },
+                        { "v5/earn/place-order", 5 },
                     } },
                 } },
             } },
@@ -10053,7 +10057,7 @@ public partial class bybit : Exchange
             {
                 feedback = add(add(this.id, " "), body);
             }
-            if (isTrue(getIndexOf(body, "Withdraw address chain or destination tag are not equal")))
+            if (isTrue(isGreaterThan(getIndexOf(body, "Withdraw address chain or destination tag are not equal"), -1)))
             {
                 feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
             }

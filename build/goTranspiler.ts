@@ -144,6 +144,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false
 }
@@ -605,7 +606,8 @@ class NewTranspiler {
             'setPositionCache',
             'createSpotOrder',
             'createContractOrder',
-            'createSwapOrder'
+            'createSwapOrder',
+            'fetchPortfolioDetails'
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -767,7 +769,15 @@ class NewTranspiler {
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        let params = methodWrapper.parameters.map((param: any) => this.safeGoName(param.name)).join(', ');
+        let params = methodWrapper.parameters.map((param: any) => {
+            let parsedParam = this.safeGoName(param.name)
+
+            if (methodName === 'createOrders' && param.name === 'orders') {
+                parsedParam = 'ConvertOrderRequestListToArray(orders)' // quick fix, check this later
+            }
+
+            return parsedParam
+        }).join(', ');
 
         const one = this.inden(0);
         const two = this.inden(1);

@@ -42,6 +42,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': False,

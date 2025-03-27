@@ -1727,6 +1727,7 @@ public partial class bybit : ccxt.bybit
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1737,8 +1738,12 @@ public partial class bybit : ccxt.bybit
         symbol = getValue(market, "symbol");
         object url = await this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "liquidation");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         object messageHash = add("liquidations::", symbol);
-        object topic = add("liquidation.", getValue(market, "id"));
+        object topic = add(add(method, "."), getValue(market, "id"));
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1750,56 +1755,103 @@ public partial class bybit : ccxt.bybit
     public virtual void handleLiquidation(WebSocketClient client, object message)
     {
         //
-        //   {
-        //       "data": {
-        //           "price": "0.03803",
-        //           "side": "Buy",
-        //           "size": "1637",
-        //           "symbol": "GALAUSDT",
-        //           "updatedTime": 1673251091822
-        //       },
-        //       "topic": "liquidation.GALAUSDT",
-        //       "ts": 1673251091822,
-        //       "type": "snapshot"
-        //   }
+        //     {
+        //         "data": {
+        //             "price": "0.03803",
+        //             "side": "Buy",
+        //             "size": "1637",
+        //             "symbol": "GALAUSDT",
+        //             "updatedTime": 1673251091822
+        //         },
+        //         "topic": "liquidation.GALAUSDT",
+        //         "ts": 1673251091822,
+        //         "type": "snapshot"
+        //     }
         //
-        object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(rawLiquidation, "symbol");
-        object market = this.safeMarket(marketId, null, "", "contract");
-        object symbol = getValue(market, "symbol");
-        object liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        object liquidations = this.safeValue(this.liquidations, symbol);
-        if (isTrue(isEqual(liquidations, null)))
+        //     {
+        //         "topic": "allLiquidation.ROSEUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1739502303204,
+        //         "data": [
+        //             {
+        //                 "T": 1739502302929,
+        //                 "s": "ROSEUSDT",
+        //                 "S": "Sell",
+        //                 "v": "20000",
+        //                 "p": "0.04499"
+        //             }
+        //         ]
+        //     }
+        //
+        if (isTrue(((getValue(message, "data") is IList<object>) || (getValue(message, "data").GetType().IsGenericType && getValue(message, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-            liquidations = new ArrayCache(limit);
+            object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+            {
+                object rawLiquidation = getValue(rawLiquidations, i);
+                object marketId = this.safeString(rawLiquidation, "s");
+                object market = this.safeMarket(marketId, null, "", "contract");
+                object symbol = getValue(market, "symbol");
+                object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+                object liquidations = this.safeValue(this.liquidations, symbol);
+                if (isTrue(isEqual(liquidations, null)))
+                {
+                    object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                    liquidations = new ArrayCache(limit);
+                }
+                callDynamically(liquidations, "append", new object[] {liquidation});
+                ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+                callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+                callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
+            }
+        } else
+        {
+            object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            object marketId = this.safeString(rawLiquidation, "symbol");
+            object market = this.safeMarket(marketId, null, "", "contract");
+            object symbol = getValue(market, "symbol");
+            object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
         }
-        callDynamically(liquidations, "append", new object[] {liquidation});
-        ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
     }
 
     public virtual object parseWsLiquidation(object liquidation, object market = null)
     {
         //
-        //    {
-        //        "price": "0.03803",
-        //        "side": "Buy",
-        //        "size": "1637",
-        //        "symbol": "GALAUSDT",
-        //        "updatedTime": 1673251091822
-        //    }
+        //     {
+        //         "price": "0.03803",
+        //         "side": "Buy",
+        //         "size": "1637",
+        //         "symbol": "GALAUSDT",
+        //         "updatedTime": 1673251091822
+        //     }
         //
-        object marketId = this.safeString(liquidation, "symbol");
+        //     {
+        //         "T": 1739502302929,
+        //         "s": "ROSEUSDT",
+        //         "S": "Sell",
+        //         "v": "20000",
+        //         "p": "0.04499"
+        //     }
+        //
+        object marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
-        object timestamp = this.safeInteger(liquidation, "updatedTime");
+        object timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
-            { "contracts", this.safeNumber(liquidation, "size") },
+            { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
-            { "price", this.safeNumber(liquidation, "price") },
+            { "price", this.safeNumber2(liquidation, "price", "p") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -2688,6 +2740,7 @@ public partial class bybit : ccxt.bybit
             { "user.openapi.perp.trade", this.handleMyTrades },
             { "position", this.handlePositions },
             { "liquidation", this.handleLiquidation },
+            { "allLiquidation", this.handleLiquidation },
             { "pong", this.handlePong },
             { "order.create", this.handleOrderWs },
             { "order.amend", this.handleOrderWs },

@@ -39,6 +39,7 @@ class bingx extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLossOrder' => true,
                 'createStopOrder' => true,
                 'createTakeProfitOrder' => true,

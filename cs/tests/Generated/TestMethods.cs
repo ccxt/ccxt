@@ -1118,8 +1118,8 @@ public partial class testMainClass
         } else
         {
             // built-in types like strings, numbers, booleans
-            object sanitizedNewOutput = ((bool) isTrue((!isTrue(newOutput)))) ? null : newOutput; // we store undefined as nulls in the json file so we need to convert it back
-            object sanitizedStoredOutput = ((bool) isTrue((!isTrue(storedOutput)))) ? null : storedOutput;
+            object sanitizedNewOutput = ((bool) isTrue((isNullValue(newOutput)))) ? null : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            object sanitizedStoredOutput = ((bool) isTrue((isNullValue(storedOutput)))) ? null : storedOutput;
             object newOutputString = ((bool) isTrue(sanitizedNewOutput)) ? ((object)sanitizedNewOutput).ToString() : "undefined";
             object storedOutputString = ((bool) isTrue(sanitizedStoredOutput)) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
             object messageError = add(add(add("output value mismatch:", newOutputString), " != "), storedOutputString);
@@ -1143,7 +1143,7 @@ public partial class testMainClass
                 object isUndefined = isTrue(isComputedUndefined) || isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
                 {
-                    if (isTrue(isEqual(this.lang, "C#")))
+                    if (isTrue(isTrue((isEqual(this.lang, "C#"))) || isTrue((isEqual(this.lang, "GO")))))
                     {
                         // tmp c# number comparsion
                         object isNumber = false;
@@ -1729,6 +1729,33 @@ public partial class testMainClass
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
+        object createOrdersRequest = null;
+        try
+        {
+            object orders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "limit" },
+    { "side", "sell" },
+    { "amount", 1 },
+    { "price", 100000 },
+}, new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "market" },
+    { "side", "buy" },
+    { "amount", 1 },
+}};
+            await exchange.createOrders(orders);
+        } catch(Exception e)
+        {
+            createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object batchOrders = getValue(createOrdersRequest, "batchOrders");
+        for (object i = 0; isLessThan(i, getArrayLength(batchOrders)); postFixIncrement(ref i))
+        {
+            object current = getValue(batchOrders, i);
+            object currentClientOrderId = getValue(current, "newClientOrderId");
+            assert(((string)currentClientOrderId).StartsWith(((string)swapIdString)), add(add(add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString));
+        }
         if (!isTrue(isSync()))
         {
             await close(exchange);

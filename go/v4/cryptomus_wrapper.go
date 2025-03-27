@@ -18,14 +18,14 @@ func NewCryptomus(userConfig map[string]interface{}) Cryptomus {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    /**
-     * @method
-     * @name cryptomus#fetchMarkets
-     * @description retrieves data on all markets for the exchange
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
+/**
+ * @method
+ * @name cryptomus#fetchMarkets
+ * @description retrieves data on all markets for the exchange
+ * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
 func (this *Cryptomus) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchMarkets(params...)
     if IsError(res) {
@@ -33,15 +33,15 @@ func (this *Cryptomus) FetchMarkets(params ...interface{}) ([]MarketInterface, e
     }
     return NewMarketInterfaceArray(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
+/**
+ * @method
+ * @name cryptomus#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
 func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
     opts := FetchTickersOptionsStruct{}
@@ -65,17 +65,17 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
     }
     return NewTickers(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.cryptomus.com/personal/market-cap/orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-     */
+/**
+ * @method
+ * @name cryptomus#fetchOrderBook
+ * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
 func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
     opts := FetchOrderBookOptionsStruct{}
@@ -99,17 +99,17 @@ func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOp
     }
     return NewOrderBook(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://doc.cryptomus.com/personal/market-cap/trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
+/**
+ * @method
+ * @name cryptomus#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * @see https://doc.cryptomus.com/personal/market-cap/trades
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
 func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
     opts := FetchTradesOptionsStruct{}
@@ -138,14 +138,14 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
     }
     return NewTradeArray(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://doc.cryptomus.com/personal/converts/balance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-     */
+/**
+ * @method
+ * @name cryptomus#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://doc.cryptomus.com/personal/converts/balance
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ */
 func (this *Cryptomus) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
     if IsError(res) {
@@ -153,23 +153,22 @@ func (this *Cryptomus) FetchBalance(params ...interface{}) (Balances, error) {
     }
     return NewBalances(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#createOrder
-     * @description create a trade order
-     * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-     * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit' or for spot
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of you want to trade in units of the base currency
-     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
+/**
+ * @method
+ * @name cryptomus#createOrder
+ * @description create a trade order
+ * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+ * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit' or for spot
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of you want to trade in units of the base currency
+ * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
     opts := CreateOrderOptionsStruct{}
@@ -193,16 +192,16 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
     }
     return NewOrder(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#cancelOrder
-     * @description cancels an open limit order
-     * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
+/**
+ * @method
+ * @name cryptomus#cancelOrder
+ * @description cancels an open limit order
+ * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
 
     opts := CancelOrderOptionsStruct{}
@@ -259,22 +258,22 @@ func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
     }
     return NewOrderArray(res), nil
 }
-    /**
-     * @method
-     * @name cryptomus#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.direction] order direction 'buy' or 'sell'
-     * @param {string} [params.order_id] order id
-     * @param {string} [params.client_order_id] client order id
-     * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-     * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
+/**
+ * @method
+ * @name cryptomus#fetchOpenOrders
+ * @description fetch all unfilled currently open orders
+ * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+ * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.direction] order direction 'buy' or 'sell'
+ * @param {string} [params.order_id] order id
+ * @param {string} [params.client_order_id] client order id
+ * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+ * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
     opts := FetchOpenOrdersOptionsStruct{}
@@ -307,4 +306,19 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
         return nil, CreateReturnError(res)
     }
     return NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name cryptomus#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ */
+func (this *Cryptomus) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+    res := <- this.Core.FetchTradingFees(params...)
+    if IsError(res) {
+        return TradingFees{}, CreateReturnError(res)
+    }
+    return NewTradingFees(res), nil
 }

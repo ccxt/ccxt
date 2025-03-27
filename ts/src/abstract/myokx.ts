@@ -114,7 +114,9 @@ interface okx {
     privateGetTradeEasyConvertCurrencyList (params?: {}): Promise<implicitReturnType>;
     privateGetTradeEasyConvertHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayCurrencyList (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOneClickRepayCurrencyListV2 (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOneClickRepayHistoryV2 (params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountRateLimit (params?: {}): Promise<implicitReturnType>;
     privateGetAssetCurrencies (params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
@@ -257,6 +259,7 @@ interface okx {
     privatePostTradeCancelAdvanceAlgos (params?: {}): Promise<implicitReturnType>;
     privatePostTradeEasyConvert (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOneClickRepay (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeOneClickRepayV2 (params?: {}): Promise<implicitReturnType>;
     privatePostTradeMassCancel (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
     privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;

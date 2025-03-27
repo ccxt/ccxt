@@ -56,6 +56,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -1633,7 +1634,7 @@ class bitrue(Exchange, ImplicitAPI):
         tickers: dict = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            market = self.market(self.safe_value(ticker, 'symbol'))
+            market = self.safe_market(self.safe_string(ticker, 'symbol'))
             tickers[market['id']] = ticker
         return self.parse_tickers(tickers, symbols)
 
