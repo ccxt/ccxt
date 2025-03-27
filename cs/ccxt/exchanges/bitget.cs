@@ -1702,12 +1702,7 @@ public partial class bitget : Exchange
         {
             await this.loadTimeDifference();
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object types = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "swap"});
-        if (isTrue(sandboxMode))
-        {
-            types = new List<object>() {"swap"};
-        }
         object promises = new List<object>() {};
         object fetchMargins = false;
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))

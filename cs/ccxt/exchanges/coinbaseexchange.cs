@@ -25,6 +25,7 @@ public partial class coinbaseexchange : Exchange
                 { "cancelOrder", true },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
