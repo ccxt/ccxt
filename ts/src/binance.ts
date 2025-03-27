@@ -1327,6 +1327,7 @@ export default class binance extends Exchange {
                     'TRC20': 'TRX',
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
+                    'EOS': 'EOS',
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                     // 'FIAT': 'FIAT_MONEY', // not unified atm
@@ -1366,7 +1367,6 @@ export default class binance extends Exchange {
                     'KLAY': 'KLAY',
                     // HECO - not supported
                     // FSN - not supported
-                    'EOS': 'EOS',
                     'ACA': 'ACA',
                     'STX': 'STX', // STACKS
                     'XTZ': 'XTZ',
