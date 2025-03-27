@@ -192,6 +192,10 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Transport: transport,
 	}
 
+	if IsTrue(IsTrue(this.SafeBool(userConfig, "sandbox")) || IsTrue(this.SafeBool(userConfig, "testnet"))) {
+		this.SetSandboxMode(true)
+	}
+
 	// fmt.Println(this.TransformedApi)
 }
 

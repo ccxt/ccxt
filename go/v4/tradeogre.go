@@ -724,7 +724,7 @@ func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interf
             var currency interface{} = this.SafeString(params, "currency")
             if IsTrue(!IsEqual(currency, nil)) {
                 
-        response = (<-this.callDynamically("privatePostAccountBalance", params))
+        response = (<-this.PrivatePostAccountBalance(params))
                 PanicOnError(response)
                 var singleCurrencyresult interface{} = map[string]interface{} {
                     "info": response,

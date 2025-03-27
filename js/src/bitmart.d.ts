@@ -634,6 +634,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'

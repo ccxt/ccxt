@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.69'
+__version__ = '4.4.70'
 
 # -----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
-from ccxt.base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
+from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ class Exchange(BaseExchange):
     clients = {}
     timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
 
-    def __init__(self, config={}):
+    def __init__(self, config: ConstructorArgs = {}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)

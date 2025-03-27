@@ -57,6 +57,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
+                'createReduceOnlyOrder': True,
                 'createStopLossOrder': True,
                 'createStopOrder': True,
                 'createTakeProfitOrder': True,

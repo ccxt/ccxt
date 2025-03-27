@@ -1810,12 +1810,13 @@ class hyperliquid extends hyperliquid$1 {
             const isTrigger = (stopLossPrice || takeProfitPrice);
             const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
             orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
-            let px = price.toString();
+            let px = this.numberToString(price);
             if (isMarket) {
-                px = (isBuy) ? Precise["default"].stringMul(price.toString(), Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price.toString(), Precise["default"].stringSub('1', slippage));
+                px = (isBuy) ? Precise["default"].stringMul(px, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(px, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px);
             }
             else {
-                px = this.priceToPrecision(symbol, price.toString());
+                px = this.priceToPrecision(symbol, px);
             }
             const sz = this.amountToPrecision(symbol, amount);
             const orderType = {};

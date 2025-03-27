@@ -630,7 +630,7 @@ public partial class tradeogre : Exchange
         object currency = this.safeString(parameters, "currency");
         if (isTrue(!isEqual(currency, null)))
         {
-            response = await ((Task<object>)callDynamically(this, "privatePostAccountBalance", new object[] { parameters }));
+            response = await this.privatePostAccountBalance(parameters);
             object singleCurrencyresult = new Dictionary<string, object>() {
                 { "info", response },
             };

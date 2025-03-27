@@ -555,3 +555,34 @@ export declare type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 export declare type implicitReturnType = any;
 export declare type Market = MarketInterface | undefined;
 export declare type Currency = CurrencyInterface | undefined;
+interface BaseConstructorArgs {
+    apiKey?: string;
+    secret?: string;
+    password?: string;
+    privateKey?: string;
+    walletAddress?: string;
+    uid?: string;
+    verbose?: boolean;
+    sandbox?: boolean;
+    testnet?: boolean;
+    options?: Dict;
+    enableRateLimit?: boolean;
+    httpsProxy?: string;
+    socksProxy?: string;
+    wssProxy?: string;
+    proxy?: string;
+    rateLimit?: number;
+    commonCurrencies?: Dict;
+    userAgent?: string;
+    userAgents?: Dict;
+    timeout?: number;
+    markets?: Dict;
+    currencies?: Dict;
+    hostname?: string;
+    urls?: Dict;
+    headers?: Dict;
+}
+export declare type ConstructorArgs = Partial<BaseConstructorArgs> & {
+    [key: string]: any;
+};
+export {};

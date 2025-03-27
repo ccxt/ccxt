@@ -1966,13 +1966,14 @@ public partial class hyperliquid : Exchange
             object isTrigger = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
             object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new List<object>() {"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"});
-            object px = ((object)price).ToString();
+            object px = this.numberToString(price);
             if (isTrue(isMarket))
             {
-                px = ((bool) isTrue((isBuy))) ? Precise.stringMul(((object)price).ToString(), Precise.stringAdd("1", slippage)) : Precise.stringMul(((object)price).ToString(), Precise.stringSub("1", slippage));
+                px = ((bool) isTrue((isBuy))) ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
+                px = this.priceToPrecision(symbol, px);
             } else
             {
-                px = this.priceToPrecision(symbol, ((object)price).ToString());
+                px = this.priceToPrecision(symbol, px);
             }
             object sz = this.amountToPrecision(symbol, amount);
             object orderType = new Dictionary<string, object>() {};

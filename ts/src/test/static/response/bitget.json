@@ -2,6 +2,76 @@
     "exchange": "bitget",
     "options": {},
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1742811340959,
+                    "data": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "70.09927267",
+                        "crossedMaxAvailable": "70.09927267",
+                        "isolatedMaxAvailable": "70.09927267",
+                        "maxTransferOut": "70.09927267",
+                        "accountEquity": "70.09927267",
+                        "usdtEquity": "70.099272671794",
+                        "btcEquity": "0.000802497907",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": 10,
+                        "isolatedLongLever": 10,
+                        "isolatedShortLever": 10,
+                        "marginMode": "crossed",
+                        "posMode": "one_way_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": "",
+                        "assetMode": "single",
+                        "isolatedMargin": null,
+                        "crossedMargin": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "70.09927267",
+                        "crossedMaxAvailable": "70.09927267",
+                        "isolatedMaxAvailable": "70.09927267",
+                        "maxTransferOut": "70.09927267",
+                        "accountEquity": "70.09927267",
+                        "usdtEquity": "70.099272671794",
+                        "btcEquity": "0.000802497907",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": 10,
+                        "isolatedLongLever": 10,
+                        "isolatedShortLever": 10,
+                        "marginMode": "crossed",
+                        "posMode": "one_way_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": "",
+                        "assetMode": "single",
+                        "isolatedMargin": null,
+                        "crossedMargin": null
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create spot order",

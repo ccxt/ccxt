@@ -48,6 +48,7 @@ class bitmart extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
@@ -265,6 +266,7 @@ class bitmart extends Exchange {
                         'contract/private/submit-tp-sl-order' => 2.5,
                         'contract/private/modify-plan-order' => 2.5,
                         'contract/private/modify-preset-plan-order' => 2.5,
+                        'contract/private/modify-limit-order' => 2.5,
                         'contract/private/modify-tp-sl-order' => 2.5,
                         'contract/private/submit-trail-order' => 2.5, // weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order' => 1.5, // weight is not provided by the exchange, is set order
@@ -5219,6 +5221,7 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
              * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
              * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to edit an order in
@@ -5254,6 +5257,7 @@ class bitmart extends Exchange {
             $isTakeProfit = $takeProfitPrice !== null;
             $isPresetStopLoss = $presetStopLoss !== null;
             $isPresetTakeProfit = $presetTakeProfit !== null;
+            $isLimitOrder = ($type === 'limit');
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -5324,8 +5328,17 @@ class bitmart extends Exchange {
                 //         "trace" => "a5c3234534534a836bc476a203.123452.172716624359200197"
                 //     }
                 //
+            } elseif ($isLimitOrder) {
+                $request['order_id'] = $this->parse_to_int($id); // reparse $id this endpoint is the only one requiring it
+                if ($amount !== null) {
+                    $request['size'] = $this->amount_to_precision($symbol, $amount);
+                }
+                if ($price !== null) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
+                $response = Async\await($this->privatePostContractPrivateModifyLimitOrder ($this->extend($request, $params)));
             } else {
-                throw new NotSupported($this->id . ' editOrder() only supports trigger, stop loss and take profit orders');
+                throw new NotSupported($this->id . ' editOrder() only supports limit, trigger, stop loss and take profit orders');
             }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);

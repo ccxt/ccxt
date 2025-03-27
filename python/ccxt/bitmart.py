@@ -61,6 +61,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -278,6 +279,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5,  # weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order': 1.5,  # weight is not provided by the exchange, is set order
@@ -4875,6 +4877,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
 
         :param str id: order id
         :param str symbol: unified symbol of the market to edit an order in
@@ -4909,6 +4912,7 @@ class bitmart(Exchange, ImplicitAPI):
         isTakeProfit = takeProfitPrice is not None
         isPresetStopLoss = presetStopLoss is not None
         isPresetTakeProfit = presetTakeProfit is not None
+        isLimitOrder = (type == 'limit')
         request: dict = {
             'symbol': market['id'],
         }
@@ -4973,8 +4977,15 @@ class bitmart(Exchange, ImplicitAPI):
             #         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
             #     }
             #
+        elif isLimitOrder:
+            request['order_id'] = self.parse_to_int(id)  # reparse id self endpoint is the only one requiring it
+            if amount is not None:
+                request['size'] = self.amount_to_precision(symbol, amount)
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            response = self.privatePostContractPrivateModifyLimitOrder(self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' editOrder() only supports trigger, stop loss and take profit orders')
+            raise NotSupported(self.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders')
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 

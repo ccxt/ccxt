@@ -52,6 +52,10 @@ class bitget(ccxt.async_support.bitget):
                         'public': 'wss://ws.bitget.com/v2/ws/public',
                         'private': 'wss://ws.bitget.com/v2/ws/private',
                     },
+                    'demo': {
+                        'public': 'wss://wspap.bitget.com/v2/ws/public',
+                        'private': 'wss://wspap.bitget.com/v2/ws/private',
+                    },
                 },
             },
             'options': {
@@ -1697,6 +1701,11 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public(self, messageHash, args, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': [args],
@@ -1706,6 +1715,11 @@ class bitget(ccxt.async_support.bitget):
 
     async def un_watch_public(self, messageHash, args, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'unsubscribe',
             'args': [args],
@@ -1715,6 +1729,12 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public_multiple(self, messageHashes, argsArray, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            argsArrayFirst = self.safe_dict(argsArray, 0, {})
+            instType = self.safe_string(argsArrayFirst, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1724,7 +1744,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(params, 'url')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.future(messageHash)
@@ -1750,8 +1770,13 @@ class bitget(ccxt.async_support.bitget):
         return await future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
-        await self.authenticate()
         url = self.urls['api']['ws']['private']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['private']
+        await self.authenticate({'url': url})
         request: dict = {
             'op': 'subscribe',
             'args': [args],
