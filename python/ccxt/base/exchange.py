@@ -369,7 +369,7 @@ class Exchange(object):
     }
     synchronous = True
 
-    def __init__(self, config: ConstructorArgs ={}):
+    def __init__(self, config: ConstructorArgs = {}):
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 

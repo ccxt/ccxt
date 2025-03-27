@@ -67,7 +67,7 @@ class Exchange(BaseExchange):
     clients = {}
     timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
 
-    def __init__(self, config: ConstructorArgs ={}):
+    def __init__(self, config: ConstructorArgs = {}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)
