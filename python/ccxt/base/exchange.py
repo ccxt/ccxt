@@ -4286,6 +4286,23 @@ class Exchange(object):
             params = self.omit(params, [paramName1, paramName2])
         return [value, params]
 
+    def handle_request_network(self, params: dict, request: dict, exchangeSpecificKey: str, currencyCode: Str = None, isRequired: bool = False):
+        """
+        :param dict params: - extra parameters
+        :param dict request: - existing dictionary of request
+        :param str exchangeSpecificKey: - the key for chain id to be set in request
+        :param dict currencyCode: - (optional) existing dictionary of request
+        :param boolean isRequired: - (optional) whether that param is required to be present
+        :returns dict[]: - returns [request, params] where request is the modified request object and params is the modified params object
+        """
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request[exchangeSpecificKey] = self.network_code_to_id(networkCode, currencyCode)
+        elif isRequired:
+            raise ArgumentsRequired(self.id + ' - "network" param is required for self request')
+        return [request, params]
+
     def resolve_path(self, path, params):
         return [
             self.implode_params(path, params),
