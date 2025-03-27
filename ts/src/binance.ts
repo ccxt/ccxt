@@ -9078,7 +9078,7 @@ export default class binance extends Exchange {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false, 'uppercase');
+        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false);
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
         //
@@ -9451,7 +9451,7 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false, 'uppercase');
+        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false);
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
