@@ -2224,6 +2224,16 @@ class Exchange {
         return strlen($binary);
     }
 
+    public function get_zk_contract_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support create order in PHP language');
+         return "";
+    }
+
+    public function get_zk_transfer_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+         return "";
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -8301,15 +8311,5 @@ class Exchange {
                 }
             }
         }
-    }
-
-    public function get_zk_contract_signature_obj($seed, $params) {
-         throw new NotSupported ('Apex currently does not support create order in PHP language');
-         return "";
-    }
-
-    public function get_zk_transfer_signature_obj($seed, $params) {
-         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
-         return "";
     }
 }
