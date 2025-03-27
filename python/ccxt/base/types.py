@@ -586,7 +586,7 @@ class ConstructorArgs(TypedDict, total=False):
     uid: str
     verbose: bool
     testnet: bool
-    sandbox: bool # redudant but kept for backwards compatibility
+    sandbox: bool  # redudant but kept for backwards compatibility
     options: Dict[str, Any]
     enableRateLimit: bool
     httpsProxy: str
