@@ -1743,11 +1743,7 @@ class bitget extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
-        if ($sandboxMode) {
-            $types = array( 'swap' );
-        }
         $promises = array();
         $fetchMargins = false;
         for ($i = 0; $i < count($types); $i++) {
