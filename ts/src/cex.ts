@@ -32,6 +32,7 @@ export default class cex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
