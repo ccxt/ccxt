@@ -1750,11 +1750,7 @@ export default class bitget extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        let types = this.safeValue(this.options, 'fetchMarkets', ['spot', 'swap']);
-        if (sandboxMode) {
-            types = ['swap'];
-        }
+        const types = this.safeValue(this.options, 'fetchMarkets', ['spot', 'swap']);
         const promises = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
