@@ -39,6 +39,7 @@ class cex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'fetchAccounts': True,

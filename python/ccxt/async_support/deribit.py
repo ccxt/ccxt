@@ -50,6 +50,7 @@ class deribit(Exchange, ImplicitAPI):
                 'cancelOrders': False,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,

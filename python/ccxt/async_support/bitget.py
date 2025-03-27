@@ -1758,10 +1758,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
-        if sandboxMode:
-            types = ['swap']
         promises = []
         fetchMargins = False
         for i in range(0, len(types)):
