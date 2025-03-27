@@ -344,6 +344,9 @@ export default class Exchange {
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error

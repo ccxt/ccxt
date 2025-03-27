@@ -563,6 +563,8 @@ interface BaseConstructorArgs {
     walletAddress?: string;
     uid?: string;
     verbose?: boolean;
+    sandbox?: boolean;
+    testnet?: boolean;
     options?: Dict;
     enableRateLimit?: boolean;
     httpsProxy?: string;
