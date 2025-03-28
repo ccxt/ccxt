@@ -78,7 +78,6 @@ from ccxt.pro.p2b import p2b                                              # noqa
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
-from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.vertex import vertex                                        # noqa: F401
@@ -154,7 +153,6 @@ exchanges = [
     'paradex',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'upbit',
     'vertex',
