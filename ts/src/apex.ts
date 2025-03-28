@@ -360,7 +360,6 @@ export default class apex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        await this.loadMarkets ();
         const response = await this.publicGetV3Symbols (params);
         const data = this.safeDict (response, 'data', {});
         const spotConfig = this.safeDict (data, 'spotConfig', {});
@@ -694,7 +693,8 @@ export default class apex extends Exchange {
         // }
         //
         const timestamp = this.milliseconds ();
-        const marketId = this.safeString (ticker, 'symbol');
+        let marketId = this.safeString (ticker, 'symbol');
+        marketId = this.addHyphenBeforeUsdt (marketId);
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
@@ -798,7 +798,7 @@ export default class apex extends Exchange {
         }
         const response = await this.publicGetV3Klines (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const OHLCVs = this.safeList (data, market['symbol'], []);
+        const OHLCVs = this.safeList (data, market['id'].replace ('-', ''), []);
         return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
     }
 
@@ -940,7 +940,8 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        const marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
+        let marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
+        marketId = this.addHyphenBeforeUsdt (marketId);
         market = this.safeMarket (marketId, market);
         const id = this.safeStringN (trade, [ 'i', 'id' ]);
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
@@ -1007,7 +1008,8 @@ export default class apex extends Exchange {
         // }
         //
         const timestamp = this.milliseconds ();
-        const marketId = this.safeString (interest, 'symbol');
+        let marketId = this.safeString (interest, 'symbol');
+        marketId = this.addHyphenBeforeUsdt (marketId);
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         return this.safeOpenInterest ({
@@ -1229,6 +1231,14 @@ export default class apex extends Exchange {
     generateRandomClientIdOmni (_accountId: string) {
         const accountId = _accountId || this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
+    }
+
+    addHyphenBeforeUsdt (symbol: string) {
+        const index = symbol.toUpperCase ().indexOf ('USDT');
+        if (index > 0 && symbol[index - 1] !== '-') {
+            return symbol.slice (0, index) + '-' + symbol.slice (index);
+        }
+        return symbol;
     }
 
     /**

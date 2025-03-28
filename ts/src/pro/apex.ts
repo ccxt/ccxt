@@ -132,7 +132,8 @@ export default class apex extends apexRest {
         const topic = this.safeString (message, 'topic');
         const trades = data;
         const parts = topic.split ('.');
-        const marketId = this.safeString (parts, 2);
+        let marketId = this.safeString (parts, 2);
+        marketId = this.addHyphenBeforeUsdt (marketId);
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -284,7 +285,8 @@ export default class apex extends apexRest {
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
         const data = this.safeDict (message, 'data', {});
-        const marketId = this.safeString (data, 's');
+        let marketId = this.safeString (data, 's');
+        marketId = this.addHyphenBeforeUsdt (marketId);
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
@@ -406,7 +408,8 @@ export default class apex extends apexRest {
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
-            const marketId = this.safeString (topicParts, topicLength - 1);
+            let marketId = this.safeString (topicParts, topicLength - 1);
+            marketId = this.addHyphenBeforeUsdt (marketId);
             const market = this.safeMarket (marketId, undefined, undefined);
             symbol = market['symbol'];
             const ticker = this.safeDict (this.tickers, symbol, {});
@@ -504,7 +507,8 @@ export default class apex extends apexRest {
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
         const timeframe = this.findTimeframe (timeframeId);
-        const marketId = this.safeString (topicParts, topicLength - 1);
+        let marketId = this.safeString (topicParts, topicLength - 1);
+        marketId = this.addHyphenBeforeUsdt (marketId);
         const isSpot = client.url.indexOf ('spot') > -1;
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
