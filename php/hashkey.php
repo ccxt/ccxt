@@ -2468,8 +2468,10 @@ class hashkey extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
     }
 
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {

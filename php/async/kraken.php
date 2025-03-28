@@ -1644,8 +1644,10 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             // only buy orders are supported by the endpoint
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
