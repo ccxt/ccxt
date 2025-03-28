@@ -1240,7 +1240,7 @@ export default class apex extends Exchange {
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
-                            market = this.markets_by_id[newMarketId];
+                            market = this.markets_by_id[newMarketId][0];
                         }
                     }
                 }
