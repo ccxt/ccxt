@@ -1342,9 +1342,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['cost'] = cost
+        req = {
+            'cost': cost,
+        }
         # only buy side is supported
-        return self.create_order(symbol, 'market', side, 0, None, params)
+        return self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
