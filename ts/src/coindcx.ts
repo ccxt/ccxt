@@ -558,6 +558,7 @@ export default class coindcx extends Exchange {
                 'percentage': this.safeBool (fees, 'percentage'),
                 'tierBased': this.safeBool (fees, 'tierBased'),
                 'feeSide': this.safeString (fees, 'feeSide'),
+                'info': {},
             });
             result.push (market);
         }
