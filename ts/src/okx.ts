@@ -1853,7 +1853,6 @@ export default class okx extends Exchange {
                 } else {
                     // only happens for FIAT currency
                     type = 'fiat';
-                    continue;
                 }
             }
             const firstChain = this.safeDict (chains, 0, {});
