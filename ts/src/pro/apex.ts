@@ -94,7 +94,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const topic = 'recentlyTrade.H.' + market['id'].replace ('-', '');
+            const topic = 'recentlyTrade.H.' + market['id2'];
             topics.push (topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
@@ -132,8 +132,7 @@ export default class apex extends apexRest {
         const topic = this.safeString (message, 'topic');
         const trades = data;
         const parts = topic.split ('.');
-        let marketId = this.safeString (parts, 2);
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -230,7 +229,7 @@ export default class apex extends apexRest {
             if (limit === undefined) {
                 limit = 25;
             }
-            const topic = 'orderBook' + limit.toString () + '.H.' + market['id'].replace ('-', '');
+            const topic = 'orderBook' + limit.toString () + '.H.' + market['id2'];
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -285,8 +284,7 @@ export default class apex extends apexRest {
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
         const data = this.safeDict (message, 'data', {});
-        let marketId = this.safeString (data, 's');
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
@@ -337,7 +335,7 @@ export default class apex extends apexRest {
         const timeStamp = this.milliseconds ().toString ();
         const url = this.urls['api']['ws']['public'] + '&timestamp=' + timeStamp;
         const messageHash = 'ticker:' + symbol;
-        const topic = 'instrumentInfo' + '.H.' + market['id'].replace ('-', '');
+        const topic = 'instrumentInfo' + '.H.' + market['id2'];
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
@@ -361,7 +359,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const topic = 'instrumentInfo' + '.H.' + market['id'].replace ('-', '');
+            const topic = 'instrumentInfo' + '.H.' + market['id2'];
             topics.push (topic);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);
@@ -408,8 +406,7 @@ export default class apex extends apexRest {
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
-            let marketId = this.safeString (topicParts, topicLength - 1);
-            marketId = this.addHyphenBeforeUsdt (marketId);
+            const marketId = this.safeString (topicParts, topicLength - 1);
             const market = this.safeMarket (marketId, undefined, undefined);
             symbol = market['symbol'];
             const ticker = this.safeDict (this.tickers, symbol, {});
@@ -464,7 +461,7 @@ export default class apex extends apexRest {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
-            symbolString = market['id'].replace ('-', '');
+            symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push ('candle.' + timeframeId + '.' + symbolString);
@@ -507,8 +504,7 @@ export default class apex extends apexRest {
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
         const timeframe = this.findTimeframe (timeframeId);
-        let marketId = this.safeString (topicParts, topicLength - 1);
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeString (topicParts, topicLength - 1);
         const isSpot = client.url.indexOf ('spot') > -1;
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);

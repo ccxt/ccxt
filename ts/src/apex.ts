@@ -610,6 +610,7 @@ export default class apex extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
+        const id2 = this.safeString (market, 'crossSymbolName');
         const quoteId = this.safeString (market, 'l2PairId');
         const baseId = this.safeString (market, 'baseTokenId');
         const quote = this.safeString (market, 'settleAssetId');
@@ -622,6 +623,7 @@ export default class apex extends Exchange {
         const makerFee = this.parseNumber ('0.0005');
         return this.safeMarketStructure ({
             'id': id,
+            'id2': id2,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -693,8 +695,7 @@ export default class apex extends Exchange {
         // }
         //
         const timestamp = this.milliseconds ();
-        let marketId = this.safeString (ticker, 'symbol');
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
@@ -744,7 +745,7 @@ export default class apex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'].replace ('-', ''),
+            'symbol': market['id2'],
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -786,7 +787,7 @@ export default class apex extends Exchange {
         const market = this.market (symbol);
         let request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            'symbol': market['id'].replace ('-', ''),
+            'symbol': market['id2'],
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -798,7 +799,7 @@ export default class apex extends Exchange {
         }
         const response = await this.publicGetV3Klines (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const OHLCVs = this.safeList (data, market['id'].replace ('-', ''), []);
+        const OHLCVs = this.safeList (data, market['id2'], []);
         return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
     }
 
@@ -840,7 +841,7 @@ export default class apex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'].replace ('-', ''),
+            'symbol': market['id2'],
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -897,7 +898,7 @@ export default class apex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'].replace ('-', ''),
+            'symbol': market['id2'],
         };
         if (limit === undefined) {
             limit = 500; // default is 500
@@ -940,8 +941,7 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        let marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
         market = this.safeMarket (marketId, market);
         const id = this.safeStringN (trade, [ 'i', 'id' ]);
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
@@ -980,7 +980,7 @@ export default class apex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id'].replace ('-', ''),
+            'symbol': market['id2'],
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -1008,8 +1008,7 @@ export default class apex extends Exchange {
         // }
         //
         const timestamp = this.milliseconds ();
-        let marketId = this.safeString (interest, 'symbol');
-        marketId = this.addHyphenBeforeUsdt (marketId);
+        const marketId = this.safeString (interest, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         return this.safeOpenInterest ({
@@ -1226,6 +1225,28 @@ export default class apex extends Exchange {
             'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
         };
         return this.safeStringUpper (types, type, type);
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (market === undefined && marketId !== undefined) {
+            if (marketId in this.markets) {
+                market = this.markets[marketId];
+            } else if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const newMarketId = this.addHyphenBeforeUsdt (marketId);
+                if (newMarketId in this.markets_by_id) {
+                    const markets = this.markets_by_id[newMarketId];
+                    const numMarkets = markets.length;
+                    if (numMarkets > 0) {
+                        if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
+                            market = this.markets_by_id[newMarketId];
+                        }
+                    }
+                }
+            }
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     generateRandomClientIdOmni (_accountId: string) {
