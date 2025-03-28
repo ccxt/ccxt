@@ -2968,12 +2968,12 @@ export default class Exchange {
                     currency['active'] = active;
                 }
                 // set network 'active' to false if D or W is disabled
-                if (deposit && withdraw) {
-                    currency['networks'][key]['active'] = true;
-                } else if (deposit === undefined && withdraw === undefined) {
-                    currency['networks'][key]['active'] = undefined;
-                } else {
-                    currency['networks'][key]['active'] = false;
+                if (currency['networks'][key]['active'] === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    } else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
