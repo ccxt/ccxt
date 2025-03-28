@@ -1341,6 +1341,7 @@
         }
     },
     "poloniex": {
+        "skipWs": "temporarily skip before new WS api merged",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies"
