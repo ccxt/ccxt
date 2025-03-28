@@ -155,7 +155,7 @@ export default class coindcx extends Exchange {
                 'doc': [
                     'https://docs.coindcx.com/',
                 ],
-                'fees': 'https://docs.coindcx.com/#3-fees-and-charges',
+                'fees': 'https://coindcx.com/fees',
             },
             'api': {
                 'public1': {
@@ -235,11 +235,66 @@ export default class coindcx extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'feeSide': 'quote',
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': this.parseNumber ('0'),
-                    'maker': this.parseNumber ('0'),
+                    'spot': {
+                        'feeSide': 'get',
+                        'tierBased': true,
+                        'percentage': true,
+                        'taker': this.parseNumber ('0,005'),
+                        'maker': this.parseNumber ('0,005'),
+                        'tiers': {
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.005') ],
+                                [ this.parseNumber ('20000000'), this.parseNumber ('0.0042') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.0017') ],
+                                [ this.parseNumber ('750000000'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('5000000000'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('10000000000'), this.parseNumber ('0.0008') ],
+                                [ this.parseNumber ('25000000000'), this.parseNumber ('0.0007') ],
+                                [ this.parseNumber ('100000000000'), this.parseNumber ('0.0005') ],
+                                [ this.parseNumber ('500000000000'), this.parseNumber ('0.0003') ],
+                            ],
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.005') ],
+                                [ this.parseNumber ('20000000'), this.parseNumber ('0.0042') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.0017') ],
+                                [ this.parseNumber ('750000000'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('5000000000'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('10000000000'), this.parseNumber ('0.0008') ],
+                                [ this.parseNumber ('25000000000'), this.parseNumber ('0.0007') ],
+                                [ this.parseNumber ('100000000000'), this.parseNumber ('0.0005') ],
+                                [ this.parseNumber ('500000000000'), this.parseNumber ('0.0003') ],
+                            ],
+                        },
+                    },
+                    'swap': {
+                        'feeSide': 'get',
+                        'tierBased': true,
+                        'percentage': true,
+                        'taker': this.parseNumber ('0,0002'),
+                        'maker': this.parseNumber ('0,0005'),
+                        'tiers': {
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                                [ this.parseNumber ('2000000'), this.parseNumber ('0.0002') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.000175') ],
+                                [ this.parseNumber ('15000000'), this.parseNumber ('0.00015') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.00012') ],
+                                [ this.parseNumber ('100000000'), this.parseNumber ('0.0001') ],
+                                [ this.parseNumber ('500000000'), this.parseNumber ('0.00008') ],
+                                [ this.parseNumber ('1000000000'), this.parseNumber ('0.00007') ],
+                            ],
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                                [ this.parseNumber ('2000000'), this.parseNumber ('0.00048') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.00048') ],
+                                [ this.parseNumber ('15000000'), this.parseNumber ('0.00047') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.00045') ],
+                                [ this.parseNumber ('100000000'), this.parseNumber ('0.00041') ],
+                                [ this.parseNumber ('500000000'), this.parseNumber ('0.00034') ],
+                                [ this.parseNumber ('1000000000'), this.parseNumber ('0.0003') ],
+                            ],
+                        },
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -455,8 +510,6 @@ export default class coindcx extends Exchange {
         const spotMarkets = this.toArray (responseFromSpot);
         const parsedSpotMarkets = this.parseMarkets (spotMarkets);
         const responseFromSwapUSDT = await this.public1GetExchangeV1DerivativesFuturesDataActiveInstruments (params);
-        //
-        //
         const swapMarketsUSDT = this.toArray (responseFromSwapUSDT);
         const parsedSwapMarketsUSDT = this.parseSwapMarkets (swapMarketsUSDT, 'USDT');
         // const request: Dict = {
@@ -472,6 +525,8 @@ export default class coindcx extends Exchange {
 
     parseSwapMarkets (markets: string[], settle: string): Market[] {
         const result = [];
+        const tradingFees = this.safeDict (this.fees, 'trading', {});
+        const fees = this.safeDict (tradingFees, 'swap', {});
         for (let i = 0; i < markets.length; i++) {
             const marketId = this.safeString (markets, i);
             const cleanId = marketId.replace ('B-', '');
@@ -498,6 +553,11 @@ export default class coindcx extends Exchange {
                 'contract': true,
                 'linear': true,
                 'inverse': false,
+                'taker': this.safeNumber (fees, 'taker', 0),
+                'maker': this.safeNumber (fees, 'maker', 0),
+                'percentage': this.safeBool (fees, 'percentage'),
+                'tierBased': this.safeBool (fees, 'tierBased'),
+                'feeSide': this.safeString (fees, 'feeSide'),
             });
             result.push (market);
         }
@@ -633,6 +693,8 @@ export default class coindcx extends Exchange {
         if (active === 'active') {
             isActive = true;
         }
+        const tradingFees = this.safeDict (this.fees, 'trading', {});
+        const fees = this.safeDict (tradingFees, type, {});
         const isInverse = this.safeBool (market, 'is_inverse');
         const isLinear = isSpot ? undefined : (!isInverse);
         return {
@@ -659,8 +721,11 @@ export default class coindcx extends Exchange {
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
-            'maker': this.safeNumber (market, 'maker_fee', 0), // spot markets have no fees yet
+            'taker': this.safeNumber (fees, 'taker', 0),
+            'maker': this.safeNumber (fees, 'maker', 0),
+            'percentage': this.safeBool (fees, 'percentage'),
+            'tierBased': this.safeBool (fees, 'tierBased'),
+            'feeSide': this.safeString (fees, 'feeSide'),
             'precision': {
                 'amount': this.parseNumber (amountPresicionString),
                 'price': this.parseNumber (pricePresicionString),
