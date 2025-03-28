@@ -1164,6 +1164,7 @@ class testMainClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
             'currencies' => $currencies,
