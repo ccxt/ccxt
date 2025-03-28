@@ -320,6 +320,7 @@ export default class apex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
         const response = await this.privateGetV3AccountBalance (params);
         const data = this.safeDict (response, 'data', {});
         return this.parseBalance (data);
@@ -344,6 +345,7 @@ export default class apex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchAccount (params = {}): Promise<Account> {
+        await this.loadMarkets ();
         const response = await this.privateGetV3Account (params);
         const data = this.safeDict (response, 'data', {});
         return this.parseAccount (data);
@@ -358,6 +360,7 @@ export default class apex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        await this.loadMarkets ();
         const response = await this.publicGetV3Symbols (params);
         const data = this.safeDict (response, 'data', {});
         const spotConfig = this.safeDict (data, 'spotConfig', {});
@@ -759,6 +762,7 @@ export default class apex extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
         const response = await this.publicGetV3DataAllTickerInfo (params);
         const tickers = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
@@ -1538,6 +1542,7 @@ export default class apex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
@@ -1565,6 +1570,7 @@ export default class apex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
         const response = await this.privateGetV3OpenOrders ();
         const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, undefined, since, limit);
@@ -1629,6 +1635,7 @@ export default class apex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         if (clientOrderId !== undefined) {
@@ -1810,6 +1817,7 @@ export default class apex extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetV3Account (params);
         const data = this.safeDict (response, 'data', {});
         const positions = this.safeList (data, 'positions', []);
@@ -1834,14 +1842,14 @@ export default class apex extends Exchange {
         // }
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['id'];
+        const symbol = market['symbol'];
         const side = this.safeStringLower (position, 'side');
         let quantity = this.safeString (position, 'size');
         if (side !== 'long') {
             quantity = Precise.stringMul ('-1', quantity);
         }
         const timestamp = this.safeInteger (position, 'updatedTime');
-        let leverage: number = 20;
+        let leverage = 20;
         const customInitialMarginRate = this.safeStringN (position, [ 'customInitialMarginRate', 'customImr' ], '0');
         if (this.precisionFromString (customInitialMarginRate) !== 0) {
             leverage = this.parseToInt (Precise.stringDiv ('1', customInitialMarginRate, 4));

@@ -94,7 +94,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const topic = 'recentlyTrade.H.' + market['symbol'];
+            const topic = 'recentlyTrade.H.' + market['id'].replace ('-', '');
             topics.push (topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
@@ -229,7 +229,7 @@ export default class apex extends apexRest {
             if (limit === undefined) {
                 limit = 25;
             }
-            const topic = 'orderBook' + limit.toString () + '.H.' + market['symbol'];
+            const topic = 'orderBook' + limit.toString () + '.H.' + market['id'].replace ('-', '');
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -335,7 +335,7 @@ export default class apex extends apexRest {
         const timeStamp = this.milliseconds ().toString ();
         const url = this.urls['api']['ws']['public'] + '&timestamp=' + timeStamp;
         const messageHash = 'ticker:' + symbol;
-        const topic = 'instrumentInfo' + '.H.' + market['symbol'];
+        const topic = 'instrumentInfo' + '.H.' + market['id'].replace ('-', '');
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
@@ -359,7 +359,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const topic = 'instrumentInfo' + '.H.' + market['symbol'];
+            const topic = 'instrumentInfo' + '.H.' + market['id'].replace ('-', '');
             topics.push (topic);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);
@@ -461,7 +461,7 @@ export default class apex extends apexRest {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
-            symbolString = market['symbol'];
+            symbolString = market['id'].replace ('-', '');
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push ('candle.' + timeframeId + '.' + symbolString);
@@ -585,7 +585,7 @@ export default class apex extends apexRest {
     /**
      * @method
      * @name apex#watchPositions
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @see https://api-docs.pro.apex.exchange/#private-websocket
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
@@ -623,7 +623,7 @@ export default class apex extends apexRest {
      * @method
      * @name apex#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @see https://api-docs.pro.apex.exchange/#private-websocket
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
