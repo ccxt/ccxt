@@ -199,6 +199,118 @@ func (this *paradex) PublicGetTrades (args ...interface{}) <-chan interface{} {
    return ch
 }
 
+func (this *paradex) PublicGetVaults (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaults", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsBalance (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsBalance", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsConfig (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsConfig", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsPositions (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsPositions", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsSummary (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsSummary", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PublicGetVaultsTransfers (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetVaultsTransfers", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *paradex) PrivateGetAccount (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -215,6 +327,54 @@ func (this *paradex) PrivateGetAccount (args ...interface{}) <-chan interface{} 
    return ch
 }
 
+func (this *paradex) PrivateGetAccountInfo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountInfo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAccountHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAccountMargin (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountMargin", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *paradex) PrivateGetAccountProfile (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -226,6 +386,22 @@ func (this *paradex) PrivateGetAccountProfile (args ...interface{}) <-chan inter
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetAccountProfile", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAccountSubaccounts (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountSubaccounts", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -423,6 +599,22 @@ func (this *paradex) PrivateGetPointsDataMarketProgram (args ...interface{}) <-c
    return ch
 }
 
+func (this *paradex) PrivateGetReferralsQrCode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetReferralsQrCode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *paradex) PrivateGetReferralsSummary (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -450,6 +642,102 @@ func (this *paradex) PrivateGetTransfers (args ...interface{}) <-chan interface{
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetTransfers", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAlgoOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAlgoOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAlgoOrdersHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAlgoOrdersHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetAlgoOrdersAlgoId (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAlgoOrdersAlgoId", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateGetVaultsAccountSummary (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetVaultsAccountSummary", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivatePostAccountMarginMarket (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountMarginMarket", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivatePostAccountProfileMaxSlippage (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountProfileMaxSlippage", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -535,6 +823,70 @@ func (this *paradex) PrivatePostOrders (args ...interface{}) <-chan interface{} 
    return ch
 }
 
+func (this *paradex) PrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostOrdersBatch", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivatePostAlgoOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAlgoOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivatePostVaults (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostVaults", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivatePutOrdersOrderId (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePutOrdersOrderId", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *paradex) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -578,6 +930,22 @@ func (this *paradex) PrivateDeleteOrdersOrderId (args ...interface{}) <-chan int
            }
        }()
        ch <- (<-this.callEndpoint ("privateDeleteOrdersOrderId", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *paradex) PrivateDeleteAlgoOrdersAlgoId (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateDeleteAlgoOrdersAlgoId", parameters))
        PanicOnError(ch)
    }()
    return ch

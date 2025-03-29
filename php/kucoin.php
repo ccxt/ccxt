@@ -2312,8 +2312,10 @@ class kucoin extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {

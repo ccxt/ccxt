@@ -1566,6 +1566,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
@@ -1574,8 +1575,10 @@ export default class bybit extends bybitRest {
         symbol = market['symbol'];
         const url = await this.getUrlByMarketType(symbol, false, 'watchLiquidations', params);
         params = this.cleanParams(params);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'liquidation');
         const messageHash = 'liquidations::' + symbol;
-        const topic = 'liquidation.' + market['id'];
+        const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
             return newLiquidation;
@@ -1584,53 +1587,97 @@ export default class bybit extends bybitRest {
     }
     handleLiquidation(client, message) {
         //
-        //   {
-        //       "data": {
-        //           "price": "0.03803",
-        //           "side": "Buy",
-        //           "size": "1637",
-        //           "symbol": "GALAUSDT",
-        //           "updatedTime": 1673251091822
-        //       },
-        //       "topic": "liquidation.GALAUSDT",
-        //       "ts": 1673251091822,
-        //       "type": "snapshot"
-        //   }
+        //     {
+        //         "data": {
+        //             "price": "0.03803",
+        //             "side": "Buy",
+        //             "size": "1637",
+        //             "symbol": "GALAUSDT",
+        //             "updatedTime": 1673251091822
+        //         },
+        //         "topic": "liquidation.GALAUSDT",
+        //         "ts": 1673251091822,
+        //         "type": "snapshot"
+        //     }
         //
-        const rawLiquidation = this.safeDict(message, 'data', {});
-        const marketId = this.safeString(rawLiquidation, 'symbol');
-        const market = this.safeMarket(marketId, undefined, '', 'contract');
-        const symbol = market['symbol'];
-        const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        let liquidations = this.safeValue(this.liquidations, symbol);
-        if (liquidations === undefined) {
-            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache(limit);
+        //     {
+        //         "topic": "allLiquidation.ROSEUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1739502303204,
+        //         "data": [
+        //             {
+        //                 "T": 1739502302929,
+        //                 "s": "ROSEUSDT",
+        //                 "S": "Sell",
+        //                 "v": "20000",
+        //                 "p": "0.04499"
+        //             }
+        //         ]
+        //     }
+        //
+        if (Array.isArray(message['data'])) {
+            const rawLiquidations = this.safeList(message, 'data', []);
+            for (let i = 0; i < rawLiquidations.length; i++) {
+                const rawLiquidation = rawLiquidations[i];
+                const marketId = this.safeString(rawLiquidation, 's');
+                const market = this.safeMarket(marketId, undefined, '', 'contract');
+                const symbol = market['symbol'];
+                const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+                let liquidations = this.safeValue(this.liquidations, symbol);
+                if (liquidations === undefined) {
+                    const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                    liquidations = new ArrayCache(limit);
+                }
+                liquidations.append(liquidation);
+                this.liquidations[symbol] = liquidations;
+                client.resolve([liquidation], 'liquidations');
+                client.resolve([liquidation], 'liquidations::' + symbol);
+            }
         }
-        liquidations.append(liquidation);
-        this.liquidations[symbol] = liquidations;
-        client.resolve([liquidation], 'liquidations');
-        client.resolve([liquidation], 'liquidations::' + symbol);
+        else {
+            const rawLiquidation = this.safeDict(message, 'data', {});
+            const marketId = this.safeString(rawLiquidation, 'symbol');
+            const market = this.safeMarket(marketId, undefined, '', 'contract');
+            const symbol = market['symbol'];
+            const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve([liquidation], 'liquidations');
+            client.resolve([liquidation], 'liquidations::' + symbol);
+        }
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
-        //    {
-        //        "price": "0.03803",
-        //        "side": "Buy",
-        //        "size": "1637",
-        //        "symbol": "GALAUSDT",
-        //        "updatedTime": 1673251091822
-        //    }
+        //     {
+        //         "price": "0.03803",
+        //         "side": "Buy",
+        //         "size": "1637",
+        //         "symbol": "GALAUSDT",
+        //         "updatedTime": 1673251091822
+        //     }
         //
-        const marketId = this.safeString(liquidation, 'symbol');
+        //     {
+        //         "T": 1739502302929,
+        //         "s": "ROSEUSDT",
+        //         "S": "Sell",
+        //         "v": "20000",
+        //         "p": "0.04499"
+        //     }
+        //
+        const marketId = this.safeString2(liquidation, 'symbol', 's');
         market = this.safeMarket(marketId, market, '', 'contract');
-        const timestamp = this.safeInteger(liquidation, 'updatedTime');
+        const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'T');
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': this.safeNumber(liquidation, 'size'),
+            'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
-            'price': this.safeNumber(liquidation, 'price'),
+            'price': this.safeNumber2(liquidation, 'price', 'p'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2444,6 +2491,7 @@ export default class bybit extends bybitRest {
             'user.openapi.perp.trade': this.handleMyTrades,
             'position': this.handlePositions,
             'liquidation': this.handleLiquidation,
+            'allLiquidation': this.handleLiquidation,
             'pong': this.handlePong,
             'order.create': this.handleOrderWs,
             'order.amend': this.handleOrderWs,

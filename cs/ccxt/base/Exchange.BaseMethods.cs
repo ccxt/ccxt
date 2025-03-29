@@ -315,7 +315,6 @@ public partial class Exchange
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "XBT", "BTC" },
-                { "BCC", "BCH" },
                 { "BCHSV", "BSV" },
             } },
             { "precisionMode", TICK_SIZE },
@@ -3665,6 +3664,31 @@ public partial class Exchange
         return new List<object>() {value, parameters};
     }
 
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    public virtual object handleRequestNetwork(object parameters, object request, object exchangeSpecificKey, object currencyCode = null, object isRequired = null)
+    {
+        isRequired ??= false;
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)request)[(string)exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
+        } else if (isTrue(isRequired))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " - \"network\" param is required for this request")) ;
+        }
+        return new List<object>() {request, parameters};
+    }
+
     public virtual object resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
@@ -3775,7 +3799,7 @@ public partial class Exchange
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
-                if (isTrue(e is NetworkError))
+                if (isTrue(e is OperationFailed))
                 {
                     if (isTrue(isLessThan(i, retries)))
                     {
@@ -3787,9 +3811,11 @@ public partial class Exchange
                         {
                             await this.sleep(retryDelay);
                         }
+                    } else
+                    {
+                        throw e;
                     }
-                }
-                if (isTrue(isGreaterThanOrEqual(i, retries)))
+                } else
                 {
                     throw e;
                 }

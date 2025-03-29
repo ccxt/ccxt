@@ -11,7 +11,7 @@ const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, index
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser, UnsubscribeError } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser, UnsubscribeError } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -344,6 +344,9 @@ export default class Exchange {
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -1574,7 +1577,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -4135,6 +4137,25 @@ export default class Exchange {
         }
         return [value, params];
     }
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
+        }
+        else if (isRequired) {
+            throw new ArgumentsRequired(this.id + ' - "network" param is required for this request');
+        }
+        return [request, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
@@ -4214,7 +4235,7 @@ export default class Exchange {
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
-                if (e instanceof NetworkError) {
+                if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log('Request failed with the error: ' + e.toString() + ', retrying ' + (i + 1).toString() + ' of ' + retries.toString() + '...');
@@ -4222,10 +4243,12 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep(retryDelay);
                         }
-                        // continue; //check this
+                    }
+                    else {
+                        throw e;
                     }
                 }
-                if (i >= retries) {
+                else {
                     throw e;
                 }
             }

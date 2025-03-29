@@ -33,6 +33,7 @@ public partial class bitmart : Exchange
                 { "createOrder", true },
                 { "createOrders", true },
                 { "createPostOnlyOrder", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
@@ -235,6 +236,7 @@ public partial class bitmart : Exchange
                         { "contract/private/submit-tp-sl-order", 2.5 },
                         { "contract/private/modify-plan-order", 2.5 },
                         { "contract/private/modify-preset-plan-order", 2.5 },
+                        { "contract/private/modify-limit-order", 2.5 },
                         { "contract/private/modify-tp-sl-order", 2.5 },
                         { "contract/private/submit-trail-order", 2.5 },
                         { "contract/private/cancel-trail-order", 1.5 },
@@ -5330,6 +5332,7 @@ public partial class bitmart : Exchange
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'
@@ -5368,6 +5371,7 @@ public partial class bitmart : Exchange
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object isPresetStopLoss = !isEqual(presetStopLoss, null);
         object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object isLimitOrder = (isEqual(type, "limit"));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -5419,9 +5423,21 @@ public partial class bitmart : Exchange
                 ((IDictionary<string,object>)request)["preset_take_profit_price"] = this.priceToPrecision(symbol, presetTakeProfit);
             }
             response = await this.privatePostContractPrivateModifyPresetPlanOrder(this.extend(request, parameters));
+        } else if (isTrue(isLimitOrder))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = this.parseToInt(id); // reparse id as int this endpoint is the only one requiring it
+            if (isTrue(!isEqual(amount, null)))
+            {
+                ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            }
+            response = await ((Task<object>)callDynamically(this, "privatePostContractPrivateModifyLimitOrder", new object[] { this.extend(request, parameters) }));
         } else
         {
-            throw new NotSupported ((string)add(this.id, " editOrder() only supports trigger, stop loss and take profit orders")) ;
+            throw new NotSupported ((string)add(this.id, " editOrder() only supports limit, trigger, stop loss and take profit orders")) ;
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);

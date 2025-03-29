@@ -21,8 +21,19 @@ interface Exchange {
     publicGetSystemState (params?: {}): Promise<implicitReturnType>;
     publicGetSystemTime (params?: {}): Promise<implicitReturnType>;
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetVaults (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsBalance (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsConfig (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsPositions (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsSummary (params?: {}): Promise<implicitReturnType>;
+    publicGetVaultsTransfers (params?: {}): Promise<implicitReturnType>;
     privateGetAccount (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountMargin (params?: {}): Promise<implicitReturnType>;
     privateGetAccountProfile (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSubaccounts (params?: {}): Promise<implicitReturnType>;
     privateGetBalance (params?: {}): Promise<implicitReturnType>;
     privateGetFills (params?: {}): Promise<implicitReturnType>;
     privateGetFundingPayments (params?: {}): Promise<implicitReturnType>;
@@ -35,16 +46,28 @@ interface Exchange {
     privateGetOrdersByClientIdClientId (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetPointsDataMarketProgram (params?: {}): Promise<implicitReturnType>;
+    privateGetReferralsQrCode (params?: {}): Promise<implicitReturnType>;
     privateGetReferralsSummary (params?: {}): Promise<implicitReturnType>;
     privateGetTransfers (params?: {}): Promise<implicitReturnType>;
+    privateGetAlgoOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetAlgoOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetAlgoOrdersAlgoId (params?: {}): Promise<implicitReturnType>;
+    privateGetVaultsAccountSummary (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMarginMarket (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountProfileMaxSlippage (params?: {}): Promise<implicitReturnType>;
     privatePostAccountProfileReferralCode (params?: {}): Promise<implicitReturnType>;
     privatePostAccountProfileUsername (params?: {}): Promise<implicitReturnType>;
     privatePostAuth (params?: {}): Promise<implicitReturnType>;
     privatePostOnboarding (params?: {}): Promise<implicitReturnType>;
     privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
+    privatePostAlgoOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostVaults (params?: {}): Promise<implicitReturnType>;
+    privatePutOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersByClientIdClientId (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteAlgoOrdersAlgoId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

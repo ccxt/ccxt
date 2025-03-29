@@ -133,11 +133,11 @@ class tradeogre extends Exchange {
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
                         'chart/{interval}/{market}/{timestamp}' => 1,
+                        'chart/{interval}/{market}' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balance' => 1,
                         'account/balances' => 1,
                         'account/order/{uuid}' => 1,
                     ),
@@ -147,6 +147,7 @@ class tradeogre extends Exchange {
                         'order/cancel' => 1,
                         'orders' => 1,
                         'account/orders' => 1,
+                        'account/balance' => 1,
                     ),
                 ),
             ),
@@ -432,15 +433,15 @@ class tradeogre extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
-            'close' => null,
+            'open' => $this->safe_string($ticker, 'initialprice'),
+            'close' => $this->safe_string($ticker, 'price'),
             'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -454,6 +455,7 @@ class tradeogre extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp of the latest candle in ms
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -462,12 +464,15 @@ class tradeogre extends Exchange {
                 'market' => $market['id'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            if ($since === null) {
-                throw new BadRequest($this->id . ' fetchOHLCV requires a $since argument');
+            $response = null;
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['timestamp'] = $this->parse_to_int($until / 1000);
+                $response = Async\await($this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params)));
             } else {
-                $request['timestamp'] = $since;
+                $response = Async\await($this->publicGetChartIntervalMarket ($this->extend($request, $params)));
             }
-            $response = Async\await($this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -498,9 +503,9 @@ class tradeogre extends Exchange {
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 5),
         );
     }
@@ -609,10 +614,27 @@ class tradeogre extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->currency] $currency to fetch the balance for
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountBalances ($params));
+            $response = null;
+            $currency = $this->safe_string($params, 'currency');
+            if ($currency !== null) {
+                $response = Async\await($this->privatePostAccountBalance ($params));
+                $singleCurrencyresult = array(
+                    'info' => $response,
+                );
+                $code = $this->safe_currency_code($currency);
+                $account = array(
+                    'total' => $this->safe_number($response, 'balance'),
+                    'free' => $this->safe_number($response, 'available'),
+                );
+                $singleCurrencyresult[$code] = $account;
+                return $this->safe_balance($singleCurrencyresult);
+            } else {
+                $response = Async\await($this->privateGetAccountBalances ($params));
+            }
             $result = $this->safe_dict($response, 'balances', array());
             return $this->parse_balance($result);
         }) ();
@@ -789,11 +811,11 @@ class tradeogre extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
-            'amount' => $this->safe_string($order, 'quantity'),
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($order, 'fulfilled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
             'status' => null,
             'fee' => array(
                 'currency' => null,

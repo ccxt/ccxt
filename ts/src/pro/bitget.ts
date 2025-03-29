@@ -48,6 +48,10 @@ export default class bitget extends bitgetRest {
                         'public': 'wss://ws.bitget.com/v2/ws/public',
                         'private': 'wss://ws.bitget.com/v2/ws/private',
                     },
+                    'demo': {
+                        'public': 'wss://wspap.bitget.com/v2/ws/public',
+                        'private': 'wss://wspap.bitget.com/v2/ws/private',
+                    },
                 },
             },
             'options': {
@@ -1190,7 +1194,7 @@ export default class bitget extends bitgetRest {
         } else {
             [ instType, params ] = this.getInstType (market, params);
         }
-        if (type === 'spot') {
+        if (type === 'spot' && (symbol !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
         if (isTrigger) {
@@ -1798,7 +1802,14 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublic (messageHash, args, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString (args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
@@ -1808,7 +1819,14 @@ export default class bitget extends bitgetRest {
     }
 
     async unWatchPublic (messageHash, args, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString (args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request: Dict = {
             'op': 'unsubscribe',
             'args': [ args ],
@@ -1818,7 +1836,15 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublicMultiple (messageHashes, argsArray, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const argsArrayFirst = this.safeDict (argsArray, 0, {});
+            const instType = this.safeString (argsArrayFirst, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request: Dict = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1829,7 +1855,7 @@ export default class bitget extends bitgetRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString (params, 'url');
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
@@ -1857,8 +1883,15 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
+        let url = this.urls['api']['ws']['private'];
+        const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString (args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['private'];
+            }
+        }
+        await this.authenticate ({ 'url': url });
         const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],

@@ -35,6 +35,7 @@ public partial class bingx : Exchange
                 { "createOrder", true },
                 { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLossOrder", true },
                 { "createStopOrder", true },
                 { "createTakeProfitOrder", true },

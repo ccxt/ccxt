@@ -363,6 +363,9 @@ class Exchange {
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -1591,7 +1594,6 @@ class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -4152,6 +4154,25 @@ class Exchange {
         }
         return [value, params];
     }
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
+        }
+        else if (isRequired) {
+            throw new errors.ArgumentsRequired(this.id + ' - "network" param is required for this request');
+        }
+        return [request, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
@@ -4231,7 +4252,7 @@ class Exchange {
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
-                if (e instanceof errors.NetworkError) {
+                if (e instanceof errors.OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log('Request failed with the error: ' + e.toString() + ', retrying ' + (i + 1).toString() + ' of ' + retries.toString() + '...');
@@ -4239,10 +4260,12 @@ class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep(retryDelay);
                         }
-                        // continue; //check this
+                    }
+                    else {
+                        throw e;
                     }
                 }
-                if (i >= retries) {
+                else {
                     throw e;
                 }
             }

@@ -68,5 +68,26 @@ def helper_test_handle_market_type_and_params():
     assert params1 is not None or params2 is not None or params3 is not None or params4 is not None or params5 is not None or params6 is not None
 
 
+def helper_test_handle_network_request():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+        'options': {
+            'networks': {
+                'XYZ': 'Xyz',
+            },
+        },
+    })
+    exchange.currencies = {}  # todo: initialize in C# base files
+    currency_code = 'ETH'  # todo: in future with complex cases
+    # no-case
+    [request1, params1] = exchange.handle_request_network({
+        'network': 'XYZ',
+    }, {}, 'chain_id', currency_code, False)
+    assert not ('network' in params1)
+    assert 'chain_id' in request1
+    assert request1['chain_id'] == 'Xyz'
+
+
 def test_handle_methods():
     helper_test_handle_market_type_and_params()
+    helper_test_handle_network_request()

@@ -557,7 +557,7 @@ func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrders
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -1547,6 +1547,7 @@ func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
  * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
  * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to edit an order in
  * @param {string} type 'market' or 'limit'
