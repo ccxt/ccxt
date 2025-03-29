@@ -394,6 +394,7 @@ public partial class poloniex : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "limit", 100 },
