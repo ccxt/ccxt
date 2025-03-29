@@ -171,6 +171,10 @@ type IExchange interface {
 	CallInternal(name2 string, args ...interface{}) <-chan interface{}
 	WarmUpCache()
 	GetItf() interface{}
+	ConvertToSafeDictionary(data interface{}) interface{}
+	CreateSafeDictionary() interface{}
+	SetOptions(options interface{})
+	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
@@ -230,4 +234,5 @@ type IDerivedExchange interface {
 	SetMarkets(markets interface{}, optionalArgs ...interface{}) interface{}
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
+	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
 }

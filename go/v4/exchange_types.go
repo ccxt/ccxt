@@ -837,6 +837,29 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 	}
 }
 
+func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} {
+	var result []interface{}
+	for _, orderRequest := range orderRequests {
+		symbol := *orderRequest.Symbol
+		orderType := *orderRequest.Type
+		side := *orderRequest.Side
+		amount := *orderRequest.Amount
+		price := *orderRequest.Price
+		parameters := orderRequest.Parameters
+		individualOrderRequest := map[string]interface{}{
+			"symbol": symbol,
+			"type":   orderType,
+			"side":   side,
+			"amount": amount,
+			"price":  price,
+			"params": parameters,
+		}
+		result = append(result, individualOrderRequest)
+	}
+
+	return result
+}
+
 type LastPrice struct {
 	Symbol    *string
 	Timestamp *int64

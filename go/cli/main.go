@@ -23,10 +23,7 @@ const (
 	ROOT_DIR = "/../"
 )
 
-var rateLimit = true
-var verbose = false
 var noKeys = false
-var timeIt = false
 
 func getRandomKeyFromList(list []string) string {
 	randomIndex := rand.IntN(len(list) - 1)
@@ -337,28 +334,27 @@ func IoFileExists(path interface{}) bool {
 	}
 }
 
-func InitOptions(instance ccxt.IExchange, flags []string) {
+func InitOptions(flags []string) map[string]interface{} {
+	settings := make(map[string]interface{})
 	if containsStr(flags, "--verbose") {
-		// instance.SetVerbose(true)
-		verbose = true
+		settings["verbose"] = true
+	}
+
+	if containsStr(flags, "--no-rate") {
+		settings["ratelimit"] = false
+	}
+
+	if containsStr(flags, "--sandbox") {
+		settings["options"] = map[string]interface{}{
+			"sandbox": true,
+		}
 	}
 
 	if containsStr(flags, "--no-keys") {
 		noKeys = true
 	}
 
-	if containsStr(flags, "--sandbox") {
-		instance.SetSandboxMode(true)
-	}
-
-	if containsStr(flags, "--time") {
-		timeIt = true
-	}
-
-	if containsStr(flags, "--rate") {
-		rateLimit = false
-	}
-
+	return settings
 }
 
 func PrettyPrintData(data interface{}) {
@@ -419,7 +415,8 @@ func main() {
 	fmt.Println("Exchange name: ", Green+exchangeName+Reset)
 	fmt.Println("Method: ", Green+method+Reset)
 
-	exchangeFile := GetRootDir() + "exchanges.json"
+	rootDir := GetRootDir()
+	exchangeFile := rootDir + "exchanges.json"
 
 	if !IoFileExists(exchangeFile) {
 		panic(Red + "exchanges.json file not found" + Reset)
@@ -460,27 +457,35 @@ func main() {
 		}
 	}
 
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, nil)
+	var settings interface{}
+	keyFile := rootDir + "keys.local.json"
+	if IoFileExists(keyFile) {
+		settings = IoFileRead(keyFile)
+	} else {
+		keyFile = rootDir + "keys.json"
+		if IoFileExists(keyFile) {
+			settings = IoFileRead(keyFile)
+		}
+	}
+	settingsMap := settings.(map[string]interface{})
+	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]interface{})
+	if !hasSettings {
+		exchangeSettings = nil
+	}
+
+	exchange := ccxt.Exchange{}
+	cmdSettings := InitOptions(flags)
+	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 
 	if !suc {
 		panic(suc)
 	}
-
-	InitOptions(instance, flags)
 
 	if !noKeys {
 		SetCredentials(instance)
 	}
 
 	<-instance.LoadMarkets()
-
-	if verbose {
-		instance.SetVerbose(true)
-	}
-
-	if !rateLimit {
-		instance.SetRateLimit(false)
-	}
 
 	before := time.Now().UnixMilli()
 

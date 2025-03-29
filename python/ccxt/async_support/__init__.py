@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.62'
+__version__ = '4.4.71'
 
 # -----------------------------------------------------------------------------
 
@@ -114,10 +114,11 @@ from ccxt.async_support.coinone import coinone                                  
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
-from ccxt.async_support.currencycom import currencycom                          # noqa: F401
+from ccxt.async_support.cryptomus import cryptomus                              # noqa: F401
 from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
+from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
@@ -158,7 +159,6 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
-from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -226,10 +226,11 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
-    'currencycom',
+    'cryptomus',
     'defx',
     'delta',
     'deribit',
+    'derive',
     'digifinex',
     'ellipx',
     'exmo',
@@ -270,7 +271,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'timex',
     'tokocrypto',

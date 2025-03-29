@@ -1118,8 +1118,8 @@ public partial class testMainClass
         } else
         {
             // built-in types like strings, numbers, booleans
-            object sanitizedNewOutput = ((bool) isTrue((!isTrue(newOutput)))) ? null : newOutput; // we store undefined as nulls in the json file so we need to convert it back
-            object sanitizedStoredOutput = ((bool) isTrue((!isTrue(storedOutput)))) ? null : storedOutput;
+            object sanitizedNewOutput = ((bool) isTrue((isNullValue(newOutput)))) ? null : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            object sanitizedStoredOutput = ((bool) isTrue((isNullValue(storedOutput)))) ? null : storedOutput;
             object newOutputString = ((bool) isTrue(sanitizedNewOutput)) ? ((object)sanitizedNewOutput).ToString() : "undefined";
             object storedOutputString = ((bool) isTrue(sanitizedStoredOutput)) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
             object messageError = add(add(add("output value mismatch:", newOutputString), " != "), storedOutputString);
@@ -1143,7 +1143,7 @@ public partial class testMainClass
                 object isUndefined = isTrue(isComputedUndefined) || isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
                 {
-                    if (isTrue(isEqual(this.lang, "C#")))
+                    if (isTrue(isTrue((isEqual(this.lang, "C#"))) || isTrue((isEqual(this.lang, "GO")))))
                     {
                         // tmp c# number comparsion
                         object isNumber = false;
@@ -1376,6 +1376,7 @@ public partial class testMainClass
     {
         object markets = this.loadMarketsFromFile(exchangeName);
         object currencies = this.loadCurrenciesFromFile(exchangeName);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
             { "markets", markets },
             { "currencies", currencies },
@@ -1491,8 +1492,7 @@ public partial class testMainClass
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
-                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
-                exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
+                exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
         if (!isTrue(isSync()))
@@ -1685,7 +1685,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1730,6 +1730,33 @@ public partial class testMainClass
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
+        object createOrdersRequest = null;
+        try
+        {
+            object orders = new List<object>() {new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "limit" },
+    { "side", "sell" },
+    { "amount", 1 },
+    { "price", 100000 },
+}, new Dictionary<string, object>() {
+    { "symbol", "BTC/USDT:USDT" },
+    { "type", "market" },
+    { "side", "buy" },
+    { "amount", 1 },
+}};
+            await exchange.createOrders(orders);
+        } catch(Exception e)
+        {
+            createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object batchOrders = getValue(createOrdersRequest, "batchOrders");
+        for (object i = 0; isLessThan(i, getArrayLength(batchOrders)); postFixIncrement(ref i))
+        {
+            object current = getValue(batchOrders, i);
+            object currentClientOrderId = getValue(current, "newClientOrderId");
+            assert(((string)currentClientOrderId).StartsWith(((string)swapIdString)), add(add(add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString));
+        }
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -2376,6 +2403,54 @@ public partial class testMainClass
         }
         object id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "X-DEFX-SOURCE"), id), add(add("defx - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testCryptomus()
+    {
+        Exchange exchange = this.initOfflineExchange("cryptomus");
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "sell", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object tag = "ccxt";
+        assert(isEqual(getValue(request, "tag"), tag), add(add("cryptomus - tag: ", tag), " not in request."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testDerive()
+    {
+        Exchange exchange = this.initOfflineExchange("derive");
+        object id = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
+        assert(isEqual(getValue(exchange.options, "id"), id), add(add("derive - id: ", id), " not in options"));
+        object request = null;
+        try
+        {
+            object parameters = new Dictionary<string, object>() {
+                { "subaccount_id", 1234 },
+                { "max_fee", 10 },
+                { "deriveWalletAddress", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749" },
+            };
+            exchange.walletAddress = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
+            exchange.privateKey = "0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5";
+            await exchange.createOrder("LBTC/USDC", "limit", "sell", 0.01, 3000, parameters);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(request, "referral_code"), id), add(add("derive - referral_code: ", id), " not in request."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

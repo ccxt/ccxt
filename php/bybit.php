@@ -245,6 +245,8 @@ class bybit extends Exchange {
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
+                        // earn
+                        'v5/earn/product' => 5,
                     ),
                 ),
                 'private' => array(
@@ -403,6 +405,9 @@ class bybit extends Exchange {
                         'v5/broker/earnings-info' => 5,
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
+                        // earn
+                        'v5/earn/order' => 5,
+                        'v5/earn/position' => 5,
                     ),
                     'post' => array(
                         // spot
@@ -538,6 +543,8 @@ class bybit extends Exchange {
                         'v5/broker/award/info' => 5,
                         'v5/broker/award/distribute-award' => 5,
                         'v5/broker/award/distribution-record' => 5,
+                        // earn
+                        'v5/earn/place-order' => 5,
                     ),
                 ),
             ),
@@ -1331,7 +1338,7 @@ class bybit extends Exchange {
                 // so we're assuming UTA is enabled
                 $this->options['enableUnifiedMargin'] = false;
                 $this->options['enableUnifiedAccount'] = true;
-                $this->options['unifiedMarginStatus'] = 3;
+                $this->options['unifiedMarginStatus'] = 6;
                 return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
             }
             $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
@@ -1397,7 +1404,7 @@ class bybit extends Exchange {
             $accountResult = $this->safe_dict($accountInfo, 'result', array());
             $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
             $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
-            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
     }
@@ -3416,7 +3423,7 @@ class bybit extends Exchange {
         $isInverse = ($type === 'inverse');
         $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
         if ($isUnifiedAccount) {
-            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
             if ($unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if ($isInverse) {
@@ -4188,7 +4195,7 @@ class bybit extends Exchange {
         }
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($symbols[0]);
-        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         $category = null;
         list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
@@ -4404,7 +4411,7 @@ class bybit extends Exchange {
         }
         $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($orderSymbols[0]);
-        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+        $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 6);
         $category = null;
         list($category, $params) = $this->get_bybit_type('editOrders', $market, $params);
         if (($category === 'inverse') && ($unifiedMarginStatus < 5)) {
@@ -9308,7 +9315,7 @@ class bybit extends Exchange {
             } else {
                 $feedback = $this->id . ' ' . $body;
             }
-            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal')) {
+            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal') > -1) {
                 $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
             }
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

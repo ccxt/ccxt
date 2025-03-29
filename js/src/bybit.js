@@ -252,6 +252,8 @@ export default class bybit extends Exchange {
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
+                        // earn
+                        'v5/earn/product': 5,
                     },
                 },
                 'private': {
@@ -410,6 +412,9 @@ export default class bybit extends Exchange {
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        // earn
+                        'v5/earn/order': 5,
+                        'v5/earn/position': 5,
                     },
                     'post': {
                         // spot
@@ -545,6 +550,8 @@ export default class bybit extends Exchange {
                         'v5/broker/award/info': 5,
                         'v5/broker/award/distribute-award': 5,
                         'v5/broker/award/distribution-record': 5,
+                        // earn
+                        'v5/earn/place-order': 5,
                     },
                 },
             },
@@ -1337,7 +1344,7 @@ export default class bybit extends Exchange {
                 // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
-                this.options['unifiedMarginStatus'] = 3;
+                this.options['unifiedMarginStatus'] = 6;
                 return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
             }
             const rawPromises = [this.privateGetV5UserQueryApi(params), this.privateGetV5AccountInfo(params)];
@@ -1403,7 +1410,7 @@ export default class bybit extends Exchange {
             const accountResult = this.safeDict(accountInfo, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
-            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
     }
@@ -3437,7 +3444,7 @@ export default class bybit extends Exchange {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
             if (unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if (isInverse) {
@@ -4235,7 +4242,7 @@ export default class bybit extends Exchange {
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
-        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
         let category = undefined;
         [category, params] = this.getBybitType('createOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
@@ -4451,7 +4458,7 @@ export default class bybit extends Exchange {
         }
         orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbols[0]);
-        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+        const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
         let category = undefined;
         [category, params] = this.getBybitType('editOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
@@ -9311,7 +9318,7 @@ export default class bybit extends Exchange {
             else {
                 feedback = this.id + ' ' + body;
             }
-            if (body.indexOf('Withdraw address chain or destination tag are not equal')) {
+            if (body.indexOf('Withdraw address chain or destination tag are not equal') > -1) {
                 feedback = feedback + '; You might also need to ensure the address is whitelisted';
             }
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

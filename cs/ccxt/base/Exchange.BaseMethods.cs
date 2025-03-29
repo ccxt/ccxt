@@ -224,6 +224,7 @@ public partial class Exchange
                 { "watchOHLCV", null },
                 { "watchOHLCVForSymbols", null },
                 { "watchOrderBook", null },
+                { "watchBidsAsks", null },
                 { "watchOrderBookForSymbols", null },
                 { "watchOrders", null },
                 { "watchOrdersForSymbols", null },
@@ -314,7 +315,6 @@ public partial class Exchange
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "XBT", "BTC" },
-                { "BCC", "BCH" },
                 { "BCHSV", "BSV" },
             } },
             { "precisionMode", TICK_SIZE },
@@ -1640,6 +1640,9 @@ public partial class Exchange
     public virtual object safeCurrencyStructure(object currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        object currencyDeposit = this.safeBool(currency, "deposit");
+        object currencyWithdraw = this.safeBool(currency, "withdraw");
+        object currencyActive = this.safeBool(currency, "active");
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)networks).Keys);
         object length = getArrayLength(keys);
@@ -1649,17 +1652,17 @@ public partial class Exchange
             {
                 object network = getValue(networks, getValue(keys, i));
                 object deposit = this.safeBool(network, "deposit");
-                if (isTrue(isTrue(isEqual(getValue(currency, "deposit"), null)) || isTrue(deposit)))
+                if (isTrue(isTrue(isEqual(currencyDeposit, null)) || isTrue(deposit)))
                 {
                     ((IDictionary<string,object>)currency)["deposit"] = deposit;
                 }
                 object withdraw = this.safeBool(network, "withdraw");
-                if (isTrue(isTrue(isEqual(getValue(currency, "withdraw"), null)) || isTrue(withdraw)))
+                if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
                 }
                 object active = this.safeBool(network, "active");
-                if (isTrue(isTrue(isEqual(getValue(currency, "active"), null)) || isTrue(active)))
+                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
                 {
                     ((IDictionary<string,object>)currency)["active"] = active;
                 }
@@ -3322,7 +3325,11 @@ public partial class Exchange
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
                 object defaultNetworkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = ((bool) isTrue((inOp(indexedNetworkEntries, defaultNetworkId)))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
+                if (isTrue(inOp(indexedNetworkEntries, defaultNetworkId)))
+                {
+                    return defaultNetworkId;
+                }
+                throw new NotSupported ((string)add(add(this.id, " - can not determine the default network, please pass param[\"network\"] one from : "), String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
             }
         }
         return chosenNetworkId;
@@ -3657,6 +3664,31 @@ public partial class Exchange
         return new List<object>() {value, parameters};
     }
 
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    public virtual object handleRequestNetwork(object parameters, object request, object exchangeSpecificKey, object currencyCode = null, object isRequired = null)
+    {
+        isRequired ??= false;
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)request)[(string)exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
+        } else if (isTrue(isRequired))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " - \"network\" param is required for this request")) ;
+        }
+        return new List<object>() {request, parameters};
+    }
+
     public virtual object resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
@@ -3767,7 +3799,7 @@ public partial class Exchange
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
-                if (isTrue(e is NetworkError))
+                if (isTrue(e is OperationFailed))
                 {
                     if (isTrue(isLessThan(i, retries)))
                     {
@@ -3779,9 +3811,11 @@ public partial class Exchange
                         {
                             await this.sleep(retryDelay);
                         }
+                    } else
+                    {
+                        throw e;
                     }
-                }
-                if (isTrue(isGreaterThanOrEqual(i, retries)))
+                } else
                 {
                     throw e;
                 }

@@ -266,6 +266,8 @@ class bybit(Exchange, ImplicitAPI):
                         # institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
+                        # earn
+                        'v5/earn/product': 5,
                     },
                 },
                 'private': {
@@ -424,6 +426,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        # earn
+                        'v5/earn/order': 5,
+                        'v5/earn/position': 5,
                     },
                     'post': {
                         # spot
@@ -559,6 +564,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/award/info': 5,
                         'v5/broker/award/distribute-award': 5,
                         'v5/broker/award/distribution-record': 5,
+                        # earn
+                        'v5/earn/place-order': 5,
                     },
                 },
             },
@@ -1345,7 +1352,7 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
-                self.options['unifiedMarginStatus'] = 3
+                self.options['unifiedMarginStatus'] = 6
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = rawPromises
@@ -1410,7 +1417,7 @@ class bybit(Exchange, ImplicitAPI):
             accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
-            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 6)  # default to uta 2.0 pro if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     def upgrade_unified_trade_account(self, params={}):
@@ -3303,7 +3310,7 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
             if unifiedMarginStatus < 5:
                 # it's not uta.20 where inverse are unified
                 if isInverse:
@@ -4008,7 +4015,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
@@ -4207,7 +4214,7 @@ class bybit(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbols[0])
-        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('editOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
@@ -8825,7 +8832,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
             else:
                 feedback = self.id + ' ' + body
-            if body.find('Withdraw address chain or destination tag are not equal'):
+            if body.find('Withdraw address chain or destination tag are not equal') > -1:
                 feedback = feedback + '; You might also need to ensure the address is whitelisted'
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

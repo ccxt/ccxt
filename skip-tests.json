@@ -1385,10 +1385,13 @@
         }
     },
     "poloniex": {
+        "skipWs": "temporarily skip before new WS api merged",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies",
-                "created": "buggy timestamps https://app.travis-ci.com/github/ccxt/ccxt/builds/270243654#L5259"
+                "created": "buggy timestamps https://app.travis-ci.com/github/ccxt/ccxt/builds/270243654#L5259",
+                "taker": "not provided",
+                "maker": "same"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
@@ -1405,14 +1408,6 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
-            }
-        }
-    },
-    "poloniexfutures": {
-        "skipCSharp": "too flaky, check the reason later",
-        "skipMethods": {
-            "watchOrderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269769010#L3644"
             }
         }
     },
@@ -1790,6 +1785,33 @@
                 "precision": "not provided"
             },
             "loadMarkets": "linear and inverse values are same"
+        }
+    },
+    "derive": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currency": "messed",
+                "currencyIdAndCode": "messed"
+            }
+        }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": {
+                "active":"not provided",
+                "precision": "not provided",
+                "limits": "not provided"
+            },
+            "fetchOrderBook": "best ask is not always greater than best bid",
+            "fetchL2OrderBook": "same",
+            "fetchTrades": {
+                "price": "sometimes is not set",
+                "amount": "same",
+                "cost": "same"
+            }
         }
     }
 }

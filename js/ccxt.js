@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.62';
+const version = '4.4.71';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -92,10 +92,11 @@ import coinone from './src/coinone.js';
 import coinsph from './src/coinsph.js';
 import coinspot from './src/coinspot.js';
 import cryptocom from './src/cryptocom.js';
-import currencycom from './src/currencycom.js';
+import cryptomus from './src/cryptomus.js';
 import defx from './src/defx.js';
 import delta from './src/delta.js';
 import deribit from './src/deribit.js';
+import derive from './src/derive.js';
 import digifinex from './src/digifinex.js';
 import ellipx from './src/ellipx.js';
 import exmo from './src/exmo.js';
@@ -136,7 +137,6 @@ import paradex from './src/paradex.js';
 import paymium from './src/paymium.js';
 import phemex from './src/phemex.js';
 import poloniex from './src/poloniex.js';
-import poloniexfutures from './src/poloniexfutures.js';
 import probit from './src/probit.js';
 import timex from './src/timex.js';
 import tokocrypto from './src/tokocrypto.js';
@@ -185,9 +185,9 @@ import coincheckPro from './src/pro/coincheck.js';
 import coinexPro from './src/pro/coinex.js';
 import coinonePro from './src/pro/coinone.js';
 import cryptocomPro from './src/pro/cryptocom.js';
-import currencycomPro from './src/pro/currencycom.js';
 import defxPro from './src/pro/defx.js';
 import deribitPro from './src/pro/deribit.js';
+import derivePro from './src/pro/derive.js';
 import exmoPro from './src/pro/exmo.js';
 import gatePro from './src/pro/gate.js';
 import gateioPro from './src/pro/gateio.js';
@@ -218,7 +218,6 @@ import p2bPro from './src/pro/p2b.js';
 import paradexPro from './src/pro/paradex.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
-import poloniexfuturesPro from './src/pro/poloniexfutures.js';
 import probitPro from './src/pro/probit.js';
 import upbitPro from './src/pro/upbit.js';
 import vertexPro from './src/pro/vertex.js';
@@ -278,10 +277,11 @@ const exchanges = {
     'coinsph': coinsph,
     'coinspot': coinspot,
     'cryptocom': cryptocom,
-    'currencycom': currencycom,
+    'cryptomus': cryptomus,
     'defx': defx,
     'delta': delta,
     'deribit': deribit,
+    'derive': derive,
     'digifinex': digifinex,
     'ellipx': ellipx,
     'exmo': exmo,
@@ -322,7 +322,6 @@ const exchanges = {
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
-    'poloniexfutures': poloniexfutures,
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
@@ -372,9 +371,9 @@ const pro = {
     'coinex': coinexPro,
     'coinone': coinonePro,
     'cryptocom': cryptocomPro,
-    'currencycom': currencycomPro,
     'defx': defxPro,
     'deribit': deribitPro,
+    'derive': derivePro,
     'exmo': exmoPro,
     'gate': gatePro,
     'gateio': gateioPro,
@@ -405,7 +404,6 @@ const pro = {
     'paradex': paradexPro,
     'phemex': phemexPro,
     'poloniex': poloniexPro,
-    'poloniexfutures': poloniexfuturesPro,
     'probit': probitPro,
     'upbit': upbitPro,
     'vertex': vertexPro,
@@ -426,6 +424,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitcoincom, bitfinex, bitfinex1, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, defx, delta, deribit, digifinex, ellipx, exmo, fmfwio, gate, gateio, gemini, hashkey, hitbtc, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, mercado, mexc, myokx, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitcoincom, bitfinex, bitfinex1, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, defx, delta, deribit, derive, digifinex, ellipx, exmo, fmfwio, gate, gateio, gemini, hashkey, hitbtc, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, mercado, mexc, myokx, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

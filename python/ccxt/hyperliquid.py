@@ -60,6 +60,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
@@ -836,7 +837,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': response,
             'USDC': {
                 'total': self.safe_number(data, 'accountValue'),
-                'free': self.safe_number(response, 'withdrawable'),
+                'used': self.safe_number(data, 'totalMarginUsed'),
             },
         }
         timestamp = self.safe_integer(response, 'time')
@@ -1355,7 +1356,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        order, globalParams = self.parse_create_order_args(symbol, type, side, amount, price, params)
+        order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         orders = self.create_orders([order], globalParams)
         return orders[0]
 
@@ -1709,74 +1710,98 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    def edit_order_request(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+    def edit_orders_request(self, orders, params={}):
         self.check_required_credentials()
-        if id is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
-        market = self.market(symbol)
-        type = type.upper()
-        isMarket = (type == 'MARKET')
-        side = side.upper()
-        isBuy = (side == 'BUY')
-        defaultSlippage = self.safe_string(self.options, 'defaultSlippage')
-        slippage = self.safe_string(params, 'slippage', defaultSlippage)
-        defaultTimeInForce = 'ioc' if (isMarket) else 'gtc'
-        postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly:
-            defaultTimeInForce = 'alo'
-        timeInForce = self.safe_string_lower(params, 'timeInForce', defaultTimeInForce)
-        timeInForce = self.capitalize(timeInForce)
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
-        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        isTrigger = (stopLossPrice or takeProfitPrice)
-        params = self.omit(params, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id'])
-        px = str(price)
-        if isMarket:
-            px = str(Precise.string_mul(price), Precise.string_add('1', slippage)) if (isBuy) else str(Precise.string_mul(price), Precise.string_sub('1', slippage))
-        else:
-            px = self.price_to_precision(symbol, str(price))
-        sz = self.amount_to_precision(symbol, amount)
-        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        orderType: dict = {}
-        if isTrigger:
-            isTp = False
-            if takeProfitPrice is not None:
-                triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
-                isTp = True
+        hasClientOrderId = False
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
+            if clientOrderId is not None:
+                hasClientOrderId = True
+        if hasClientOrderId:
+            for i in range(0, len(orders)):
+                rawOrder = orders[i]
+                orderParams = self.safe_dict(rawOrder, 'params', {})
+                clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
+                if clientOrderId is None:
+                    raise ArgumentsRequired(self.id + ' editOrders() all orders must have clientOrderId if at least one has a clientOrderId')
+        params = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce'])
+        modifies = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            id = self.safe_string(rawOrder, 'id')
+            marketId = self.safe_string(rawOrder, 'symbol')
+            market = self.market(marketId)
+            symbol = market['symbol']
+            type = self.safe_string_upper(rawOrder, 'type')
+            isMarket = (type == 'MARKET')
+            side = self.safe_string_upper(rawOrder, 'side')
+            isBuy = (side == 'BUY')
+            amount = self.safe_string(rawOrder, 'amount')
+            price = self.safe_string(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            defaultSlippage = self.safe_string(self.options, 'defaultSlippage')
+            slippage = self.safe_string(orderParams, 'slippage', defaultSlippage)
+            defaultTimeInForce = 'ioc' if (isMarket) else 'gtc'
+            postOnly = self.safe_bool(orderParams, 'postOnly', False)
+            if postOnly:
+                defaultTimeInForce = 'alo'
+            timeInForce = self.safe_string_lower(orderParams, 'timeInForce', defaultTimeInForce)
+            timeInForce = self.capitalize(timeInForce)
+            clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
+            triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
+            stopLossPrice = self.safe_string(orderParams, 'stopLossPrice', triggerPrice)
+            takeProfitPrice = self.safe_string(orderParams, 'takeProfitPrice')
+            isTrigger = (stopLossPrice or takeProfitPrice)
+            reduceOnly = self.safe_bool(orderParams, 'reduceOnly', False)
+            orderParams = self.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly'])
+            px = self.number_to_string(price)
+            if isMarket:
+                px = Precise.string_mul(px, Precise.string_add('1', slippage)) if (isBuy) else Precise.string_mul(px, Precise.string_sub('1', slippage))
+                px = self.price_to_precision(symbol, px)
             else:
-                triggerPrice = self.price_to_precision(symbol, stopLossPrice)
-            orderType['trigger'] = {
-                'isMarket': isMarket,
-                'triggerPx': triggerPrice,
-                'tpsl': 'tp' if (isTp) else 'sl',
+                px = self.price_to_precision(symbol, px)
+            sz = self.amount_to_precision(symbol, amount)
+            orderType: dict = {}
+            if isTrigger:
+                isTp = False
+                if takeProfitPrice is not None:
+                    triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    isTp = True
+                else:
+                    triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': triggerPrice,
+                    'tpsl': 'tp' if (isTp) else 'sl',
+                }
+            else:
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                }
+            if triggerPrice is None:
+                triggerPrice = '0'
+            orderReq: dict = {
+                'a': self.parse_to_int(market['baseId']),
+                'b': isBuy,
+                'p': px,
+                's': sz,
+                'r': reduceOnly,
+                't': orderType,
+                # 'c': clientOrderId,
             }
-        else:
-            orderType['limit'] = {
-                'tif': timeInForce,
+            if clientOrderId is not None:
+                orderReq['c'] = clientOrderId
+            modifyReq: dict = {
+                'oid': self.parse_to_int(id),
+                'order': orderReq,
             }
-        if triggerPrice is None:
-            triggerPrice = '0'
+            modifies.append(modifyReq)
         nonce = self.milliseconds()
-        orderReq: dict = {
-            'a': self.parse_to_int(market['baseId']),
-            'b': isBuy,
-            'p': px,
-            's': sz,
-            'r': reduceOnly,
-            't': orderType,
-            # 'c': clientOrderId,
-        }
-        if clientOrderId is not None:
-            orderReq['c'] = clientOrderId
-        modifyReq: dict = {
-            'oid': self.parse_to_int(id),
-            'order': orderReq,
-        }
         modifyAction: dict = {
             'type': 'batchModify',
-            'modifies': [modifyReq],
+            'modifies': modifies,
         }
         vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(modifyAction, nonce, vaultAddress)
@@ -1795,7 +1820,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
 
         :param str id: cancel order id
@@ -1814,8 +1838,24 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = self.market(symbol)
-        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        if id is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
+        order, globalParams = self.parse_create_edit_order_args(id, symbol, type, side, amount, price, params)
+        orders = self.edit_orders([order], globalParams)
+        return orders[0]
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request = self.edit_orders_request(orders, params)
         response = self.privatePostExchange(request)
         #
         #     {
@@ -1855,8 +1895,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         responseObject = self.safe_dict(response, 'response', {})
         dataObject = self.safe_dict(responseObject, 'data', {})
         statuses = self.safe_list(dataObject, 'statuses', [])
-        first = self.safe_dict(statuses, 0, {})
-        return self.parse_order(first, market)
+        return self.parse_orders(statuses)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2204,6 +2243,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             side = 'sell' if (side == 'A') else 'buy'
         totalAmount = self.safe_string_2(entry, 'origSz', 'totalSz')
         remaining = self.safe_string(entry, 'sz')
+        tif = self.safe_string_upper(entry, 'tif')
+        postOnly = None
+        if tif is not None:
+            postOnly = (tif == 'ALO')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(entry, 'oid'),
@@ -2214,8 +2257,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': self.parse_order_type(self.safe_string_lower(entry, 'orderType')),
-            'timeInForce': self.safe_string_upper(entry, 'tif'),
-            'postOnly': None,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(entry, 'reduceOnly'),
             'side': side,
             'price': self.safe_string(entry, 'limitPx'),
@@ -2333,6 +2376,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         if side is not None:
             side = 'sell' if (side == 'A') else 'buy'
         fee = self.safe_string(trade, 'fee')
+        takerOrMaker = None
+        crossed = self.safe_bool(trade, 'crossed')
+        if crossed is not None:
+            takerOrMaker = 'taker' if crossed else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2342,7 +2389,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'oid'),
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -2889,7 +2936,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'tagTo': None,
             'tagFrom': None,
             'type': None,
-            'amount': self.safe_integer(delta, 'usdc'),
+            'amount': self.safe_number(delta, 'usdc'),
             'currency': None,
             'status': self.safe_string(transaction, 'status'),
             'updated': None,
@@ -3386,7 +3433,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 return byType[type]
         return self.safe_value(config, 'cost', 1)
 
-    def parse_create_order_args(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def parse_create_edit_order_args(self, id: Str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         vaultAddress = self.safe_string(params, 'vaultAddress')
         params = self.omit(params, 'vaultAddress')
@@ -3402,4 +3449,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         globalParams = {}
         if vaultAddress is not None:
             globalParams['vaultAddress'] = vaultAddress
+        if id is not None:
+            order['id'] = id
         return [order, globalParams]

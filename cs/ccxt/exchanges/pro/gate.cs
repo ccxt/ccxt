@@ -34,6 +34,7 @@ public partial class gate : ccxt.gate
                 { "fetchOpenOrdersWs", true },
                 { "fetchClosedOrdersWs", true },
                 { "watchOrderBook", true },
+                { "watchBidsAsks", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
@@ -1376,7 +1377,11 @@ public partial class gate : ccxt.gate
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
-            callDynamically(cache, "append", new object[] {position});
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         // don't remove the future from the .futures cache
         var future = getValue(client.futures, messageHash);
@@ -2322,6 +2327,12 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
+        if (isTrue(isTrue((isEqual(channel, "spot.order_place"))) || isTrue((isEqual(channel, "futures.order_place")))))
+        {
+            ((IDictionary<string,object>)payload)["req_header"] = new Dictionary<string, object>() {
+                { "X-Gate-Channel-Id", "ccxt" },
+            };
+        }
         object request = new Dictionary<string, object>() {
             { "id", requestId },
             { "time", time },
