@@ -781,6 +781,35 @@ func (this *Whitebit) FetchDepositAddress(code string, options ...FetchDepositAd
 }
 /**
  * @method
+ * @name whitebit#createDepositAddress
+ * @description create a currency deposit address
+ * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the blockchain network to create a deposit address on
+ * @param {string} [params.type] address type, available for specific currencies
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func (this *Whitebit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+
+    opts := CreateDepositAddressOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateDepositAddress(code, params)
+    if IsError(res) {
+        return DepositAddress{}, CreateReturnError(res)
+    }
+    return NewDepositAddress(res), nil
+}
+/**
+ * @method
  * @name whitebit#setLeverage
  * @description set the level of leverage for a market
  * @see https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
