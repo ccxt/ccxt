@@ -324,6 +324,7 @@ export default class cex extends Exchange {
                 'margin': undefined,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': undefined,
                 'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {
