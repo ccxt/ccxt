@@ -115,6 +115,7 @@ interface Exchange {
     privatePostContractPrivateSubmitTpSlOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyPresetPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyLimitOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitTrailOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelTrailOrder (params?: {}): Promise<implicitReturnType>;

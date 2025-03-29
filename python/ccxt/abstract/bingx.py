@@ -16,6 +16,7 @@ class ImplicitAPI:
     spot_v1_private_get_trade_mytrades = spotV1PrivateGetTradeMyTrades = Entry('trade/myTrades', ['spot', 'v1', 'private'], 'GET', {'cost': 2})
     spot_v1_private_get_user_commissionrate = spotV1PrivateGetUserCommissionRate = Entry('user/commissionRate', ['spot', 'v1', 'private'], 'GET', {'cost': 5})
     spot_v1_private_get_account_balance = spotV1PrivateGetAccountBalance = Entry('account/balance', ['spot', 'v1', 'private'], 'GET', {'cost': 2})
+    spot_v1_private_get_account_allaccountbalance = spotV1PrivateGetAccountAllAccountBalance = Entry('account/allAccountBalance', ['spot', 'v1', 'private'], 'GET', {'cost': 2})
     spot_v1_private_post_trade_order = spotV1PrivatePostTradeOrder = Entry('trade/order', ['spot', 'v1', 'private'], 'POST', {'cost': 2})
     spot_v1_private_post_trade_cancel = spotV1PrivatePostTradeCancel = Entry('trade/cancel', ['spot', 'v1', 'private'], 'POST', {'cost': 2})
     spot_v1_private_post_trade_batchorders = spotV1PrivatePostTradeBatchOrders = Entry('trade/batchOrders', ['spot', 'v1', 'private'], 'POST', {'cost': 5})

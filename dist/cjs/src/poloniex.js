@@ -26,21 +26,25 @@ class poloniex extends poloniex$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': false,
-                'future': false,
+                'swap': true,
+                'future': true,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': undefined,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -54,7 +58,10 @@ class poloniex extends poloniex$1 {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': undefined,
+                'fetchLedger': undefined,
+                'fetchLeverage': true,
+                'fetchLiquidations': undefined,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -67,7 +74,8 @@ class poloniex extends poloniex$1 {
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -78,7 +86,10 @@ class poloniex extends poloniex$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'sandbox': true,
+                'setLeverage': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -96,15 +107,16 @@ class poloniex extends poloniex$1 {
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
                 '1w': 'WEEK_1',
-                '1M': 'MONTH_1',
+                '1M': 'MONTH_1', // not in swap
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
-                    'rest': 'https://api.poloniex.com',
+                    'spot': 'https://api.poloniex.com',
+                    'swap': 'https://api.poloniex.com',
                 },
                 'test': {
-                    'rest': 'https://sand-spot-api-gateway.poloniex.com',
+                    'spot': 'https://sand-spot-api-gateway.poloniex.com',
                 },
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://api-docs.poloniex.com/spot/',
@@ -191,6 +203,55 @@ class poloniex extends poloniex$1 {
                         'smartorders/{id}': 20,
                     },
                 },
+                'swapPublic': {
+                    'get': {
+                        // 300 calls / second
+                        'v3/market/allInstruments': 2 / 3,
+                        'v3/market/instruments': 2 / 3,
+                        'v3/market/orderBook': 2 / 3,
+                        'v3/market/candles': 10,
+                        'v3/market/indexPriceCandlesticks': 10,
+                        'v3/market/premiumIndexCandlesticks': 10,
+                        'v3/market/markPriceCandlesticks': 10,
+                        'v3/market/trades': 2 / 3,
+                        'v3/market/liquidationOrder': 2 / 3,
+                        'v3/market/tickers': 2 / 3,
+                        'v3/market/markPrice': 2 / 3,
+                        'v3/market/indexPrice': 2 / 3,
+                        'v3/market/indexPriceComponents': 2 / 3,
+                        'v3/market/fundingRate': 2 / 3,
+                        'v3/market/openInterest': 2 / 3,
+                        'v3/market/insurance': 2 / 3,
+                        'v3/market/riskLimit': 2 / 3,
+                    },
+                },
+                'swapPrivate': {
+                    'get': {
+                        'v3/account/balance': 4,
+                        'v3/account/bills': 20,
+                        'v3/trade/order/opens': 20,
+                        'v3/trade/order/trades': 20,
+                        'v3/trade/order/history': 20,
+                        'v3/trade/position/opens': 20,
+                        'v3/trade/position/history': 20,
+                        'v3/position/leverages': 20,
+                        'v3/position/mode': 20,
+                    },
+                    'post': {
+                        'v3/trade/order': 4,
+                        'v3/trade/orders': 40,
+                        'v3/trade/position': 20,
+                        'v3/trade/positionAll': 100,
+                        'v3/position/leverage': 20,
+                        'v3/position/mode': 20,
+                        'v3/trade/position/margin': 20,
+                    },
+                    'delete': {
+                        'v3/trade/order': 2,
+                        'v3/trade/batchOrders': 20,
+                        'v3/trade/allOrders': 20,
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -239,6 +300,7 @@ class poloniex extends poloniex$1 {
                 'UST': 'USTC',
             },
             'options': {
+                'defaultType': 'spot',
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BEP20': 'BSC',
@@ -285,7 +347,7 @@ class poloniex extends poloniex$1 {
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -296,7 +358,9 @@ class poloniex extends poloniex$1 {
                         'trailing': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 20,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
@@ -326,13 +390,50 @@ class poloniex extends poloniex$1 {
                 'spot': {
                     'extends': 'default',
                 },
+                'forContracts': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'hedged': true,
+                        'stpMode': true,
+                        'marketBuyByCost': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 100,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': 1 / 6,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                        'untilDays': 90,
+                    },
+                },
                 'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'forContracts',
+                    },
+                    'inverse': {
+                        'extends': 'forContracts',
+                    },
                 },
                 'future': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'forContracts',
+                    },
+                    'inverse': {
+                        'extends': 'forContracts',
+                    },
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -452,6 +553,8 @@ class poloniex extends poloniex$1 {
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
+        // spot:
+        //
         //     [
         //         [
         //             "22814.01",
@@ -471,6 +574,32 @@ class poloniex extends poloniex$1 {
         //         ]
         //     ]
         //
+        // contract:
+        //
+        //           [
+        //             "84207.02",
+        //             "84320.85",
+        //             "84207.02",
+        //             "84253.83",
+        //             "3707.5395",
+        //             "44",
+        //             "14",
+        //             "1740770040000",
+        //             "1740770099999",
+        //           ],
+        //
+        const ohlcvLength = ohlcv.length;
+        const isContract = ohlcvLength === 9;
+        if (isContract) {
+            return [
+                this.safeInteger(ohlcv, 7),
+                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 1),
+                this.safeNumber(ohlcv, 0),
+                this.safeNumber(ohlcv, 3),
+                this.safeNumber(ohlcv, 5),
+            ];
+        }
         return [
             this.safeInteger(ohlcv, 12),
             this.safeNumber(ohlcv, 2),
@@ -485,6 +614,7 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -506,14 +636,41 @@ class poloniex extends poloniex$1 {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
+        const keyStart = market['spot'] ? 'startTime' : 'sTime';
+        const keyEnd = market['spot'] ? 'endTime' : 'eTime';
         if (since !== undefined) {
-            request['startTime'] = since;
+            request[keyStart] = since;
         }
         if (limit !== undefined) {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('endTime', request, params);
+        [request, params] = this.handleUntilOption(keyEnd, request, params);
+        if (market['contract']) {
+            if (this.inArray(timeframe, ['10m', '1M'])) {
+                throw new errors.NotSupported(this.id + ' ' + timeframe + ' ' + market['type'] + ' fetchOHLCV is not supported');
+            }
+            const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //           [
+            //             "84207.02",
+            //             "84320.85",
+            //             "84207.02",
+            //             "84253.83",
+            //             "3707.5395",
+            //             "44",
+            //             "14",
+            //             "1740770040000",
+            //             "1740770099999",
+            //           ],
+            //
+            const data = this.safeList(responseRaw, 'data');
+            return this.parseOHLCVs(data, market, timeframe, since, limit);
+        }
         const response = await this.publicGetMarketsSymbolCandles(this.extend(request, params));
         //
         //     [
@@ -550,10 +707,16 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchMarkets
      * @description retrieves data on all markets for poloniex
      * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        const promises = [this.fetchSpotMarkets(params), this.fetchSwapMarkets(params)];
+        const results = await Promise.all(promises);
+        return this.arrayConcat(results[0], results[1]);
+    }
+    async fetchSpotMarkets(params = {}) {
         const markets = await this.publicGetMarkets(params);
         //
         //     [
@@ -580,7 +743,59 @@ class poloniex extends poloniex$1 {
         //
         return this.parseMarkets(markets);
     }
+    async fetchSwapMarkets(params = {}) {
+        // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        const response = await this.swapPublicGetV3MarketAllInstruments(params);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": [
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        const markets = this.safeList(response, 'data');
+        return this.parseMarkets(markets);
+    }
     parseMarket(market) {
+        if ('ctType' in market) {
+            return this.parseSwapMarket(market);
+        }
+        else {
+            return this.parseSpotMarket(market);
+        }
+    }
+    parseSpotMarket(market) {
         const id = this.safeString(market, 'symbol');
         const baseId = this.safeString(market, 'baseCurrencyName');
         const quoteId = this.safeString(market, 'quoteCurrencyName');
@@ -636,6 +851,116 @@ class poloniex extends poloniex$1 {
             'info': market,
         };
     }
+    parseSwapMarket(market) {
+        //
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'bCcy');
+        const quoteId = this.safeString(market, 'qCcy');
+        const settleId = this.safeString(market, 'sCcy');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const settle = this.safeCurrencyCode(settleId);
+        const status = this.safeString(market, 'status');
+        const active = status === 'OPEN';
+        const linear = market['ctType'] === 'LINEAR';
+        let symbol = base + '/' + quote;
+        if (linear) {
+            symbol += ':' + settle;
+        }
+        else {
+            // actually, exchange does not have any inverse future now
+            symbol += ':' + base;
+        }
+        const alias = this.safeString(market, 'alias');
+        let type = 'swap';
+        if (alias !== undefined) {
+            type = 'future';
+        }
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': (type === 'future') ? 'future' : 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': type === 'swap',
+            'future': type === 'future',
+            'option': false,
+            'active': active,
+            'contract': true,
+            'linear': linear,
+            'inverse': !linear,
+            'contractSize': this.safeNumber(market, 'ctVal'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': this.safeNumber(market, 'tFee'),
+            'maker': this.safeNumber(market, 'mFee'),
+            'precision': {
+                'amount': this.safeNumber(market, 'lotSz'),
+                'price': this.safeNumber(market, 'tSz'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(market, 'minSz'),
+                    'max': this.safeNumber(market, 'limitMaxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber(market, 'minPx'),
+                    'max': this.safeNumber(market, 'maxPx'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'max': this.safeNumber(market, 'maxLever'),
+                    'min': undefined,
+                },
+            },
+            'created': this.safeInteger(market, 'oDate'),
+            'info': market,
+        };
+    }
     /**
      * @method
      * @name poloniex#fetchTime
@@ -649,6 +974,8 @@ class poloniex extends poloniex$1 {
         return this.safeInteger(response, 'serverTime');
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //  spot:
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -671,36 +998,56 @@ class poloniex extends poloniex$1 {
         //         "markPrice" : "26444.11"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'ts');
-        const marketId = this.safeString(ticker, 'symbol');
+        //  swap:
+        //
+        //            {
+        //                "s": "XRP_USDT_PERP",
+        //                "o": "2.0503",
+        //                "l": "2.0066",
+        //                "h": "2.216",
+        //                "c": "2.1798",
+        //                "qty": "21090",
+        //                "amt": "451339.65",
+        //                "tC": "3267",
+        //                "sT": "1740736380000",
+        //                "cT": "1740822777559",
+        //                "dN": "XRP/USDT/PERP",
+        //                "dC": "0.0632",
+        //                "bPx": "2.175",
+        //                "bSz": "3",
+        //                "aPx": "2.1831",
+        //                "aSz": "111",
+        //                "mPx": "2.1798",
+        //                "iPx": "2.1834"
+        //            },
+        //
+        const timestamp = this.safeInteger2(ticker, 'ts', 'cT');
+        const marketId = this.safeString2(ticker, 'symbol', 's');
         market = this.safeMarket(marketId);
-        const close = this.safeString(ticker, 'close');
-        const relativeChange = this.safeString(ticker, 'dailyChange');
+        const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise["default"].stringMul(relativeChange, '100');
-        const bidVolume = this.safeString(ticker, 'bidQuantity');
-        const askVolume = this.safeString(ticker, 'askQuantity');
         return this.safeTicker({
             'id': marketId,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high'),
-            'low': this.safeString(ticker, 'low'),
-            'bid': this.safeString(ticker, 'bid'),
-            'bidVolume': bidVolume,
-            'ask': this.safeString(ticker, 'ask'),
-            'askVolume': askVolume,
+            'high': this.safeString2(ticker, 'high', 'h'),
+            'low': this.safeString2(ticker, 'low', 'l'),
+            'bid': this.safeString2(ticker, 'bid', 'bPx'),
+            'bidVolume': this.safeString2(ticker, 'bidQuantity', 'bSz'),
+            'ask': this.safeString2(ticker, 'ask', 'aPx'),
+            'askVolume': this.safeString2(ticker, 'askQuantity', 'aSz'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
-            'close': close,
-            'last': close,
+            'open': this.safeString2(ticker, 'open', 'o'),
+            'close': this.safeString2(ticker, 'close', 'c'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'quantity'),
-            'quoteVolume': this.safeString(ticker, 'amount'),
-            'markPrice': this.safeString(ticker, 'markPrice'),
+            'baseVolume': this.safeString2(ticker, 'quantity', 'qty'),
+            'quoteVolume': this.safeString2(ticker, 'amount', 'amt'),
+            'markPrice': this.safeString2(ticker, 'markPrice', 'mPx'),
+            'indexPrice': this.safeString(ticker, 'iPx'),
             'info': ticker,
         }, market);
     }
@@ -709,13 +1056,58 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols, undefined, true, true, false);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market(symbols[0]);
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
+            }
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        if (marketType === 'swap') {
+            const responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "s": "XRP_USDT_PERP",
+            //                "o": "2.0503",
+            //                "l": "2.0066",
+            //                "h": "2.216",
+            //                "c": "2.1798",
+            //                "qty": "21090",
+            //                "amt": "451339.65",
+            //                "tC": "3267",
+            //                "sT": "1740736380000",
+            //                "cT": "1740822777559",
+            //                "dN": "XRP/USDT/PERP",
+            //                "dC": "0.0632",
+            //                "bPx": "2.175",
+            //                "bSz": "3",
+            //                "aPx": "2.1831",
+            //                "aSz": "111",
+            //                "mPx": "2.1798",
+            //                "iPx": "2.1834"
+            //            },
+            //
+            const data = this.safeList(responseRaw, 'data');
+            return this.parseTickers(data, symbols);
+        }
         const response = await this.publicGetMarketsTicker24h(params);
         //
         //     [
@@ -886,6 +1278,7 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -896,6 +1289,10 @@ class poloniex extends poloniex$1 {
         const request = {
             'symbol': market['id'],
         };
+        if (market['contract']) {
+            const tickers = await this.fetchTickers([market['symbol']], params);
+            return this.safeDict(tickers, symbol);
+        }
         const response = await this.publicGetMarketsSymbolTicker24h(this.extend(request, params));
         //
         //     {
@@ -925,6 +1322,8 @@ class poloniex extends poloniex$1 {
         //
         // fetchTrades
         //
+        //  spot:
+        //
         //     {
         //         "id" : "60014521",
         //         "price" : "23162.94",
@@ -935,7 +1334,20 @@ class poloniex extends poloniex$1 {
         //         "createTime" : 1659684602036
         //     }
         //
+        //   swap:
+        //
+        //     {
+        //         "id": "105807376",
+        //         "side": "buy",
+        //         "px": "84410.57",
+        //         "qty": "1",
+        //         "amt": "84.41057",
+        //         "cT": "1740777563557",
+        //     }
+        //
         // fetchMyTrades
+        //
+        //  spot:
         //
         //     {
         //         "id": "32164924331503616",
@@ -954,6 +1366,34 @@ class poloniex extends poloniex$1 {
         //         "pageId": "32164924331503616",
         //         "clientOrderId": "myOwnId-321"
         //     }
+        //
+        //  swap:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "trdId": "105813553",
+        //         "side": "SELL",
+        //         "type": "TRADE",
+        //         "mgnMode": "CROSS",
+        //         "ordType": "MARKET",
+        //         "clOrdId": "polo418912106147315112",
+        //         "role": "TAKER",
+        //         "px": "84704.9",
+        //         "qty": "1",
+        //         "cTime": "1740842829430",
+        //         "uTime": "1740842829450",
+        //         "feeCcy": "USDT",
+        //         "feeAmt": "0.04235245",
+        //         "deductCcy": "",
+        //         "deductAmt": "0",
+        //         "feeRate": "0.0005",
+        //         "id": "418912106342654592",
+        //         "posSide": "BOTH",
+        //         "ordId": "418912106147315112",
+        //         "qCcy": "USDT",
+        //         "value": "84.7049",
+        //         "actType": "TRADING"
+        //     },
         //
         // fetchOrderTrades (taker trades)
         //
@@ -975,20 +1415,19 @@ class poloniex extends poloniex$1 {
         //         "clientOrderId": ""
         //     }
         //
-        //
-        const id = this.safeString2(trade, 'id', 'tradeID');
-        const orderId = this.safeString(trade, 'orderId');
-        const timestamp = this.safeInteger2(trade, 'ts', 'createTime');
+        const id = this.safeStringN(trade, ['id', 'tradeID', 'trdId']);
+        const orderId = this.safeString2(trade, 'orderId', 'ordId');
+        const timestamp = this.safeIntegerN(trade, ['ts', 'createTime', 'cT', 'cTime']);
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeStringLower2(trade, 'side', 'takerSide');
         let fee = undefined;
-        const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString(trade, 'quantity');
-        const costString = this.safeString(trade, 'amount');
-        const feeCurrencyId = this.safeString(trade, 'feeCurrency');
-        const feeCostString = this.safeString(trade, 'feeAmount');
+        const priceString = this.safeString2(trade, 'price', 'px');
+        const amountString = this.safeString2(trade, 'quantity', 'qty');
+        const costString = this.safeString2(trade, 'amount', 'amt');
+        const feeCurrencyId = this.safeString2(trade, 'feeCurrency', 'feeCcy');
+        const feeCostString = this.safeString2(trade, 'feeAmount', 'feeAmt');
         if (feeCostString !== undefined) {
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = {
@@ -1003,9 +1442,9 @@ class poloniex extends poloniex$1 {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': this.safeStringLower(trade, 'type'),
+            'type': this.safeStringLower2(trade, 'ordType', 'type'),
             'side': side,
-            'takerOrMaker': this.safeStringLower(trade, 'matchRole'),
+            'takerOrMaker': this.safeStringLower2(trade, 'matchRole', 'role'),
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -1017,6 +1456,7 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1030,7 +1470,26 @@ class poloniex extends poloniex$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // max 1000, for spot & swap
+        }
+        if (market['contract']) {
+            const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //         {
+            //             id: "105807320", // descending order
+            //             side: "sell",
+            //             px: "84383.93",
+            //             qty: "1",
+            //             amt: "84.38393",
+            //             cT: "1740777074704",
+            //         },
+            //
+            const tradesList = this.safeList(response, 'data');
+            return this.parseTrades(tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades(this.extend(request, params));
         //
@@ -1053,6 +1512,7 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1072,17 +1532,61 @@ class poloniex extends poloniex$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        const isContract = this.inArray(marketType, ['swap', 'future']);
         let request = {
         // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
         // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
+        const startKey = isContract ? 'sTime' : 'startTime';
+        const endKey = isContract ? 'eTime' : 'endTime';
         if (since !== undefined) {
-            request['startTime'] = since;
+            request[startKey] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (isContract && symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        [request, params] = this.handleUntilOption(endKey, request, params);
+        if (isContract) {
+            const raw = await this.swapPrivateGetV3TradeOrderTrades(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "trdId": "105813553",
+            //                "side": "SELL",
+            //                "type": "TRADE",
+            //                "mgnMode": "CROSS",
+            //                "ordType": "MARKET",
+            //                "clOrdId": "polo418912106147315112",
+            //                "role": "TAKER",
+            //                "px": "84704.9",
+            //                "qty": "1",
+            //                "cTime": "1740842829430",
+            //                "uTime": "1740842829450",
+            //                "feeCcy": "USDT",
+            //                "feeAmt": "0.04235245",
+            //                "deductCcy": "",
+            //                "deductAmt": "0",
+            //                "feeRate": "0.0005",
+            //                "id": "418912106342654592",
+            //                "posSide": "BOTH",
+            //                "ordId": "418912106147315112",
+            //                "qCcy": "USDT",
+            //                "value": "84.7049",
+            //                "actType": "TRADING"
+            //            },
+            //
+            const data = this.safeList(raw, 'data');
+            return this.parseTrades(data, market, since, limit);
+        }
         const response = await this.privateGetTrades(this.extend(request, params));
         //
         //     [
@@ -1143,7 +1647,9 @@ class poloniex extends poloniex$1 {
         //         "updateTime" : 16xxxxxxxxx36
         //     }
         //
-        // fetchOpenOrders
+        // fetchOpenOrders (and fetchClosedOrders same for contracts)
+        //
+        //  spot:
         //
         //     {
         //         "id": "24993088082542592",
@@ -1164,14 +1670,60 @@ class poloniex extends poloniex$1 {
         //         "updateTime": 1646925216548
         //     }
         //
+        //  contract:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "ordId": "418890767248232148",
+        //         "clOrdId": "polo418890767248232148",
+        //         "mgnMode": "CROSS",
+        //         "px": "81130.13",
+        //         "reduceOnly": false,
+        //         "lever": "20",
+        //         "state": "NEW",
+        //         "source": "WEB",
+        //         "timeInForce": "GTC",
+        //         "tpTrgPx": "",
+        //         "tpPx": "",
+        //         "tpTrgPxType": "",
+        //         "slTrgPx": "",
+        //         "slPx": "",
+        //         "slTrgPxType": "",
+        //         "avgPx": "0",
+        //         "execQty": "0",
+        //         "execAmt": "0",
+        //         "feeCcy": "",
+        //         "feeAmt": "0",
+        //         "deductCcy": "0",
+        //         "deductAmt": "0",
+        //         "stpMode": "NONE", // todo: selfTradePrevention
+        //         "cTime": "1740837741523",
+        //         "uTime": "1740840846882",
+        //         "sz": "1",
+        //         "posSide": "BOTH",
+        //         "qCcy": "USDT"
+        //         "cancelReason": "", // this field can only be in closed orders
+        //     },
+        //
         // createOrder, editOrder
+        //
+        //  spot:
         //
         //     {
         //         "id": "29772698821328896",
         //         "clientOrderId": "1234Abc"
         //     }
         //
-        let timestamp = this.safeInteger2(order, 'timestamp', 'createTime');
+        //  contract:
+        //
+        //    {
+        //        "ordId":"418876147745775616",
+        //        "clOrdId":"polo418876147745775616"
+        //    }
+        //
+        let timestamp = this.safeIntegerN(order, ['timestamp', 'createTime', 'cTime']);
         if (timestamp === undefined) {
             timestamp = this.parse8601(this.safeString(order, 'date'));
         }
@@ -1184,16 +1736,16 @@ class poloniex extends poloniex$1 {
                 resultingTrades = this.safeValue(resultingTrades, this.safeString(market, 'id', marketId));
             }
         }
-        const price = this.safeString2(order, 'price', 'rate');
-        const amount = this.safeString(order, 'quantity');
-        const filled = this.safeString(order, 'filledQuantity');
+        const price = this.safeStringN(order, ['price', 'rate', 'px']);
+        const amount = this.safeString2(order, 'quantity', 'sz');
+        const filled = this.safeString2(order, 'filledQuantity', 'execQty');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
-        const id = this.safeStringN(order, ['orderNumber', 'id', 'orderId']);
+        const id = this.safeStringN(order, ['orderNumber', 'id', 'orderId', 'ordId']);
         let fee = undefined;
-        const feeCurrency = this.safeString(order, 'tokenFeeCurrency');
+        const feeCurrency = this.safeString2(order, 'tokenFeeCurrency', 'feeCcy');
         let feeCost = undefined;
         let feeCurrencyCode = undefined;
         const rate = this.safeString(order, 'fee');
@@ -1203,7 +1755,7 @@ class poloniex extends poloniex$1 {
         else {
             // poloniex accepts a 30% discount to pay fees in TRX
             feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
-            feeCost = this.safeString(order, 'tokenFee');
+            feeCost = this.safeString2(order, 'tokenFee', 'feeAmt');
         }
         if (feeCost !== undefined) {
             fee = {
@@ -1212,7 +1764,11 @@ class poloniex extends poloniex$1 {
                 'currency': feeCurrencyCode,
             };
         }
-        const clientOrderId = this.safeString(order, 'clientOrderId');
+        const clientOrderId = this.safeString2(order, 'clientOrderId', 'clOrdId');
+        const marginMode = this.safeStringLower(order, 'mgnMode');
+        const reduceOnly = this.safeBool(order, 'reduceOnly');
+        const leverage = this.safeInteger(order, 'lever');
+        const hedged = this.safeString(order, 'posSide') !== 'BOTH';
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1224,23 +1780,28 @@ class poloniex extends poloniex$1 {
             'symbol': symbol,
             'type': type,
             'timeInForce': this.safeString(order, 'timeInForce'),
-            'postOnly': undefined,
+            'postOnly': rawType === 'LIMIT_MAKER',
             'side': side,
             'price': price,
             'triggerPrice': this.safeString2(order, 'triggerPrice', 'stopPrice'),
-            'cost': undefined,
-            'average': this.safeString(order, 'avgPrice'),
+            'cost': this.safeString(order, 'execAmt'),
+            'average': this.safeString2(order, 'avgPrice', 'avgPx'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
             'trades': resultingTrades,
             'fee': fee,
+            'marginMode': marginMode,
+            'reduceOnly': reduceOnly,
+            'leverage': leverage,
+            'hedged': hedged,
         }, market);
     }
     parseOrderType(status) {
         const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
             'STOP-LIMIT': 'limit',
             'STOP-MARKET': 'market',
         };
@@ -1265,6 +1826,7 @@ class poloniex extends poloniex$1 {
      * @description fetch all unfilled currently open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1280,13 +1842,59 @@ class poloniex extends poloniex$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            const max = (marketType === 'spot') ? 2000 : 100;
+            request['limit'] = Math.max(limit, max);
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = undefined;
-        if (isTrigger) {
+        if (!market['spot']) {
+            const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "side": "BUY",
+            //                "type": "LIMIT",
+            //                "ordId": "418890767248232148",
+            //                "clOrdId": "polo418890767248232148",
+            //                "mgnMode": "CROSS",
+            //                "px": "81130.13",
+            //                "reduceOnly": false,
+            //                "lever": "20",
+            //                "state": "NEW",
+            //                "source": "WEB",
+            //                "timeInForce": "GTC",
+            //                "tpTrgPx": "",
+            //                "tpPx": "",
+            //                "tpTrgPxType": "",
+            //                "slTrgPx": "",
+            //                "slPx": "",
+            //                "slTrgPxType": "",
+            //                "avgPx": "0",
+            //                "execQty": "0",
+            //                "execAmt": "0",
+            //                "feeCcy": "",
+            //                "feeAmt": "0",
+            //                "deductCcy": "0",
+            //                "deductAmt": "0",
+            //                "stpMode": "NONE",
+            //                "cTime": "1740837741523",
+            //                "uTime": "1740840846882",
+            //                "sz": "1",
+            //                "posSide": "BOTH",
+            //                "qCcy": "USDT"
+            //            },
+            //
+            response = this.safeList(raw, 'data');
+        }
+        else if (isTrigger) {
             response = await this.privateGetSmartorders(this.extend(request, params));
         }
         else {
@@ -1320,6 +1928,82 @@ class poloniex extends poloniex$1 {
     }
     /**
      * @method
+     * @name poloniex#fetchClosedOrders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params, 'swap');
+        if (marketType === 'spot') {
+            throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported for spot markets yet');
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min(200, limit);
+        }
+        if (since !== undefined) {
+            request['sTime'] = since;
+        }
+        [request, params] = this.handleUntilOption('eTime', request, params);
+        const response = await this.swapPrivateGetV3TradeOrderHistory(this.extend(request, params));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "side": "SELL",
+        //                "type": "MARKET",
+        //                "ordId": "418912106147315712",
+        //                "clOrdId": "polo418912106147315712",
+        //                "mgnMode": "CROSS",
+        //                "px": "0",
+        //                "sz": "2",
+        //                "lever": "20",
+        //                "state": "FILLED",
+        //                "cancelReason": "",
+        //                "source": "WEB",
+        //                "reduceOnly": "true",
+        //                "timeInForce": "GTC",
+        //                "tpTrgPx": "",
+        //                "tpPx": "",
+        //                "tpTrgPxType": "",
+        //                "slTrgPx": "",
+        //                "slPx": "",
+        //                "slTrgPxType": "",
+        //                "avgPx": "84705.56",
+        //                "execQty": "2",
+        //                "execAmt": "169.41112",
+        //                "feeCcy": "USDT",
+        //                "feeAmt": "0.08470556",
+        //                "deductCcy": "0",
+        //                "deductAmt": "0",
+        //                "stpMode": "NONE",
+        //                "cTime": "1740842829116",
+        //                "uTime": "1740842829130",
+        //                "posSide": "BOTH",
+        //                "qCcy": "USDT"
+        //            },
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, market, since, limit);
+    }
+    /**
+     * @method
      * @name poloniex#createOrder
      * @description create a trade order
      * @see https://api-docs.poloniex.com/spot/api/private/order#create-order
@@ -1337,20 +2021,24 @@ class poloniex extends poloniex$1 {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         let request = {
             'symbol': market['id'],
-            'side': side,
-            // 'timeInForce': timeInForce,
+            'side': side.toUpperCase(), // uppercase, both for spot & swap
+            // 'timeInForce': timeInForce, // matches unified values
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = undefined;
-        if (triggerPrice !== undefined) {
+        if (market['swap'] || market['future']) {
+            const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
+            //
+            // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
+            //
+            response = this.safeDict(responseInitial, 'data');
+        }
+        else if (triggerPrice !== undefined) {
             response = await this.privatePostSmartorders(this.extend(request, params));
         }
         else {
@@ -1362,19 +2050,37 @@ class poloniex extends poloniex$1 {
         //         "clientOrderId" : ""
         //     }
         //
-        response = this.extend(response, {
-            'type': type,
-            'side': side,
-        });
         return this.parseOrder(response, market);
     }
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        const market = this.market(symbol);
+        if (market['contract']) {
+            let marginMode = undefined;
+            [marginMode, params] = this.handleParamString(params, 'marginMode');
+            if (marginMode !== undefined) {
+                this.checkRequiredArgument('createOrder', marginMode, 'marginMode', ['cross', 'isolated']);
+                request['mgnMode'] = marginMode.toUpperCase();
+            }
+            let hedged = undefined;
+            [hedged, params] = this.handleParamString(params, 'hedged');
+            if (hedged) {
+                if (marginMode === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
+                }
+                if (!('posSide' in params)) {
+                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
+                }
+            }
+        }
         let upperCaseType = type.toUpperCase();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
+            if (!market['spot']) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
+            }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
             request['stopPrice'] = triggerPrice;
         }
@@ -1392,7 +2098,7 @@ class poloniex extends poloniex$1 {
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
-                else if (createMarketBuyOrderRequiresPrice) {
+                else if (createMarketBuyOrderRequiresPrice && market['spot']) {
                     if (price === undefined) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
@@ -1406,15 +2112,19 @@ class poloniex extends poloniex$1 {
                 else {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                request['amount'] = quoteAmount;
+                const amountKey = market['spot'] ? 'amount' : 'sz';
+                request[amountKey] = quoteAmount;
             }
             else {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
+                const amountKey = market['spot'] ? 'quantity' : 'sz';
+                request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
-            request['quantity'] = this.amountToPrecision(symbol, amount);
-            request['price'] = this.priceToPrecision(symbol, price);
+            const amountKey = market['spot'] ? 'quantity' : 'sz';
+            request[amountKey] = this.amountToPrecision(symbol, amount);
+            const priceKey = market['spot'] ? 'price' : 'px';
+            request[priceKey] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1485,7 +2195,27 @@ class poloniex extends poloniex$1 {
         // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         //
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market(symbol);
         const request = {};
+        if (!market['spot']) {
+            request['symbol'] = market['id'];
+            request['ordId'] = id;
+            const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": {
+            //            "ordId": "418886099910612040",
+            //            "clOrdId": "polo418886099910612040"
+            //        }
+            //    }
+            //
+            return this.parseOrder(this.safeDict(raw, 'data'));
+        }
         const clientOrderId = this.safeValue(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             id = clientOrderId;
@@ -1517,6 +2247,7 @@ class poloniex extends poloniex$1 {
      * @description cancel all open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
@@ -1535,9 +2266,30 @@ class poloniex extends poloniex$1 {
                 market['id'],
             ];
         }
+        let response = undefined;
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        if (marketType === 'swap' || marketType === 'future') {
+            const raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "code": "200",
+            //                "msg": "Success",
+            //                "ordId": "418885787866388511",
+            //                "clOrdId": "polo418885787866388511"
+            //            }
+            //        ]
+            //    }
+            //
+            response = this.safeList(raw, 'data');
+            return this.parseOrders(response, market);
+        }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        let response = undefined;
         if (isTrigger) {
             response = await this.privateDeleteSmartorders(this.extend(request, params));
         }
@@ -1581,6 +2333,16 @@ class poloniex extends poloniex$1 {
         const request = {
             'id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        if (marketType !== 'spot') {
+            throw new errors.NotSupported(this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
+        }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = undefined;
@@ -1669,6 +2431,24 @@ class poloniex extends poloniex$1 {
             'timestamp': undefined,
             'datetime': undefined,
         };
+        // for swap
+        if (!Array.isArray(response)) {
+            const ts = this.safeInteger(response, 'uTime');
+            result['timestamp'] = ts;
+            result['datetime'] = this.iso8601(ts);
+            const details = this.safeList(response, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString(balance, 'ccy');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['total'] = this.safeString(balance, 'avail');
+                account['used'] = this.safeString(balance, 'im');
+                result[code] = account;
+            }
+            return this.safeBalance(result);
+        }
+        // for spot
         for (let i = 0; i < response.length; i++) {
             const account = this.safeValue(response, i, {});
             const balances = this.safeValue(account, 'balances');
@@ -1689,11 +2469,56 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+     * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        if (marketType !== 'spot') {
+            const responseRaw = await this.swapPrivateGetV3AccountBalance(params);
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": {
+            //            "state": "NORMAL",
+            //            "eq": "9.98571622",
+            //            "isoEq": "0",
+            //            "im": "0",
+            //            "mm": "0",
+            //            "mmr": "0",
+            //            "upl": "0",
+            //            "availMgn": "9.98571622",
+            //            "cTime": "1738093601775",
+            //            "uTime": "1740829116236",
+            //            "details": [
+            //                {
+            //                    "ccy": "USDT",
+            //                    "eq": "9.98571622",
+            //                    "isoEq": "0",
+            //                    "avail": "9.98571622",
+            //                    "trdHold": "0",
+            //                    "upl": "0",
+            //                    "isoAvail": "0",
+            //                    "isoHold": "0",
+            //                    "isoUpl": "0",
+            //                    "im": "0",
+            //                    "mm": "0",
+            //                    "mmr": "0",
+            //                    "imr": "0",
+            //                    "cTime": "1740829116236",
+            //                    "uTime": "1740829116236"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            const data = this.safeDict(responseRaw, 'data', {});
+            return this.parseBalance(data);
+        }
         const request = {
             'accountType': 'SPOT',
         };
@@ -1754,6 +2579,7 @@ class poloniex extends poloniex$1 {
      * @name poloniex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1767,6 +2593,27 @@ class poloniex extends poloniex$1 {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
+            if (market['contract']) {
+                request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
+            }
+        }
+        if (market['contract']) {
+            const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
+            //
+            //    {
+            //       "code": 200,
+            //       "data": {
+            //         "asks": [ ["58700", "9934"], ..],
+            //         "bids": [ ["58600", "9952"], ..],
+            //         "s": "100",
+            //         "ts": 1719974138333
+            //       },
+            //       "msg": "Success"
+            //    }
+            //
+            const data = this.safeDict(responseRaw, 'data', {});
+            const ts = this.safeInteger(data, 'ts');
+            return this.parseOrderBook(data, symbol, ts);
         }
         const response = await this.publicGetMarketsSymbolOrderBook(this.extend(request, params));
         //
@@ -2366,14 +3213,397 @@ class poloniex extends poloniex$1 {
             },
         };
     }
+    /**
+     * @method
+     * @name poloniex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
+        if (marginMode === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
+        }
+        let hedged = undefined;
+        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        if (hedged) {
+            if (!('posSide' in params)) {
+                throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
+            }
+        }
+        const request = {
+            'lever': leverage,
+            'mgnMode': marginMode.toUpperCase(),
+            'symbol': market['id'],
+        };
+        const response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, params));
+        return response;
+    }
+    /**
+     * @method
+     * @name poloniex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
+        if (marginMode === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
+        }
+        request['mgnMode'] = marginMode.toUpperCase();
+        const response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, params));
+        //
+        //  for one-way mode:
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "10",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "BOTH"
+        //            }
+        //        ]
+        //    }
+        //
+        //  for hedge:
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "SHORT"
+        //            },
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "LONG"
+        //            }
+        //        ]
+        //    }
+        //
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let shortLeverage = undefined;
+        let longLeverage = undefined;
+        let marketId = undefined;
+        let marginMode = undefined;
+        const data = this.safeList(leverage, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            marketId = this.safeString(entry, 'symbol');
+            marginMode = this.safeString(entry, 'mgnMode');
+            const lever = this.safeInteger(entry, 'lever');
+            const posSide = this.safeString(entry, 'posSide');
+            if (posSide === 'LONG') {
+                longLeverage = lever;
+            }
+            else if (posSide === 'SHORT') {
+                shortLeverage = lever;
+            }
+            else {
+                longLeverage = lever;
+                shortLeverage = lever;
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
+    /**
+     * @method
+     * @name poloniex#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        const response = await this.swapPrivateGetV3PositionMode(params);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {
+        //            "posMode": "ONE_WAY"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const posMode = this.safeString(data, 'posMode');
+        const hedged = posMode === 'HEDGE';
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
+    }
+    /**
+     * @method
+     * @name poloniex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        const mode = hedged ? 'HEDGE' : 'ONE_WAY';
+        const request = {
+            'posMode': mode,
+        };
+        const response = await this.swapPrivatePostV3PositionMode(this.extend(request, params));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {}
+        //    }
+        //
+        return response;
+    }
+    /**
+     * @method
+     * @name poloniex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.swapPrivateGetV3TradePositionOpens(params);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //        ]
+        //    }
+        //
+        const positions = this.safeList(response, 'data', []);
+        return this.parsePositions(positions, symbols);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //
+        const marketId = this.safeString(position, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeStringLower(position, 'mgnMode');
+        const leverage = this.safeString(position, 'lever');
+        const initialMargin = this.safeString(position, 'im');
+        const notional = Precise["default"].stringMul(leverage, initialMargin);
+        const qty = this.safeString(position, 'qty');
+        const avgPrice = this.safeString(position, 'openAvgPx');
+        const collateral = Precise["default"].stringMul(qty, avgPrice);
+        // todo: some more fields
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': notional,
+            'marginMode': marginMode,
+            'liquidationPrice': this.safeNumber(position, 'liqPx'),
+            'entryPrice': this.safeNumber(position, 'openAvgPx'),
+            'unrealizedPnl': this.safeNumber(position, 'upl'),
+            'percentage': undefined,
+            'contracts': this.safeNumber(position, 'qty'),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber(position, 'markPx'),
+            'lastPrice': undefined,
+            'side': this.safeStringLower(position, 'posSide'),
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': this.safeNumber(position, 'mm'),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': undefined,
+            'leverage': parseInt(leverage),
+            'marginRatio': this.safeNumber(position, 'mgnRatio'),
+            'stopLossPrice': this.safeNumber(position, 'slTrgPx'),
+            'takeProfitPrice': this.safeNumber(position, 'tpTrgPx'),
+        });
+    }
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        amount = this.amountToPrecision(symbol, amount);
+        const request = {
+            'symbol': market['id'],
+            'amt': Precise["default"].stringAbs(amount),
+            'type': type.toUpperCase(), // 'ADD' or 'REDUCE'
+        };
+        // todo: hedged handling, tricky
+        if (!('posMode' in params)) {
+            request['posMode'] = 'BOTH';
+        }
+        const response = await this.swapPrivatePostV3TradePositionMargin(this.extend(request, params));
+        //
+        // {
+        //     "code": 200,
+        //     "data": {
+        //       "amt": "50",
+        //       "lever": "20",
+        //       "symbol": "DOT_USDT_PERP",
+        //       "posSide": "BOTH",
+        //       "type": "ADD"
+        //     },
+        //     "msg": "Success"
+        // }
+        //
+        if (type === 'reduce') {
+            amount = Precise["default"].stringAbs(amount);
+        }
+        const data = this.safeDict(response, 'data');
+        return this.parseMarginModification(data, market);
+    }
+    parseMarginModification(data, market = undefined) {
+        const marketId = this.safeString(data, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const rawType = this.safeString(data, 'type');
+        const type = (rawType === 'ADD') ? 'add' : 'reduce';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': type,
+            'marginMode': undefined,
+            'amount': this.safeNumber(data, 'amt'),
+            'total': undefined,
+            'code': undefined,
+            'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+    /**
+     * @method
+     * @name poloniex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
+    }
+    /**
+     * @method
+     * @name poloniex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'add', params);
+    }
     nonce() {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'];
+        let url = this.urls['api']['spot'];
+        if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
+            url = this.urls['api']['swap'];
+        }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);
-        if (api === 'public') {
+        if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
             if (Object.keys(query).length) {
                 url += '?' + this.urlencode(query);

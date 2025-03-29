@@ -312,6 +312,7 @@ public partial class cex : Exchange
                 { "margin", null },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
+                { "active", null },
                 { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
                 { "precision", currencyPrecision },
                 { "limits", new Dictionary<string, object>() {
