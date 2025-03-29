@@ -24,13 +24,7 @@ var https__default = /*#__PURE__*/_interopDefaultLegacy(https);
 var zlib__default = /*#__PURE__*/_interopDefaultLegacy(zlib);
 var Stream__default = /*#__PURE__*/_interopDefaultLegacy(Stream);
 
-/**
- * Index.js
- *
- * a request API compatible with window.fetch
- *
- * All spec algorithm step numbers are based on https://fetch.spec.whatwg.org/commit-snapshots/ae716822cb3a61843226cd090eefc6589446c1d2/.
- */
+// ----------------------------------------------------------------------------
 const supportedSchemas = new Set(['data:', 'http:', 'https:']);
 /**
  * Fetch function
