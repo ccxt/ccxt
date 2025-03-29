@@ -225,7 +225,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/trades': 1, // done
                         'api/v1/derivatives/futures/data/stats': 1, // new
                         'exchange/v1/derivatives/futures/positions/cross_margin_details': 1, // new
-                        'exchange/v1/derivatives/futures/wallets/transfer': 1, // new
+                        'exchange/v1/derivatives/futures/wallets/transfer': 1, // done
                         'exchange/v1/derivatives/futures/wallets': 1, // new
                         'exchange/v1/derivatives/futures/wallets/transactions': 1, // new
                         'exchange/v1/derivatives/futures/orders/edit': 1, // new
@@ -3364,13 +3364,17 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#transfer
          * @description transfer currency internally between wallets on the same account or between mainaccount and subaccount or one subaccount spot wallet to another
+         * @description *for swap markets only* transfer to futures wallet or from futures wallet
          * @see https://docs.coindcx.com/#sub-account-transfer
          * @see https://docs.coindcx.com/#wallet-transfer
+         * @see https://docs.coindcx.com/#wallet-transfer-2
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] spot, swap
+         * @param {string} [params.transferType] transfer type = deposit, withdraw (default is deposit)
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
@@ -3381,20 +3385,40 @@ export default class coindcx extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
-        if (fromAccount === 'spot' || fromAccount === 'swap') {
-            request['source_wallet_type'] = this.safeString (accountsByType, fromAccount, fromAccount);
-            request['destination_wallet_type'] = this.safeString (accountsByType, toAccount, toAccount);
-            response = await this.privatePostExchangeV1WalletsTransfer (this.extend (request, params));
-        } else {
-            request['from_account_id'] = fromAccount;
-            request['to_account_id'] = toAccount;
-            response = await this.privatePostExchangeV1WalletsSubAccountTransfer (this.extend (request, params));
+        const type = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const transferType = this.safeString (params, 'transferType', 'deposit');
+        params = this.omit (params, 'transferType');
+        if (type === 'spot') {
+            if (fromAccount === 'spot' || fromAccount === 'swap') {
+                request['source_wallet_type'] = this.safeString (accountsByType, fromAccount, fromAccount);
+                request['destination_wallet_type'] = this.safeString (accountsByType, toAccount, toAccount);
+                response = await this.privatePostExchangeV1WalletsTransfer (this.extend (request, params));
+            } else {
+                request['from_account_id'] = fromAccount;
+                request['to_account_id'] = toAccount;
+                response = await this.privatePostExchangeV1WalletsSubAccountTransfer (this.extend (request, params));
+            }
+        } else if (type === 'swap') {
+            request['transfer_type'] = transferType;
+            response = await this.privatePostExchangeV1DerivativesFuturesWalletsTransfer (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "19262d33-6aa4-4606-a62e-79e1e2634bf6",
+            //             "currency_short_name": "INR",
+            //             "balance":"10.0",
+            //             "locked_balance": "0.0",
+            //             "cross_order_margin": "0.0",
+            //             "cross_user_margin":"0.0"
+            //         }
+            //     ]
+            //
         }
-        //
-        //
+        const data = this.safeDict (response, 0, {});
         return {
-            'info': response,
-            'id': this.safeString (response, 'tranId'),
+            'info': data,
+            'id': this.safeString (data, 'id'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
