@@ -645,7 +645,7 @@ func  (this *poloniex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
                     panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), timeframe), " "), GetValue(market, "type")), " fetchOHLCV is not supported")))
                 }
         
-                responseRaw:= (<-this.callDynamically("swapPublicGetV3MarketCandles", this.Extend(request, params)))
+                responseRaw:= (<-this.SwapPublicGetV3MarketCandles(this.Extend(request, params)))
                 PanicOnError(responseRaw)
                 //
                 //     {
@@ -798,7 +798,7 @@ func  (this *poloniex) FetchSwapMarkets(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            response:= (<-this.callDynamically("swapPublicGetV3MarketAllInstruments", params))
+            response:= (<-this.SwapPublicGetV3MarketAllInstruments(params))
             PanicOnError(response)
             //
             //    {
@@ -1163,7 +1163,7 @@ func  (this *poloniex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             params = GetValue(marketTypeparamsVariable,1)
             if IsTrue(IsEqual(marketType, "swap")) {
         
-                responseRaw:= (<-this.callDynamically("swapPublicGetV3MarketTickers", this.Extend(request, params)))
+                responseRaw:= (<-this.SwapPublicGetV3MarketTickers(this.Extend(request, params)))
                 PanicOnError(responseRaw)
                 //
                 //    {
@@ -1617,7 +1617,7 @@ func  (this *poloniex) FetchTrades(symbol interface{}, optionalArgs ...interface
             }
             if IsTrue(GetValue(market, "contract")) {
         
-                response:= (<-this.callDynamically("swapPublicGetV3MarketTrades", this.Extend(request, params)))
+                response:= (<-this.SwapPublicGetV3MarketTrades(this.Extend(request, params)))
                 PanicOnError(response)
                 //
                 //     {
@@ -1728,7 +1728,7 @@ func  (this *poloniex) FetchMyTrades(optionalArgs ...interface{}) <- chan interf
             params = GetValue(requestparamsVariable,1)
             if IsTrue(isContract) {
         
-                raw:= (<-this.callDynamically("swapPrivateGetV3TradeOrderTrades", this.Extend(request, params)))
+                raw:= (<-this.SwapPrivateGetV3TradeOrderTrades(this.Extend(request, params)))
                 PanicOnError(raw)
                 //
                 //    {
@@ -2056,7 +2056,7 @@ func  (this *poloniex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if !IsTrue(GetValue(market, "spot")) {
         
-                raw:= (<-this.callDynamically("swapPrivateGetV3TradeOrderOpens", this.Extend(request, params)))
+                raw:= (<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, params)))
                 PanicOnError(raw)
                 //
                 //    {
@@ -2191,7 +2191,7 @@ func  (this *poloniex) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
             request = GetValue(requestparamsVariable,0);
             params = GetValue(requestparamsVariable,1)
         
-            response:= (<-this.callDynamically("swapPrivateGetV3TradeOrderHistory", this.Extend(request, params)))
+            response:= (<-this.SwapPrivateGetV3TradeOrderHistory(this.Extend(request, params)))
             PanicOnError(response)
             //
             //    {
@@ -2281,7 +2281,7 @@ func  (this *poloniex) CreateOrder(symbol interface{}, typeVar interface{}, side
             var response interface{} = nil
             if IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) {
         
-                responseInitial:= (<-this.callDynamically("swapPrivatePostV3TradeOrder", this.Extend(request, params)))
+                responseInitial:= (<-this.SwapPrivatePostV3TradeOrder(this.Extend(request, params)))
                 PanicOnError(responseInitial)
                 //
                 // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2496,7 +2496,7 @@ func  (this *poloniex) CancelOrder(id interface{}, optionalArgs ...interface{}) 
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "ordId", id)
         
-                raw:= (<-this.callDynamically("swapPrivateDeleteV3TradeOrder", this.Extend(request, params)))
+                raw:= (<-this.SwapPrivateDeleteV3TradeOrder(this.Extend(request, params)))
                 PanicOnError(raw)
         
                         //
@@ -2584,7 +2584,7 @@ func  (this *poloniex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             params = GetValue(marketTypeparamsVariable,1)
             if IsTrue(IsTrue(IsEqual(marketType, "swap")) || IsTrue(IsEqual(marketType, "future"))) {
         
-                raw:= (<-this.callDynamically("swapPrivateDeleteV3TradeAllOrders", this.Extend(request, params)))
+                raw:= (<-this.SwapPrivateDeleteV3TradeAllOrders(this.Extend(request, params)))
                 PanicOnError(raw)
                 //
                 //    {
@@ -2872,7 +2872,7 @@ func  (this *poloniex) FetchBalance(optionalArgs ...interface{}) <- chan interfa
             params = GetValue(marketTypeparamsVariable,1)
             if IsTrue(!IsEqual(marketType, "spot")) {
         
-                responseRaw:= (<-this.callDynamically("swapPrivateGetV3AccountBalance", params))
+                responseRaw:= (<-this.SwapPrivateGetV3AccountBalance(params))
                 PanicOnError(responseRaw)
                 //
                 //    {
@@ -3028,7 +3028,7 @@ func  (this *poloniex) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             }
             if IsTrue(GetValue(market, "contract")) {
         
-                responseRaw:= (<-this.callDynamically("swapPublicGetV3MarketOrderBook", this.Extend(request, params)))
+                responseRaw:= (<-this.SwapPublicGetV3MarketOrderBook(this.Extend(request, params)))
                 PanicOnError(responseRaw)
                 //
                 //    {
@@ -3873,7 +3873,7 @@ func  (this *poloniex) SetLeverage(leverage interface{}, optionalArgs ...interfa
                 "symbol": GetValue(market, "id"),
             }
         
-            response:= (<-this.callDynamically("swapPrivatePostV3PositionLeverage", this.Extend(request, params)))
+            response:= (<-this.SwapPrivatePostV3PositionLeverage(this.Extend(request, params)))
             PanicOnError(response)
         
             ch <- response
@@ -3914,7 +3914,7 @@ func  (this *poloniex) FetchLeverage(symbol interface{}, optionalArgs ...interfa
             }
             AddElementToObject(request, "mgnMode", ToUpper(marginMode))
         
-            response:= (<-this.callDynamically("swapPrivateGetV3PositionLeverages", this.Extend(request, params)))
+            response:= (<-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, params)))
             PanicOnError(response)
         
                 //
@@ -4010,7 +4010,7 @@ func  (this *poloniex) FetchPositionMode(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            response:= (<-this.callDynamically("swapPrivateGetV3PositionMode", params))
+            response:= (<-this.SwapPrivateGetV3PositionMode(params))
             PanicOnError(response)
             //
             //    {
@@ -4058,7 +4058,7 @@ func  (this *poloniex) SetPositionMode(hedged interface{}, optionalArgs ...inter
                 "posMode": mode,
             }
         
-            response:= (<-this.callDynamically("swapPrivatePostV3PositionMode", this.Extend(request, params)))
+            response:= (<-this.SwapPrivatePostV3PositionMode(this.Extend(request, params)))
             PanicOnError(response)
         
                 //
@@ -4098,7 +4098,7 @@ func  (this *poloniex) FetchPositions(optionalArgs ...interface{}) <- chan inter
             PanicOnError(retRes34458)
             symbols = this.MarketSymbols(symbols)
         
-            response:= (<-this.callDynamically("swapPrivateGetV3TradePositionOpens", params))
+            response:= (<-this.SwapPrivateGetV3TradePositionOpens(params))
             PanicOnError(response)
             //
             //    {
@@ -4238,7 +4238,7 @@ func  (this *poloniex) ModifyMarginHelper(symbol interface{}, amount interface{}
                 AddElementToObject(request, "posMode", "BOTH")
             }
         
-            response:= (<-this.callDynamically("swapPrivatePostV3TradePositionMargin", this.Extend(request, params)))
+            response:= (<-this.SwapPrivatePostV3TradePositionMargin(this.Extend(request, params)))
             PanicOnError(response)
             //
             // {

@@ -5434,7 +5434,7 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             }
-            response = await ((Task<object>)callDynamically(this, "privatePostContractPrivateModifyLimitOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privatePostContractPrivateModifyLimitOrder(this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " editOrder() only supports limit, trigger, stop loss and take profit orders")) ;

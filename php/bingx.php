@@ -157,6 +157,7 @@ class bingx extends Exchange {
                                 'trade/myTrades' => 2,
                                 'user/commissionRate' => 5,
                                 'account/balance' => 2,
+                                'account/allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'trade/order' => 2,
