@@ -7,7 +7,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1343,6 +1342,7 @@ export default class coindcx extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.coindcx.com/#get-balances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -3385,11 +3385,11 @@ export default class coindcx extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
-        const type = this.safeString (params, 'type', 'spot');
+        const marketType = this.safeString (params, 'type', 'spot');
         params = this.omit (params, 'type');
         const transferType = this.safeString (params, 'transferType', 'deposit');
         params = this.omit (params, 'transferType');
-        if (type === 'spot') {
+        if (marketType === 'spot') {
             if (fromAccount === 'spot' || fromAccount === 'swap') {
                 request['source_wallet_type'] = this.safeString (accountsByType, fromAccount, fromAccount);
                 request['destination_wallet_type'] = this.safeString (accountsByType, toAccount, toAccount);
@@ -3399,7 +3399,7 @@ export default class coindcx extends Exchange {
                 request['to_account_id'] = toAccount;
                 response = await this.privatePostExchangeV1WalletsSubAccountTransfer (this.extend (request, params));
             }
-        } else if (type === 'swap') {
+        } else if (marketType === 'swap') {
             request['transfer_type'] = transferType;
             response = await this.privatePostExchangeV1DerivativesFuturesWalletsTransfer (this.extend (request, params));
             //
