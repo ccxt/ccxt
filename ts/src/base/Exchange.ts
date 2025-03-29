@@ -2968,7 +2968,7 @@ export default class Exchange {
                     currency['active'] = active;
                 }
                 // set network 'active' to false if D or W is disabled
-                if (currency['networks'][key]['active'] === undefined) {
+                if (this.safeBool (network, 'active') === undefined) {
                     if (deposit && withdraw) {
                         currency['networks'][key]['active'] = true;
                     } else if (deposit !== undefined && withdraw !== undefined) {
