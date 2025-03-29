@@ -1,0 +1,16 @@
+{
+    "exchange": "coindcx",
+    "skipKeys": ["timestamp"],
+    "outputType": "json",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.coindcx.com/exchange/v1/users/balances",
+                "input": [],
+                "output": "{\"timestamp\":1720258732102}"
+            }
+        ]
+    }
+}
