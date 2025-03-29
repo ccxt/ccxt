@@ -33,13 +33,16 @@ class whitebit extends whitebit$1 {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createConvertTrade': true,
+                'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -1391,6 +1394,10 @@ class whitebit extends whitebit$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2082,6 +2089,60 @@ class whitebit extends whitebit$1 {
             'network': undefined,
             'address': address,
             'tag': tag,
+        };
+    }
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async createDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        const response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, params));
+        //
+        //     {
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "maxAmount": "0",
+        //             "minAmount": "1",
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'account', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //         "memo": "48565488244493"
+        //     },
+        //
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode(undefined, currency),
+            'network': undefined,
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': this.safeString(depositAddress, 'memo'),
         };
     }
     /**

@@ -193,6 +193,10 @@ export default class whitebit extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -307,6 +311,19 @@ export default class whitebit extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name whitebit#setLeverage
