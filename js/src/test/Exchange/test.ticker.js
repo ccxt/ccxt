@@ -56,6 +56,7 @@ export default (exchange, ticker, method, symbol) => {
     //     assert (baseVolume)
     // }
     if (![
+        'bitget',
         'bigone',
         'bitbns',
         'bitmart',
@@ -65,10 +66,9 @@ export default (exchange, ticker, method, symbol) => {
         'bybit',
         'coss',
         'cryptocom',
-        'ftx',
-        'ftxus',
         'gateio',
         'idex',
+        'kucoin',
         'mercado',
         'mexc',
         'okex',
