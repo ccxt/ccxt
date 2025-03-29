@@ -410,6 +410,7 @@ class poloniex extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchMyTrades' => array(
                         'limit' => 100,
