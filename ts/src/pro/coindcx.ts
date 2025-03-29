@@ -225,7 +225,7 @@ export default class coindcx extends Exchange {
                         'api/v1/derivatives/futures/data/stats': 1, // new
                         'exchange/v1/derivatives/futures/positions/cross_margin_details': 1, // new
                         'exchange/v1/derivatives/futures/wallets/transfer': 1, // done
-                        'exchange/v1/derivatives/futures/wallets': 1, // new
+                        'exchange/v1/derivatives/futures/wallets': 1, // done todo get error "not_found"
                         'exchange/v1/derivatives/futures/wallets/transactions': 1, // new
                         'exchange/v1/derivatives/futures/orders/edit': 1, // new
                         'exchange/v1/derivatives/futures/positions/margin_type': 1, // new
@@ -1341,12 +1341,32 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.coindcx.com/#get-balances
+         * @see https://docs.coindcx.com/#wallet-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostExchangeV1UsersBalances (params);
+        const accountType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (accountType !== undefined && accountType !== 'spot') {
+            response = await this.privatePostExchangeV1DerivativesFuturesWallets (params);
+        } else {
+            response = await this.privatePostExchangeV1UsersBalances (params);
+        }
+        return this.parseBalanceByType (response, accountType);
+    }
+
+    parseBalanceByType (response, accountType: Str) {
+        if (accountType === 'spot') {
+            return this.parseBalance (response);
+        } else {
+            return this.parseFundingBalance (response);
+        }
+    }
+
+    parseBalance (balances): Balances {
         //
         //     [
         //         {
@@ -1361,10 +1381,6 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
-    }
-
-    parseBalance (balances): Balances {
         const result: Dict = {
             'info': balances,
         };
@@ -1375,6 +1391,25 @@ export default class coindcx extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balanceEntry, 'balance');
             account['used'] = this.safeString (balanceEntry, 'locked_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    parseFundingBalance (response) {
+        //
+        //
+        const result: Dict = { 'info': response };
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
