@@ -231,6 +231,22 @@ func (this *bingx) SpotV1PrivateGetAccountBalance (args ...interface{}) <-chan i
    return ch
 }
 
+func (this *bingx) SpotV1PrivateGetAccountAllAccountBalance (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("spotV1PrivateGetAccountAllAccountBalance", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bingx) SpotV1PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
