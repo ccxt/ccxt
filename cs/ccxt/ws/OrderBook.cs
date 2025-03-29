@@ -161,7 +161,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this._asks._index.Clear();
             this._asks.Clear();
 
-            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
+            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks", new List<object>(){}) as List<object>;
             for (var i = 0; i < snapshotAsks.Count; i++)
             {
                 this.asks.storeArray(snapshotAsks[i] as List<object>);
@@ -169,7 +169,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
             this._bids._index.Clear();
             this._bids.Clear();
-            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
+            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids", new List<object>(){}) as List<object>;
             for (var i = 0; i < snapshotBids.Count; i++)
             {
                 this.bids.storeArray(snapshotBids[i] as List<object>);
@@ -275,7 +275,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
             this.asks._index.Clear();
             this.asks.Clear();
 
-            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
+            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks", new List<object>(){}) as List<object>;
             for (var i = 0; i < snapshotAsks.Count; i++)
             {
                 this.asks.storeArray(snapshotAsks[i] as List<object>);
@@ -283,7 +283,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
 
             this.bids._index.Clear();
             this.bids.Clear();
-            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
+            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids", new List<object>(){}) as List<object>;
             for (var i = 0; i < snapshotBids.Count; i++)
             {
                 this.bids.storeArray(snapshotBids[i] as List<object>);
