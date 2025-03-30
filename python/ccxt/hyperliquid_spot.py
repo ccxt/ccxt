@@ -1,4 +1,3 @@
-import copy
 from typing import List
 
 from ccxt.base.types import Market
@@ -16,8 +15,7 @@ class hyperliquid_spot(hyperliquid_abs):
     def fetch_markets(self, params={}) -> List[Market]:
         markets = self.fetch_spot_markets(params)
         if relevant_markets := [market for market in markets if market['symbol'] == 'UBTC/USDC']:
-            ubtc_market = copy.deepcopy(relevant_markets[0])
+            ubtc_market = relevant_markets[0]
             ubtc_market['symbol'] = 'BTC/USDC'
-            markets.append(ubtc_market)
-
+        markets = self.replace_k_with_1000(markets)
         return markets

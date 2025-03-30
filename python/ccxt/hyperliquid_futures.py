@@ -16,4 +16,5 @@ class hyperliquid_futures(hyperliquid_abs):
         markets = self.fetch_swap_markets(params)
         for market in markets:
             market['symbol'] = market['symbol'].split(':')[0]
+        markets = self.replace_k_with_1000(markets)
         return markets
