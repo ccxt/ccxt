@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.56'
+__version__ = '4.4.71'
 
 # -----------------------------------------------------------------------------
 
@@ -114,10 +114,11 @@ from ccxt.async_support.coinone import coinone                                  
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
-from ccxt.async_support.currencycom import currencycom                          # noqa: F401
+from ccxt.async_support.cryptomus import cryptomus                              # noqa: F401
 from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
+from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
@@ -143,7 +144,6 @@ from ccxt.async_support.kuna import kuna                                        
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
-from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
 from ccxt.async_support.myokx import myokx                                      # noqa: F401
@@ -159,7 +159,6 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
-from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -167,7 +166,6 @@ from ccxt.async_support.tradeogre import tradeogre                              
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.vertex import vertex                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
-from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.woofipro import woofipro                                # noqa: F401
@@ -228,10 +226,11 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
-    'currencycom',
+    'cryptomus',
     'defx',
     'delta',
     'deribit',
+    'derive',
     'digifinex',
     'ellipx',
     'exmo',
@@ -257,7 +256,6 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
-    'lykke',
     'mercado',
     'mexc',
     'myokx',
@@ -273,7 +271,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'timex',
     'tokocrypto',
@@ -281,7 +278,6 @@ exchanges = [
     'upbit',
     'vertex',
     'wavesexchange',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',

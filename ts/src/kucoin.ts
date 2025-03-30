@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Bal
  * @augments Exchange
  */
 export default class kucoin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'KuCoin',
@@ -1076,7 +1076,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetTimestamp (params);
         //
         //     {
@@ -2317,8 +2317,10 @@ export default class kucoin extends Exchange {
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
     }
 
     /**

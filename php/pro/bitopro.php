@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitopro extends \ccxt\async\bitopro {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -82,7 +82,7 @@ class bitopro extends \ccxt\async\bitopro {
             if ($limit === null) {
                 $endPart = $market['id'];
             } else {
-                $endPart = $market['id'] . ':' . $limit;
+                $endPart = $market['id'] . ':' . $this->number_to_string($limit);
             }
             $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
             return $orderbook->limit ();

@@ -175,18 +175,39 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			}
 			return nil
 		case []interface{}:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []float64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []bool:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return string(v[keyNum])
 		}
 	}
@@ -1016,8 +1037,8 @@ func IsObject(v interface{}) bool {
 	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
-	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
-		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
+		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
 		return true
 	default:
 		return false
@@ -1053,6 +1074,12 @@ func ToUpper(v interface{}) string {
 func MathFloor(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Floor(num)
+	}
+	if num, ok := v.(int); ok {
+		return math.Floor(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Floor(float64(num))
 	}
 	return 0
 }
@@ -1219,7 +1246,7 @@ func ObjectKeys(v interface{}) []string {
 			keys = append(keys, key)
 		}
 		return keys
-	}
+	} 
 	return nil
 	// val := reflect.ValueOf(v)
 	// if val.Kind() != reflect.Map {

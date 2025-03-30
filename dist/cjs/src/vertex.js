@@ -629,7 +629,7 @@ class vertex extends vertex$1 {
     async fetchTime(params = {}) {
         const response = await this.v1GatewayGetTime(params);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
     /**
      * @method
@@ -1551,7 +1551,7 @@ class vertex extends vertex$1 {
         if (base.indexOf('PERP') > 0) {
             marketId = marketId.replace('-PERP', '') + ':USDC';
         }
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
             'symbol': market['symbol'],

@@ -16,13 +16,13 @@ import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook,
  * @augments Exchange
  */
 export default class coinbase extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
             'name': 'Coinbase Advanced',
             'countries': [ 'US' ],
             'pro': true,
-            'certified': true,
+            'certified': false,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -327,6 +327,7 @@ export default class coinbase extends Exchange {
                     'INSUFFICIENT_FUND': BadRequest,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -444,7 +445,7 @@ export default class coinbase extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
@@ -475,7 +476,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const defaultMethod = this.safeString (this.options, 'fetchTime', 'v2PublicGetTime');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
@@ -4290,6 +4291,7 @@ export default class coinbase extends Exchange {
             'amount': this.numberToString (amount),
             'currency': code.toUpperCase (), // need to use code in case depositing USD etc.
             'payment_method': id,
+            'commit': true, // otheriwse the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits (this.extend (request, params));
         //
@@ -4328,7 +4330,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2 (response, 'data', 'transfer', {});
         return this.parseTransaction (data);
     }
 
@@ -4397,7 +4400,8 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2 (response, 'data', 'transfer', {});
         return this.parseTransaction (data);
     }
 
@@ -4903,6 +4907,73 @@ export default class coinbase extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    async fetchPortfolioDetails (portfolioUuid: string, params = {}): Promise<any[]> {
+        await this.loadMarkets ();
+        const request = {
+            'portfolio_uuid': portfolioUuid,
+        };
+        const response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid (this.extend (request, params));
+        const result = this.parsePortfolioDetails (response);
+        return result;
+    }
+
+    parsePortfolioDetails (portfolioData: Dict) {
+        const breakdown = portfolioData['breakdown'];
+        const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
+        const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
+        const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
+        const spotPositions = this.safeList (breakdown, 'spot_positions', []);
+        const parsedPositions = [];
+        for (let i = 0; i < spotPositions.length; i++) {
+            const position: Dict = spotPositions[i];
+            const currencyCode = this.safeString (position, 'asset', 'Unknown');
+            const availableBalanceStr = this.safeString (position, 'available_to_trade_fiat', '0');
+            const availableBalance = this.parseNumber (availableBalanceStr);
+            const totalBalanceFiatStr = this.safeString (position, 'total_balance_fiat', '0');
+            const totalBalanceFiat = this.parseNumber (totalBalanceFiatStr);
+            const holdAmount = totalBalanceFiat - availableBalance;
+            const costBasisDict = this.safeDict (position, 'cost_basis', {});
+            const costBasisStr = this.safeString (costBasisDict, 'value', '0');
+            const averageEntryPriceDict = this.safeDict (position, 'average_entry_price', {});
+            const averageEntryPriceStr = this.safeString (averageEntryPriceDict, 'value', '0');
+            const positionData: Dict = {
+                'currency': currencyCode,
+                'available_balance': availableBalance,
+                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'wallet_name': portfolioName,
+                'account_id': portfolioUuid,
+                'account_uuid': this.safeString (position, 'account_uuid', ''),
+                'total_balance_fiat': totalBalanceFiat,
+                'total_balance_crypto': this.parseNumber (this.safeString (position, 'total_balance_crypto', '0')),
+                'available_to_trade_fiat': this.parseNumber (this.safeString (position, 'available_to_trade_fiat', '0')),
+                'available_to_trade_crypto': this.parseNumber (this.safeString (position, 'available_to_trade_crypto', '0')),
+                'available_to_transfer_fiat': this.parseNumber (this.safeString (position, 'available_to_transfer_fiat', '0')),
+                'available_to_transfer_crypto': this.parseNumber (this.safeString (position, 'available_to_trade_crypto', '0')),
+                'allocation': this.parseNumber (this.safeString (position, 'allocation', '0')),
+                'cost_basis': this.parseNumber (costBasisStr),
+                'cost_basis_currency': this.safeString (costBasisDict, 'currency', 'USD'),
+                'is_cash': this.safeBool (position, 'is_cash', false),
+                'average_entry_price': this.parseNumber (averageEntryPriceStr),
+                'average_entry_price_currency': this.safeString (averageEntryPriceDict, 'currency', 'USD'),
+                'asset_uuid': this.safeString (position, 'asset_uuid', ''),
+                'unrealized_pnl': this.parseNumber (this.safeString (position, 'unrealized_pnl', '0')),
+                'asset_color': this.safeString (position, 'asset_color', ''),
+                'account_type': this.safeString (position, 'account_type', ''),
+            };
+            parsedPositions.push (positionData);
+        }
+        return parsedPositions;
+    }
+
     createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined) {
         // it may not work for v2
         let uri = undefined;
@@ -5049,12 +5120,38 @@ export default class coinbase extends Exchange {
         //        }
         //      ]
         //    }
+        // or
+        // {
+        //     "success": false,
+        //     "error_response": {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString (response, 'error_description');
+            const errorMessage = this.safeString2 (response, 'error_description', 'error');
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
+        }
+        const errorResponse = this.safeDict (response, 'error_response');
+        if (errorResponse !== undefined) {
+            const errorMessageInner = this.safeString2 (errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessageInner, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessageInner, feedback);
             throw new ExchangeError (feedback);
         }
         const errors = this.safeList (response, 'errors');

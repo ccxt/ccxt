@@ -891,6 +891,7 @@ class htx extends htx$1 {
                     '1041': errors.InvalidOrder,
                     '1047': errors.InsufficientFunds,
                     '1048': errors.InsufficientFunds,
+                    '1061': errors.OrderNotFound,
                     '1051': errors.InvalidOrder,
                     '1066': errors.BadSymbol,
                     '1067': errors.InvalidOrder,
@@ -7296,14 +7297,18 @@ class htx extends htx$1 {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString(options, 'subType', defaultSubType);
-        subType = this.safeString(params, 'subType', subType);
+        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request = {
         // 'contract_code': market['id'],
         };
-        params = this.omit(params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));
@@ -7605,6 +7610,7 @@ class htx extends htx$1 {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
@@ -7622,6 +7628,16 @@ class htx extends htx$1 {
             const feedback = this.id + ' ' + body;
             const code = this.safeString(response, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict(response, 'data');
+        const errorsList = this.safeList(data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict(errorsList, 0);
+            const errcode = this.safeString(first, 'err_code');
+            const errmessage = this.safeString(first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }

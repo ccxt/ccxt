@@ -7,11 +7,11 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
-use React\Async;
+use \React\Async;
 
 class binanceusdm extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',

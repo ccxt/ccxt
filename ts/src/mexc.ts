@@ -15,7 +15,7 @@ import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHL
  * @augments Exchange
  */
 export default class mexc extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'mexc',
             'name': 'MEXC Global',
@@ -1011,7 +1011,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
@@ -2260,8 +2260,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, this.extend (req, params));
     }
 
     /**
@@ -2280,8 +2282,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, this.extend (req, params));
     }
 
     /**

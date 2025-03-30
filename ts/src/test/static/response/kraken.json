@@ -1089,6 +1089,7 @@
         "fetchTrades": [
             {
                 "description": "spot trade",
+                "disabledGO": true,
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -1199,9 +1200,9 @@
                     "high": 73580,
                     "low": 68666,
                     "bid": 73380.6,
-                    "bidVolume": null,
+                    "bidVolume": 1,
                     "ask": 73380.7,
-                    "askVolume": null,
+                    "askVolume": 1,
                     "vwap": 71501.5752,
                     "open": 71450.7,
                     "close": 73380.6,

@@ -10,7 +10,7 @@ use ccxt\abstract\bitstamp as Exchange;
 
 class bitstamp extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
@@ -1316,10 +1316,9 @@ class bitstamp extends Exchange {
 
     public function parse_trading_fees($fees) {
         $result = array( 'info' => $fees );
-        $symbols = $this->symbols;
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
+            $symbol = $fee['symbol'];
             $result[$symbol] = $fee;
         }
         return $result;

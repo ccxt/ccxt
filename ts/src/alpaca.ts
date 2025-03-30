@@ -12,7 +12,7 @@ import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderT
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -376,7 +376,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.traderPrivateGetV2Clock (params);
         //
         //     {
@@ -1006,7 +1006,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
-            let newType = undefined;
+            let newType: string;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             } else {
@@ -1163,10 +1163,10 @@ export default class alpaca extends Exchange {
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
-            request['endTime'] = until;
+            request['endTime'] = this.iso8601 (until);
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1416,6 +1416,7 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1427,8 +1428,13 @@ export default class alpaca extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['until'] = this.iso8601 (until);
+        }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;

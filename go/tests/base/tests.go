@@ -58,35 +58,35 @@ func  (this *testMainClass) Init(exchangeId interface{}, symbolArgv interface{},
                     this.ParseCliArgsAndProps()
             if IsTrue(IsTrue(this.RequestTests) && IsTrue(this.ResponseTests)) {
         
-                retRes970951 := (<-this.RunStaticRequestTests(exchangeId, symbolArgv))
-                PanicOnError(retRes970951)
+                retRes9212 := (<-this.RunStaticRequestTests(exchangeId, symbolArgv))
+                PanicOnError(retRes9212)
         
-                retRes711875 := (<-this.RunStaticResponseTests(exchangeId, symbolArgv))
-                PanicOnError(retRes711875)
+                retRes9312 := (<-this.RunStaticResponseTests(exchangeId, symbolArgv))
+                PanicOnError(retRes9312)
         
                 ch <- true
                 return nil
             }
             if IsTrue(this.ResponseTests) {
         
-                retRes616889 := (<-this.RunStaticResponseTests(exchangeId, symbolArgv))
-                PanicOnError(retRes616889)
+                retRes9712 := (<-this.RunStaticResponseTests(exchangeId, symbolArgv))
+                PanicOnError(retRes9712)
         
                 ch <- true
                 return nil
             }
             if IsTrue(this.RequestTests) {
         
-                retRes525528 := (<-this.RunStaticRequestTests(exchangeId, symbolArgv))
-                PanicOnError(retRes525528) // symbol here is the testname
+                retRes10112 := (<-this.RunStaticRequestTests(exchangeId, symbolArgv))
+                PanicOnError(retRes10112) // symbol here is the testname
         
                 ch <- true
                 return nil
             }
             if IsTrue(this.IdTests) {
         
-                retRes916763 := (<-this.RunBrokerIdTests())
-                PanicOnError(retRes916763)
+                retRes10512 := (<-this.RunBrokerIdTests())
+                PanicOnError(retRes10512)
         
                 ch <- true
                 return nil
@@ -110,14 +110,14 @@ func  (this *testMainClass) Init(exchangeId interface{}, symbolArgv interface{},
                 ExitScript(0)
             }
         
-            retRes808412 := (<-this.ImportFiles(exchange))
-            PanicOnError(retRes808412)
+            retRes1208 := (<-this.ImportFiles(exchange))
+            PanicOnError(retRes1208)
             Assert(IsGreaterThan(GetArrayLength(ObjectKeys(this.TestFiles)), 0), "Test files were not loaded") // ensure test files are found & filled
             this.ExpandSettings(exchange)
             this.CheckIfSpecificTestIsChosen(methodArgv)
         
-            retRes744137 := (<-this.StartTest(exchange, symbolArgv))
-            PanicOnError(retRes744137)
+            retRes1248 := (<-this.StartTest(exchange, symbolArgv))
+            PanicOnError(retRes1248)
             ExitScript(0) // needed to be explicitly finished for WS tests
         
             ch <- true  // required for c#
@@ -290,8 +290,8 @@ func  (this *testMainClass) TestMethod(methodName interface{}, exchange ccxt.IEx
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if IsTrue(isLoadMarkets) {
         
-                retRes697009 := (<-exchange.LoadMarkets(true))
-                PanicOnError(retRes697009)
+                retRes27812 := (<-exchange.LoadMarkets(true))
+                PanicOnError(retRes27812)
             }
             var name interface{} = exchange.GetId()
             if IsTrue(skipMessage) {
@@ -310,8 +310,8 @@ func  (this *testMainClass) TestMethod(methodName interface{}, exchange ccxt.IEx
                 CallMethodSync(this.TestFiles, methodName, exchange, skippedPropertiesForMethod, args)
             } else {
         
-                retRes731187 := (<-CallMethod(this.TestFiles, methodName, exchange, skippedPropertiesForMethod, args))
-                PanicOnError(retRes731187)
+                retRes29412 := (<-CallMethod(this.TestFiles, methodName, exchange, skippedPropertiesForMethod, args))
+                PanicOnError(retRes29412)
             }
             if IsTrue(this.Info) {
                 Dump(this.AddPadding("[INFO] TESTING DONE", 25), name, methodName)
@@ -448,8 +448,8 @@ func  (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.IExch
                                     // wait and retry again
                                     // (increase wait time on every retry)
                 
-                                    retRes183700 := (<-exchange.Sleep(Multiply((Add(i, 1)), 1000)))
-                                    PanicOnError(retRes183700)
+                                    retRes41524 := (<-exchange.Sleep(Multiply((Add(i, 1)), 1000)))
+                                    PanicOnError(retRes41524)
                                 }
                             } else {
                                 // if it's loadMarkets, then fail test, because it's mandatory for tests
@@ -490,8 +490,8 @@ func  (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.IExch
                 		}()
                 		// try block:
                         
-                            retRes448588 := (<-this.TestMethod(methodName, exchange, args, isPublic))
-                            PanicOnError(retRes448588)
+                            retRes36916 := (<-this.TestMethod(methodName, exchange, args, isPublic))
+                            PanicOnError(retRes36916)
                 
                             ch <- true
                             return nil
@@ -558,8 +558,8 @@ func  (this *testMainClass) RunPublicTests(exchange ccxt.IExchange, symbol inter
             }
             this.PublicTests = tests
         
-            retRes106017 := (<-this.RunTests(exchange, tests, true))
-            PanicOnError(retRes106017)
+            retRes4988 := (<-this.RunTests(exchange, tests, true))
+            PanicOnError(retRes4988)
         
             ch <- true
             return nil
@@ -765,8 +765,8 @@ func  (this *testMainClass) TestExchange(exchange ccxt.IExchange, optionalArgs .
                     }
                     AddElementToObject(exchange.GetOptions(), "defaultType", "spot")
         
-                    retRes51420 := (<-this.RunPublicTests(exchange, spotSymbol))
-                    PanicOnError(retRes51420)
+                    retRes72616 := (<-this.RunPublicTests(exchange, spotSymbol))
+                    PanicOnError(retRes72616)
                 }
                 if IsTrue(IsTrue(GetValue(exchange.GetHas(), "swap")) && IsTrue(!IsEqual(swapSymbol, nil))) {
                     if IsTrue(this.Info) {
@@ -774,22 +774,22 @@ func  (this *testMainClass) TestExchange(exchange ccxt.IExchange, optionalArgs .
                     }
                     AddElementToObject(exchange.GetOptions(), "defaultType", "swap")
         
-                    retRes2390 := (<-this.RunPublicTests(exchange, swapSymbol))
-                    PanicOnError(retRes2390)
+                    retRes73316 := (<-this.RunPublicTests(exchange, swapSymbol))
+                    PanicOnError(retRes73316)
                 }
             }
             if IsTrue(IsTrue(this.PrivateTest) || IsTrue(this.PrivateTestOnly)) {
                 if IsTrue(IsTrue(GetValue(exchange.GetHas(), "spot")) && IsTrue(!IsEqual(spotSymbol, nil))) {
                     AddElementToObject(exchange.GetOptions(), "defaultType", "spot")
         
-                    retRes6500 := (<-this.RunPrivateTests(exchange, spotSymbol))
-                    PanicOnError(retRes6500)
+                    retRes73916 := (<-this.RunPrivateTests(exchange, spotSymbol))
+                    PanicOnError(retRes73916)
                 }
                 if IsTrue(IsTrue(GetValue(exchange.GetHas(), "swap")) && IsTrue(!IsEqual(swapSymbol, nil))) {
                     AddElementToObject(exchange.GetOptions(), "defaultType", "swap")
         
-                    retRes464011 := (<-this.RunPrivateTests(exchange, swapSymbol))
-                    PanicOnError(retRes464011)
+                    retRes74316 := (<-this.RunPrivateTests(exchange, swapSymbol))
+                    PanicOnError(retRes74316)
                 }
             }
         
@@ -877,8 +877,8 @@ func  (this *testMainClass) RunPrivateTests(exchange ccxt.IExchange, symbol inte
             }
             // const combinedTests = exchange.GetdeepExtend() (this.publicTests, privateTests);
         
-            retRes752931 := (<-this.RunTests(exchange, tests, false))
-            PanicOnError(retRes752931)
+            retRes8368 := (<-this.RunTests(exchange, tests, false))
+            PanicOnError(retRes8368)
         
             ch <- true  // required in c#
             return nil
@@ -914,16 +914,16 @@ func  (this *testMainClass) TestProxies(exchange ccxt.IExchange) <- chan interfa
                 					// catch block:
                                                 exception = e
                 
-                            retRes481032 := (<-exchange.Sleep(Multiply(j, 1000)))
-                            PanicOnError(retRes481032)
+                            retRes85616 := (<-exchange.Sleep(Multiply(j, 1000)))
+                            PanicOnError(retRes85616)
                                     return nil
                 				}(this)
                 			}
                 		}()
                 		// try block:
                         
-                            retRes633744 := (<-this.TestMethod(proxyTestName, exchange, []interface{}{}, true))
-                            PanicOnError(retRes633744)
+                            retRes85216 := (<-this.TestMethod(proxyTestName, exchange, []interface{}{}, true))
+                            PanicOnError(retRes85216)
                 
                             ch <- true  // if successfull, then end the test
                             return nil
@@ -948,6 +948,17 @@ func  (this *testMainClass) TestProxies(exchange ccxt.IExchange) <- chan interfa
             }()
             return ch
         }
+func  (this *testMainClass) CheckConstructor(exchange ccxt.IExchange)  {
+    // todo: this might be moved in base tests later
+    if IsTrue(IsEqual(exchange.GetId(), "binance")) {
+        Assert(IsEqual(exchange.GetHostname(), nil), "binance.com hostname should be empty")
+        Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.com/api/v3"), Add("https://api.binance.com/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
+        Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), Add("SAPI should contain the endpoint lending/union/account, ", JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"))))
+    } else if IsTrue(IsEqual(exchange.GetId(), "binanceus")) {
+        Assert(IsEqual(exchange.GetHostname(), "binance.us"), Add("binance.us hostname does not match ", exchange.GetHostname()))
+        Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.us/api/v3"), Add("https://api.binance.us/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
+    }
+}
 func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
@@ -959,6 +970,7 @@ func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{
                 ch <- true
                 return nil
             }
+            this.CheckConstructor(exchange)
             if IsTrue(IsTrue(this.Sandbox) || IsTrue(GetExchangeProp(exchange, "sandbox"))) {
                 exchange.SetSandboxMode(true)
             }
@@ -973,8 +985,8 @@ func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{
             					// catch block:
                                         if !IsTrue(IsSync()) {
             
-                        retRes711206 := (<-Close(exchange))
-                        PanicOnError(retRes711206)
+                        retRes91016 := (<-Close(exchange))
+                        PanicOnError(retRes91016)
                     }
                     panic(e)
                                 return nil
@@ -988,8 +1000,8 @@ func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{
                     if !IsTrue(result) {
                         if !IsTrue(IsSync()) {
             
-                            retRes228616 := (<-Close(exchange))
-                            PanicOnError(retRes228616)
+                            retRes89620 := (<-Close(exchange))
+                            PanicOnError(retRes89620)
                         }
             
                         ch <- true
@@ -1000,12 +1012,12 @@ func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{
                     //     // await this.testProxies (exchange);
                     // }
             
-                    retRes995461 := (<-this.TestExchange(exchange, symbol))
-                    PanicOnError(retRes995461)
+                    retRes90412 := (<-this.TestExchange(exchange, symbol))
+                    PanicOnError(retRes90412)
                     if !IsTrue(IsSync()) {
             
-                        retRes640588 := (<-Close(exchange))
-                        PanicOnError(retRes640588)
+                        retRes90616 := (<-Close(exchange))
+                        PanicOnError(retRes90616)
                     }
             		return nil
             	}(this)
@@ -1155,8 +1167,8 @@ func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchang
         }
     } else {
         // built-in types like strings, numbers, booleans
-        var sanitizedNewOutput interface{} = Ternary(IsTrue((!IsTrue(newOutput))), nil, newOutput) // we store undefined as nulls in the json file so we need to convert it back
-        var sanitizedStoredOutput interface{} = Ternary(IsTrue((!IsTrue(storedOutput))), nil, storedOutput)
+        var sanitizedNewOutput interface{} = Ternary(IsTrue((IsNullValue(newOutput))), nil, newOutput) // we store undefined as nulls in the json file so we need to convert it back
+        var sanitizedStoredOutput interface{} = Ternary(IsTrue((IsNullValue(storedOutput))), nil, storedOutput)
         var newOutputString interface{} = Ternary(IsTrue(sanitizedNewOutput), ToString(sanitizedNewOutput), "undefined")
         var storedOutputString interface{} = Ternary(IsTrue(sanitizedStoredOutput), ToString(sanitizedStoredOutput), "undefined")
         var messageError interface{} = Add(Add(Add("output value mismatch:", newOutputString), " != "), storedOutputString)
@@ -1177,7 +1189,7 @@ func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchang
             var isString interface{} = IsTrue(isComputedString) || IsTrue(isStoredString)
             var isUndefined interface{} = IsTrue(isComputedUndefined) || IsTrue(isStoredUndefined) // undefined is a perfetly valid value
             if IsTrue(IsTrue(IsTrue(isBoolean) || IsTrue(isString)) || IsTrue(isUndefined)) {
-                if IsTrue(IsEqual(this.Lang, "C#")) {
+                if IsTrue(IsTrue((IsEqual(this.Lang, "C#"))) || IsTrue((IsEqual(this.Lang, "GO")))) {
                     // tmp c# number comparsion
                     var isNumber interface{} = false
                     
@@ -1372,8 +1384,8 @@ func  (this *testMainClass) TestRequestStatically(exchange ccxt.IExchange, metho
             		// try block:
                             if !IsTrue(IsSync()) {
             
-                        retRes509479 := (<-CallExchangeMethodDynamically(exchange, method, this.SanitizeDataInput(GetValue(data, "input"))))
-                        PanicOnError(retRes509479)
+                        retRes121416 := (<-CallExchangeMethodDynamically(exchange, method, this.SanitizeDataInput(GetValue(data, "input"))))
+                        PanicOnError(retRes121416)
                     } else {
                         CallExchangeMethodDynamicallySync(exchange, method, this.SanitizeDataInput(GetValue(data, "input")))
                     }
@@ -1465,6 +1477,7 @@ func  (this *testMainClass) TestResponseStatically(exchange ccxt.IExchange, meth
 func  (this *testMainClass) InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {
     var markets interface{} = this.LoadMarketsFromFile(exchangeName)
     var currencies interface{} = this.LoadCurrenciesFromFile(exchangeName)
+    // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
     var exchange ccxt.IExchange = InitExchange(exchangeName, map[string]interface{} {
         "markets": markets,
         "currencies": currencies,
@@ -1571,17 +1584,16 @@ func  (this *testMainClass) TestExchangeRequestStatically(exchangeName interface
                     var typeVar interface{} = exchange.SafeString(exchangeData, "outputType")
                     var skipKeys interface{} = exchange.SafeValue(exchangeData, "skipKeys", []interface{}{})
         
-                    retRes612066 := (<-this.TestRequestStatically(exchange, method, result, typeVar, skipKeys))
-                    PanicOnError(retRes612066)
+                    retRes133516 := (<-this.TestRequestStatically(exchange, method, result, typeVar, skipKeys))
+                    PanicOnError(retRes133516)
                     // reset options
-                    // exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, {});)
-                    exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, map[string]interface{} {}))
+                    exchange.SetOptions(exchange.ConvertToSafeDictionary(exchange.DeepExtend(oldExchangeOptions, map[string]interface{} {})))
                 }
             }
             if !IsTrue(IsSync()) {
         
-                retRes620765 := (<-Close(exchange))
-                PanicOnError(retRes620765)
+                retRes134212 := (<-Close(exchange))
+                PanicOnError(retRes134212)
             }
         
             ch <- true  // in c# methods that will be used with promiseAll need to return something
@@ -1655,8 +1667,8 @@ func  (this *testMainClass) TestExchangeResponseStatically(exchangeName interfac
                     }
                     var skipKeys interface{} = exchange.SafeValue(exchangeData, "skipKeys", []interface{}{})
         
-                    retRes998326 := (<-this.TestResponseStatically(exchange, method, skipKeys, result))
-                    PanicOnError(retRes998326)
+                    retRes140616 := (<-this.TestResponseStatically(exchange, method, skipKeys, result))
+                    PanicOnError(retRes140616)
                     // reset options
                     // exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, {});)
                     exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, map[string]interface{} {}))
@@ -1664,8 +1676,8 @@ func  (this *testMainClass) TestExchangeResponseStatically(exchangeName interfac
             }
             if !IsTrue(IsSync()) {
         
-                retRes407750 := (<-Close(exchange))
-                PanicOnError(retRes407750)
+                retRes141312 := (<-Close(exchange))
+                PanicOnError(retRes141312)
             }
         
             ch <- true  // in c# methods that will be used with promiseAll need to return something
@@ -1701,8 +1713,8 @@ func  (this *testMainClass) RunStaticRequestTests(optionalArgs ...interface{}) <
             testName := GetArg(optionalArgs, 1, nil)
             _ = testName
         
-            retRes497777 := (<-this.RunStaticTests("request", targetExchange, testName))
-            PanicOnError(retRes497777)
+            retRes14358 := (<-this.RunStaticTests("request", targetExchange, testName))
+            PanicOnError(retRes14358)
         
             ch <- true
             return nil
@@ -1769,8 +1781,8 @@ func  (this *testMainClass) RunStaticTests(typeVar interface{}, optionalArgs ...
             		}()
             		// try block:
                     
-                    retRes29235 := (<-promiseAll(promises))
-                    PanicOnError(retRes29235)
+                    retRes146712 := (<-promiseAll(promises))
+                    PanicOnError(retRes146712)
             		return nil
             	}(this)
             	if ret__ != nil {
@@ -1804,8 +1816,8 @@ func  (this *testMainClass) RunStaticResponseTests(optionalArgs ...interface{}) 
             test := GetArg(optionalArgs, 1, nil)
             _ = test
         
-            retRes742225 := (<-this.RunStaticTests("response", exchangeName, test))
-            PanicOnError(retRes742225)
+            retRes14918 := (<-this.RunStaticTests("response", exchangeName, test))
+            PanicOnError(retRes14918)
         
             ch <- true
             return nil
@@ -1821,10 +1833,10 @@ func  (this *testMainClass) RunBrokerIdTests() <- chan interface{} {
                 //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        var promises interface{} = []interface{}{this.TestBinance(), this.TestOkx(), this.TestCryptocom(), this.TestBybit(), this.TestKucoin(), this.TestKucoinfutures(), this.TestBitget(), this.TestMexc(), this.TestHtx(), this.TestWoo(), this.TestBitmart(), this.TestCoinex(), this.TestBingx(), this.TestPhemex(), this.TestBlofin(), this.TestHyperliquid(), this.TestCoinbaseinternational(), this.TestCoinbaseAdvanced(), this.TestWoofiPro(), this.TestOxfun(), this.TestXT(), this.TestVertex(), this.TestParadex(), this.TestHashkey(), this.TestCoincatch(), this.TestDefx()}
+        var promises interface{} = []interface{}{this.TestBinance(), this.TestOkx(), this.TestCryptocom(), this.TestBybit(), this.TestKucoin(), this.TestKucoinfutures(), this.TestBitget(), this.TestMexc(), this.TestHtx(), this.TestWoo(), this.TestBitmart(), this.TestCoinex(), this.TestBingx(), this.TestPhemex(), this.TestBlofin(), this.TestHyperliquid(), this.TestCoinbaseinternational(), this.TestCoinbaseAdvanced(), this.TestWoofiPro(), this.TestOxfun(), this.TestXT(), this.TestVertex(), this.TestParadex(), this.TestHashkey(), this.TestCoincatch(), this.TestDefx(), this.TestCryptomus(), this.TestDerive()}
         
-        retRes741277 := (<-promiseAll(promises))
-        PanicOnError(retRes741277)
+        retRes15298 := (<-promiseAll(promises))
+        PanicOnError(retRes15298)
         var successMessage interface{} = Add(Add("[", this.Lang), "][TEST_SUCCESS] brokerId tests passed.")
         Dump(Add("[INFO]", successMessage))
         ExitScript(0)
@@ -1859,8 +1871,8 @@ func  (this *testMainClass) TestBinance() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes552000 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes552000)
+            retRes154112 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes154112)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -1888,8 +1900,8 @@ func  (this *testMainClass) TestBinance() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes91541 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes91541)
+            retRes155112 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes155112)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -1913,8 +1925,8 @@ func  (this *testMainClass) TestBinance() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes29602 := (<-exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes29602)
+            retRes155712 := (<-exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes155712)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -1926,10 +1938,53 @@ func  (this *testMainClass) TestBinance() <- chan interface{} {
         Assert(StartsWith(clientOrderIdSwap, swapIdString), Add(Add(Add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString))
         var clientOrderIdInverse interface{} = GetValue(swapInverseOrderRequest, "newClientOrderId")
         Assert(StartsWith(clientOrderIdInverse, swapIdString), Add(Add(Add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString))
+        var createOrdersRequest interface{} = nil
+        
+        {		ret__ := func(this *testMainClass) (ret_ interface{}) {
+        		defer func() {
+        			if e := recover(); e != nil {
+                        if e == "break" {
+        				    return
+        			    }
+        				ret_ = func(this *testMainClass) interface{} {
+        					// catch block:
+                                createOrdersRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+                            return nil
+        				}(this)
+        			}
+        		}()
+        		// try block:
+                    var orders interface{} = []interface{}{map[string]interface{} {
+            "symbol": "BTC/USDT:USDT",
+            "type": "limit",
+            "side": "sell",
+            "amount": 1,
+            "price": 100000,
+        }, map[string]interface{} {
+            "symbol": "BTC/USDT:USDT",
+            "type": "market",
+            "side": "buy",
+            "amount": 1,
+        }}
+        
+            retRes158312 := (<-exchange.CreateOrders(orders))
+            PanicOnError(retRes158312)
+        		return nil
+        	}(this)
+        	if ret__ != nil {
+        		return ret__
+        	}
+        }
+        var batchOrders interface{} = GetValue(createOrdersRequest, "batchOrders")
+        for i := 0; IsLessThan(i, GetArrayLength(batchOrders)); i++ {
+            var current interface{} = GetValue(batchOrders, i)
+            var currentClientOrderId interface{} = GetValue(current, "newClientOrderId")
+            Assert(StartsWith(currentClientOrderId, swapIdString), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString))
+        }
         if !IsTrue(IsSync()) {
         
-            retRes608760 := (<-Close(exchange))
-            PanicOnError(retRes608760)
+            retRes159412 := (<-Close(exchange))
+            PanicOnError(retRes159412)
         }
         
         ch <- true
@@ -1962,8 +2017,8 @@ func  (this *testMainClass) TestOkx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes807416 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes807416)
+            retRes160412 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes160412)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -1992,8 +2047,8 @@ func  (this *testMainClass) TestOkx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes470734 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes470734)
+            retRes161512 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes161512)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2006,8 +2061,8 @@ func  (this *testMainClass) TestOkx() <- chan interface{} {
         Assert(IsEqual(swapTag, id), Add(Add(Add("okx - id: ", id), " different from swap tag: "), swapTag))
         if !IsTrue(IsSync()) {
         
-            retRes832215 := (<-Close(exchange))
-            PanicOnError(retRes832215)
+            retRes162412 := (<-Close(exchange))
+            PanicOnError(retRes162412)
         }
         
         ch <- true
@@ -2024,8 +2079,8 @@ func  (this *testMainClass) TestCryptocom() <- chan interface{} {
                 var exchange ccxt.IExchange = this.InitOfflineExchange("cryptocom")
         var id interface{} = "CCXT"
         
-        retRes780124 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes780124)
+        retRes16328 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes16328)
         var request interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -2043,8 +2098,8 @@ func  (this *testMainClass) TestCryptocom() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes609135 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes609135)
+            retRes163512 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes163512)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2055,8 +2110,8 @@ func  (this *testMainClass) TestCryptocom() <- chan interface{} {
         Assert(IsEqual(brokerId, id), Add(Add(Add("cryptocom - id: ", id), " different from  broker_id: "), brokerId))
         if !IsTrue(IsSync()) {
         
-            retRes655461 := (<-Close(exchange))
-            PanicOnError(retRes655461)
+            retRes164212 := (<-Close(exchange))
+            PanicOnError(retRes164212)
         }
         
         ch <- true
@@ -2091,8 +2146,8 @@ func  (this *testMainClass) TestBybit() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes781773 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes781773)
+            retRes165312 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes165312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2102,8 +2157,8 @@ func  (this *testMainClass) TestBybit() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "Referer"), id), Add(Add("bybit - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes609839 := (<-Close(exchange))
-            PanicOnError(retRes609839)
+            retRes166012 := (<-Close(exchange))
+            PanicOnError(retRes166012)
         }
         
         ch <- true
@@ -2140,8 +2195,8 @@ func  (this *testMainClass) TestKucoin() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes283967 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes283967)
+            retRes167312 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes167312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2152,8 +2207,8 @@ func  (this *testMainClass) TestKucoin() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoin - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes599211 := (<-Close(exchange))
-            PanicOnError(retRes599211)
+            retRes168112 := (<-Close(exchange))
+            PanicOnError(retRes168112)
         }
         
         ch <- true
@@ -2190,8 +2245,8 @@ func  (this *testMainClass) TestKucoinfutures() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes45721 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes45721)
+            retRes169512 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes169512)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2201,8 +2256,8 @@ func  (this *testMainClass) TestKucoinfutures() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoinfutures - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes557564 := (<-Close(exchange))
-            PanicOnError(retRes557564)
+            retRes170112 := (<-Close(exchange))
+            PanicOnError(retRes170112)
         }
         
         ch <- true
@@ -2236,8 +2291,8 @@ func  (this *testMainClass) TestBitget() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes496143 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes496143)
+            retRes171212 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes171212)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2247,8 +2302,8 @@ func  (this *testMainClass) TestBitget() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), Add(Add("bitget - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes19232 := (<-Close(exchange))
-            PanicOnError(retRes19232)
+            retRes171812 := (<-Close(exchange))
+            PanicOnError(retRes171812)
         }
         
         ch <- true
@@ -2267,8 +2322,8 @@ func  (this *testMainClass) TestMexc() <- chan interface{} {
         var id interface{} = "CCXT"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("mexc - id: ", id), " not in options"))
         
-        retRes670735 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes670735)
+        retRes17288 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes17288)
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
         		defer func() {
@@ -2285,8 +2340,8 @@ func  (this *testMainClass) TestMexc() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes925357 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes925357)
+            retRes173012 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes173012)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2296,8 +2351,8 @@ func  (this *testMainClass) TestMexc() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "source"), id), Add(Add("mexc - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes367718 := (<-Close(exchange))
-            PanicOnError(retRes367718)
+            retRes173612 := (<-Close(exchange))
+            PanicOnError(retRes173612)
         }
         
         ch <- true
@@ -2331,8 +2386,8 @@ func  (this *testMainClass) TestHtx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes496402 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes496402)
+            retRes174712 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes174712)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2360,8 +2415,8 @@ func  (this *testMainClass) TestHtx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes349303 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes349303)
+            retRes175712 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes175712)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2385,8 +2440,8 @@ func  (this *testMainClass) TestHtx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes598865 := (<-exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes598865)
+            retRes176312 := (<-exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes176312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2399,8 +2454,8 @@ func  (this *testMainClass) TestHtx() <- chan interface{} {
         Assert(StartsWith(clientOrderIdInverse, idString), Add(Add(Add("htx - swap inverse channel_code ", clientOrderIdInverse), " does not start with id: "), idString))
         if !IsTrue(IsSync()) {
         
-            retRes24713 := (<-Close(exchange))
-            PanicOnError(retRes24713)
+            retRes177212 := (<-Close(exchange))
+            PanicOnError(retRes177212)
         }
         
         ch <- true
@@ -2434,8 +2489,8 @@ func  (this *testMainClass) TestWoo() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes711033 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes711033)
+            retRes178312 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes178312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2463,10 +2518,10 @@ func  (this *testMainClass) TestWoo() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes903909 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]interface{} {
+            retRes179312 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]interface{} {
                 "stopPrice": 30000,
             }))
-            PanicOnError(retRes903909)
+            PanicOnError(retRes179312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2477,8 +2532,8 @@ func  (this *testMainClass) TestWoo() <- chan interface{} {
         Assert(StartsWith(clientOrderIdStop, idString), Add(Add(Add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString))
         if !IsTrue(IsSync()) {
         
-            retRes945108 := (<-Close(exchange))
-            PanicOnError(retRes945108)
+            retRes180012 := (<-Close(exchange))
+            PanicOnError(retRes180012)
         }
         
         ch <- true
@@ -2497,8 +2552,8 @@ func  (this *testMainClass) TestBitmart() <- chan interface{} {
         var id interface{} = "CCXTxBitmart000"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("bitmart - id: ", id), " not in options"))
         
-        retRes33908 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes33908)
+        retRes18108 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes18108)
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
         		defer func() {
@@ -2515,8 +2570,8 @@ func  (this *testMainClass) TestBitmart() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes855588 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes855588)
+            retRes181212 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes181212)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2526,8 +2581,8 @@ func  (this *testMainClass) TestBitmart() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "X-BM-BROKER-ID"), id), Add(Add("bitmart - id: ", id), " not in headers"))
         if !IsTrue(IsSync()) {
         
-            retRes354455 := (<-Close(exchange))
-            PanicOnError(retRes354455)
+            retRes181812 := (<-Close(exchange))
+            PanicOnError(retRes181812)
         }
         
         ch <- true
@@ -2561,8 +2616,8 @@ func  (this *testMainClass) TestCoinex() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes461276 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes461276)
+            retRes182912 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes182912)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2574,8 +2629,8 @@ func  (this *testMainClass) TestCoinex() <- chan interface{} {
         Assert(StartsWith(clientOrderId, idString), Add(Add(Add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString))
         if !IsTrue(IsSync()) {
         
-            retRes439860 := (<-Close(exchange))
-            PanicOnError(retRes439860)
+            retRes183712 := (<-Close(exchange))
+            PanicOnError(retRes183712)
         }
         
         ch <- true
@@ -2610,8 +2665,8 @@ func  (this *testMainClass) TestBingx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes996797 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes996797)
+            retRes184812 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes184812)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2621,8 +2676,8 @@ func  (this *testMainClass) TestBingx() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "X-SOURCE-KEY"), id), Add(Add("bingx - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes682553 := (<-Close(exchange))
-            PanicOnError(retRes682553)
+            retRes185512 := (<-Close(exchange))
+            PanicOnError(retRes185512)
         }
         
         ch <- true
@@ -2655,8 +2710,8 @@ func  (this *testMainClass) TestPhemex() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes840738 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes840738)
+            retRes186512 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes186512)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2668,8 +2723,8 @@ func  (this *testMainClass) TestPhemex() <- chan interface{} {
         Assert(StartsWith(clientOrderId, idString), Add(Add(Add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString))
         if !IsTrue(IsSync()) {
         
-            retRes41977 := (<-Close(exchange))
-            PanicOnError(retRes41977)
+            retRes187312 := (<-Close(exchange))
+            PanicOnError(retRes187312)
         }
         
         ch <- true
@@ -2702,8 +2757,8 @@ func  (this *testMainClass) TestBlofin() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes531634 := (<-exchange.CreateOrder("LTC/USDT:USDT", "market", "buy", 1))
-            PanicOnError(retRes531634)
+            retRes188312 := (<-exchange.CreateOrder("LTC/USDT:USDT", "market", "buy", 1))
+            PanicOnError(retRes188312)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2715,8 +2770,8 @@ func  (this *testMainClass) TestBlofin() <- chan interface{} {
         Assert(StartsWith(brokerId, idString), Add(Add(Add("blofin - brokerId: ", brokerId), " does not start with id: "), idString))
         if !IsTrue(IsSync()) {
         
-            retRes88346 := (<-Close(exchange))
-            PanicOnError(retRes88346)
+            retRes189112 := (<-Close(exchange))
+            PanicOnError(retRes189112)
         }
         
         ch <- true
@@ -2749,8 +2804,8 @@ func  (this *testMainClass) TestHyperliquid() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes692498 := (<-exchange.CreateOrder("SOL/USDC:USDC", "limit", "buy", 1, 100))
-            PanicOnError(retRes692498)
+            retRes190112 := (<-exchange.CreateOrder("SOL/USDC:USDC", "limit", "buy", 1, 100))
+            PanicOnError(retRes190112)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2761,8 +2816,8 @@ func  (this *testMainClass) TestHyperliquid() <- chan interface{} {
         Assert(IsEqual(brokerId, id), Add(Add(Add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id))
         if !IsTrue(IsSync()) {
         
-            retRes907663 := (<-Close(exchange))
-            PanicOnError(retRes907663)
+            retRes190812 := (<-Close(exchange))
+            PanicOnError(retRes190812)
         }
         
         ch <- true
@@ -2797,8 +2852,8 @@ func  (this *testMainClass) TestCoinbaseinternational() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes816124 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes816124)
+            retRes192012 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes192012)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2809,8 +2864,8 @@ func  (this *testMainClass) TestCoinbaseinternational() <- chan interface{} {
         Assert(StartsWith(clientOrderId, ToString(id)), "clientOrderId does not start with id")
         if !IsTrue(IsSync()) {
         
-            retRes591208 := (<-Close(exchange))
-            PanicOnError(retRes591208)
+            retRes192712 := (<-Close(exchange))
+            PanicOnError(retRes192712)
         }
         
         ch <- true
@@ -2844,8 +2899,8 @@ func  (this *testMainClass) TestCoinbaseAdvanced() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes715725 := (<-exchange.CreateOrder("BTC/USDC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes715725)
+            retRes193812 := (<-exchange.CreateOrder("BTC/USDC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes193812)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2856,8 +2911,8 @@ func  (this *testMainClass) TestCoinbaseAdvanced() <- chan interface{} {
         Assert(StartsWith(clientOrderId, ToString(id)), "clientOrderId does not start with id")
         if !IsTrue(IsSync()) {
         
-            retRes196021 := (<-Close(exchange))
-            PanicOnError(retRes196021)
+            retRes194512 := (<-Close(exchange))
+            PanicOnError(retRes194512)
         }
         
         ch <- true
@@ -2875,8 +2930,8 @@ func  (this *testMainClass) TestWoofiPro() <- chan interface{} {
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
         var id interface{} = "CCXT"
         
-        retRes321218 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes321218)
+        retRes19548 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes19548)
         var request interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -2894,8 +2949,8 @@ func  (this *testMainClass) TestWoofiPro() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes369109 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes369109)
+            retRes195712 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes195712)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2906,8 +2961,8 @@ func  (this *testMainClass) TestWoofiPro() <- chan interface{} {
         Assert(IsEqual(brokerId, id), Add(Add(Add("woofipro - id: ", id), " different from  broker_id: "), brokerId))
         if !IsTrue(IsSync()) {
         
-            retRes943227 := (<-Close(exchange))
-            PanicOnError(retRes943227)
+            retRes196412 := (<-Close(exchange))
+            PanicOnError(retRes196412)
         }
         
         ch <- true
@@ -2925,8 +2980,8 @@ func  (this *testMainClass) TestOxfun() <- chan interface{} {
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
         var id interface{} = 1000
         
-        retRes529300 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes529300)
+        retRes19738 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes19738)
         var request interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -2944,8 +2999,8 @@ func  (this *testMainClass) TestOxfun() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes320948 := (<-exchange.CreateOrder("BTC/USD:OX", "limit", "buy", 1, 20000))
-            PanicOnError(retRes320948)
+            retRes197612 := (<-exchange.CreateOrder("BTC/USD:OX", "limit", "buy", 1, 20000))
+            PanicOnError(retRes197612)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -2987,8 +3042,8 @@ func  (this *testMainClass) TestXT() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes290797 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes290797)
+            retRes199212 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes199212)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3014,8 +3069,8 @@ func  (this *testMainClass) TestXT() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes324909 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes324909)
+            retRes200012 := (<-exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes200012)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3026,8 +3081,8 @@ func  (this *testMainClass) TestXT() <- chan interface{} {
         Assert(IsEqual(swapMedia, id), Add(Add(Add("xt - id: ", id), " different from swap tag: "), swapMedia))
         if !IsTrue(IsSync()) {
         
-            retRes847022 := (<-Close(exchange))
-            PanicOnError(retRes847022)
+            retRes200712 := (<-Close(exchange))
+            PanicOnError(retRes200712)
         }
         
         ch <- true
@@ -3051,8 +3106,8 @@ func  (this *testMainClass) TestVertex() <- chan interface{} {
         })
         var id interface{} = 5930043274845996
         
-        retRes960931 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes960931)
+        retRes20188 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes20188)
         var request interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -3070,8 +3125,8 @@ func  (this *testMainClass) TestVertex() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes140611 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes140611)
+            retRes202112 := (<-exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes202112)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3083,8 +3138,8 @@ func  (this *testMainClass) TestVertex() <- chan interface{} {
         Assert(IsEqual(brokerId, id), Add(Add(Add("vertex - id: ", ToString(id)), " different from  broker_id: "), ToString(brokerId)))
         if !IsTrue(IsSync()) {
         
-            retRes323943 := (<-Close(exchange))
-            PanicOnError(retRes323943)
+            retRes202912 := (<-Close(exchange))
+            PanicOnError(retRes202912)
         }
         
         ch <- true
@@ -3130,8 +3185,8 @@ func  (this *testMainClass) TestParadex() <- chan interface{} {
         var id interface{} = "CCXT"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("paradex - id: ", id), " not in options"))
         
-        retRes266963 := (<-exchange.LoadMarkets())
-        PanicOnError(retRes266963)
+        retRes20448 := (<-exchange.LoadMarkets())
+        PanicOnError(retRes20448)
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
         		defer func() {
@@ -3148,8 +3203,8 @@ func  (this *testMainClass) TestParadex() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes665359 := (<-exchange.CreateOrder("BTC/USD:USDC", "limit", "buy", 1, 20000))
-            PanicOnError(retRes665359)
+            retRes204612 := (<-exchange.CreateOrder("BTC/USD:USDC", "limit", "buy", 1, 20000))
+            PanicOnError(retRes204612)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3159,8 +3214,8 @@ func  (this *testMainClass) TestParadex() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "PARADEX-PARTNER"), id), Add(Add("paradex - id: ", id), " not in headers"))
         if !IsTrue(IsSync()) {
         
-            retRes615032 := (<-Close(exchange))
-            PanicOnError(retRes615032)
+            retRes205212 := (<-Close(exchange))
+            PanicOnError(retRes205212)
         }
         
         ch <- true
@@ -3194,8 +3249,8 @@ func  (this *testMainClass) TestHashkey() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes687821 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes687821)
+            retRes206212 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes206212)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3205,8 +3260,8 @@ func  (this *testMainClass) TestHashkey() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "INPUT-SOURCE"), id), Add(Add("hashkey - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes322103 := (<-Close(exchange))
-            PanicOnError(retRes322103)
+            retRes206912 := (<-Close(exchange))
+            PanicOnError(retRes206912)
         }
         
         ch <- true
@@ -3240,8 +3295,8 @@ func  (this *testMainClass) TestCoincatch() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes676229 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
-            PanicOnError(retRes676229)
+            retRes207912 := (<-exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000))
+            PanicOnError(retRes207912)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3251,8 +3306,8 @@ func  (this *testMainClass) TestCoincatch() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), Add(Add("coincatch - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes808722 := (<-Close(exchange))
-            PanicOnError(retRes808722)
+            retRes208612 := (<-Close(exchange))
+            PanicOnError(retRes208612)
         }
         
         ch <- true
@@ -3285,8 +3340,8 @@ func  (this *testMainClass) TestDefx() <- chan interface{} {
         		}()
         		// try block:
                 
-            retRes4053 := (<-exchange.CreateOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1))
-            PanicOnError(retRes4053)
+            retRes209612 := (<-exchange.CreateOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1))
+            PanicOnError(retRes209612)
         		return nil
         	}(this)
         	if ret__ != nil {
@@ -3297,8 +3352,106 @@ func  (this *testMainClass) TestDefx() <- chan interface{} {
         Assert(IsEqual(GetValue(reqHeaders, "X-DEFX-SOURCE"), id), Add(Add("defx - id: ", id), " not in headers."))
         if !IsTrue(IsSync()) {
         
-            retRes952114 := (<-Close(exchange))
-            PanicOnError(retRes952114)
+            retRes210412 := (<-Close(exchange))
+            PanicOnError(retRes210412)
+        }
+        
+        ch <- true
+        return nil
+        
+            }()
+            return ch
+        }
+func  (this *testMainClass) TestCryptomus() <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                var exchange ccxt.IExchange = this.InitOfflineExchange("cryptomus")
+        var request interface{} = nil
+        
+        {		ret__ := func(this *testMainClass) (ret_ interface{}) {
+        		defer func() {
+        			if e := recover(); e != nil {
+                        if e == "break" {
+        				    return
+        			    }
+        				ret_ = func(this *testMainClass) interface{} {
+        					// catch block:
+                                request = JsonParse(exchange.GetLast_request_body())
+                            return nil
+        				}(this)
+        			}
+        		}()
+        		// try block:
+                
+            retRes211312 := (<-exchange.CreateOrder("BTC/USDT", "limit", "sell", 1, 20000))
+            PanicOnError(retRes211312)
+        		return nil
+        	}(this)
+        	if ret__ != nil {
+        		return ret__
+        	}
+        }
+        var tag interface{} = "ccxt"
+        Assert(IsEqual(GetValue(request, "tag"), tag), Add(Add("cryptomus - tag: ", tag), " not in request."))
+        if !IsTrue(IsSync()) {
+        
+            retRes212012 := (<-Close(exchange))
+            PanicOnError(retRes212012)
+        }
+        
+        ch <- true
+        return nil
+        
+            }()
+            return ch
+        }
+func  (this *testMainClass) TestDerive() <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                var exchange ccxt.IExchange = this.InitOfflineExchange("derive")
+        var id interface{} = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"
+        Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), Add(Add("derive - id: ", id), " not in options"))
+        var request interface{} = nil
+        
+        {		ret__ := func(this *testMainClass) (ret_ interface{}) {
+        		defer func() {
+        			if e := recover(); e != nil {
+                        if e == "break" {
+        				    return
+        			    }
+        				ret_ = func(this *testMainClass) interface{} {
+        					// catch block:
+                                request = JsonParse(exchange.GetLast_request_body())
+                            return nil
+        				}(this)
+        			}
+        		}()
+        		// try block:
+                    var params interface{} = map[string]interface{} {
+                "subaccount_id": 1234,
+                "max_fee": 10,
+                "deriveWalletAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+            }
+            exchange.SetWalletAddress("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749")
+            exchange.SetPrivateKey("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5")
+        
+            retRes213812 := (<-exchange.CreateOrder("LBTC/USDC", "limit", "sell", 0.01, 3000, params))
+            PanicOnError(retRes213812)
+        		return nil
+        	}(this)
+        	if ret__ != nil {
+        		return ret__
+        	}
+        }
+        Assert(IsEqual(GetValue(request, "referral_code"), id), Add(Add("derive - referral_code: ", id), " not in request."))
+        if !IsTrue(IsSync()) {
+        
+            retRes214412 := (<-Close(exchange))
+            PanicOnError(retRes214412)
         }
         
         ch <- true

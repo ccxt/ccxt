@@ -10,7 +10,7 @@ use ccxt\abstract\kucoin as Exchange;
 
 class kucoin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',
@@ -1063,7 +1063,7 @@ class kucoin extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2312,8 +2312,10 @@ class kucoin extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {

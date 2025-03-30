@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -630,7 +630,7 @@ class bit2c(Exchange, ImplicitAPI):
         # 0 = New
         # 1 = Open
         # 5 = Completed
-        status = None
+        status: str
         if isNewOrder:
             tempStatus = self.safe_integer(orderUnified, 'status_type')
             if tempStatus == 0 or tempStatus == 1:
@@ -795,13 +795,13 @@ class bit2c(Exchange, ImplicitAPI):
         #         "isMaker": True,
         #     }
         #
-        timestamp = None
-        id = None
+        timestamp: Int
+        id: Str
         price = None
         amount = None
         orderId = None
         fee = None
-        side = None
+        side: str
         makerOrTaker = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
@@ -817,10 +817,10 @@ class bit2c(Exchange, ImplicitAPI):
             isMaker = self.safe_value(trade, 'isMaker')
             makerOrTaker = 'maker' if isMaker else 'taker'
             orderId = reference_parts[2] if isMaker else reference_parts[1]
-            side = self.safe_integer(trade, 'action')
-            if side == 0:
+            action = self.safe_integer(trade, 'action')
+            if action == 0:
                 side = 'buy'
-            elif side == 1:
+            else:
                 side = 'sell'
             feeCost = self.safe_string(trade, 'feeAmount')
             if feeCost is not None:

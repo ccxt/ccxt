@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitopro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
             'name' => 'BitoPro',
@@ -37,6 +37,7 @@ class bitopro extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => false,

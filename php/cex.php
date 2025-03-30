@@ -10,7 +10,7 @@ use ccxt\abstract\cex as Exchange;
 
 class cex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
@@ -27,6 +27,7 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
@@ -318,6 +319,7 @@ class cex extends Exchange {
                 'margin' => null,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'active' => null,
                 'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -454,7 +456,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

@@ -214,10 +214,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         cryptocomItf := &cryptocom{}
         cryptocomItf.Init(exchangeArgs)
         return cryptocomItf, true
-    case "currencycom":
-        currencycomItf := &currencycom{}
-        currencycomItf.Init(exchangeArgs)
-        return currencycomItf, true
+    case "cryptomus":
+        cryptomusItf := &cryptomus{}
+        cryptomusItf.Init(exchangeArgs)
+        return cryptomusItf, true
     case "defx":
         defxItf := &defx{}
         defxItf.Init(exchangeArgs)
@@ -230,6 +230,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         deribitItf := &deribit{}
         deribitItf.Init(exchangeArgs)
         return deribitItf, true
+    case "derive":
+        deriveItf := &derive{}
+        deriveItf.Init(exchangeArgs)
+        return deriveItf, true
     case "digifinex":
         digifinexItf := &digifinex{}
         digifinexItf.Init(exchangeArgs)
@@ -330,10 +334,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         lunoItf := &luno{}
         lunoItf.Init(exchangeArgs)
         return lunoItf, true
-    case "lykke":
-        lykkeItf := &lykke{}
-        lykkeItf.Init(exchangeArgs)
-        return lykkeItf, true
     case "mercado":
         mercadoItf := &mercado{}
         mercadoItf.Init(exchangeArgs)
@@ -394,10 +394,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         poloniexItf := &poloniex{}
         poloniexItf.Init(exchangeArgs)
         return poloniexItf, true
-    case "poloniexfutures":
-        poloniexfuturesItf := &poloniexfutures{}
-        poloniexfuturesItf.Init(exchangeArgs)
-        return poloniexfuturesItf, true
     case "probit":
         probitItf := &probit{}
         probitItf.Init(exchangeArgs)
@@ -426,10 +422,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         wavesexchangeItf := &wavesexchange{}
         wavesexchangeItf.Init(exchangeArgs)
         return wavesexchangeItf, true
-    case "wazirx":
-        wazirxItf := &wazirx{}
-        wazirxItf.Init(exchangeArgs)
-        return wazirxItf, true
     case "whitebit":
         whitebitItf := &whitebit{}
         whitebitItf.Init(exchangeArgs)

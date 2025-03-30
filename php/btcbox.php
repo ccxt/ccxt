@@ -10,7 +10,7 @@ use ccxt\abstract\btcbox as Exchange;
 
 class btcbox extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcbox',
             'name' => 'BtcBox',

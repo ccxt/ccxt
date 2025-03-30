@@ -130,6 +130,16 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://bitso.com/api/v3/user_trades?book=btc_usdt&limit=25",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     }
 }

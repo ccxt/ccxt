@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.56'
+__version__ = '4.4.71'
 
 # ----------------------------------------------------------------------------
 
@@ -134,10 +134,11 @@ from ccxt.coinone import coinone                                      # noqa: F4
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
-from ccxt.currencycom import currencycom                              # noqa: F401
+from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
+from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
 from ccxt.ellipx import ellipx                                        # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
@@ -163,7 +164,6 @@ from ccxt.kuna import kuna                                            # noqa: F4
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
-from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
@@ -179,7 +179,6 @@ from ccxt.paradex import paradex                                      # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
-from ccxt.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
@@ -187,7 +186,6 @@ from ccxt.tradeogre import tradeogre                                  # noqa: F4
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.vertex import vertex                                        # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
-from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
@@ -248,10 +246,11 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
-    'currencycom',
+    'cryptomus',
     'defx',
     'delta',
     'deribit',
+    'derive',
     'digifinex',
     'ellipx',
     'exmo',
@@ -277,7 +276,6 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
-    'lykke',
     'mercado',
     'mexc',
     'myokx',
@@ -293,7 +291,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'timex',
     'tokocrypto',
@@ -301,7 +298,6 @@ exchanges = [
     'upbit',
     'vertex',
     'wavesexchange',
-    'wazirx',
     'whitebit',
     'woo',
     'woofipro',

@@ -10,7 +10,7 @@ use ccxt\abstract\coinex as Exchange;
 
 class coinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
@@ -1204,7 +1204,7 @@ class coinex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -4792,7 +4792,7 @@ class coinex extends Exchange {
         $request = array(
             'ccy' => $currency['id'],
             'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-            'amount' => $this->number_to_string($amount), // the actual $amount without fees, https://www.coinex.com/fees
+            'amount' => $this->currency_to_precision($code, $amount), // the actual $amount without fees, https://www.coinex.com/fees
         );
         if ($tag !== null) {
             $request['memo'] = $tag;

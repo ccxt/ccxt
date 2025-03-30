@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,7 +14,7 @@ from ccxt.base.errors import ExchangeError
 
 class bitopro(ccxt.async_support.bitopro):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitopro, self).describe(), {
             'has': {
                 'ws': True,
@@ -77,7 +77,7 @@ class bitopro(ccxt.async_support.bitopro):
         if limit is None:
             endPart = market['id']
         else:
-            endPart = market['id'] + ':' + limit
+            endPart = market['id'] + ':' + self.number_to_string(limit)
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 

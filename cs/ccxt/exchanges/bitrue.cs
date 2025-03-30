@@ -28,6 +28,7 @@ public partial class bitrue : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
@@ -1342,6 +1343,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1383,9 +1385,11 @@ public partial class bitrue : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            if (isTrue(!isEqual(since, null)))
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
             {
-                ((IDictionary<string,object>)request)["fromIdx"] = since;
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["fromIdx"] = until;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
             data = this.safeList(response, "data", new List<object>() {});
@@ -1624,7 +1628,7 @@ public partial class bitrue : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object market = this.market(this.safeValue(ticker, "symbol"));
+            object market = this.safeMarket(this.safeString(ticker, "symbol"));
             ((IDictionary<string,object>)tickers)[(string)getValue(market, "id")] = ticker;
         }
         return this.parseTickers(tickers, symbols);

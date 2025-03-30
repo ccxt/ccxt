@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class bitopro extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitopro',
             'name': 'BitoPro',
@@ -36,6 +36,7 @@ export default class bitopro extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,

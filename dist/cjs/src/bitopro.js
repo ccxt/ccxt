@@ -34,6 +34,7 @@ class bitopro extends bitopro$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,

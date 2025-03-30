@@ -152,7 +152,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests }  from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs }  from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
@@ -220,6 +220,7 @@ export default class Exchange {
     };
     headers: any = {};
     origin = '*' // CORS origin
+    MAX_VALUE: Num = Number.MAX_VALUE;
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -500,7 +501,7 @@ export default class Exchange {
     packb = packb
     urlencodeBase64 = urlencodeBase64
 
-    constructor (userConfig = {}) {
+    constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions)
         //
         //     if (isNode) {
@@ -559,7 +560,7 @@ export default class Exchange {
         this.requiresEddsa = false
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0
-        this.enableLastJsonResponse = true
+        this.enableLastJsonResponse = false
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
         this.last_http_response    = undefined
@@ -609,18 +610,12 @@ export default class Exchange {
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-        // init the request rate limiter
-        this.initRestRateLimiter ()
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets (this.markets)
-        }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
-        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode (isSandbox);
+
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
         }
     }
 
@@ -659,22 +654,12 @@ export default class Exchange {
         return result
     }
 
-    initRestRateLimiter () {
-        if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend ({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler (this.tokenBucket);
-    }
-
     throttle (cost = undefined) {
         return this.throttler.throttle (cost)
+    }
+
+    initThrottler () {
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -1095,7 +1080,8 @@ export default class Exchange {
                 if (numberNormalized.indexOf('e-') > -1) {
                     return this.number(numberToString(parseFloat(numberNormalized)))
                 }
-                return this.number (numberNormalized)
+                const result = this.number (numberNormalized)
+                return isNaN (result) ? d : result
             } catch (e) {
                 return d
             }
@@ -1518,7 +1504,7 @@ export default class Exchange {
     starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
         const types = Object.keys (messageTypes);
         if (types.length > 1) {
-            throw new NotSupported (this.id + 'starknetEncodeStructuredData only support single type');
+            throw new NotSupported (this.id + ' starknetEncodeStructuredData only support single type');
         }
         const request = {
             'domain': domain,
@@ -1555,6 +1541,10 @@ export default class Exchange {
         return {};
     }
 
+    convertToSafeDictionary(dict) {
+        return dict;
+    }
+
     randomBytes (length: number) {
         const rng = new SecureRandom();
         const x:number[] = [];
@@ -1569,6 +1559,10 @@ export default class Exchange {
             number += Math.floor(Math.random() * 10);
         }
         return parseInt(number, 10);
+    }
+
+    binaryLength (binary: Uint8Array) {
+        return binary.length;
     }
 
     /* eslint-enable */
@@ -1614,7 +1608,7 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    describe () {
+    describe (): any {
         return {
             'id': undefined,
             'name': undefined,
@@ -1694,6 +1688,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -1830,6 +1825,7 @@ export default class Exchange {
                 'watchOHLCV': undefined,
                 'watchOHLCVForSymbols': undefined,
                 'watchOrderBook': undefined,
+                'watchBidsAsks': undefined,
                 'watchOrderBookForSymbols': undefined,
                 'watchOrders': undefined,
                 'watchOrdersForSymbols': undefined,
@@ -1920,7 +1916,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -2752,8 +2747,40 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets (this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter ();
+        // sanbox mode
+        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode (isSandbox);
+        }
+    }
+
+    initRestRateLimiter () {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
+            throw new ExchangeError (this.id + '.rateLimit property is not configured');
+        }
+        let refillRate = this.MAX_VALUE;
+        if (this.rateLimit > 0) {
+            refillRate = 1 / this.rateLimit;
+        }
+        const defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        this.initThrottler ();
     }
 
     featuresGenerator () {
@@ -2918,6 +2945,9 @@ export default class Exchange {
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
+        const currencyDeposit = this.safeBool (currency, 'deposit');
+        const currencyWithdraw = this.safeBool (currency, 'withdraw');
+        const currencyActive = this.safeBool (currency, 'active');
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
@@ -2925,15 +2955,15 @@ export default class Exchange {
             for (let i = 0; i < length; i++) {
                 const network = networks[keys[i]];
                 const deposit = this.safeBool (network, 'deposit');
-                if (currency['deposit'] === undefined || deposit) {
+                if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool (network, 'withdraw');
-                if (currency['withdraw'] === undefined || withdraw) {
+                if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
                 const active = this.safeBool (network, 'active');
-                if (currency['active'] === undefined || active) {
+                if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
@@ -3825,7 +3855,7 @@ export default class Exchange {
         let change = this.omitZero (this.safeString (ticker, 'change'));
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
-        let vwap = this.omitZero (this.safeString (ticker, 'vwap'));
+        let vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
@@ -4311,7 +4341,10 @@ export default class Exchange {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
+                if (defaultNetworkId in indexedNetworkEntries) {
+                    return defaultNetworkId;
+                }
+                throw new NotSupported (this.id + ' - can not determine the default network, please pass param["network"] one from : ' + availableNetworkIds.join (', '));
             }
         }
         return chosenNetworkId;
@@ -4576,6 +4609,25 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false) {
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
+        } else if (isRequired) {
+            throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
+        }
+        return [ request, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
@@ -4657,7 +4709,7 @@ export default class Exchange {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
-                if (e instanceof NetworkError) {
+                if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + (i + 1).toString () + ' of ' + retries.toString () + '...');
@@ -4665,10 +4717,10 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
-                        // continue; //check this
+                    } else {
+                        throw e;
                     }
-                }
-                if (i >= retries) {
+                } else {
                     throw e;
                 }
             }
@@ -5099,23 +5151,33 @@ export default class Exchange {
          * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @returns {[string, object]} the market type and params with type and defaultType omitted
          */
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        if (defaultValue === undefined) {  // defaultValue takes precendence over exchange wide defaultType
-            defaultValue = defaultType;
+        // type from param
+        const type = this.safeString2 (params, 'defaultType', 'type');
+        if (type !== undefined) {
+            params = this.omit (params, [ 'defaultType', 'type' ]);
+            return [ type, params ];
+        }
+        // type from market
+        if (market !== undefined) {
+            return [ market['type'], params ];
+        }
+        // type from default-argument
+        if (defaultValue !== undefined) {
+            return [ defaultValue, params ];
         }
         const methodOptions = this.safeDict (this.options, methodName);
-        let methodType = defaultValue;
-        if (methodOptions !== undefined) {  // user defined methodType takes precedence over defaultValue
+        if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
+                return [ methodOptions, params ];
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+                const typeFromMethod = this.safeString2 (methodOptions, 'defaultType', 'type');
+                if (typeFromMethod !== undefined) {
+                    return [ typeFromMethod, params ];
+                }
             }
         }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
-        return [ type, params ];
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        return [ defaultType, params ];
     }
 
     handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
@@ -5752,6 +5814,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
+    async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' editOrders() is not supported yet');
+    }
+
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
@@ -6231,7 +6297,7 @@ export default class Exchange {
 
     async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
-            throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
@@ -6239,7 +6305,7 @@ export default class Exchange {
 
     async createPostOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createPostOnlyOrderWs']) {
-            throw new NotSupported (this.id + 'createPostOnlyOrderWs() is not supported yet');
+            throw new NotSupported (this.id + ' createPostOnlyOrderWs() is not supported yet');
         }
         const query = this.extend (params, { 'postOnly': true });
         return await this.createOrderWs (symbol, type, side, amount, price, query);
@@ -6247,7 +6313,7 @@ export default class Exchange {
 
     async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
-            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
@@ -6255,7 +6321,7 @@ export default class Exchange {
 
     async createReduceOnlyOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrderWs']) {
-            throw new NotSupported (this.id + 'createReduceOnlyOrderWs() is not supported yet');
+            throw new NotSupported (this.id + ' createReduceOnlyOrderWs() is not supported yet');
         }
         const query = this.extend (params, { 'reduceOnly': true });
         return await this.createOrderWs (symbol, type, side, amount, price, query);
@@ -6936,7 +7002,8 @@ export default class Exchange {
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit);
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     getMarketFromSymbols (symbols: Strings = undefined) {

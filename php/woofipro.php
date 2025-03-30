@@ -10,7 +10,7 @@ use ccxt\abstract\woofipro as Exchange;
 
 class woofipro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
             'name' => 'WOOFI PRO',
@@ -462,7 +462,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -1549,7 +1549,7 @@ class woofipro extends Exchange {
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
             if ($isConditional) {
-                throw new NotSupported($this->id . 'createOrders() only support non-stop order');
+                throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
@@ -2462,7 +2462,7 @@ class woofipro extends Exchange {
         if ($code !== null) {
             $code = strtoupper($code);
             if ($code !== 'USDC') {
-                throw new NotSupported($this->id . 'withdraw() only support USDC');
+                throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
         }
         $currency = $this->currency($code);

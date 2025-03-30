@@ -16,7 +16,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  * @augments Exchange
  */
 export default class bybit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -58,7 +58,9 @@ export default class bybit extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -239,6 +241,7 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/reference': 5,
                         // spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -248,6 +251,8 @@ export default class bybit extends Exchange {
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
+                        // earn
+                        'v5/earn/product': 5,
                     },
                 },
                 'private': {
@@ -406,6 +411,9 @@ export default class bybit extends Exchange {
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        // earn
+                        'v5/earn/order': 5,
+                        'v5/earn/position': 5,
                     },
                     'post': {
                         // spot
@@ -541,6 +549,8 @@ export default class bybit extends Exchange {
                         'v5/broker/award/info': 5,
                         'v5/broker/award/distribute-award': 5,
                         'v5/broker/award/distribution-record': 5,
+                        // earn
+                        'v5/earn/place-order': 5,
                     },
                 },
             },
@@ -1224,6 +1234,9 @@ export default class bybit extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'editOrders': {
+                        'max': 10,
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -1333,7 +1346,7 @@ export default class bybit extends Exchange {
                 // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
-                this.options['unifiedMarginStatus'] = 3;
+                this.options['unifiedMarginStatus'] = 6;
                 return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
             }
             const rawPromises = [ this.privateGetV5UserQueryApi (params), this.privateGetV5AccountInfo (params) ];
@@ -1399,7 +1412,7 @@ export default class bybit extends Exchange {
             const accountResult = this.safeDict (accountInfo, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger (result, 'uta') === 1;
-            this.options['unifiedMarginStatus'] = this.safeInteger (accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
+            this.options['unifiedMarginStatus'] = this.safeInteger (accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
     }
@@ -1418,8 +1431,8 @@ export default class bybit extends Exchange {
 
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
-        const quote = 'USD';
-        const settle = 'USDC';
+        let quote = undefined;
+        let settle = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         let base = undefined;
@@ -1427,9 +1440,21 @@ export default class bybit extends Exchange {
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
+            const symbolQuoteAndSettle = this.safeString (symbolBase, 1);
+            const splitQuote = symbolQuoteAndSettle.split (':');
+            const quoteAndSettle = this.safeString (splitQuote, 0);
+            quote = quoteAndSettle;
+            settle = quoteAndSettle;
         } else {
             base = this.safeString (optionParts, 0);
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
+            if (symbol.endsWith ('-USDT')) {
+                quote = 'USDT';
+                settle = 'USDT';
+            } else {
+                quote = 'USDC';
+                settle = 'USDC';
+            }
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
@@ -1555,7 +1580,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetV5MarketTime (params);
         //
         //    {
@@ -2512,6 +2537,21 @@ export default class bybit extends Exchange {
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
+    /**
+     * @method
+     * @name bybit#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        return await this.fetchTickers (symbols, params);
+    }
+
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
@@ -3391,7 +3431,7 @@ export default class bybit extends Exchange {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 3);
+            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
             if (unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if (isInverse) {
@@ -4062,7 +4102,7 @@ export default class bybit extends Exchange {
                 } else if (price !== undefined) {
                     request['qty'] = this.getCost (symbol, Precise.stringMul (amountString, priceString));
                 } else {
-                    request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                    request['qty'] = amountString;
                 }
             }
         } else {
@@ -4158,14 +4198,16 @@ export default class bybit extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams, isUta);
+            delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (symbols[0]);
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
         let category = undefined;
         [ category, params ] = this.getBybitType ('createOrders', market, params);
-        if (category === 'inverse') {
-            throw new NotSupported (this.id + ' createOrders does not allow inverse orders');
+        if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
+            throw new NotSupported (this.id + ' createOrders does not allow inverse orders for non UTA2.0 account');
         }
         const request: Dict = {
             'category': category,
@@ -4346,6 +4388,96 @@ export default class bybit extends Exchange {
             'info': response,
             'id': this.safeString (result, 'orderId'),
         });
+    }
+
+    /**
+     * @method
+     * @name bybit#editOrders
+     * @description edit a list of trade orders
+     * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            orderSymbols.push (symbol);
+            const id = this.safeString (rawOrder, 'id');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.editOrderRequest (id, symbol, type, side, amount, price, orderParams);
+            delete orderRequest['category'];
+            ordersRequests.push (orderRequest);
+        }
+        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbols[0]);
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('editOrders', market, params);
+        if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
+            throw new NotSupported (this.id + ' editOrders does not allow inverse orders for non UTA2.0 account');
+        }
+        const request: Dict = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderAmendBatch (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'list', []);
+        const retInfo = this.safeDict (response, 'retExtInfo', {});
+        const codes = this.safeList (retInfo, 'list', []);
+        // extend the error with the unsuccessful orders
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const retCode = this.safeInteger (code, 'code');
+            if (retCode !== 0) {
+                data[i] = this.extend (data[i], code);
+            }
+        }
+        //
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "OK",
+        //     "result": {
+        //         "list": [
+        //             {
+        //                 "category": "option",
+        //                 "symbol": "ETH-30DEC22-500-C",
+        //                 "orderId": "b551f227-7059-4fb5-a6a6-699c04dbd2f2",
+        //                 "orderLinkId": ""
+        //             },
+        //             {
+        //                 "category": "option",
+        //                 "symbol": "ETH-30DEC22-700-C",
+        //                 "orderId": "fa6a595f-1a57-483f-b9d3-30e9c8235a52",
+        //                 "orderLinkId": ""
+        //             }
+        //         ]
+        //     },
+        //     "retExtInfo": {
+        //         "list": [
+        //             {
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             },
+        //             {
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             }
+        //         ]
+        //     },
+        //     "time": 1672222808060
+        // }
+        //
+        return this.parseOrders (data);
     }
 
     cancelOrderRequest (id: string, symbol: Str = undefined, params = {}) {
@@ -6852,7 +6984,7 @@ export default class bybit extends Exchange {
      */
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
         const paginate = this.safeBool (params, 'paginate');
@@ -6882,10 +7014,13 @@ export default class bybit extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
-        const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
+        const openInterest = this.safeNumber2 (interest, 'open_interest', 'openInterest');
+        // the openInterest is in the base asset for linear and quote asset for inverse
+        const amount = market['linear'] ? openInterest : undefined;
+        const value = market['inverse'] ? openInterest : undefined;
         return this.safeOpenInterest ({
             'symbol': market['symbol'],
-            'openInterestAmount': undefined,
+            'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -9189,6 +9324,9 @@ export default class bybit extends Exchange {
                 feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
             } else {
                 feedback = this.id + ' ' + body;
+            }
+            if (body.indexOf ('Withdraw address chain or destination tag are not equal') > -1) {
+                feedback = feedback + '; You might also need to ensure the address is whitelisted';
             }
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
