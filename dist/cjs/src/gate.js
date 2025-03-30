@@ -6758,7 +6758,7 @@ class gate extends gate$1 {
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
-                        queryString = queryString.replace('%2', ',');
+                        queryString = queryString.replaceAll('%2', ',');
                     }
                     url += '?' + queryString;
                 }
