@@ -81,11 +81,6 @@ public partial class bingx : Exchange
         return await this.callAsync ("spotV1PrivateGetAccountBalance",parameters);
     }
 
-    public async Task<object> spotV1PrivateGetAccountAllAccountBalance (object parameters = null)
-    {
-        return await this.callAsync ("spotV1PrivateGetAccountAllAccountBalance",parameters);
-    }
-
     public async Task<object> spotV1PrivatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("spotV1PrivatePostTradeOrder",parameters);
@@ -704,6 +699,11 @@ public partial class bingx : Exchange
     public async Task<object> accountV1PrivateGetAccountApiPermissions (object parameters = null)
     {
         return await this.callAsync ("accountV1PrivateGetAccountApiPermissions",parameters);
+    }
+
+    public async Task<object> accountV1PrivateGetAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("accountV1PrivateGetAllAccountBalance",parameters);
     }
 
     public async Task<object> accountV1PrivatePostInnerTransferAuthorizeSubAccount (object parameters = null)

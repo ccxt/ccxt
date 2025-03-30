@@ -153,7 +153,6 @@ public partial class bingx : Exchange
                                 { "trade/myTrades", 2 },
                                 { "user/commissionRate", 5 },
                                 { "account/balance", 2 },
-                                { "account/allAccountBalance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/order", 2 },
@@ -380,6 +379,7 @@ public partial class bingx : Exchange
                                 { "uid", 1 },
                                 { "apiKey/query", 2 },
                                 { "account/apiPermissions", 5 },
+                                { "allAccountBalance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 1 },
