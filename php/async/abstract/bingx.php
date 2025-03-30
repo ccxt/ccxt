@@ -49,9 +49,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spot_v1_private_get_account_balance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
-    public function spot_v1_private_get_account_allaccountbalance($params = array()) {
-        return $this->request('account/allAccountBalance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
     public function spot_v1_private_post_trade_order($params = array()) {
         return $this->request('trade/order', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -424,6 +421,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function account_v1_private_get_account_apipermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function account_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -510,9 +510,6 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function spotV1PrivateGetAccountBalance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function spotV1PrivateGetAccountAllAccountBalance($params = array()) {
-        return $this->request('account/allAccountBalance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function spotV1PrivatePostTradeOrder($params = array()) {
         return $this->request('trade/order', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -885,6 +882,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function accountV1PrivateGetAccountApiPermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function accountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
