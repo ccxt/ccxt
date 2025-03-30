@@ -25,7 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, NO_PADDING
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
 
@@ -42,6 +42,10 @@ from ccxt.base.types import IndexType, Market, Currency, Int, Str
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
+from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies.msgpack import packb
+
 # eddsa signing
 try:
     import axolotl_curve25519 as eddsa
@@ -314,6 +318,7 @@ class Exchange(object):
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
+    paddingMode = NO_PADDING
     number = float  # or str (a pointer to a class)
     number_types = {int, float}
     minFundingAddressLength = 1  # used in check_address
@@ -1431,6 +1436,19 @@ class Exchange(object):
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
+
+    @staticmethod
+    def eth_encode_structured_data(domain, messageTypes, message):
+        encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
+        return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def packb(o):
+        return packb(o)
+
+    @staticmethod
+    def int_to_base16(num):
+        return "%0.2X" % num
 
     @staticmethod
     def random_bytes(length):
@@ -2555,6 +2573,16 @@ class Exchange(object):
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
 
+    def parse_to_numeric(self, number):
+        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep self in mind:
+        # in JS: 1 == 1.0 is True;  1 == 1.0 is True
+        # in Python: 1 == 1.0 is True
+        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False
+        if stringVersion.find('.') >= 0:
+            return float(stringVersion)
+        return int(stringVersion)
+
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
         result = []
@@ -2810,6 +2838,85 @@ class Exchange(object):
         if code is None and currency is not None:
             code = currency['code']
         return code
+
+    def safe_market_structure(self, market: dict = None):
+        cleanStructure = {
+            'id': None,
+            'lowercaseId': None,
+            'symbol': None,
+            'base': None,
+            'quote': None,
+            'settle': None,
+            'baseId': None,
+            'quoteId': None,
+            'settleId': None,
+            'type': None,
+            'spot': None,
+            'margin': None,
+            'swap': None,
+            'future': None,
+            'option': None,
+            'index': None,
+            'active': None,
+            'contract': None,
+            'linear': None,
+            'inverse': None,
+            'subType': None,
+            'taker': None,
+            'maker': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+                'cost': None,
+                'base': None,
+                'quote': None,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'marginModes': {
+                'cross': None,
+                'isolated': None,
+            },
+            'created': None,
+            'info': None,
+        }
+        if market is not None:
+            result = self.extend(cleanStructure, market)
+            # set None swap/future/etc
+            if result['spot']:
+                if result['contract'] is None:
+                    result['contract'] = False
+                if result['swap'] is None:
+                    result['swap'] = False
+                if result['future'] is None:
+                    result['future'] = False
+                if result['option'] is None:
+                    result['option'] = False
+                if result['index'] is None:
+                    result['index'] = False
+            return result
+        return cleanStructure
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
@@ -3406,6 +3513,10 @@ class Exchange(object):
     @staticmethod
     def base16_to_binary(s):
         return base64.b16decode(s, True)
+
+    @staticmethod
+    def binary_to_base16(s):
+        return Exchange.decode(base64.b16encode(s)).lower()
 
     # python supports arbitrarily big integers
     @staticmethod

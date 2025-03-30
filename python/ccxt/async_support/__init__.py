@@ -131,6 +131,10 @@ from ccxt.async_support.hollaex import hollaex                            # noqa
 from ccxt.async_support.huobijp import huobijp                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.huobiru import huobiru                            # noqa: F401
+from ccxt.async_support.hyperliquid import hyperliquid                    # noqa: F401
+from ccxt.async_support.hyperliquid_abs import hyperliquid_abs            # noqa: F401
+from ccxt.async_support.hyperliquid_futures import hyperliquid_futures    # noqa: F401
+from ccxt.async_support.hyperliquid_spot import hyperliquid_spot          # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
@@ -256,6 +260,10 @@ exchanges = [
     'huobijp',
     'huobipro',
     'huobiru',
+    'hyperliquid',
+    'hyperliquid_abs',
+    'hyperliquid_futures',
+    'hyperliquid_spot',
     'ice3x',
     'idex',
     'independentreserve',

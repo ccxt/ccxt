@@ -220,6 +220,18 @@ class Transaction(TypedDict):
     internal: Bool
 
 
+class TransferEntry(TypedDict):
+    info: Dict[str, any]
+    id: Str
+    timestamp: Int
+    datetime: Str
+    currency: Str
+    amount: Num
+    fromAccount: Str
+    toAccount: Str
+    status: Str
+
+
 class Ticker(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -325,9 +337,103 @@ class LastPrice(TypedDict):
     info: Dict[str, Any]
 
 
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+
+class FundingRate(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    markPrice: Num
+    indexPrice: Num
+    interestRate: Num
+    estimatedSettlePrice: Num
+    fundingTimestamp: Int
+    fundingDatetime: Str
+    nextFundingTimestamp: Int
+    nextFundingDatetime: Str
+    nextFundingRate: Num
+    previousFundingTimestamp: Int
+    previousFundingDatetime: Str
+    previousFundingRate: Num
+    info: Dict[str, Any]
+    interval: Str
+
+
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
+
+
+class MarginModification(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
+    amount: Optional[float]
+    code: Str
+    status: Str
+    timestamp: Int
+    datetime: Str
+
+
+class LeverageTier:
+    tier: Num
+    symbol: Str
+    currency: Str
+    minNotional: Num
+    maxNotional: Num
+    maintenanceMarginRate: Num
+    maxLeverage: Num
+    info: Dict[str, Any]
+
+
+class LedgerEntry:
+    id: Str
+    info: Any
+    timestamp: Int
+    datetime: Str
+    direction: Str
+    account: Str
+    referenceId: Str
+    referenceAccount: Str
+    type: Str
+    currency: Str
+    amount: Str
+    before: float
+    after: float
+    status: Str
+    fee: Fee
+
+
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+FundingRates = Dict[Str, FundingRate]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
+LeverageTiers = Dict[Str, List[LeverageTier]]
