@@ -1963,6 +1963,7 @@ export default class coinbase extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'min_size'),
