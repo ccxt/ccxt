@@ -36,7 +36,7 @@ export default class bingx extends bingxRest {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1min to renew the token)
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },

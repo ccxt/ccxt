@@ -1597,11 +1597,7 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
-                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778",
                 "currencyIdAndCode": "not all currencies are available"
-            },
-            "fetchTrades": {
-                "side": "undefined"
             },
             "ticker": {
                 "bidVolume": "weird values eg -1.1641532182693481e-10 https://github.com/ccxt/ccxt/actions/runs/13135405405/job/36649793252?pr=25190#step:9:213",
@@ -1609,7 +1605,6 @@
                 "baseVolume": "not supported",
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
-            "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {
                 "deposit": "not provided",
                 "precision": "not provided",
@@ -1617,24 +1612,6 @@
             },
             "orderBook": {
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
-            },
-            "watchTrades": {
-                "side": "undefined",
-                "timestamp": "sometimes not being sorted"
-            },
-            "watchTicker": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/272143769#L4243",
-                "datetime": "same"
-            },
-            "watchTickers": {
-                "timestamp": "same",
-                "datetime": "same"
-            },
-            "watchOrderBook": {
-                "timestamp": "undefined"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "undefined"
             },
             "fetchPositions": {
                 "marginRatio": "undefined",
