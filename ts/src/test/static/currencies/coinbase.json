@@ -19,6 +19,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -50,6 +51,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -76,6 +78,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": 0.01,
@@ -102,6 +105,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": 0.01,
@@ -128,6 +132,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": 0.01,
@@ -154,6 +159,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": 1,
@@ -185,6 +191,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -216,6 +223,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -247,6 +255,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -280,6 +289,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
@@ -311,6 +321,7 @@
         "withdraw": null,
         "fee": null,
         "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
                 "min": null,
