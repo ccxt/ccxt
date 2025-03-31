@@ -144,7 +144,6 @@ const VIRTUAL_BASE_METHODS: any = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
-    "setMarkets": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false
