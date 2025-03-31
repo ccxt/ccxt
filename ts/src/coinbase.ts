@@ -1521,15 +1521,11 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        return this.removeAliasMarkets (result);
-    }
-
-    removeAliasMarkets (markets: Market[]): Market[] {
+        // remove aliases
         this.options['aliasCbMarketIds'] = {};
-        const values = this.toArray (markets);
         const newMarkets = [];
-        for (let i = 0; i < values.length; i++) {
-            const market = values[i];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
             const info = this.safeValue (market, 'info', {});
             const realMarketIds = this.safeList (info, 'alias_to', []);
             const length = realMarketIds.length;
