@@ -1898,6 +1898,44 @@ class hyperliquid(Exchange, ImplicitAPI):
         statuses = self.safe_list(dataObject, 'statuses', [])
         return self.parse_orders(statuses)
 
+    async def create_vault(self, name: str, description: str, initialUsd: int, params={}):
+        """
+        creates a value
+        :param str name: The name of the vault
+        :param str description: The description of the vault
+        :param number initialUsd: The initialUsd of the vault
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        nonce = self.milliseconds()
+        request: dict = {
+            'nonce': nonce,
+        }
+        usd = self.parse_to_int(Precise.string_mul(self.number_to_string(initialUsd), '1000000'))
+        action: dict = {
+            'type': 'createVault',
+            'name': name,
+            'description': description,
+            'initialUsd': usd,
+            'nonce': nonce,
+        }
+        signature = self.sign_l1_action(action, nonce)
+        request['action'] = action
+        request['signature'] = signature
+        response = await self.privatePostExchange(self.extend(request, params))
+        #
+        # {
+        #     "status": "ok",
+        #     "response": {
+        #         "type": "createVault",
+        #         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        #     }
+        # }
+        #
+        return response
+
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
