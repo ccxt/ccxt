@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadSymbol, BadRequest, Exchange
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ export default class coindcx extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
                 'ws': false,
             },
@@ -182,8 +182,8 @@ export default class coindcx extends Exchange {
                     'post': {
                         'exchange/v1/users/balances': 1, // done
                         'exchange/v1/users/info': 1, // not unified
-                        'exchange/v1/wallets/sub_account_transfer': 1, // new
-                        'exchange/v1/wallets/transfer': 1, // new
+                        'exchange/v1/wallets/sub_account_transfer': 1, // done todo need api keys to check it
+                        'exchange/v1/wallets/transfer': 1, // done todo need api keys to check it
                         'exchange/v1/orders/create': 1, // done
                         'exchange/v1/orders/create_multiple': 1, // done
                         'exchange/v1/orders/status': 1, // done
@@ -224,8 +224,8 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/trades': 1, // done
                         'api/v1/derivatives/futures/data/stats': 1, // new
                         'exchange/v1/derivatives/futures/positions/cross_margin_details': 1, // new
-                        'exchange/v1/derivatives/futures/wallets/transfer': 1, // new
-                        'exchange/v1/derivatives/futures/wallets': 1, // new
+                        'exchange/v1/derivatives/futures/wallets/transfer': 1, // done
+                        'exchange/v1/derivatives/futures/wallets': 1, // done todo get error "not_found"
                         'exchange/v1/derivatives/futures/wallets/transactions': 1, // new
                         'exchange/v1/derivatives/futures/orders/edit': 1, // new
                         'exchange/v1/derivatives/futures/positions/margin_type': 1, // new
@@ -301,6 +301,10 @@ export default class coindcx extends Exchange {
             // exchange-specific options
             'options': {
                 'defaultType': 'spot', // spot, margin or swap
+                'accountsByType': {
+                    'spot': 'spot',
+                    'swap': 'futures',
+                },
                 'fetchOHLCV': {
                     'swapTimeframes': {
                         '1m': '1',
@@ -1337,11 +1341,32 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.coindcx.com/#get-balances
+         * @see https://docs.coindcx.com/#wallet-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostExchangeV1UsersBalances (params);
+        const accountType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (accountType !== undefined && accountType !== 'spot') {
+            response = await this.privatePostExchangeV1DerivativesFuturesWallets (params);
+        } else {
+            response = await this.privatePostExchangeV1UsersBalances (params);
+        }
+        return this.parseBalanceByType (response, accountType);
+    }
+
+    parseBalanceByType (response, accountType: Str) {
+        if (accountType === 'spot') {
+            return this.parseBalance (response);
+        } else {
+            return this.parseFundingBalance (response);
+        }
+    }
+
+    parseBalance (balances): Balances {
         //
         //     [
         //         {
@@ -1356,10 +1381,6 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
-    }
-
-    parseBalance (balances): Balances {
         const result: Dict = {
             'info': balances,
         };
@@ -1370,6 +1391,25 @@ export default class coindcx extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balanceEntry, 'balance');
             account['used'] = this.safeString (balanceEntry, 'locked_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    parseFundingBalance (response) {
+        //
+        //
+        const result: Dict = { 'info': response };
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -3354,15 +3394,85 @@ export default class coindcx extends Exchange {
         return await this.privatePostExchangeV1DerivativesFuturesPositionsUpdateLeverage (this.extend (request, params));
     }
 
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name coindcx#transfer
+         * @description transfer currency internally between wallets on the same account or between mainaccount and subaccount or one subaccount spot wallet to another
+         * @description *for swap markets only* transfer to futures wallet or from futures wallet
+         * @see https://docs.coindcx.com/#sub-account-transfer
+         * @see https://docs.coindcx.com/#wallet-transfer
+         * @see https://docs.coindcx.com/#wallet-transfer-2
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] spot, swap
+         * @param {string} [params.transferType] transfer type = deposit, withdraw (default is deposit)
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const request: Dict = {
+            'currency_short_name': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let response = undefined;
+        const marketType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const transferType = this.safeString (params, 'transferType', 'deposit');
+        params = this.omit (params, 'transferType');
+        if (marketType === 'spot') {
+            if (fromAccount === 'spot' || fromAccount === 'swap') {
+                request['source_wallet_type'] = this.safeString (accountsByType, fromAccount, fromAccount);
+                request['destination_wallet_type'] = this.safeString (accountsByType, toAccount, toAccount);
+                response = await this.privatePostExchangeV1WalletsTransfer (this.extend (request, params));
+            } else {
+                request['from_account_id'] = fromAccount;
+                request['to_account_id'] = toAccount;
+                response = await this.privatePostExchangeV1WalletsSubAccountTransfer (this.extend (request, params));
+            }
+        } else if (marketType === 'swap') {
+            request['transfer_type'] = transferType;
+            response = await this.privatePostExchangeV1DerivativesFuturesWalletsTransfer (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "19262d33-6aa4-4606-a62e-79e1e2634bf6",
+            //             "currency_short_name": "INR",
+            //             "balance":"10.0",
+            //             "locked_balance": "0.0",
+            //             "cross_order_margin": "0.0",
+            //             "cross_user_margin":"0.0"
+            //         }
+            //     ]
+            //
+        }
+        const data = this.safeDict (response, 0, {});
+        return {
+            'info': data,
+            'id': this.safeString (data, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         }
-        if (method === 'POST') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             const secret = this.encode (this.secret);
