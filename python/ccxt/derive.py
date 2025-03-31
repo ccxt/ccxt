@@ -2328,17 +2328,19 @@ class derive(Exchange, ImplicitAPI):
         result: dict = {
             'info': response,
         }
-        # TODO:
-        # checked multiple subaccounts
-        # checked balance after open orders / positions
         for i in range(0, len(response)):
             subaccount = response[i]
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
                 balance = collaterals[j]
                 code = self.safe_currency_code(self.safe_string(balance, 'currency'))
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'amount')
+                account = self.safe_dict(result, code)
+                if account is None:
+                    account = self.account()
+                    account['total'] = self.safe_string(balance, 'amount')
+                else:
+                    amount = self.safe_string(balance, 'amount')
+                    account['total'] = Precise.string_add(account['total'], amount)
                 result[code] = account
         return self.safe_balance(result)
 
