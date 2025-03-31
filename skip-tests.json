@@ -1619,8 +1619,7 @@
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             },
             "watchTrades": {
-                "side": "undefined",
-                "timestamp": "sometimes not being sorted"
+                "side": "undefined"
             },
             "watchTicker": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/272143769#L4243",
