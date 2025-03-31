@@ -2293,10 +2293,11 @@ export default class coinbase extends Exchange {
             askVolume = this.safeNumber (asks[0], 'size');
         }
         const marketId = this.safeString (ticker, 'product_id');
+        market = this.safeMarket (marketId, market);
         const last = this.safeNumber (ticker, 'price');
         const datetime = this.safeString (ticker, 'time');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'bid': bid,
