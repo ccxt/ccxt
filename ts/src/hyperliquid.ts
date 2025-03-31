@@ -2014,7 +2014,7 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'nonce': nonce,
         };
-        const usd = this.parseToInt (Precise.stringMul (this.numberToString (initialUsd), '1000000'))
+        const usd = this.parseToInt (Precise.stringMul (this.numberToString (initialUsd), '1000000'));
         const action: Dict = {
             'type': 'createVault',
             'name': name,
