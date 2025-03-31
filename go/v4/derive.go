@@ -2697,17 +2697,20 @@ func  (this *derive) ParseBalance(response interface{}) interface{}  {
     var result interface{} = map[string]interface{} {
         "info": response,
     }
-    // TODO:
-    // checked multiple subaccounts
-    // checked balance after open orders / positions
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var subaccount interface{} = GetValue(response, i)
         var collaterals interface{} = this.SafeList(subaccount, "collaterals", []interface{}{})
         for j := 0; IsLessThan(j, GetArrayLength(collaterals)); j++ {
             var balance interface{} = GetValue(collaterals, j)
             var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
-            var account interface{} = this.Account()
-            AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+            var account interface{} = this.SafeDict(result, code)
+            if IsTrue(IsEqual(account, nil)) {
+                account = this.Account()
+                AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+            } else {
+                var amount interface{} = this.SafeString(balance, "amount")
+                AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), amount))
+            }
             AddElementToObject(result, code, account)
         }
     }
@@ -2739,8 +2742,8 @@ func  (this *derive) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes24548 := (<-this.LoadMarkets())
-            PanicOnError(retRes24548)
+            retRes24578 := (<-this.LoadMarkets())
+            PanicOnError(retRes24578)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
@@ -2808,8 +2811,8 @@ func  (this *derive) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes25018 := (<-this.LoadMarkets())
-            PanicOnError(retRes25018)
+            retRes25048 := (<-this.LoadMarkets())
+            PanicOnError(retRes25048)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
