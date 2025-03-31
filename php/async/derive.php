@@ -2468,17 +2468,20 @@ class derive extends Exchange {
         $result = array(
             'info' => $response,
         );
-        // TODO:
-        // checked multiple subaccounts
-        // checked $balance after open orders / positions
         for ($i = 0; $i < count($response); $i++) {
             $subaccount = $response[$i];
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
                 $balance = $collaterals[$j];
                 $code = $this->safe_currency_code($this->safe_string($balance, 'currency'));
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'amount');
+                $account = $this->safe_dict($result, $code);
+                if ($account === null) {
+                    $account = $this->account();
+                    $account['total'] = $this->safe_string($balance, 'amount');
+                } else {
+                    $amount = $this->safe_string($balance, 'amount');
+                    $account['total'] = Precise::string_add($account['total'], $amount);
+                }
                 $result[$code] = $account;
             }
         }
