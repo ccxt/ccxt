@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -12,6 +12,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -28,11 +29,16 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchMarkets
      * @description retrieves data on all markets for poloniex
      * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
+    parseSpotMarket(market: Dict): Market;
+    parseSwapMarket(market: Dict): Market;
     /**
      * @method
      * @name poloniex#fetchTime
@@ -48,6 +54,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -67,6 +74,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -78,6 +86,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -90,6 +99,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -109,6 +119,7 @@ export default class poloniex extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -117,6 +128,19 @@ export default class poloniex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name poloniex#fetchClosedOrders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#createOrder
@@ -159,6 +183,7 @@ export default class poloniex extends Exchange {
      * @description cancel all open orders
      * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
      * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
@@ -198,6 +223,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+     * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -216,6 +242,7 @@ export default class poloniex extends Exchange {
      * @name poloniex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -326,6 +353,87 @@ export default class poloniex extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    /**
+     * @method
+     * @name poloniex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name poloniex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
+    /**
+     * @method
+     * @name poloniex#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
+        info: any;
+        hedged: boolean;
+    }>;
+    /**
+     * @method
+     * @name poloniex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name poloniex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
+    /**
+     * @method
+     * @name poloniex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    /**
+     * @method
+     * @name poloniex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

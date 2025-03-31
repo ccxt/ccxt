@@ -23,6 +23,7 @@ interface Exchange {
     spotV1PrivateGetTradeMyTrades (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetUserCommissionRate (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetAccountAllAccountBalance (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;

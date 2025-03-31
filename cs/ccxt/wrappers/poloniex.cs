@@ -11,6 +11,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#candles"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -57,6 +58,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,6 +72,16 @@ public partial class poloniex
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -97,6 +109,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-market-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,6 +130,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-market-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -137,6 +151,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#trades"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -171,6 +186,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/trade#trade-history"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -218,6 +234,7 @@ public partial class poloniex
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#open-orders"/>  <br/>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -251,6 +268,46 @@ public partial class poloniex
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple closed orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest entry
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -353,6 +410,7 @@ public partial class poloniex
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders"/>  <br/>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -445,6 +503,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/account#all-account-balances"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/account/balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -485,6 +544,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#order-book"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -721,5 +781,117 @@ public partial class poloniex
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setLeverage(leverage, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.standard</term>
+    /// <description>
+    /// boolean : whether to fetch standard contract positions
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

@@ -23,7 +23,6 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -674,23 +673,67 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
-                    'LINEA': 'LINEAETH',
-                    'KON': 'KONET',
-                    'AVAXC': 'AVAX_C',
-                    'BEP20': 'BSC',
-                    'EOS': 'EOS',
+                    'BTC': 'BTC',
+                    'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'GATECHAIN': 'GTEVM',
-                    'HRC20': 'HT',
-                    'KUSAMA': 'KSMSM',
-                    'NEAR': 'NEAR',
-                    'OKC': 'OKT',
-                    'OPTIMISM': 'OPETH',
-                    'POLKADOT': 'DOTSM',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'LUNA': 'LUNC',
+                    'HECO': 'HT',
+                    'HRC20': 'HT',
+                    'BSC': 'BSC',
+                    'BEP20': 'BSC',
+                    'SOL': 'SOL',
+                    'POLYGON': 'POL',
+                    'MATIC': 'POL',
+                    'OP': 'OPETH',
+                    'OPTIMISM': 'OPETH',
+                    'ADA': 'ADA',  # CARDANO
+                    'AVAXC': 'AVAX_C',
+                    'NEAR': 'NEAR',
+                    'ARBONE': 'ARBEVM',
                     'BASE': 'BASEEVM',
-                    'BRC20': 'BTCBRC',
+                    'SUI': 'SUI',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLLETH',
+                    'TAIKO': 'TAIKOETH',
+                    'HYPE': 'HYPE',
+                    'ALGO': 'ALGO',
+                    # KAVA: ['KAVA', 'KAVAEVM']
+                    # SEI: ['SEI', 'SEIEVM']
+                    'LINEA': 'LINEAETH',
+                    'BLAST': 'BLASTETH',
+                    'XLM': 'XLM',
+                    'RSK': 'RBTC',
+                    'TON': 'TON',
+                    'MNT': 'MNT',
+                    # 'RUNE': 'BTCRUNES', probably, cant verify atm
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    # 'FTM': SONIC REBRAND, todo
+                    'ZKSERA': 'ZKSERA',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'ACA': 'ACA',
+                    # TLOS: ['TLOS', 'TLOSEVM']
+                    # ASTR: ['ASTR', 'ASTREVM']
+                    # CFX: ['CFX', 'CFXEVM']
+                    'XTZ': 'XTZ',
+                    'EGLD': 'EGLD',
+                    'GLMR': 'GLMR',
+                    'AURORA': 'AURORAEVM',
+                    # others
+                    'KON': 'KONET',
+                    'GATECHAIN': 'GTEVM',
+                    'KUSAMA': 'KSMSM',
+                    'OKC': 'OKT',
+                    'POLKADOT': 'DOTSM',  # todo: DOT for main DOT
+                    'LUNA': 'LUNC',
+                },
+                'networksById': {
+                    'OPETH': 'OP',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1753,100 +1796,80 @@ class gate(Exchange, ImplicitAPI):
             self.load_unified_status()
         response = self.publicSpotGetCurrencies(params)
         #
-        #    {
-        #        "currency": "BCN",
-        #        "delisted": False,
-        #        "withdraw_disabled": True,
-        #        "withdraw_delayed": False,
-        #        "deposit_disabled": True,
-        #        "trade_disabled": False
-        #    }
+        #  [
+        #   {
+        #       "currency": "USDT_ETH",
+        #       "name": "Tether",
+        #       "delisted": False,
+        #       "withdraw_disabled": False,
+        #       "withdraw_delayed": False,
+        #       "deposit_disabled": False,
+        #       "trade_disabled": True,
+        #       "chain": "ETH"
+        #    },
+        #  ]
         #
-        #    {
-        #        "currency":"USDT_ETH",
-        #        "delisted":false,
-        #        "withdraw_disabled":false,
-        #        "withdraw_delayed":false,
-        #        "deposit_disabled":false,
-        #        "trade_disabled":false,
-        #        "chain":"ETH"
-        #    }
-        #
+        indexedCurrencies = self.index_by(response, 'currency')
         result: dict = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
-            currencyIdLower = self.safe_string_lower(entry, 'currency')
             parts = currencyId.split('_')
-            currency = parts[0]
-            code = self.safe_currency_code(currency)
-            networkId = self.safe_string(entry, 'chain')
-            networkCode = None
-            if networkId is not None:
-                networkCode = self.network_id_to_code(networkId, code)
-            delisted = self.safe_value(entry, 'delisted')
-            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
-            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
-            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
-            withdrawEnabled = not withdrawDisabled
-            depositEnabled = not depositDisabled
-            tradeEnabled = not tradeDisabled
-            listed = not delisted
-            active = listed and tradeEnabled and withdrawEnabled and depositEnabled
-            if self.safe_value(result, code) is None:
+            partFirst = self.safe_string(parts, 0)
+            # if there's an underscore then the second part is always the chain name(except the _OLD suffix)
+            currencyName = currencyId if currencyId.endswith('_OLD') else partFirst
+            withdrawEnabled = not self.safe_bool(entry, 'withdraw_disabled')
+            depositEnabled = not self.safe_bool(entry, 'deposit_disabled')
+            tradeDisabled = not self.safe_bool(entry, 'trade_disabled')
+            precision = self.parse_number('0.0001')  # temporary safe default, because no value provided from API
+            code = self.safe_currency_code(currencyName)
+            # check leveraged tokens(e.g. BTC3S, ETH5L)
+            isLeveragedToken = False
+            if currencyId.endswith('3S') or currencyId.endswith('3L') or currencyId.endswith('5S') or currencyId.endswith('5L'):
+                realCurrencyId = currencyId[0:-2]
+                if realCurrencyId in indexedCurrencies:
+                    isLeveragedToken = True
+            type = 'leveraged' if isLeveragedToken else 'crypto'
+            # some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
+            networkId = self.safe_string(entry, 'chain', currencyId)
+            networkCode = self.network_id_to_code(networkId, code)
+            networkEntry = {
+                'info': entry,
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'active': not tradeDisabled,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': None,
+                'precision': precision,
+            }
+            # check if first entry for the specific currency
+            if not (code in result):
                 result[code] = {
-                    'id': currency,
+                    'id': currencyName,
+                    'lowerCaseId': currencyName.lower(),
                     'code': code,
-                    'info': None,
-                    'name': None,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': None,
-                    'fees': [],
-                    'precision': self.parse_number('1e-4'),
+                    'type': type,
+                    'precision': precision,
                     'limits': self.limits,
                     'networks': {},
+                    'info': [],  # will be filled below
                 }
-            depositAvailable = self.safe_value(result[code], 'deposit')
-            depositAvailable = depositEnabled if (depositEnabled) else depositAvailable
-            withdrawAvailable = self.safe_value(result[code], 'withdraw')
-            withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
-            networks = self.safe_value(result[code], 'networks', {})
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': networkCode,
-                    'currencyId': currencyId,
-                    'lowerCaseCurrencyId': currencyIdLower,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': None,
-                    'precision': self.parse_number('1e-4'),
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code]['networks'] = networks
-            info = self.safe_value(result[code], 'info', [])
+            result[code]['networks'][networkCode] = networkEntry
+            info = self.safe_list(result[code], 'info', [])
             info.append(entry)
             result[code]['info'] = info
-            result[code]['active'] = depositAvailable and withdrawAvailable
-            result[code]['deposit'] = depositAvailable
-            result[code]['withdraw'] = withdrawAvailable
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
@@ -1923,7 +1946,11 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request, query = self.prepare_request(None, 'swap', params)
+        market = None
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+        request, query = self.prepare_request(market, 'swap', params)
         response = self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
         #    [
@@ -2091,6 +2118,27 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateWalletGetDepositAddress(self.extend(request, params))
+        chains = self.safe_value(response, 'multichain_addresses', [])
+        currencyId = self.safe_string(response, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
+            'currency': currency['id'],
+        })
+        return self.index_by(parsed, 'network')
+
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
@@ -2103,65 +2151,30 @@ class gate(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        currency = self.currency(code)
-        rawNetwork = self.safe_string_upper(params, 'network')
-        params = self.omit(params, 'network')
-        request: dict = {
-            'currency': currency['id'],  # todo: currencies have network-junctions
-        }
-        response = self.privateWalletGetDepositAddress(self.extend(request, params))
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        chainsIndexedById = self.fetch_deposit_addresses_by_network(code, params)
+        selectedNetworkId = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        return chainsIndexedById[selectedNetworkId]
+
+    def parse_deposit_address(self, depositAddress, currency=None):
         #
-        #    {
-        #        "currency": "XRP",
-        #        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        #        "multichain_addresses": [
-        #            {
-        #                "chain": "XRP",
-        #                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        #                "payment_id": "391331007",
-        #                "payment_name": "Tag",
-        #                "obtain_failed": 0
-        #            }
-        #        ]
-        #    }
+        #     {
+        #         chain: "BTC",
+        #         address: "1Nxu.......Ys",
+        #         payment_id: "",
+        #         payment_name: "",
+        #         obtain_failed: "0",
+        #     }
         #
-        currencyId = self.safe_string(response, 'currency')
-        code = self.safe_currency_code(currencyId)
-        networkId = self.network_code_to_id(rawNetwork, code)
-        network = None
-        tag = None
-        address = None
-        if networkId is not None:
-            addresses = self.safe_value(response, 'multichain_addresses')
-            for i in range(0, len(addresses)):
-                entry = addresses[i]
-                entryNetwork = self.safe_string(entry, 'chain')
-                if networkId == entryNetwork:
-                    obtainFailed = self.safe_integer(entry, 'obtain_failed')
-                    if obtainFailed:
-                        break
-                    address = self.safe_string(entry, 'address')
-                    tag = self.safe_string(entry, 'payment_id')
-                    network = self.network_id_to_code(networkId, code)
-                    break
-        else:
-            addressField = self.safe_string(response, 'address')
-            if addressField is not None:
-                if addressField.find('New address is being generated for you, please wait') >= 0:
-                    raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
-                if addressField.find(' ') >= 0:
-                    splitted = addressField.split(' ')
-                    address = splitted[0]
-                    tag = splitted[1]
-                else:
-                    address = addressField
+        address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
-            'info': response,
-            'currency': code,
-            'network': network,
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositAddress, 'payment_id'),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
         }
 
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -3525,6 +3538,7 @@ class gate(Exchange, ImplicitAPI):
         #
         # public
         #
+        #  spot:
         #     {
         #         "id": "1334253759",
         #         "create_time": "1626342738",
@@ -3534,6 +3548,18 @@ class gate(Exchange, ImplicitAPI):
         #         "amount": "0.0022",
         #         "price": "32452.16"
         #     }
+        #
+        #  swap:
+        #
+        #    {
+        #        "id": "442288327",
+        #        "contract": "BTC_USDT",
+        #        "create_time": "1739814676.707",
+        #        "create_time_ms": "1739814676.707",
+        #        "size": "-105",
+        #        "price": "95594.8"
+        #    }
+        #
         #
         # public ws
         #
@@ -3611,8 +3637,14 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'trade_id')
-        timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
-        timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
+        timestamp: Int = None
+        msString = self.safe_string(trade, 'create_time_ms')
+        if msString is not None:
+            msString = Precise.string_mul(msString, '1000')
+            msString = msString[0:13]
+            timestamp = self.parse_to_int(msString)
+        else:
+            timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         marketType = 'contract' if ('contract' in trade) else 'spot'
         market = self.safe_market(marketId, market, '_', marketType)
@@ -3755,14 +3787,10 @@ class gate(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
-        if network is not None:
-            request['chain'] = network
-            params = self.omit(params, 'network')
-        else:
-            request['chain'] = currency['id']  # todo: currencies have network-junctions
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode)
         response = self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -6335,6 +6363,9 @@ class gate(Exchange, ImplicitAPI):
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
                     queryString = self.urlencode(query)
+                    # https://github.com/ccxt/ccxt/issues/25570
+                    if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
+                        queryString = queryString.replace('%2', ',')
                     url += '?' + queryString
                 if method == 'PATCH':
                     body = self.json(query)

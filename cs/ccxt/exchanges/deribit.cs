@@ -27,6 +27,7 @@ public partial class deribit : Exchange
                 { "cancelOrders", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },

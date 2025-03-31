@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func TestSortBy()  {
     // todo: other argument checks
-    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.InitParent(map[string]interface{} {
+    exchange := ccxt.NewExchange().(*ccxt.Exchange); exchange.DerivedExchange = exchange; exchange.InitParent(map[string]interface{} {
         "id": "sampleexchange",
     }, map[string]interface{}{}, exchange)
     var arr interface{} = []interface{}{map[string]interface{} {

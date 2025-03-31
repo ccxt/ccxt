@@ -2321,7 +2321,7 @@ func  (this *hollaex) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            var coins interface{} = this.SafeList(response, "coins")
+            var coins interface{} = this.SafeDict(response, "coins", map[string]interface{} {})
         
             ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
             return nil
@@ -2408,6 +2408,6 @@ func  (this *hollaex) HandleErrors(code interface{}, reason interface{}, url int
 
 func (this *hollaex) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

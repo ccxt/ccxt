@@ -1051,7 +1051,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1064,12 +1076,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1120,7 +1126,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1133,12 +1151,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1184,6 +1196,42 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.isPlan</term>
+    /// <description>
+    /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
     /// </list>

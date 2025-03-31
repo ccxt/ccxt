@@ -74,7 +74,9 @@ class bybit(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -255,6 +257,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/reference': 5,
                         # spot margin trade
                         'v5/spot-margin-trade/data': 5,
+                        'v5/spot-margin-trade/collateral': 5,
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
@@ -264,6 +267,8 @@ class bybit(Exchange, ImplicitAPI):
                         # institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
+                        # earn
+                        'v5/earn/product': 5,
                     },
                 },
                 'private': {
@@ -422,6 +427,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        # earn
+                        'v5/earn/order': 5,
+                        'v5/earn/position': 5,
                     },
                     'post': {
                         # spot
@@ -557,6 +565,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/award/info': 5,
                         'v5/broker/award/distribute-award': 5,
                         'v5/broker/award/distribution-record': 5,
+                        # earn
+                        'v5/earn/place-order': 5,
                     },
                 },
             },
@@ -1240,6 +1250,9 @@ class bybit(Exchange, ImplicitAPI):
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'editOrders': {
+                        'max': 10,
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -1340,7 +1353,7 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
-                self.options['unifiedMarginStatus'] = 3
+                self.options['unifiedMarginStatus'] = 6
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = await asyncio.gather(*rawPromises)
@@ -1405,7 +1418,7 @@ class bybit(Exchange, ImplicitAPI):
             accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
-            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 6)  # default to uta 2.0 pro if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     async def upgrade_unified_trade_account(self, params={}):
@@ -2463,6 +2476,20 @@ class bybit(Exchange, ImplicitAPI):
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
 
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return await self.fetch_tickers(symbols, params)
+
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
@@ -3284,7 +3311,7 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
             if unifiedMarginStatus < 5:
                 # it's not uta.20 where inverse are unified
                 if isInverse:
@@ -3985,13 +4012,15 @@ class bybit(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
+            del orderRequest['category']
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
-        if category == 'inverse':
-            raise NotSupported(self.id + ' createOrders does not allow inverse orders')
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' createOrders does not allow inverse orders for non UTA2.0 account')
         request: dict = {
             'category': category,
             'request': ordersRequests,
@@ -4157,6 +4186,91 @@ class bybit(Exchange, ImplicitAPI):
             'info': response,
             'id': self.safe_string(result, 'orderId'),
         })
+
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        """
+        edit a list of trade orders
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-amend
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(symbol)
+            id = self.safe_string(rawOrder, 'id')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, orderParams)
+            del orderRequest['category']
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
+        category = None
+        category, params = self.get_bybit_type('editOrders', market, params)
+        if (category == 'inverse') and (unifiedMarginStatus < 5):
+            raise NotSupported(self.id + ' editOrders does not allow inverse orders for non UTA2.0 account')
+        request: dict = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = await self.privatePostV5OrderAmendBatch(self.extend(request, params))
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        retInfo = self.safe_dict(response, 'retExtInfo', {})
+        codes = self.safe_list(retInfo, 'list', [])
+        # self.extend the error with the unsuccessful orders
+        for i in range(0, len(codes)):
+            code = codes[i]
+            retCode = self.safe_integer(code, 'code')
+            if retCode != 0:
+                data[i] = self.extend(data[i], code)
+        #
+        # {
+        #     "retCode": 0,
+        #     "retMsg": "OK",
+        #     "result": {
+        #         "list": [
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-500-C",
+        #                 "orderId": "b551f227-7059-4fb5-a6a6-699c04dbd2f2",
+        #                 "orderLinkId": ""
+        #             },
+        #             {
+        #                 "category": "option",
+        #                 "symbol": "ETH-30DEC22-700-C",
+        #                 "orderId": "fa6a595f-1a57-483f-b9d3-30e9c8235a52",
+        #                 "orderLinkId": ""
+        #             }
+        #         ]
+        #     },
+        #     "retExtInfo": {
+        #         "list": [
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             },
+        #             {
+        #                 "code": 0,
+        #                 "msg": "OK"
+        #             }
+        #         ]
+        #     },
+        #     "time": 1672222808060
+        # }
+        #
+        return self.parse_orders(data)
 
     def cancel_order_request(self, id: str, symbol: Str = None, params={}):
         market = self.market(symbol)
@@ -8719,7 +8833,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
             else:
                 feedback = self.id + ' ' + body
-            if body.find('Withdraw address chain or destination tag are not equal'):
+            if body.find('Withdraw address chain or destination tag are not equal') > -1:
                 feedback = feedback + '; You might also need to ensure the address is whitelisted'
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

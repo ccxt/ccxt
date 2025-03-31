@@ -35,6 +35,7 @@ class gate extends gate$1 {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -1190,7 +1191,10 @@ class gate extends gate$1 {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append(position);
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1577,6 +1581,27 @@ class gate extends gate$1 {
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         const data = this.safeDict(message, 'data');
         const errs = this.safeDict(data, 'errs');
@@ -1596,6 +1621,20 @@ class gate extends gate$1 {
                 client.reject(e, messageHash);
                 if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
                     delete client.subscriptions[messageHash];
+                }
+                // remove subscriptions for watchSymbols
+                const channel = this.safeString(message, 'channel');
+                if ((channel !== undefined) && (channel.indexOf('.') > 0)) {
+                    const parsedChannel = channel.split('.');
+                    const payload = this.safeList(message, 'payload', []);
+                    for (let i = 0; i < payload.length; i++) {
+                        const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
+                        const symbol = this.safeSymbol(payload[i], undefined, '_', marketType);
+                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
+                            delete client.subscriptions[messageHashSymbol];
+                        }
+                    }
                 }
             }
             if ((id !== undefined) && (id in client.subscriptions)) {
@@ -1986,6 +2025,11 @@ class gate extends gate$1 {
             'signature': signature,
             'req_param': reqParams,
         };
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
+            payload['req_header'] = {
+                'X-Gate-Channel-Id': 'ccxt',
+            };
+        }
         const request = {
             'id': requestId,
             'time': time,

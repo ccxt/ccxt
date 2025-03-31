@@ -78,6 +78,7 @@ class binance(ccxt.async_support.binance):
                         'ws-api': {
                             'spot': 'wss://testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -90,6 +91,7 @@ class binance(ccxt.async_support.binance):
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -528,15 +530,15 @@ class binance(ccxt.async_support.binance):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-        https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -583,15 +585,15 @@ class binance(ccxt.async_support.binance):
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-        https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -642,15 +644,15 @@ class binance(ccxt.async_support.binance):
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-        https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
@@ -697,15 +699,15 @@ class binance(ccxt.async_support.binance):
 
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-        https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
@@ -716,7 +718,7 @@ class binance(ccxt.async_support.binance):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#order-book
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
 
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -982,10 +984,10 @@ class binance(ccxt.async_support.binance):
         """
         get the list of most recent trades for a list of symbols
 
-        https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-        https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1040,10 +1042,10 @@ class binance(ccxt.async_support.binance):
         """
         unsubscribes from the trades channel
 
-        https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-        https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1098,10 +1100,10 @@ class binance(ccxt.async_support.binance):
         """
         unsubscribes from the trades channel
 
-        https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-        https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1115,10 +1117,10 @@ class binance(ccxt.async_support.binance):
         """
         get the list of most recent trades for a particular symbol
 
-        https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-        https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1307,9 +1309,9 @@ class binance(ccxt.async_support.binance):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1330,9 +1332,9 @@ class binance(ccxt.async_support.binance):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1392,9 +1394,9 @@ class binance(ccxt.async_support.binance):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1456,9 +1458,9 @@ class binance(ccxt.async_support.binance):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-        https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1576,7 +1578,7 @@ class binance(ccxt.async_support.binance):
         """
         query historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
 
         :param str symbol: unified symbol of the market to query OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1662,15 +1664,15 @@ class binance(ccxt.async_support.binance):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.name]: stream to use can be ticker or miniTicker
@@ -1683,10 +1685,10 @@ class binance(ccxt.async_support.binance):
 
     async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
+        watches a mark price for a specific market
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
 
-        watches a mark price for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
@@ -1699,10 +1701,10 @@ class binance(ccxt.async_support.binance):
 
     async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        watches the mark price for all markets
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
 
-        watches the mark price for all markets
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
@@ -1720,15 +1722,15 @@ class binance(ccxt.async_support.binance):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1744,15 +1746,15 @@ class binance(ccxt.async_support.binance):
 
     async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1823,15 +1825,15 @@ class binance(ccxt.async_support.binance):
 
     async def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
-
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-        https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-        https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-        https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1842,9 +1844,9 @@ class binance(ccxt.async_support.binance):
         """
         watches best bid & ask for symbols
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#symbol-order-book-ticker
         https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2333,7 +2335,8 @@ class binance(ccxt.async_support.binance):
         fetch balance and get the amount of funds available for trading or funds locked in orders
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-information-user_data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -2344,7 +2347,7 @@ class binance(ccxt.async_support.binance):
         """
         await self.load_markets()
         type = self.get_market_type('fetchBalanceWs', None, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
@@ -2435,10 +2438,10 @@ class binance(ccxt.async_support.binance):
 
     async def fetch_position_ws(self, symbol: str, params={}) -> List[Position]:
         """
+        fetch data on an open position
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
 
-        fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2450,6 +2453,7 @@ class binance(ccxt.async_support.binance):
         fetch all open positions
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2458,15 +2462,20 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols, 'swap', True, True, True)
-        url = self.urls['api']['ws']['ws-api']['future']
-        requestId = self.request_id(url)
-        messageHash = str(requestId)
         payload: dict = {}
+        market = None
+        symbols = self.market_symbols(symbols, 'swap', True, True, True)
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength == 1:
-                payload['symbol'] = self.market_id(symbols[0])
+                market = self.market(symbols[0])
+                payload['symbol'] = market['id']
+        type = self.get_market_type('fetchPositionsWs', market, params)
+        if type != 'future' and type != 'delivery':
+            raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
+        url = self.urls['api']['ws']['ws-api'][type]
+        requestId = self.request_id(url)
+        messageHash = str(requestId)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
@@ -2673,8 +2682,9 @@ class binance(ccxt.async_support.binance):
         """
         create a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#place-new-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2689,7 +2699,7 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('createOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future':
+        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
@@ -2817,8 +2827,9 @@ class binance(ccxt.async_support.binance):
         """
         edit a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-and-replace-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -2832,22 +2843,23 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.get_market_type('editOrderWs', market, params)
-        if marketType != 'spot' and marketType != 'future':
+        if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
+        isSwap = (marketType == 'future' or marketType == 'delivery')
         payload = None
         if marketType == 'spot':
             payload = self.editSpotOrderRequest(id, symbol, type, side, amount, price, params)
-        elif marketType == 'future':
+        elif isSwap:
             payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'editOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         message: dict = {
             'id': messageHash,
-            'method': 'order.modify' if (marketType == 'future') else 'order.cancelReplace',
+            'method': 'order.modify' if (isSwap) else 'order.cancelReplace',
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
@@ -2968,8 +2980,9 @@ class binance(ccxt.async_support.binance):
         """
         cancel multiple orders
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
 
         :param str id: order id
         :param str [symbol]: unified market symbol, default is None
@@ -3011,7 +3024,7 @@ class binance(ccxt.async_support.binance):
         """
         cancel all open orders in a market
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-open-orders-trade
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3045,8 +3058,9 @@ class binance(ccxt.async_support.binance):
         """
         fetches information on an order made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#query-order-user_data
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
@@ -3058,7 +3072,7 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('fetchOrderWs', market, params)
-        if type != 'spot' and type != 'future':
+        if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
@@ -3088,7 +3102,7 @@ class binance(ccxt.async_support.binance):
         """
         fetches information on multiple orders made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#order-lists
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None [since]: the earliest time in ms to fetch orders for
@@ -3131,7 +3145,7 @@ class binance(ccxt.async_support.binance):
         """
         fetch closed orders
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#order-lists
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -3151,7 +3165,7 @@ class binance(ccxt.async_support.binance):
         """
         fetch all unfilled currently open orders
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#current-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int|None [since]: the earliest time in ms to fetch open orders for
@@ -3672,7 +3686,7 @@ class binance(ccxt.async_support.binance):
         """
         fetch all trades made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-trade-history-user_data
 
         :param str symbol: unified market symbol
         :param int|None [since]: the earliest time in ms to fetch trades for
@@ -3720,7 +3734,7 @@ class binance(ccxt.async_support.binance):
         """
         fetch all trades made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades
+        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for

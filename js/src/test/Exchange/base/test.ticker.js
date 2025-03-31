@@ -43,6 +43,11 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate(exchange, method, entry);
     //
+    let market = undefined;
+    const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString(entry, 'symbol');
+    if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
+        market = exchange.market(symbolForMarket);
+    }
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'open', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'high', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'low', '0');
@@ -64,8 +69,22 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     const low = exchange.safeString(entry, 'low');
     if (!('quoteVolume' in skippedProperties) && !('baseVolume' in skippedProperties)) {
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
-            assert(Precise.stringGe(quoteVolume, Precise.stringMul(baseVolume, low)), 'quoteVolume >= baseVolume * low' + logText);
-            assert(Precise.stringLe(quoteVolume, Precise.stringMul(baseVolume, high)), 'quoteVolume <= baseVolume * high' + logText);
+            let baseLow = Precise.stringMul(baseVolume, low);
+            let baseHigh = Precise.stringMul(baseVolume, high);
+            // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
+            const mPrecision = exchange.safeDict(market, 'precision');
+            const amountPrecision = exchange.safeString(mPrecision, 'amount');
+            if (amountPrecision !== undefined) {
+                baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
+                baseHigh = Precise.stringMul(Precise.stringAdd(baseVolume, amountPrecision), high);
+            }
+            else {
+                // if nothing found, as an exclusion, just add 0.001%
+                baseLow = Precise.stringMul(Precise.stringMul(baseVolume, '1.0001'), low);
+                baseHigh = Precise.stringMul(Precise.stringDiv(baseVolume, '1.0001'), high);
+            }
+            assert(Precise.stringGe(quoteVolume, baseLow), 'quoteVolume should be => baseVolume * low' + logText);
+            assert(Precise.stringLe(quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
     }
     const vwap = exchange.safeString(entry, 'vwap');

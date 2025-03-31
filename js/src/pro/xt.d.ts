@@ -1,5 +1,5 @@
 import xtRest from '../xt.js';
-import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class xt extends xtRest {
     describe(): any;
@@ -134,6 +134,21 @@ export default class xt extends xtRest {
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
+    /**
+     * @method
+     * @name xt#watchPositions
+     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setPositionsCache(client: Client): void;
+    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    handlePosition(client: any, message: any): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;
     handleOHLCV(client: Client, message: Dict): Dict;

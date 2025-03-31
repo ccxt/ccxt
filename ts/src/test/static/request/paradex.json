@@ -197,6 +197,74 @@
                   }
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"MARKET\",\"size\":\"3\",\"flags\":[\"REDUCE_ONLY\"],\"client_id\":\"closePosition\",\"signature\":\"[\\\"106091509318335455876214539877529326431005619864965368117357593687372324029\\\",\\\"919301754489990553002132928114599777179098449272119839532981628732910450147\\\"]\",\"signature_timestamp\":1722426453000}"
+            },
+            {
+                "disabledGO": true,
+                "description": "stop loss market order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "stopLossPrice": 200
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LOSS_MARKET\",\"size\":\"0\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
+            },
+            {
+                "disabledGO": true,
+                "description": "stop loss limit order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "limit",
+                  "buy",
+                  0,
+                  210,
+                  {
+                    "stopLossPrice": 200
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LOSS_LIMIT\",\"price\":\"210\",\"size\":\"0\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
+            },
+            {
+                "disabledGO": true,
+                "description": "take profit market order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "takeProfitPrice": 200
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"TAKE_PROFIT_MARKET\",\"size\":\"0\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
+            },
+            {
+                "disabledGO": true,
+                "description": "take profit limit order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "limit",
+                  "buy",
+                  0,
+                  210,
+                  {
+                    "takeProfitPrice": 200
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"TAKE_PROFIT_LIMIT\",\"price\":\"210\",\"size\":\"0\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
             }
         ],
         "cancelOrder": [
@@ -311,6 +379,40 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.testnet.paradex.trade/v1/transfers?",
                 "input": []
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": ["SOL/USD:USDC"]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetchMarginMode",
+                "method": "fetchMarginMode",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": ["SOL/USD:USDC"]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
+                "input": [10, "SOL/USD:USDC", {"marginMode":"cross"}],
+                "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "fetchMarginMode",
+                "method": "fetchMarginMode",
+                "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
+                "input": ["cross", "SOL/USD:USDC", {"leverage":10}],
+                "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
             }
         ]
     }
