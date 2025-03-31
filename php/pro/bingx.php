@@ -41,7 +41,7 @@ class bingx extends \ccxt\async\bingx {
                 ),
             ),
             'options' => array(
-                'listenKeyRefreshRate' => 3540000, // 1 hour (59 mins so we have 1min to renew the token)
+                'listenKeyRefreshRate' => 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws' => array(
                     'gunzip' => true,
                 ),
