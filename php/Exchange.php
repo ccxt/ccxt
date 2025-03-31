@@ -3597,7 +3597,8 @@ class Exchange {
         $length = count($keys);
         if ($length !== 0) {
             for ($i = 0; $i < $length; $i++) {
-                $network = $networks[$keys[$i]];
+                $key = $keys[$i];
+                $network = $networks[$key];
                 $deposit = $this->safe_bool($network, 'deposit');
                 if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
@@ -3609,6 +3610,14 @@ class Exchange {
                 $active = $this->safe_bool($network, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
+                }
+                // set $network 'active' to false if D or W is disabled
+                if ($this->safe_bool($network, 'active') === null) {
+                    if ($deposit && $withdraw) {
+                        $currency['networks'][$key]['active'] = true;
+                    } elseif ($deposit !== null && $withdraw !== null) {
+                        $currency['networks'][$key]['active'] = false;
+                    }
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
