@@ -1605,7 +1605,6 @@
                 "baseVolume": "not supported",
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
-            "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {
                 "deposit": "not provided",
                 "precision": "not provided",
