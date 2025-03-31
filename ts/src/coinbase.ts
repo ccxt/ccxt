@@ -378,6 +378,7 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
+                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1520,11 +1521,11 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        return result;
+        return this.removeAliasMarkets (result);
     }
 
-    setMarkets (markets, currencies = undefined) {
-        const aliasCbMarketIds = [];
+    removeAliasMarkets (markets: Market[]): Market[] {
+        this.options['aliasCbMarketIds'] = {};
         const values = this.toArray (markets);
         const newMarkets = [];
         for (let i = 0; i < values.length; i++) {
@@ -1533,20 +1534,18 @@ export default class coinbase extends Exchange {
             const realMarketIds = this.safeList (info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {
-                aliasCbMarketIds.push ([ market['id'], market['symbol'], realMarketIds[0] ]);
+                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
+                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
             } else {
                 newMarkets.push (market);
             }
         }
-        const result = super.setMarkets (newMarkets, currencies);
-        // at this moment, "markets_by_id" is already set, so add few references
-        for (let i = 0; i < aliasCbMarketIds.length; i++) {
-            const [ aliasedId, aliasedSymbol, sourceMarketId ] = aliasCbMarketIds[i];
-            // we don't want them to add in `this.markets`, just link them within `this.markets_by_id`
-            this.markets_by_id[aliasedId] = this.markets_by_id[sourceMarketId];
-            this.markets_by_id[aliasedSymbol] = this.markets_by_id[sourceMarketId];
-        }
-        return result;
+        return newMarkets;
+    }
+
+    market (symbol: string): MarketInterface {
+        const finalSymbol = this.safeString (this.options['aliasCbMarketIds'], symbol, symbol);
+        return super.market (finalSymbol);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
