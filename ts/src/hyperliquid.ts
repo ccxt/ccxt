@@ -2000,7 +2000,7 @@ export default class hyperliquid extends Exchange {
     /**
      * @method
      * @name hyperliquid#createVault
-     * @description dead man's switch, cancel all orders after the given timeout
+     * @description creates a value
      * @param {string} name The name of the vault
      * @param {string} description The description of the vault
      * @param {number} initialUsd The initialUsd of the vault
@@ -2025,7 +2025,7 @@ export default class hyperliquid extends Exchange {
         const signature = this.signL1Action (action, nonce);
         request['action'] = action;
         request['signature'] = signature;
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         // {
         //     "status": "ok",
