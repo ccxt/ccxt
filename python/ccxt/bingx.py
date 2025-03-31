@@ -175,7 +175,6 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
-                                'account/allAccountBalance': 2,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -402,6 +401,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'uid': 1,
                                 'apiKey/query': 2,
                                 'account/apiPermissions': 5,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,

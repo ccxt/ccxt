@@ -157,7 +157,6 @@ class bingx extends Exchange {
                                 'trade/myTrades' => 2,
                                 'user/commissionRate' => 5,
                                 'account/balance' => 2,
-                                'account/allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'trade/order' => 2,
@@ -384,6 +383,7 @@ class bingx extends Exchange {
                                 'uid' => 1,
                                 'apiKey/query' => 2,
                                 'account/apiPermissions' => 5,
+                                'allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 1,

@@ -1405,3 +1405,30 @@ func (this *Whitebit) FetchPosition(symbol string, options ...FetchPositionOptio
     }
     return NewPosition(res), nil
 }
+/**
+ * @method
+ * @name whitebit#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
+func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+    opts := FetchCrossBorrowRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchCrossBorrowRate(code, params)
+    if IsError(res) {
+        return CrossBorrowRate{}, CreateReturnError(res)
+    }
+    return NewCrossBorrowRate(res), nil
+}

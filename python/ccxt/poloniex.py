@@ -428,6 +428,7 @@ class poloniex(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchMyTrades': {
                         'limit': 100,

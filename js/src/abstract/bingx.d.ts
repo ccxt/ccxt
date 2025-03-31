@@ -15,7 +15,6 @@ interface Exchange {
     spotV1PrivateGetTradeMyTrades(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetUserCommissionRate(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
-    spotV1PrivateGetAccountAllAccountBalance(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
@@ -140,6 +139,7 @@ interface Exchange {
     accountV1PrivateGetUid(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetApiKeyQuery(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetAccountApiPermissions(params?: {}): Promise<implicitReturnType>;
+    accountV1PrivateGetAllAccountBalance(params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount(params?: {}): Promise<implicitReturnType>;
     accountTransferV1PrivateGetSubAccountAssetTransferHistory(params?: {}): Promise<implicitReturnType>;
     accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(params?: {}): Promise<implicitReturnType>;

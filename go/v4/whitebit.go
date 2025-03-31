@@ -52,7 +52,7 @@ func  (this *whitebit) Describe() interface{}  {
             "fetchConvertQuote": true,
             "fetchConvertTrade": false,
             "fetchConvertTradeHistory": true,
-            "fetchCrossBorrowRate": false,
+            "fetchCrossBorrowRate": true,
             "fetchCrossBorrowRates": false,
             "fetchCurrencies": true,
             "fetchDeposit": true,
@@ -3891,6 +3891,58 @@ func  (this *whitebit) ParsePosition(position interface{}, optionalArgs ...inter
         "stopLossPrice": this.SafeNumber(tpsl, "stopLoss"),
         "takeProfitPrice": this.SafeNumber(tpsl, "takeProfit"),
     })
+}
+/**
+ * @method
+ * @name whitebit#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
+func  (this *whitebit) FetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes32858 := (<-this.LoadMarkets())
+            PanicOnError(retRes32858)
+            var currency interface{} = this.Currency(code)
+            var request interface{} = map[string]interface{} {
+                "ticker": GetValue(currency, "id"),
+            }
+        
+            response:= (<-this.V4PrivatePostMainAccountSmartPlans(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //
+            var data interface{} = this.SafeList(response, 0, []interface{}{})
+        
+            ch <- this.ParseBorrowRate(data, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *whitebit) ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //
+    currency := GetArg(optionalArgs, 0, nil)
+    _ = currency
+    var currencyId interface{} = this.SafeString(info, "ticker")
+    var percent interface{} = this.SafeString(info, "percent")
+    return map[string]interface{} {
+        "currency": this.SafeCurrencyCode(currencyId, currency),
+        "rate": this.ParseNumber(Precise.StringDiv(percent, "100")),
+        "period": this.SafeInteger(info, "duration"),
+        "timestamp": nil,
+        "datetime": nil,
+        "info": info,
+    }
 }
 func  (this *whitebit) IsFiat(currency interface{}) interface{}  {
     var fiatCurrencies interface{} = this.SafeValue(this.Options, "fiatCurrencies", []interface{}{})

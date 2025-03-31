@@ -415,6 +415,7 @@ export default class poloniex extends Exchange {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchMyTrades': {
                         'limit': 100,
