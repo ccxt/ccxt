@@ -183,6 +183,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.AfterConstruct()
+
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -259,7 +260,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 			if this.Markets_by_id == nil && len(this.Markets) > 0 {
 				// Only lock when writing
 				this.marketsMutex.Lock()
-				result := this.DerivedExchange.SetMarkets(this.Markets, nil)
+				result := this.SetMarkets(this.Markets, nil)
 				this.marketsMutex.Unlock()
 				ch <- result
 				return
@@ -280,7 +281,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 		// Lock only for writing
 		this.marketsMutex.Lock()
-		result := this.DerivedExchange.SetMarkets(markets, currencies)
+		result := this.SetMarkets(markets, currencies)
 		this.marketsMutex.Unlock()
 
 		ch <- result
