@@ -57,10 +57,10 @@
         "created": null,
         "info": {
             "product_id": "BTC-USDC",
-            "price": "105480.23",
-            "price_percentage_change_24h": "3.05000180737664",
-            "volume_24h": "13369.42988631",
-            "volume_percentage_change_24h": "48.82114990166446",
+            "price": "83578.94",
+            "price_percentage_change_24h": "1.00435225756896",
+            "volume_24h": "5895.06461939",
+            "volume_percentage_change_24h": "153.24438372491222",
             "base_increment": "0.00000001",
             "quote_increment": "0.01",
             "quote_min_size": "1",
@@ -91,7 +91,7 @@
             "price_increment": "0.01",
             "display_name": "BTC-USDC",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "1410210539.38",
+            "approximate_quote_24h_volume": "492703252.12",
             "new_at": "2023-01-01T00:00:00Z"
         },
         "tierBased": true,
@@ -233,10 +233,10 @@
         "created": null,
         "info": {
             "product_id": "BTC-USDT",
-            "price": "105484.78",
-            "price_percentage_change_24h": "2.99934402897443",
-            "volume_24h": "564.4369112",
-            "volume_percentage_change_24h": "69.59090787042279",
+            "price": "83575.98",
+            "price_percentage_change_24h": "0.95174363932959",
+            "volume_24h": "302.46546596",
+            "volume_percentage_change_24h": "183.69902960151916",
             "base_increment": "0.00000001",
             "quote_increment": "0.01",
             "quote_min_size": "1",
@@ -267,161 +267,11 @@
             "price_increment": "0.01",
             "display_name": "BTC-USDT",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "59539503.4",
+            "approximate_quote_24h_volume": "25278847.73",
             "new_at": "2023-01-01T00:00:00Z"
         },
         "tierBased": true,
         "percentage": true,
-        "tiers": {
-            "taker": [
-                [
-                    0,
-                    0.006
-                ],
-                [
-                    10000,
-                    0.004
-                ],
-                [
-                    50000,
-                    0.0025
-                ],
-                [
-                    100000,
-                    0.002
-                ],
-                [
-                    1000000,
-                    0.0018
-                ],
-                [
-                    15000000,
-                    0.0016
-                ],
-                [
-                    75000000,
-                    0.0012
-                ],
-                [
-                    250000000,
-                    0.0008
-                ],
-                [
-                    400000000,
-                    0.0005
-                ]
-            ],
-            "maker": [
-                [
-                    0,
-                    0.004
-                ],
-                [
-                    10000,
-                    0.0025
-                ],
-                [
-                    50000,
-                    0.0015
-                ],
-                [
-                    100000,
-                    0.001
-                ],
-                [
-                    1000000,
-                    0.0008
-                ],
-                [
-                    15000000,
-                    0.0006
-                ],
-                [
-                    75000000,
-                    0.0003
-                ],
-                [
-                    250000000,
-                    0
-                ],
-                [
-                    400000000,
-                    0
-                ]
-            ]
-        }
-    },
-    "BTC/USD": {
-        "id": "BTC-USD",
-        "symbol": "BTC/USD",
-        "base": "BTC",
-        "quote": "USD",
-        "baseId": "BTC",
-        "quoteId": "USD",
-        "active": true,
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.01
-        },
-        "limits": {
-            "amount": {
-                "min": 0.000016,
-                "max": 2500
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 75000000
-            },
-            "leverage": {}
-        },
-        "info": {
-            "product_id": "BTC-USD",
-            "price": "34470",
-            "price_percentage_change_24h": "0.20165328367533",
-            "volume_24h": "8664.09633421",
-            "volume_percentage_change_24h": "0.33018793159392",
-            "base_increment": "0.00000001",
-            "quote_increment": "0.01",
-            "quote_min_size": "1",
-            "quote_max_size": "75000000",
-            "base_min_size": "0.000016",
-            "base_max_size": "2500",
-            "base_name": "Bitcoin",
-            "quote_name": "US Dollar",
-            "watched": false,
-            "is_disabled": false,
-            "new": false,
-            "status": "online",
-            "cancel_only": false,
-            "limit_only": false,
-            "post_only": false,
-            "trading_disabled": false,
-            "auction_mode": false,
-            "product_type": "SPOT",
-            "quote_currency_id": "USD",
-            "base_currency_id": "BTC",
-            "fcm_trading_session_details": null,
-            "mid_market_price": "",
-            "alias": "",
-            "alias_to": [
-                "BTC-USDC"
-            ],
-            "base_display_symbol": "BTC",
-            "quote_display_symbol": "USD",
-            "view_only": false,
-            "price_increment": "0.01"
-        },
-        "tierBased": true,
-        "percentage": true,
-        "taker": 0.006,
-        "maker": 0.004,
         "tiers": {
             "taker": [
                 [
@@ -559,10 +409,10 @@
         "created": null,
         "info": {
             "product_id": "ETH-USDT",
-            "price": "3219.68",
-            "price_percentage_change_24h": "2.86649030658539",
-            "volume_24h": "12531.86558515",
-            "volume_percentage_change_24h": "30.22807228352414",
+            "price": "1842.71",
+            "price_percentage_change_24h": "1.56533337742723",
+            "volume_24h": "20787.9091711",
+            "volume_percentage_change_24h": "74.61911619131028",
             "base_increment": "0.00000001",
             "quote_increment": "0.01",
             "quote_min_size": "1",
@@ -593,7 +443,7 @@
             "price_increment": "0.01",
             "display_name": "ETH-USDT",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "40348596.99",
+            "approximate_quote_24h_volume": "38306088.11",
             "new_at": "2023-01-01T00:00:00Z"
         },
         "tierBased": true,
@@ -735,10 +585,10 @@
         "created": null,
         "info": {
             "product_id": "ADA-USDT",
-            "price": "0.9664",
-            "price_percentage_change_24h": "4.00344382264313",
-            "volume_24h": "5013708.14",
-            "volume_percentage_change_24h": "179.35989250737781",
+            "price": "0.6591",
+            "price_percentage_change_24h": "-1.81736928347982",
+            "volume_24h": "5157092.4",
+            "volume_percentage_change_24h": "175.92220905151699",
             "base_increment": "0.01",
             "quote_increment": "0.0001",
             "quote_min_size": "1",
@@ -769,7 +619,7 @@
             "price_increment": "0.0001",
             "display_name": "ADA-USDT",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "4845247.5465",
+            "approximate_quote_24h_volume": "3399039.6008",
             "new_at": "2023-01-01T00:00:00Z"
         },
         "tierBased": true,
@@ -911,10 +761,10 @@
         "created": null,
         "info": {
             "product_id": "XRP-USDT",
-            "price": "3.1123",
-            "price_percentage_change_24h": "0.75102780745201",
-            "volume_24h": "1504448.090496",
-            "volume_percentage_change_24h": "-53.32437029089424",
+            "price": "2.1285",
+            "price_percentage_change_24h": "-0.58848255569567",
+            "volume_24h": "3278365.927357",
+            "volume_percentage_change_24h": "99.58596189111777",
             "base_increment": "0.000001",
             "quote_increment": "0.0001",
             "quote_min_size": "1",
@@ -945,7 +795,7 @@
             "price_increment": "0.0001",
             "display_name": "XRP-USDT",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "4682293.7921",
+            "approximate_quote_24h_volume": "6978001.8764",
             "new_at": "2023-07-13T19:48:00.692Z"
         },
         "tierBased": true,
@@ -1087,10 +937,10 @@
         "created": null,
         "info": {
             "product_id": "DOGE-USDT",
-            "price": "0.3329",
-            "price_percentage_change_24h": "1.74205378973105",
-            "volume_24h": "8199196",
-            "volume_percentage_change_24h": "-12.00095692244469",
+            "price": "0.1676",
+            "price_percentage_change_24h": "-0.59311981020166",
+            "volume_24h": "6449489.2",
+            "volume_percentage_change_24h": "51.61327062989443",
             "base_increment": "0.1",
             "quote_increment": "0.0001",
             "quote_min_size": "1",
@@ -1121,7 +971,7 @@
             "price_increment": "0.0001",
             "display_name": "DOGE-USDT",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "2729512.3484",
+            "approximate_quote_24h_volume": "1080934.3899",
             "new_at": "2023-01-01T00:00:00Z"
         },
         "tierBased": true,
@@ -1263,10 +1113,10 @@
         "created": null,
         "info": {
             "product_id": "ADA-PERP-INTX",
-            "price": "0.9668",
-            "price_percentage_change_24h": "4.00172117039587",
-            "volume_24h": "4914172",
-            "volume_percentage_change_24h": "88.90627708897697",
+            "price": "0.6591",
+            "price_percentage_change_24h": "-1.67089362971804",
+            "volume_24h": "15682361",
+            "volume_percentage_change_24h": "151.25864352615332",
             "base_increment": "1",
             "quote_increment": "0.0001",
             "quote_min_size": "10",
@@ -1288,7 +1138,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "0.96685",
+            "mid_market_price": "0.6589",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -1297,7 +1147,7 @@
             "price_increment": "0.0001",
             "display_name": "ADA PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "4751021.4896",
+            "approximate_quote_24h_volume": "10336244.1351",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -1311,9 +1161,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "1125840",
-                    "funding_rate": "0.000015",
-                    "funding_time": "2025-01-30T09:00:00.000013Z",
+                    "open_interest": "2139694",
+                    "funding_rate": "-0.000007",
+                    "funding_time": "2025-03-31T15:00:00.000018Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "63062039-7afb-56ff-8e19-5e3215dc404a",
                     "underlying_type": "SPOT"
@@ -1464,10 +1314,10 @@
         "created": null,
         "info": {
             "product_id": "BTC-PERP-INTX",
-            "price": "105518",
-            "price_percentage_change_24h": "3.0680719302187",
-            "volume_24h": "29421.3735",
-            "volume_percentage_change_24h": "-10.79565067174955",
+            "price": "83587.9",
+            "price_percentage_change_24h": "0.97108136838036",
+            "volume_24h": "120457.3695",
+            "volume_percentage_change_24h": "-27.13589529406376",
             "base_increment": "0.0001",
             "quote_increment": "0.1",
             "quote_min_size": "10",
@@ -1489,7 +1339,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "105517.95",
+            "mid_market_price": "83593.95",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -1498,7 +1348,7 @@
             "price_increment": "0.1",
             "display_name": "BTC PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "3104484489",
+            "approximate_quote_24h_volume": "10068778556",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -1512,9 +1362,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "843.241",
-                    "funding_rate": "0.000012",
-                    "funding_time": "2025-01-30T09:00:00.000031Z",
+                    "open_interest": "2468.6365",
+                    "funding_rate": "0.000002",
+                    "funding_time": "2025-03-31T15:00:00.000003Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
                     "underlying_type": "SPOT"
@@ -1665,10 +1515,10 @@
         "created": null,
         "info": {
             "product_id": "ETH-PERP-INTX",
-            "price": "3218.68",
-            "price_percentage_change_24h": "2.86905024433429",
-            "volume_24h": "183764.799",
-            "volume_percentage_change_24h": "6.57052172762626",
+            "price": "1842.3",
+            "price_percentage_change_24h": "1.53210250757785",
+            "volume_24h": "329490.4049",
+            "volume_percentage_change_24h": "39.75500441276446",
             "base_increment": "0.0001",
             "quote_increment": "0.01",
             "quote_min_size": "10",
@@ -1690,7 +1540,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "3218.605",
+            "mid_market_price": "1842.595",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -1699,7 +1549,7 @@
             "price_increment": "0.01",
             "display_name": "ETH PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "591480083.25",
+            "approximate_quote_24h_volume": "607020172.95",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -1713,9 +1563,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "8750.7919",
-                    "funding_rate": "0.000001",
-                    "funding_time": "2025-01-30T09:00:00.000015Z",
+                    "open_interest": "20525.6508",
+                    "funding_rate": "-0.000006",
+                    "funding_time": "2025-03-31T15:00:00.000042Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
                     "underlying_type": "SPOT"
@@ -1866,10 +1716,10 @@
         "created": null,
         "info": {
             "product_id": "XRP-PERP-INTX",
-            "price": "3.1146",
-            "price_percentage_change_24h": "1.01842241826674",
-            "volume_24h": "53908694",
-            "volume_percentage_change_24h": "-4.444994717848",
+            "price": "2.1261",
+            "price_percentage_change_24h": "-0.6123784592371",
+            "volume_24h": "93497604",
+            "volume_percentage_change_24h": "37.93013693464824",
             "base_increment": "1",
             "quote_increment": "0.0001",
             "quote_min_size": "10",
@@ -1891,7 +1741,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "3.11445",
+            "mid_market_price": "2.1261",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -1900,7 +1750,7 @@
             "price_increment": "0.0001",
             "display_name": "XRP PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "167904018.3324",
+            "approximate_quote_24h_volume": "198785255.8644",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -1914,9 +1764,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "5350834",
-                    "funding_rate": "0.000027",
-                    "funding_time": "2025-01-30T09:00:00.000008Z",
+                    "open_interest": "5061213",
+                    "funding_rate": "-0.00001",
+                    "funding_time": "2025-03-31T15:00:00.000019Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "e17a44c8-6ea1-564f-a02c-2a9ca1d8eec4",
                     "underlying_type": "SPOT"
@@ -2067,10 +1917,10 @@
         "created": null,
         "info": {
             "product_id": "LTC-PERP-INTX",
-            "price": "128.39",
-            "price_percentage_change_24h": "13.08905135206553",
-            "volume_24h": "332406.4",
-            "volume_percentage_change_24h": "100.31878034968453",
+            "price": "83.56",
+            "price_percentage_change_24h": "-2.9613285332714",
+            "volume_24h": "143651.3",
+            "volume_percentage_change_24h": "101.89854595009096",
             "base_increment": "0.01",
             "quote_increment": "0.01",
             "quote_min_size": "10",
@@ -2092,7 +1942,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "128.335",
+            "mid_market_price": "83.55",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -2101,7 +1951,7 @@
             "price_increment": "0.01",
             "display_name": "LTC PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "42677657.7",
+            "approximate_quote_24h_volume": "12003502.63",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -2115,9 +1965,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "9633.53",
-                    "funding_rate": "-0.00001",
-                    "funding_time": "2025-01-30T09:00:00.000021Z",
+                    "open_interest": "15257.37",
+                    "funding_rate": "-0.000005",
+                    "funding_time": "2025-03-31T15:00:00.000008Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "c9c24c6e-c045-5fde-98a2-00ea7f520437",
                     "underlying_type": "SPOT"
@@ -2268,10 +2118,10 @@
         "created": null,
         "info": {
             "product_id": "SOL-PERP-INTX",
-            "price": "240.86",
-            "price_percentage_change_24h": "4.04319654427646",
-            "volume_24h": "782240.975",
-            "volume_percentage_change_24h": "24.19957314039347",
+            "price": "127.24",
+            "price_percentage_change_24h": "2.00008016353361",
+            "volume_24h": "1522531.758",
+            "volume_percentage_change_24h": "49.40834675060993",
             "base_increment": "0.001",
             "quote_increment": "0.001",
             "quote_min_size": "10",
@@ -2293,7 +2143,7 @@
             "quote_currency_id": "USDC",
             "base_currency_id": "",
             "fcm_trading_session_details": null,
-            "mid_market_price": "240.8245",
+            "mid_market_price": "127.2645",
             "alias": "",
             "alias_to": [],
             "base_display_symbol": "",
@@ -2302,7 +2152,7 @@
             "price_increment": "0.001",
             "display_name": "SOL PERP",
             "product_venue": "INTX",
-            "approximate_quote_24h_volume": "188410561.239",
+            "approximate_quote_24h_volume": "193726940.888",
             "new_at": null,
             "future_product_details": {
                 "venue": "",
@@ -2316,9 +2166,9 @@
                 "risk_managed_by": "MANAGED_BY_VENUE",
                 "contract_expiry_type": "PERPETUAL",
                 "perpetual_details": {
-                    "open_interest": "74743.539",
-                    "funding_rate": "-0.000005",
-                    "funding_time": "2025-01-30T09:00:00Z",
+                    "open_interest": "145293.188",
+                    "funding_rate": "-0.000021",
+                    "funding_time": "2025-03-31T15:00:00.000005Z",
                     "max_leverage": "20",
                     "base_asset_uuid": "4f039497-3af8-5bb3-951c-6df9afa9be1c",
                     "underlying_type": "SPOT"
@@ -2645,10 +2495,10 @@
         "created": null,
         "info": {
             "product_id": "XRP-USDC",
-            "price": "3.1122",
-            "price_percentage_change_24h": "0.90785292782569",
-            "volume_24h": "137210585.915468",
-            "volume_percentage_change_24h": "-6.39413987109833",
+            "price": "2.1267",
+            "price_percentage_change_24h": "-0.50060821558903",
+            "volume_24h": "136450258.301611",
+            "volume_percentage_change_24h": "49.05757307439344",
             "base_increment": "0.000001",
             "quote_increment": "0.0001",
             "quote_min_size": "1",
@@ -2679,7 +2529,7 @@
             "price_increment": "0.0001",
             "display_name": "XRP-USDC",
             "product_venue": "CBE",
-            "approximate_quote_24h_volume": "427026785.49",
+            "approximate_quote_24h_volume": "290188764.33",
             "new_at": "2023-07-13T19:47:00.692Z"
         },
         "tierBased": true,
