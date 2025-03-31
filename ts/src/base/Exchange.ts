@@ -2953,7 +2953,8 @@ export default class Exchange {
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
-                const network = networks[keys[i]];
+                const key = keys[i];
+                const network = networks[key];
                 const deposit = this.safeBool (network, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
@@ -2965,6 +2966,14 @@ export default class Exchange {
                 const active = this.safeBool (network, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
+                }
+                // set network 'active' to false if D or W is disabled
+                if (this.safeBool (network, 'active') === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    } else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
