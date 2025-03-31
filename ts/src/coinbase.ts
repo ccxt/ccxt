@@ -1544,6 +1544,14 @@ export default class coinbase extends Exchange {
         return super.market (finalSymbol);
     }
 
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        const aliasSymbol = this.safeString (this.options['aliasCbMarketIds'], marketId);
+        if (aliasSymbol !== undefined) {
+            return this.market (aliasSymbol);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
+    }
+
     parseSpotMarket (market, feeTier): MarketInterface {
         //
         //         {
