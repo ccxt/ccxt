@@ -645,6 +645,8 @@ export default class derive extends Exchange {
             } else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure ({
             'id': marketId,
