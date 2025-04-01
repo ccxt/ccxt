@@ -58,7 +58,22 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         },
         'info': {},
     };
-    const emptyAllowedFor = [ 'linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
+    const emptyAllowedFor = [ 'margin' ];
+    if (!market['contract']) {
+        emptyAllowedFor.push ('contractSize');
+        emptyAllowedFor.push ('linear');
+        emptyAllowedFor.push ('inverse');
+        emptyAllowedFor.push ('settle');
+        emptyAllowedFor.push ('settleId');
+    }
+    if (!market['future']) {
+        emptyAllowedFor.push ('expiry');
+        emptyAllowedFor.push ('expiryDatetime');
+    }
+    if (!market['option']) {
+        emptyAllowedFor.push ('strike');
+        emptyAllowedFor.push ('optionType');
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
