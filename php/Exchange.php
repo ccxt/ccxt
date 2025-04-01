@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.70';
+$version = '4.4.71';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.70';
+    const VERSION = '4.4.71';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -433,7 +433,6 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
-        'poloniexfutures',
         'probit',
         'timex',
         'tokocrypto',
@@ -3598,7 +3597,8 @@ class Exchange {
         $length = count($keys);
         if ($length !== 0) {
             for ($i = 0; $i < $length; $i++) {
-                $network = $networks[$keys[$i]];
+                $key = $keys[$i];
+                $network = $networks[$key];
                 $deposit = $this->safe_bool($network, 'deposit');
                 if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
@@ -3610,6 +3610,14 @@ class Exchange {
                 $active = $this->safe_bool($network, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
+                }
+                // set $network 'active' to false if D or W is disabled
+                if ($this->safe_bool($network, 'active') === null) {
+                    if ($deposit && $withdraw) {
+                        $currency['networks'][$key]['active'] = true;
+                    } elseif ($deposit !== null && $withdraw !== null) {
+                        $currency['networks'][$key]['active'] = false;
+                    }
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');

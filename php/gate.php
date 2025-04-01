@@ -6712,6 +6712,10 @@ class gate extends Exchange {
             if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding || ($method === 'PATCH')) {
                 if ($query) {
                     $queryString = $this->urlencode($query);
+                    // https://github.com/ccxt/ccxt/issues/25570
+                    if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
+                        $queryString = str_replace('%2', ',', $queryString);
+                    }
                     $url .= '?' . $queryString;
                 }
                 if ($method === 'PATCH') {

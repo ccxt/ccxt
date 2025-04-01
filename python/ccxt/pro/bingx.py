@@ -42,7 +42,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1min to renew the token)
+                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -639,60 +639,67 @@ class bingx(ccxt.async_support.bingx):
         #
         # spot
         #
-        #    {
-        #        "code": 0,
-        #        "dataType": "BTC-USDT@depth20",
-        #        "data": {
-        #          "bids": [
-        #            ['28852.9', "34.2621"],
-        #            ...
-        #          ],
-        #          "asks": [
-        #            ['28864.9', "23.4079"],
-        #            ...
-        #          ]
-        #        },
-        #        "dataType": "BTC-USDT@depth20",
-        #        "success": True
-        #    }
+        #     {
+        #         "code":0,
+        #         "data":
+        #         {
+        #             "asks":[
+        #                 ["84119.73","0.000011"],
+        #                 ["84116.52","0.000014"],
+        #                 ["84116.40","0.000039"]
+        #             ],
+        #             "bids":[
+        #                 ["83656.98","2.570805"],
+        #                 ["83655.51","0.000347"],
+        #                 ["83654.59","0.000082"]
+        #             ],
+        #             "lastUpdateId":13565694850
+        #         },
+        #         "dataType":"BTC-USDT@depth100",
+        #         "success":true,
+        #         "timestamp":1743241379958
+        #     }
         #
         # linear swap
         #
-        #    {
-        #        "code": 0,
-        #        "dataType": "BTC-USDT@depth20@100ms",  #or "all@depth20@100ms"
-        #        "data": {
-        #          "bids": [
-        #            ['28852.9', "34.2621"],
-        #            ...
-        #          ],
-        #          "asks": [
-        #            ['28864.9', "23.4079"],
-        #            ...
-        #          ],
-        #          "symbol": "BTC-USDT",  # self key exists only in "all" subscription
-        #        }
-        #    }
+        #     {
+        #         "code":0,
+        #         "dataType":"BTC-USDT@depth100@500ms",
+        #         "ts":1743241563651,
+        #         "data":
+        #         {
+        #             "bids":[
+        #                 ["83363.2","0.1908"],
+        #                 ["83360.0","0.0003"],
+        #                 ["83356.5","0.0245"],
+        #             ],
+        #             "asks":[
+        #                 ["83495.0","0.0024"],
+        #                 ["83490.0","0.0001"],
+        #                 ["83488.0","0.0004"],
+        #             ]
+        #         }
+        #     }
         #
         # inverse swap
         #
         #     {
-        #         "code": 0,
-        #         "dataType": "BTC-USD@depth100",
-        #         "data": {
-        #             {
-        #                 "symbol": "BTC-USD",
-        #                 "bids": [
-        #                     {"p": "58074.2", "a": "1.422318", "v": "826.0"},
-        #                     ...
-        #                 ],
-        #                 "asks": [
-        #                     {"p": "62878.0", "a": "0.001590", "v": "1.0"},
-        #                     ...
-        #                 ],
-        #                 "aggPrecision": "0.1",
-        #                 "timestamp": 1723705093529
-        #             }
+        #         "code":0,
+        #         "dataType":"BTC-USD@depth100",
+        #         "data":{
+        #             "symbol":"BTC-USD",
+        #             "bids":[
+        #                 {"p":"83411.2","a":"2.979216","v":"2485.0"},
+        #                 {"p":"83411.1","a":"1.592114","v":"1328.0"},
+        #                 {"p":"83410.8","a":"2.656730","v":"2216.0"},
+        #             ],
+        #             "asks":[
+        #                 {"p":"88200.0","a":"0.344671","v":"304.0"},
+        #                 {"p":"88023.8","a":"0.045442","v":"40.0"},
+        #                 {"p":"88001.0","a":"0.003409","v":"3.0"},
+        #             ],
+        #             "aggPrecision":"0.1",
+        #             "timestamp":1743242290710
         #         }
         #     }
         #
@@ -706,7 +713,8 @@ class bingx(ccxt.async_support.bingx):
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        if self.safe_value(self.orderbooks, symbol) is None:
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
             # limit = [5, 10, 20, 50, 100]
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
@@ -714,12 +722,15 @@ class bingx(ccxt.async_support.bingx):
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         snapshot = None
+        timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
+        timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
         if market['inverse']:
-            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 'p', 'a')
+            snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         else:
-            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 0, 1)
+            snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
+        nonce = self.safe_integer(data, 'lastUpdateId')
+        snapshot['nonce'] = nonce
         orderbook.reset(snapshot)
-        self.orderbooks[symbol] = orderbook
         messageHash = self.get_message_hash('orderbook', symbol)
         client.resolve(orderbook, messageHash)
         # resolve for "all"

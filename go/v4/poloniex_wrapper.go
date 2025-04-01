@@ -23,6 +23,7 @@ func NewPoloniex(userConfig map[string]interface{}) Poloniex {
  * @name poloniex#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -70,11 +71,26 @@ func (this *Poloniex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @name poloniex#fetchMarkets
  * @description retrieves data on all markets for poloniex
  * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Poloniex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Poloniex) FetchSpotMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchSpotMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Poloniex) FetchSwapMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchSwapMarkets(params...)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -100,6 +116,7 @@ func (this *Poloniex) FetchTime(params ...interface{}) ( int64, error) {
  * @name poloniex#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -132,6 +149,7 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @name poloniex#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -159,6 +177,7 @@ func (this *Poloniex) FetchTicker(symbol string, options ...FetchTickerOptions) 
  * @name poloniex#fetchTrades
  * @description get the list of most recent trades for a particular symbol
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -198,6 +217,7 @@ func (this *Poloniex) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @name poloniex#fetchMyTrades
  * @description fetch all trades made by the user
  * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -245,6 +265,7 @@ func (this *Poloniex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @description fetch all unfilled currently open orders
  * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
  * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -280,6 +301,51 @@ func (this *Poloniex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
         params = *opts.Params
     }
     res := <- this.Core.FetchOpenOrders(symbol, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name poloniex#fetchClosedOrders
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+ * @description fetches information on multiple closed orders made by the user
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest entry
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Poloniex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
+
+    opts := FetchClosedOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchClosedOrders(symbol, since, limit, params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -398,6 +464,7 @@ func (this *Poloniex) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @description cancel all open orders
  * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
  * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+ * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if canceling trigger orders
@@ -534,6 +601,7 @@ func (this *Poloniex) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
  * @name poloniex#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+ * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
@@ -564,6 +632,7 @@ func (this *Poloniex) FetchTradingFees(params ...interface{}) (TradingFees, erro
  * @name poloniex#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -907,4 +976,163 @@ func (this *Poloniex) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
         return nil, CreateReturnError(res)
     }
     return NewTransactionArray(res), nil
+}
+/**
+ * @method
+ * @name poloniex#setLeverage
+ * @description set the level of leverage for a market
+ * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+ * @param {int} leverage the rate of leverage
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @returns {object} response from the exchange
+ */
+func (this *Poloniex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+
+    opts := SetLeverageOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetLeverage(leverage, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name poloniex#fetchLeverage
+ * @description fetch the set leverage for a market
+ * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ */
+func (this *Poloniex) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
+
+    opts := FetchLeverageOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchLeverage(symbol, params)
+    if IsError(res) {
+        return Leverage{}, CreateReturnError(res)
+    }
+    return NewLeverage(res), nil
+}
+/**
+ * @method
+ * @name poloniex#fetchPositionMode
+ * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+ * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an object detailing whether the market is in hedged or one-way mode
+ */
+func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := FetchPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionMode(symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name poloniex#setPositionMode
+ * @description set hedged to true or false for a market
+ * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+ * @param {bool} hedged set to true to use dualSidePosition
+ * @param {string} symbol not used by binance setPositionMode ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Poloniex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := SetPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetPositionMode(hedged, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name poloniex#fetchPositions
+ * @description fetch all open positions
+ * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.standard] whether to fetch standard contract positions
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
+func (this *Poloniex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
+
+    opts := FetchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositions(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewPositionArray(res), nil
 }

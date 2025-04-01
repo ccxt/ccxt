@@ -1650,7 +1650,8 @@ public partial class Exchange
         {
             for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                object network = getValue(networks, getValue(keys, i));
+                object key = getValue(keys, i);
+                object network = getValue(networks, key);
                 object deposit = this.safeBool(network, "deposit");
                 if (isTrue(isTrue(isEqual(currencyDeposit, null)) || isTrue(deposit)))
                 {
@@ -1665,6 +1666,17 @@ public partial class Exchange
                 if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
                 {
                     ((IDictionary<string,object>)currency)["active"] = active;
+                }
+                // set network 'active' to false if D or W is disabled
+                if (isTrue(isEqual(this.safeBool(network, "active"), null)))
+                {
+                    if (isTrue(isTrue(deposit) && isTrue(withdraw)))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = true;
+                    } else if (isTrue(isTrue(!isEqual(deposit, null)) && isTrue(!isEqual(withdraw, null))))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
+                    }
                 }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");

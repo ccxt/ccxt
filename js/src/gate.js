@@ -6759,6 +6759,10 @@ export default class gate extends Exchange {
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys(query).length) {
                     queryString = this.urlencode(query);
+                    // https://github.com/ccxt/ccxt/issues/25570
+                    if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
+                        queryString = queryString.replaceAll('%2', ',');
+                    }
                     url += '?' + queryString;
                 }
                 if (method === 'PATCH') {

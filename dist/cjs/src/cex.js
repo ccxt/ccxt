@@ -320,6 +320,7 @@ class cex extends cex$1 {
                 'margin': undefined,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': undefined,
                 'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {

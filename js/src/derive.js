@@ -2394,17 +2394,21 @@ export default class derive extends Exchange {
         const result = {
             'info': response,
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
             const collaterals = this.safeList(subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode(this.safeString(balance, 'currency'));
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'amount');
+                let account = this.safeDict(result, code);
+                if (account === undefined) {
+                    account = this.account();
+                    account['total'] = this.safeString(balance, 'amount');
+                }
+                else {
+                    const amount = this.safeString(balance, 'amount');
+                    account['total'] = Precise.stringAdd(account['total'], amount);
+                }
                 result[code] = account;
             }
         }

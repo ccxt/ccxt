@@ -1227,6 +1227,7 @@ class testMainClass {
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
         const currencies = this.loadCurrenciesFromFile(exchangeName);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId': 'accountId', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict

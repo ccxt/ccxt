@@ -1376,6 +1376,7 @@ public partial class testMainClass
     {
         object markets = this.loadMarketsFromFile(exchangeName);
         object currencies = this.loadCurrenciesFromFile(exchangeName);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
             { "markets", markets },
             { "currencies", currencies },

@@ -2433,9 +2433,6 @@ public partial class derive : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
@@ -2444,8 +2441,16 @@ public partial class derive : Exchange
             {
                 object balance = getValue(collaterals, j);
                 object code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                object account = this.account();
-                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                object account = this.safeDict(result, code);
+                if (isTrue(isEqual(account, null)))
+                {
+                    account = this.account();
+                    ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                } else
+                {
+                    object amount = this.safeString(balance, "amount");
+                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), amount);
+                }
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }
