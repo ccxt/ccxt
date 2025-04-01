@@ -333,7 +333,7 @@ class paymium(Exchange, ImplicitAPI):
         response = await self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

@@ -1394,7 +1394,7 @@ class bitfinex1(Exchange, ImplicitAPI):
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

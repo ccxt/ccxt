@@ -735,7 +735,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -803,6 +803,7 @@ class coinbase(Exchange, ImplicitAPI):
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': None,
             'info': response,
         }
 
