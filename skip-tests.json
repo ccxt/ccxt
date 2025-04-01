@@ -50,8 +50,7 @@
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
             "fetchCurrencies": {
-                "precision": "not provided in public api",
-                "networks": "not yet unified"
+                "precision": "not provided in public api"
             },
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
