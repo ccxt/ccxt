@@ -590,7 +590,7 @@ export default class paradex extends Exchange {
             'contractSize': this.parseNumber ('1'),
             'expiry': (expiry === 0) ? undefined : expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber (strikePrice),
             'optionType': this.safeStringLower (market, 'option_type'),
             'precision': {
                 'amount': this.safeNumber (market, 'order_size_increment'),
