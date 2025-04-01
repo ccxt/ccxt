@@ -804,6 +804,7 @@ class coinbase extends coinbase$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }
