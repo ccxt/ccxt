@@ -1836,7 +1836,7 @@ public partial class derive : Exchange
         {
             order = rawOrder;
         }
-        object timestamp = this.safeInteger(rawOrder, "nonce");
+        object timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         object orderId = this.safeString(order, "order_id");
         object marketId = this.safeString(order, "instrument_name");
         if (isTrue(!isEqual(marketId, null)))
