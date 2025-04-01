@@ -785,6 +785,7 @@ public partial class coinbase : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
