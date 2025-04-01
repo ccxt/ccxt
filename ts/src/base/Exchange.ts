@@ -59,7 +59,6 @@ import type {
     Currency,
     CurrencyInterface,
     DepositAddress,
-    DepositAddressResponse,
     DepositWithdrawFeeNetwork,
     Dict,
     Dictionary,
@@ -114,6 +113,7 @@ import type {
     Transaction,
     TransferEntry,
 } from './types.js';
+
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import {
@@ -253,7 +253,6 @@ export type {
     Currency,
     CurrencyInterface,
     DepositAddress,
-    DepositAddressResponse,
     Dictionary,
     Fee,
     FundingHistory,
@@ -2728,7 +2727,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddressResponse> {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
@@ -6501,7 +6500,7 @@ export default class Exchange {
         return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }

@@ -2284,6 +2284,7 @@ func  (this *coinbaseexchange) CreateDepositAddress(code interface{}, optionalAr
             ch <- map[string]interface{} {
                 "currency": code,
                 "address": this.CheckAddress(address),
+                "network": nil,
                 "tag": tag,
                 "info": response,
             }

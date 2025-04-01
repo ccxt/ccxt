@@ -593,6 +593,7 @@ class derive extends derive$1 {
         let swap = false;
         let option = false;
         let linear = undefined;
+        let inverse = undefined;
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -616,6 +617,7 @@ class derive extends derive$1 {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             linear = true;
+            inverse = false;
             marketType = 'swap';
         }
         else if (type === 'option') {
@@ -654,7 +656,7 @@ class derive extends derive$1 {
             'active': this.safeBool(market, 'is_active'),
             'contract': (swap || option),
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': (spot) ? undefined : 1,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1852,7 +1854,7 @@ class derive extends derive$1 {
         if (order === undefined) {
             order = rawOrder;
         }
-        const timestamp = this.safeInteger(rawOrder, 'nonce');
+        const timestamp = this.safeInteger2(rawOrder, 'creation_timestamp', 'nonce');
         const orderId = this.safeString(order, 'order_id');
         const marketId = this.safeString(order, 'instrument_name');
         if (marketId !== undefined) {

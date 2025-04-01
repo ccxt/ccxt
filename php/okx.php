@@ -1617,11 +1617,12 @@ class okx extends Exchange {
         $optionType = null;
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
-            $expiry = $this->safe_integer($market, 'expTime');
             if ($future) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
             } elseif ($option) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $ymd = $this->yymmdd($expiry);

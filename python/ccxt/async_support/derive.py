@@ -601,6 +601,7 @@ class derive(Exchange, ImplicitAPI):
         swap = False
         option = False
         linear: Bool = None
+        inverse: Bool = None
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -623,6 +624,7 @@ class derive(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             swap = True
             linear = True
+            inverse = False
             marketType = 'swap'
         elif type == 'option':
             settleId = 'USDC'
@@ -657,7 +659,7 @@ class derive(Exchange, ImplicitAPI):
             'active': self.safe_bool(market, 'is_active'),
             'contract': (swap or option),
             'linear': linear,
-            'inverse': None,
+            'inverse': inverse,
             'contractSize': None if (spot) else 1,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1812,7 +1814,7 @@ class derive(Exchange, ImplicitAPI):
         order = self.safe_dict(rawOrder, 'data')
         if order is None:
             order = rawOrder
-        timestamp = self.safe_integer(rawOrder, 'nonce')
+        timestamp = self.safe_integer_2(rawOrder, 'creation_timestamp', 'nonce')
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
         if marketId is not None:

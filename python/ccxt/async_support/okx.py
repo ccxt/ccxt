@@ -1624,11 +1624,12 @@ class okx(Exchange, ImplicitAPI):
         optionType = None
         if contract:
             symbol = symbol + ':' + settle
-            expiry = self.safe_integer(market, 'expTime')
             if future:
+                expiry = self.safe_integer(market, 'expTime')
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
             elif option:
+                expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 ymd = self.yymmdd(expiry)
