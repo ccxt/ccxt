@@ -1714,10 +1714,7 @@
     },
     "paradex": {
         "skipMethods": {
-            "loadMarkets": {
-                "active":"not provided",
-                "currencyIdAndCode": "broken currencies"
-	          }
+            "loadMarkets": "perp options not handled well by tests"
 	      }
     },
     "hashkey": {
