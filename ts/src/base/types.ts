@@ -280,13 +280,6 @@ export interface WithdrawalResponse {
     id: string;
 }
 
-export interface DepositAddressResponse {
-    currency: Str;
-    address: string;
-    info: any;
-    tag?: Str;
-}
-
 export interface FundingRate {
     symbol: string;
     info: any;

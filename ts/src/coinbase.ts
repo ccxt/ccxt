@@ -749,7 +749,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         let accountId = this.safeString (params, 'account_id');
         params = this.omit (params, 'account_id');
         if (accountId === undefined) {
@@ -812,8 +812,9 @@ export default class coinbase extends Exchange {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
-        };
+        } as DepositAddress;
     }
 
     /**
