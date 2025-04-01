@@ -558,9 +558,9 @@ export default class paradex extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote + ':' + settle;
         const expiry = this.safeInteger (market, 'expiry_at');
+        const optionType = this.safeString (market, 'option_type');
+        const strikePrice = this.safeString (market, 'strike_price');
         if (isOption) {
-            const optionType = this.safeString (market, 'option_type');
-            const strikePrice = this.safeString (market, 'strike_price');
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
             symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
         }
@@ -590,8 +590,8 @@ export default class paradex extends Exchange {
             'contractSize': this.parseNumber ('1'),
             'expiry': (expiry === 0) ? undefined : expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': strikePrice,
+            'optionType': this.safeStringLower (market, 'option_type'),
             'precision': {
                 'amount': this.safeNumber (market, 'order_size_increment'),
                 'price': this.safeNumber (market, 'price_tick_size'),
