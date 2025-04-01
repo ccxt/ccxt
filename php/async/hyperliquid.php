@@ -2028,6 +2028,47 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
+    public function create_vault(string $name, string $description, int $initialUsd, $params = array ()) {
+        return Async\async(function () use ($name, $description, $initialUsd, $params) {
+            /**
+             * creates a value
+             * @param {string} $name The $name of the vault
+             * @param {string} $description The $description of the vault
+             * @param {number} $initialUsd The $initialUsd of the vault
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($initialUsd), '1000000'));
+            $action = array(
+                'type' => 'createVault',
+                'name' => $name,
+                'description' => $description,
+                'initialUsd' => $usd,
+                'nonce' => $nonce,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            //
+            // {
+            //     "status" => "ok",
+            //     "response" => {
+            //         "type" => "createVault",
+            //         "data" => "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+            //     }
+            // }
+            //
+            return $response;
+        }) ();
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**

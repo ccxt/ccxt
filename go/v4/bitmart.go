@@ -5915,7 +5915,7 @@ func  (this *bitmart) EditOrder(id interface{}, symbol interface{}, typeVar inte
                     AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                 }
                 
-        response = (<-this.callDynamically("privatePostContractPrivateModifyLimitOrder", this.Extend(request, params)))
+        response = (<-this.PrivatePostContractPrivateModifyLimitOrder(this.Extend(request, params)))
                 PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " editOrder() only supports limit, trigger, stop loss and take profit orders")))

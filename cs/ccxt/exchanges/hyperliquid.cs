@@ -2134,6 +2134,49 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    public async virtual Task<object> createVault(object name, object description, object initialUsd, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object usd = this.parseToInt(Precise.stringMul(this.numberToString(initialUsd), "1000000"));
+        object action = new Dictionary<string, object>() {
+            { "type", "createVault" },
+            { "name", name },
+            { "description", description },
+            { "initialUsd", usd },
+            { "nonce", nonce },
+        };
+        object signature = this.signL1Action(action, nonce);
+        ((IDictionary<string,object>)request)["action"] = action;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "createVault",
+        //         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        //     }
+        // }
+        //
+        return response;
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates

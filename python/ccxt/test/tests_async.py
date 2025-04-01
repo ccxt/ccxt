@@ -935,6 +935,7 @@ class testMainClass:
     def init_offline_exchange(self, exchange_name):
         markets = self.load_markets_from_file(exchange_name)
         currencies = self.load_currencies_from_file(exchange_name)
+        # we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         exchange = init_exchange(exchange_name, {
             'markets': markets,
             'currencies': currencies,

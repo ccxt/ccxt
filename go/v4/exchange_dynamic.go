@@ -394,10 +394,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         poloniexItf := &poloniex{}
         poloniexItf.Init(exchangeArgs)
         return poloniexItf, true
-    case "poloniexfutures":
-        poloniexfuturesItf := &poloniexfutures{}
-        poloniexfuturesItf.Init(exchangeArgs)
-        return poloniexfuturesItf, true
     case "probit":
         probitItf := &probit{}
         probitItf.Init(exchangeArgs)

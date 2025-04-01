@@ -541,7 +541,7 @@ class woofipro extends Exchange {
             'active' => null,
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'contractSize' => $this->parse_number('1'),
             'expiry' => null,
             'expiryDatetime' => null,

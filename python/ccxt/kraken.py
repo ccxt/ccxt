@@ -1562,8 +1562,10 @@ class kraken(Exchange, ImplicitAPI):
         """
         self.load_markets()
         # only buy orders are supported by the endpoint
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2898,7 +2900,7 @@ class kraken(Exchange, ImplicitAPI):
             data[dataLength - 1] = last
         return data
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

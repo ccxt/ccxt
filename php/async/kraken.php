@@ -1644,8 +1644,10 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             // only buy orders are supported by the endpoint
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -3133,7 +3135,7 @@ class kraken extends Exchange {
         return $data;
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address

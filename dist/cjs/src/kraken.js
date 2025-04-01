@@ -1592,8 +1592,10 @@ class kraken extends kraken$1 {
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', side, cost, undefined, this.extend(req, params));
     }
     /**
      * @method

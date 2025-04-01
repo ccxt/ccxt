@@ -3678,7 +3678,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

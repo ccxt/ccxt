@@ -269,13 +269,6 @@ export interface WithdrawalResponse {
     info: any;
 }
 
-export interface DepositAddressResponse {
-    address: string;
-    currency: Str;
-    info: any;
-    tag?: Str;
-}
-
 export interface FundingRate {
     datetime?: string;
     estimatedSettlePrice?: number;
