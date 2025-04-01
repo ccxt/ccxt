@@ -581,7 +581,7 @@ class paradex extends paradex$1 {
             'active': this.safeBool(market, 'enableTrading'),
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': this.parseNumber('1'),

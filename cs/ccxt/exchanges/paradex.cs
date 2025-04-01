@@ -582,7 +582,7 @@ public partial class paradex : Exchange
             { "active", this.safeBool(market, "enableTrading") },
             { "contract", true },
             { "linear", true },
-            { "inverse", null },
+            { "inverse", false },
             { "taker", takerFee },
             { "maker", makerFee },
             { "contractSize", this.parseNumber("1") },

@@ -1546,13 +1546,14 @@ public partial class okx : Exchange
         if (isTrue(contract))
         {
             symbol = add(add(symbol, ":"), settle);
-            expiry = this.safeInteger(market, "expTime");
             if (isTrue(future))
             {
+                expiry = this.safeInteger(market, "expTime");
                 object ymd = this.yymmdd(expiry);
                 symbol = add(add(symbol, "-"), ymd);
             } else if (isTrue(option))
             {
+                expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
                 object ymd = this.yymmdd(expiry);

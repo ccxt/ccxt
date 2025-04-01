@@ -590,7 +590,7 @@ class paradex extends Exchange {
             'active' => $this->safe_bool($market, 'enableTrading'),
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $takerFee,
             'maker' => $makerFee,
             'contractSize' => $this->parse_number('1'),
