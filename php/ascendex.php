@@ -2025,7 +2025,7 @@ class ascendex extends Exchange {
         //         "code" => 0,
         //         "data" => array(
         //             array(
-        //                 "avgPx" => "0",         // Average filled price of the $order
+        //                 "avgPx" => "0",        // Average filled price of the $order
         //                 "cumFee" => "0",       // cumulative fee paid for this $order
         //                 "cumFilledQty" => "0", // cumulative filled quantity
         //                 "errorCode" => "",     // error code; could be empty
