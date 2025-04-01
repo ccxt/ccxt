@@ -548,6 +548,7 @@ export default class paradex extends Exchange {
         const assetKind = this.safeString (market, 'asset_kind');
         const isOption = (assetKind === 'PERP_OPTION');
         const type = (isOption) ? 'option' : 'swap';
+        const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quote_currency');
         const baseId = this.safeString (market, 'base_currency');
@@ -577,9 +578,9 @@ export default class paradex extends Exchange {
             'type': type,
             'spot': false,
             'margin': undefined,
-            'swap': true,
+            'swap': isSwap,
             'future': false,
-            'option': false,
+            'option': isOption,
             'active': this.safeBool (market, 'enableTrading'),
             'contract': true,
             'linear': true,
