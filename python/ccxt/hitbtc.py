@@ -1020,7 +1020,7 @@ class hitbtc(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

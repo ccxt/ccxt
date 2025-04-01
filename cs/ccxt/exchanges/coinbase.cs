@@ -785,6 +785,7 @@ public partial class coinbase : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
@@ -2480,7 +2481,7 @@ public partial class coinbase : Exchange
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,

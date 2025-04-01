@@ -917,15 +917,12 @@ export default class bitmart extends bitmartRest {
         //        "data":[
         //           {
         //              "trade_id":6798697637,
-        //              "contract_id":1,
         //              "symbol":"BTCUSDT",
         //              "deal_price":"39735.8",
         //              "deal_vol":"2",
-        //              "type":0,
         //              "way":1,
-        //              "create_time":1701618503,
-        //              "create_time_mill":1701618503517,
-        //              "created_at":"2023-12-03T15:48:23.517518538Z"
+        //              "created_at":"2023-12-03T15:48:23.517518538Z",
+        //              "m": true,
         //           }
         //        ]
         //    }
@@ -965,6 +962,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsTrade (trade: Dict, market: Market = undefined) {
+        //
         // spot
         //     {
         //         "ms_t": 1740320841473,
@@ -996,6 +994,19 @@ export default class bitmart extends bitmartRest {
         } else {
             datetime = this.iso8601 (timestamp);
         }
+        let takerOrMaker = undefined; // true for public trades
+        let side = this.safeString (trade, 'side');
+        const buyerMaker = this.safeBool (trade, 'm');
+        if (buyerMaker !== undefined) {
+            if (side === undefined) {
+                if (buyerMaker) {
+                    side = 'sell';
+                } else {
+                    side = 'buy';
+                }
+            }
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
@@ -1004,11 +1015,11 @@ export default class bitmart extends bitmartRest {
             'datetime': datetime,
             'symbol': market['symbol'],
             'type': undefined,
-            'side': this.safeString (trade, 'side'),
+            'side': side,
             'price': this.safeString2 (trade, 'price', 'deal_price'),
             'amount': this.safeString2 (trade, 'size', 'deal_vol'),
             'cost': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'fee': undefined,
         }, market);
     }

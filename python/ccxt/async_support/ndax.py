@@ -2083,7 +2083,7 @@ class ndax(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
