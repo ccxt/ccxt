@@ -1912,7 +1912,7 @@ class derive extends Exchange {
         if ($order === null) {
             $order = $rawOrder;
         }
-        $timestamp = $this->safe_integer($rawOrder, 'nonce');
+        $timestamp = $this->safe_integer_2($rawOrder, 'creation_timestamp', 'nonce');
         $orderId = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'instrument_name');
         if ($marketId !== null) {
