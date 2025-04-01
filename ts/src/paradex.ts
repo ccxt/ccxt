@@ -542,7 +542,6 @@ export default class paradex extends Exchange {
         //     "strike_price":"96000",
         //     "funding_period_hours":"24",
         //     "tags":[
-
         //     ]
         //  }
         //
