@@ -634,8 +634,7 @@
                 "networks": "not provided",
                 "deposit":"not provided",
                 "withdraw": "not provided"
-            },
-            "fetchTrades": "datetime is not same as timestamp"
+            }
         }
     },
     "coinbaseexchange": {
