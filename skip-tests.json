@@ -10,9 +10,7 @@
                 "settleId": "numeric",
                 "settle": "numeric",
                 "active":"is undefined"
-            },
-            "fetchOrderBook": "needs reversion of amount/price",
-            "fetchL2OrderBook": "same"
+            }
         }
     },
     "alpaca": {
