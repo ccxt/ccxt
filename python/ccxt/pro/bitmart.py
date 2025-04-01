@@ -858,15 +858,12 @@ class bitmart(ccxt.async_support.bitmart):
         #        "data":[
         #           {
         #              "trade_id":6798697637,
-        #              "contract_id":1,
         #              "symbol":"BTCUSDT",
         #              "deal_price":"39735.8",
         #              "deal_vol":"2",
-        #              "type":0,
         #              "way":1,
-        #              "create_time":1701618503,
-        #              "create_time_mill":1701618503517,
-        #              "created_at":"2023-12-03T15:48:23.517518538Z"
+        #              "created_at":"2023-12-03T15:48:23.517518538Z",
+        #              "m": True,
         #           }
         #        ]
         #    }
@@ -899,6 +896,7 @@ class bitmart(ccxt.async_support.bitmart):
         return symbol
 
     def parse_ws_trade(self, trade: dict, market: Market = None):
+        #
         # spot
         #     {
         #         "ms_t": 1740320841473,
@@ -929,6 +927,16 @@ class bitmart(ccxt.async_support.bitmart):
             timestamp = self.parse8601(datetime)
         else:
             datetime = self.iso8601(timestamp)
+        takerOrMaker = None  # True for public trades
+        side = self.safe_string(trade, 'side')
+        buyerMaker = self.safe_bool(trade, 'm')
+        if buyerMaker is not None:
+            if side is None:
+                if buyerMaker:
+                    side = 'sell'
+                else:
+                    side = 'buy'
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'trade_id'),
@@ -937,11 +945,11 @@ class bitmart(ccxt.async_support.bitmart):
             'datetime': datetime,
             'symbol': market['symbol'],
             'type': None,
-            'side': self.safe_string(trade, 'side'),
+            'side': side,
             'price': self.safe_string_2(trade, 'price', 'deal_price'),
             'amount': self.safe_string_2(trade, 'size', 'deal_vol'),
             'cost': None,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'fee': None,
         }, market)
 
