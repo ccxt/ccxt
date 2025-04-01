@@ -1036,5 +1036,1388 @@
                 ]
             ]
         }
+    },
+    "ADA/USDC:USDC": {
+        "id": "ADA-PERP-INTX",
+        "symbol": "ADA/USDC:USDC",
+        "base": "ADA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ADA",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 200267022.69692925
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "ADA-PERP-INTX",
+            "price": "0.6093",
+            "price_percentage_change_24h": "-0.09837678307919",
+            "volume_24h": "913260",
+            "volume_percentage_change_24h": "-24.84755721233367",
+            "base_increment": "1",
+            "quote_increment": "0.0001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "1",
+            "base_max_size": "200267022.6969292389853138",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "0.60925",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "ADA PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "ADA",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "ADA",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000034",
+                    "funding_time": "2024-04-09T11:00:00.000012Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "ADA PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "BTC/USDC:USDC": {
+        "id": "BTC-PERP-INTX",
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 3000
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "BTC-PERP-INTX",
+            "price": "70891.1",
+            "price_percentage_change_24h": "-2.35520171898459",
+            "volume_24h": "3985.5007",
+            "volume_percentage_change_24h": "8.12663122512077",
+            "base_increment": "0.0001",
+            "quote_increment": "0.1",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.0001",
+            "base_max_size": "3000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "70891.05",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.1",
+            "display_name": "BTC PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "BTC",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "BTC",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000018",
+                    "funding_time": "2024-04-09T11:00:00.000014Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "BTC PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETH-PERP-INTX",
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 50000
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "ETH-PERP-INTX",
+            "price": "3637.95",
+            "price_percentage_change_24h": "0.21127846887843",
+            "volume_24h": "110428.9423",
+            "volume_percentage_change_24h": "35.97563857171974",
+            "base_increment": "0.0001",
+            "quote_increment": "0.01",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.0001",
+            "base_max_size": "50000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "3637.845",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "ETH PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "ETH",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "ETH",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000018",
+                    "funding_time": "2024-04-09T11:00:00.000009Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "ETH PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "XRP/USDC:USDC": {
+        "id": "XRP-PERP-INTX",
+        "symbol": "XRP/USDC:USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 150000000
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "XRP-PERP-INTX",
+            "price": "0.6151",
+            "price_percentage_change_24h": "1.10124917817226",
+            "volume_24h": "103949027",
+            "volume_percentage_change_24h": "79.91999153961375",
+            "base_increment": "1",
+            "quote_increment": "0.0001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "1",
+            "base_max_size": "150000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "0.61505",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "XRP",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "XRP",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000017",
+                    "funding_time": "2024-04-09T11:00:00.000012Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "XRP PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "LTC/USDC:USDC": {
+        "id": "LTC-PERP-INTX",
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "LTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "LTC-PERP-INTX",
+            "price": "100.24",
+            "price_percentage_change_24h": "-4.83243140605715",
+            "volume_24h": "123359.41",
+            "volume_percentage_change_24h": "29.05537209155861",
+            "base_increment": "0.01",
+            "quote_increment": "0.01",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.01",
+            "base_max_size": "1000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "100.175",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "LTC PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "LTC",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "LTC",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000019",
+                    "funding_time": "2024-04-09T11:00:00.000015Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "LTC PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "SOL/USDC:USDC": {
+        "id": "SOL-PERP-INTX",
+        "symbol": "SOL/USDC:USDC",
+        "base": "SOL",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "SOL",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001,
+                "max": 3000000
+            },
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "info": {
+            "product_id": "SOL-PERP-INTX",
+            "price": "176.192",
+            "price_percentage_change_24h": "-3.7664948003146",
+            "volume_24h": "494985.442",
+            "volume_percentage_change_24h": "-12.59244874162728",
+            "base_increment": "0.001",
+            "quote_increment": "0.001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.001",
+            "base_max_size": "3000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "176.1985",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.001",
+            "display_name": "SOL PERP",
+            "product_venue": "INTX",
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "SOL",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "SOL",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "0",
+                    "funding_rate": "0.000025",
+                    "funding_time": "2024-04-09T11:00:00.000010Z",
+                    "max_leverage": "10"
+                },
+                "contract_display_name": "SOL PERPETUAL"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "BTC/USD:USD-240426": {
+        "id": "BIT-26APR24-CDE",
+        "symbol": "BTC/USD:USD-240426",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "contractSize": 0.01,
+        "expiry": 1714143600000,
+        "expiryDatetime": "2024-04-26T15:00:00Z",
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0,
+                "max": 100000000
+            }
+        },
+        "info": {
+            "product_id": "BIT-26APR24-CDE",
+            "price": "64940",
+            "price_percentage_change_24h": "-1.43431737117705",
+            "volume_24h": "82309",
+            "volume_percentage_change_24h": "0",
+            "base_increment": "1",
+            "quote_increment": "0.01",
+            "quote_min_size": "0",
+            "quote_max_size": "100000000",
+            "base_min_size": "1",
+            "base_max_size": "100000000",
+            "base_name": "",
+            "quote_name": "US Dollar",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USD",
+            "base_currency_id": "",
+            "fcm_trading_session_details": {
+                "is_session_open": true,
+                "open_time": "2024-04-14T22:00:00Z",
+                "close_time": "2024-04-15T21:00:00Z"
+            },
+            "mid_market_price": "65050",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "5",
+            "display_name": "BTC 26 APR 24",
+            "product_venue": "FCM",
+            "future_product_details": {
+                "venue": "cde",
+                "contract_code": "BIT",
+                "contract_expiry": "2024-04-26T15:00:00Z",
+                "contract_size": "0.01",
+                "contract_root_unit": "BTC",
+                "group_description": "Nano Bitcoin Futures",
+                "contract_expiry_timezone": "Europe/London",
+                "group_short_description": "Nano BTC",
+                "risk_managed_by": "MANAGED_BY_FCM",
+                "contract_expiry_type": "EXPIRING",
+                "contract_display_name": "BTC 26 APR 24"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "XRP/USDC": {
+        "id": "XRP-USDC",
+        "symbol": "XRP/USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.01,
+        "maker": 0.006,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000001,
+                "max": 11996772.84072922
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "info": {
+            "product_id": "XRP-USDC",
+            "price": "0.5208",
+            "price_percentage_change_24h": "3.99361022364217",
+            "volume_24h": "66018508.397644",
+            "volume_percentage_change_24h": "-23.47310133273151",
+            "base_increment": "0.000001",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.000001",
+            "base_max_size": "11996772.8407292192545075",
+            "base_name": "XRP",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "XRP",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "XRP-USD",
+            "alias_to": [],
+            "base_display_symbol": "XRP",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP-USDC",
+            "product_venue": "CBE"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
     }
 }

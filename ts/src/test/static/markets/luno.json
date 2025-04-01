@@ -96,5 +96,54 @@
         "percentage": true,
         "taker": 0.001,
         "maker": 0
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00007,
+                "max": 100
+            },
+            "price": {
+                "min": 100,
+                "max": 1000000
+            },
+            "cost": {}
+        },
+        "info": {
+            "market_id": "ETHUSDT",
+            "trading_status": "ACTIVE",
+            "base_currency": "ETH",
+            "counter_currency": "USDT",
+            "min_volume": "0.00007",
+            "max_volume": "100.00",
+            "volume_scale": "6",
+            "min_price": "100.00",
+            "max_price": "1000000.00",
+            "price_scale": "0",
+            "fee_scale": "8"
+        },
+        "tierBased": true,
+        "percentage": true
     }
 }

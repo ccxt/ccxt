@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -19,21 +20,21 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class okcoin(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okcoin, self).describe(), {
             'id': 'okcoin',
             'name': 'OKCoin',
@@ -51,12 +52,33 @@ class okcoin(Exchange, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -74,6 +96,10 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'setMargin': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -200,6 +226,87 @@ class okcoin(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': True,  # todo
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': False,
+                            'index': False,
+                        },
+                        'stopLossPrice': True,  # todo revise trigger
+                        'takeProfitPrice': True,  # todo revise trigger
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': False,
+                                'index': False,
+                            },
+                            'price': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,  # todo
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,  # todo
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': True,  # todo
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,  # todo
+                        'daysBackCanceled': 1 / 12,  # todo: possible more with history endpoint
+                        'untilDays': 90,  # todo
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,  # 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'fees': {
                 'trading': {
                     'taker': 0.002,
@@ -249,6 +356,16 @@ class okcoin(Exchange, ImplicitAPI):
                     '50026': ExchangeNotAvailable,  # System error, please try again later.
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
+                    '50029': ExchangeError,  # This instrument({0}) is unavailable at present due to risk management. Please contact customer service for help.
+                    '50030': PermissionDenied,  # No permission to use self API
+                    '50032': AccountSuspended,  # This asset is blocked, allow its trading and try again
+                    '50033': AccountSuspended,  # This instrument is blocked, allow its trading and try again
+                    '50035': BadRequest,  # This endpoint requires that APIKey must be bound to IP
+                    '50036': BadRequest,  # Invalid expTime
+                    '50037': BadRequest,  # Order expired
+                    '50038': ExchangeError,  # This feature is temporarily unavailable in demo trading
+                    '50039': ExchangeError,  # The before parameter is not available for implementing timestamp pagination
+                    '50041': ExchangeError,  # You are not currently on the whitelist, please contact customer service
                     '50044': BadRequest,  # Must select one broker type
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
@@ -292,9 +409,25 @@ class okcoin(Exchange, ImplicitAPI):
                     '51024': AccountSuspended,  # Unified accountblocked
                     '51025': ExchangeError,  # Order count exceeds the limit
                     '51026': BadSymbol,  # Instrument type does not match underlying index
+                    '51030': InvalidOrder,  # Funding fee is being settled.
+                    '51031': InvalidOrder,  # This order price is not within the closing price range
+                    '51032': InvalidOrder,  # Closing all positions at market price.
+                    '51033': InvalidOrder,  # The total amount per order for self pair has reached the upper limit.
+                    '51037': InvalidOrder,  # The current account risk status only supports you to place IOC orders that can reduce the risk of your account.
+                    '51038': InvalidOrder,  # There is already an IOC order under the current risk module that reduces the risk of the account.
+                    '51044': InvalidOrder,  # The order type {0}, {1} is not allowed to set stop loss and take profit
                     '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
-                    '51031': InvalidOrder,  # This order price is not within the closing price range
+                    '51048': InvalidOrder,  # The take profit trigger price should be lower than the order price
+                    '51049': InvalidOrder,  # The stop loss trigger price should be higher than the order price
+                    '51050': InvalidOrder,  # The take profit trigger price should be higher than the best ask price
+                    '51051': InvalidOrder,  # The stop loss trigger price should be lower than the best ask price
+                    '51052': InvalidOrder,  # The take profit trigger price should be lower than the best bid price
+                    '51053': InvalidOrder,  # The stop loss trigger price should be higher than the best bid price
+                    '51054': BadRequest,  # Getting information timed out, please try again later
+                    '51056': InvalidOrder,  # Action not allowed
+                    '51058': InvalidOrder,  # No available position for self algo order
+                    '51059': InvalidOrder,  # Strategy for the current state does not support self operation
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
                     '51103': InvalidOrder,  # Entered amount exceeds the max pending order count of the underlying asset
@@ -555,6 +688,9 @@ class okcoin(Exchange, ImplicitAPI):
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ERC20': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'OMNI': 'Omni',
+                    'TRC20': 'TRON',
                 },
             },
             'commonCurrencies': {
@@ -571,7 +707,7 @@ class okcoin(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -579,28 +715,38 @@ class okcoin(Exchange, ImplicitAPI):
         """
         response = await self.publicGetPublicTime(params)
         #
-        #     {
-        #         "iso": "2015-01-07T23:47:25.201Z",
-        #         "epoch": 1420674445.201
-        #     }
+        # {
+        #     "code": "0",
+        #     "data":
+        #         [
+        #             {
+        #                 "ts": "1737379360033"
+        #             }
+        #         ],
+        #     "msg": ""
+        # }
         #
-        return self.parse8601(self.safe_string(response, 'iso'))
+        data = self.safe_list(response, 'data')
+        timestamp = self.safe_dict(data, 0)
+        return self.safe_integer(timestamp, 'ts')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+
         retrieves data on all markets for okcoin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
+        request: dict = {
             'instType': 'SPOT',
         }
         response = await self.publicGetPublicInstruments(self.extend(request, params))
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         # spot markets
         #
@@ -682,15 +828,7 @@ class okcoin(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def safe_network(self, networkId):
-        networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -703,7 +841,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             response = await self.privateGetAssetCurrencies(params)
             data = self.safe_value(response, 'data', [])
-            result = {}
+            result: dict = {}
             dataByCurrencyId = self.group_by(data, 'ccy')
             currencyIds = list(dataByCurrencyId.keys())
             for i in range(0, len(currencyIds)):
@@ -711,7 +849,7 @@ class okcoin(Exchange, ImplicitAPI):
                 currency = self.safe_currency(currencyId)
                 code = currency['code']
                 chains = dataByCurrencyId[currencyId]
-                networks = {}
+                networks: dict = {}
                 currencyActive = False
                 depositEnabled = False
                 withdrawEnabled = False
@@ -729,7 +867,7 @@ class okcoin(Exchange, ImplicitAPI):
                     if (networkId is not None) and (networkId.find('-') >= 0):
                         parts = networkId.split('-')
                         chainPart = self.safe_string(parts, 1, networkId)
-                        networkCode = self.safe_network(chainPart)
+                        networkCode = self.network_id_to_code(chainPart)
                         precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                         if maxPrecision is None:
                             maxPrecision = precision
@@ -774,7 +912,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -783,7 +923,7 @@ class okcoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instId': market['id'],
         }
         limit = 20 if (limit is None) else limit
@@ -816,7 +956,7 @@ class okcoin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -843,7 +983,7 @@ class okcoin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -873,7 +1013,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -881,7 +1023,7 @@ class okcoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instId': market['id'],
         }
         response = await self.publicGetMarketTicker(self.extend(request, params))
@@ -917,21 +1059,23 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         symbols = self.market_symbols(symbols)
-        request = {
+        request: dict = {
             'instType': 'SPOT',
         }
         response = await self.publicGetMarketTickers(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1006,8 +1150,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1019,7 +1165,7 @@ class okcoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if (limit is None) or (limit > 100):
             limit = 100  # maximum = default = 100
-        request = {
+        request: dict = {
             'instId': market['id'],
         }
         method = None
@@ -1029,7 +1175,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.publicGetMarketTrades(self.extend(request, params))
         else:
             response = await self.publicGetMarketHistoryTrades(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1057,8 +1203,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1075,11 +1223,12 @@ class okcoin(Exchange, ImplicitAPI):
         timezone = self.safe_string(options, 'timezone', 'UTC')
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
-        request = {
+        request: dict = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
         method = None
         method, params = self.handle_option_and_params(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles')
         response = None
@@ -1087,7 +1236,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.publicGetMarketCandles(self.extend(request, params))
         else:
             response = await self.publicGetMarketHistoryCandles(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_account_balance(self, response):
@@ -1132,7 +1281,7 @@ class okcoin(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1156,7 +1305,7 @@ class okcoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        request = {
+        request: dict = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
         response = None
@@ -1188,7 +1337,7 @@ class okcoin(Exchange, ImplicitAPI):
             return self.parse_trading_balance(response)
 
     def parse_trading_balance(self, response):
-        result = {'info': response}
+        result: dict = {'info': response}
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
         timestamp = self.safe_integer(first, 'uTime')
@@ -1213,7 +1362,7 @@ class okcoin(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_funding_balance(self, response):
-        result = {'info': response}
+        result: dict = {'info': response}
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
@@ -1227,18 +1376,39 @@ class okcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+        create a market buy order by providing the symbol and cost
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        params['tgtCcy'] = 'quote_ccy'
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
         :param bool [params.postOnly]: True to place a post only order
@@ -1251,6 +1421,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1260,14 +1431,20 @@ class okcoin(Exchange, ImplicitAPI):
         requestOrdType = self.safe_string(request, 'ordType')
         if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
             method = 'privatePostTradeOrderAlgo'
-        if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
-            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         if method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             request = [request]
-        response = await getattr(self, method)(request)
+        response = None
+        if method == 'privatePostTradeOrder':
+            response = await self.privatePostTradeOrder(request)
+        elif method == 'privatePostTradeOrderAlgo':
+            response = await self.privatePostTradeOrderAlgo(request)
+        elif method == 'privatePostTradeBatchOrders':
+            response = await self.privatePostTradeBatchOrders(request)
+        else:
+            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
@@ -1275,9 +1452,9 @@ class okcoin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instId': market['id'],
             # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,  # up to 32 characters, must be unique
@@ -1287,7 +1464,7 @@ class okcoin(Exchange, ImplicitAPI):
             'ordType': type,
             # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': self.amount_to_precision(symbol, amount),
+            # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,
             #
@@ -1323,7 +1500,7 @@ class okcoin(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if margin:
             defaultCurrency = market['quote'] if (side == 'buy') else market['base']
             currency = self.safe_string(params, 'ccy', defaultCurrency)
@@ -1345,27 +1522,35 @@ class okcoin(Exchange, ImplicitAPI):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
-            if (side == 'buy'):
+            if side == 'buy':
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
-                    notional = self.safe_number_2(params, 'cost', 'sz')
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                    if createMarketBuyOrderRequiresPrice:
-                        if price is not None:
-                            if notional is None:
-                                amountString = self.number_to_string(amount)
-                                priceString = self.number_to_string(price)
-                                quoteAmount = Precise.string_mul(amountString, priceString)
-                                notional = self.parse_number(quoteAmount)
-                        elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter(the exchange-specific behaviour)")
-                    else:
-                        notional = amount if (notional is None) else notional
-                    request['sz'] = self.cost_to_precision(symbol, notional)
+                    quoteAmount = None
+                    createMarketBuyOrderRequiresPrice = True
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                    cost = self.safe_number_2(params, 'cost', 'sz')
                     params = self.omit(params, ['cost', 'sz'])
+                    if cost is not None:
+                        quoteAmount = self.cost_to_precision(symbol, cost)
+                    elif createMarketBuyOrderRequiresPrice:
+                        if price is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                        else:
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            costRequest = Precise.string_mul(amountString, priceString)
+                            quoteAmount = self.cost_to_precision(symbol, costRequest)
+                    else:
+                        quoteAmount = self.cost_to_precision(symbol, amount)
+                    request['sz'] = quoteAmount
+                else:
+                    request['sz'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['sz'] = self.amount_to_precision(symbol, amount)
         else:
+            request['sz'] = self.amount_to_precision(symbol, amount)
             if (not trigger) and (not conditional):
                 request['px'] = self.price_to_precision(symbol, price)
         if postOnly:
@@ -1378,7 +1563,7 @@ class okcoin(Exchange, ImplicitAPI):
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order')
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
@@ -1389,7 +1574,7 @@ class okcoin(Exchange, ImplicitAPI):
                         raise InvalidOrder(self.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"')
                     elif stopLossLimitOrderType:
                         if stopLossLimitPrice is None:
-                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order')
                         else:
                             request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
                     elif stopLossOrderType == 'market':
@@ -1462,27 +1647,29 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if cancel trigger or conditional orders
+        :param bool [params.trigger]: True if cancel trigger or conditional orders
         :param bool [params.advanced]: True if canceling advanced orders only
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         advanced = self.safe_value(params, 'advanced')
-        if stop or advanced:
+        if trigger or advanced:
             orderInner = await self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instId': market['id'],
             # 'ordId': id,  # either ordId or clOrdId is required
             # 'clOrdId': clientOrderId,
@@ -1496,12 +1683,12 @@ class okcoin(Exchange, ImplicitAPI):
         response = await self.privatePostTradeCancelOrder(self.extend(request, query))
         # {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
     def parse_ids(self, ids):
         """
-         * @ignore
+ @ignore
         :param string[]|str ids: order ids
         :returns str[]: list of order ids
         """
@@ -1513,9 +1700,11 @@ class okcoin(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1524,7 +1713,7 @@ class okcoin(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         advanced = self.safe_value(params, 'advanced')
         params = self.omit(params, ['stop', 'trigger', 'advanced'])
         market = self.market(symbol)
@@ -1540,7 +1729,7 @@ class okcoin(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if stop or advanced:
+                if trigger or advanced:
                     request.append({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1557,7 +1746,7 @@ class okcoin(Exchange, ImplicitAPI):
                     'clOrdId': clientOrderIds[i],
                 })
         response = None
-        if stop:
+        if trigger:
             response = await self.privatePostTradeCancelAlgos(request)
         elif advanced:
             response = await self.privatePostTradeCancelAdvanceAlgos(request)
@@ -1579,11 +1768,11 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         #
-        ordersData = self.safe_value(response, 'data', [])
+        ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
@@ -1592,7 +1781,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1749,7 +1938,6 @@ class okcoin(Exchange, ImplicitAPI):
             clientOrderId = None  # fix empty clientOrderId string
         stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
         takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
-        stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
         reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
         reduceOnly = False
         if reduceOnly is not None:
@@ -1770,8 +1958,7 @@ class okcoin(Exchange, ImplicitAPI):
             'price': price,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number_n(order, ['triggerPx', 'moveTriggerPx']),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1785,9 +1972,12 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1796,14 +1986,14 @@ class okcoin(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instId': market['id'],
             # 'clOrdId': 'abcdef12345',  # optional, [a-z0-9]{1,32}
             # 'ordId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        stop = self.safe_value(params, 'stop')
-        if stop:
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        if trigger:
             if clientOrderId is not None:
                 request['algoClOrdId'] = clientOrderId
             else:
@@ -1813,31 +2003,33 @@ class okcoin(Exchange, ImplicitAPI):
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['clientOrderId', 'stop'])
+        query = self.omit(params, ['clientOrderId', 'stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
         else:
             response = await self.privateGetTradeOrder(self.extend(request, query))
         data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = self.safe_dict(data, 0)
         return self.parse_order(order)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'instId': market['id'],
             # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
             # 'state': 'live',  # live, partially_filled
@@ -1852,34 +2044,36 @@ class okcoin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
-        if stop and (ordType is None):
+        trigger = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
+        if trigger and (ordType is None):
             request['ordType'] = 'trigger'  # default to trigger
         params = self.omit(params, ['stop'])
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, params))
         else:
             response = await self.privateGetTradeOrdersPending(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'instType': 'SPOT',
         }
         market = None
@@ -1887,12 +2081,12 @@ class okcoin(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instId'] = market['id']
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
-        if stop and (ordType is None):
+        trigger = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
+        if trigger and (ordType is None):
             request['ordType'] = 'trigger'  # default to trigger
         params = self.omit(params, ['stop'])
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, params))
         else:
             method = None
@@ -1942,10 +2136,10 @@ class okcoin(Exchange, ImplicitAPI):
         #         "msg":""
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -2028,17 +2222,19 @@ class okcoin(Exchange, ImplicitAPI):
         #
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+        https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -2054,17 +2250,19 @@ class okcoin(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + networkCode + ' deposit address for ' + code)
         return result
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+        https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'ccy': currency['id'],
         }
         response = await self.privateGetAssetDepositAddress(self.extend(request, params))
@@ -2094,9 +2292,11 @@ class okcoin(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2110,7 +2310,7 @@ class okcoin(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request = {
+        request: dict = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
             'type': '0',  # 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account(Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
@@ -2148,10 +2348,10 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        rawTransfer = self.safe_value(data, 0, {})
+        rawTransfer = self.safe_dict(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2227,15 +2427,17 @@ class okcoin(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2250,7 +2452,7 @@ class okcoin(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
-        request = {
+        request: dict = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4',
@@ -2284,12 +2486,14 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        transaction = self.safe_value(data, 0)
+        transaction = self.safe_dict(data, 0)
         return self.parse_transaction(transaction, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2298,7 +2502,7 @@ class okcoin(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'ccy': currency['id'],
             # 'state': 2,  # 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
             # 'after': since,
@@ -2353,12 +2557,14 @@ class okcoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2367,7 +2573,7 @@ class okcoin(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'ccy': currency['id'],
             # 'state': 2,  # -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
             # 'after': since,
@@ -2414,10 +2620,10 @@ class okcoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         #
         # deposit statuses
         #
@@ -2441,7 +2647,7 @@ class okcoin(Exchange, ImplicitAPI):
         #         "5": "awaiting identity confirmation"
         #     }
         #
-        statuses = {
+        statuses: dict = {
             '-3': 'pending',
             '-2': 'canceled',
             '-1': 'failed',
@@ -2454,7 +2660,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2549,8 +2755,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2559,7 +2767,7 @@ class okcoin(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'instType': 'SPOT',
         }
         if (limit is not None) and (limit > 100):
@@ -2575,7 +2783,7 @@ class okcoin(Exchange, ImplicitAPI):
             response = await self.privateGetTradeFillsHistory(self.extend(request, params))
         else:
             response = await self.privateGetTradeFills(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2588,7 +2796,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        request = {
+        request: dict = {
             # 'instrument_id': market['id'],
             'order_id': id,
             # 'after': '1',  # return the page after the specified page number
@@ -2597,22 +2805,24 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
+        https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         method = None
         method, params = self.handle_option_and_params(params, 'fetchLedger', 'method', 'privateGetAccountBills')
-        request = {
+        request: dict = {
             # 'instType': None,  # 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
             # 'ccy': None,  # currency['id'],
             # 'ctType': None,  # 'linear', 'inverse', only applicable to FUTURES/SWAP
@@ -2631,7 +2841,13 @@ class okcoin(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = await self.privateGetAccountBillsArchive(self.extend(request, params))
+        elif method == 'privateGetAssetBills':
+            response = await self.privateGetAssetBills(self.extend(request, params))
+        else:
+            response = await self.privateGetAccountBills(self.extend(request, params))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -2684,7 +2900,7 @@ class okcoin(Exchange, ImplicitAPI):
         return self.parse_ledger(data, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             '1': 'transfer',  # transfer
             '2': 'trade',  # trade
             '3': 'trade',  # delivery
@@ -2699,7 +2915,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -2736,45 +2952,36 @@ class okcoin(Exchange, ImplicitAPI):
         #         "ts": "1597026383085"
         #     }
         #
-        id = self.safe_string(item, 'billId')
-        account = None
-        referenceId = self.safe_string(item, 'ordId')
-        referenceAccount = None
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safe_currency_code(self.safe_string(item, 'ccy'), currency)
-        amountString = self.safe_string(item, 'balChg')
-        amount = self.parse_number(amountString)
+        currencyId = self.safe_string(item, 'ccy')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'ts')
         feeCostString = self.safe_string(item, 'fee')
         fee = None
         if feeCostString is not None:
             fee = {
-                'cost': self.parse_number(Precise.string_neg(feeCostString)),
+                'cost': self.parse_to_numeric(Precise.string_neg(feeCostString)),
                 'currency': code,
             }
-        before = None
-        afterString = self.safe_string(item, 'bal')
-        after = self.parse_number(afterString)
-        status = 'ok'
         marketId = self.safe_string(item, 'instId')
         symbol = self.safe_symbol(marketId, None, '-')
-        return {
-            'id': id,
+        return self.safe_ledger_entry({
             'info': item,
+            'id': self.safe_string(item, 'billId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
+            'account': None,
+            'referenceId': self.safe_string(item, 'ordId'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'currency': code,
             'symbol': symbol,
-            'amount': amount,
-            'before': before,  # balance before
-            'after': after,  # balance after
-            'status': status,
+            'amount': self.safe_number(item, 'balChg'),
+            'before': None,  # balance before
+            'after': self.safe_number(item, 'bal'),  # balance after
+            'status': 'ok',
             'fee': fee,
-        }
+        }, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)
@@ -2816,7 +3023,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             return self.parse_trading_balance(response)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

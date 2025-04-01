@@ -976,5 +976,185 @@
                 ]
             ]
         }
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.00099,
+        "maker": 0.00095,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000005,
+                "max": 5000
+            },
+            "price": {
+                "min": 90,
+                "max": 40000
+            },
+            "cost": {
+                "min": 0.5,
+                "max": 10000000
+            }
+        },
+        "info": {
+            "default_chart": "depth",
+            "minimum_price": "90.0",
+            "fees": {
+                "flat_rate": {
+                    "maker": "0.00095",
+                    "taker": "0.00099"
+                },
+                "structure": [
+                    {
+                        "volume": "500000",
+                        "maker": "0.00095",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1000000",
+                        "maker": "0.00090",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "1500000",
+                        "maker": "0.00084",
+                        "taker": "0.00099"
+                    },
+                    {
+                        "volume": "3000000",
+                        "maker": "0.00080",
+                        "taker": "0.00095"
+                    },
+                    {
+                        "volume": "5000000",
+                        "maker": "0.00075",
+                        "taker": "0.00090"
+                    },
+                    {
+                        "volume": "10000000",
+                        "maker": "0.00069",
+                        "taker": "0.00080"
+                    },
+                    {
+                        "volume": "15000000",
+                        "maker": "0.00060",
+                        "taker": "0.00069"
+                    },
+                    {
+                        "volume": "20000000",
+                        "maker": "0.00050",
+                        "taker": "0.00060"
+                    },
+                    {
+                        "volume": "9999999999",
+                        "maker": "0.00040",
+                        "taker": "0.00050"
+                    }
+                ]
+            },
+            "maximum_price": "40000.0",
+            "book": "eth_usdt",
+            "minimum_value": "0.5",
+            "maximum_amount": "5000.0",
+            "maximum_value": "10000000",
+            "minimum_amount": "0.0000050",
+            "tick_size": "0.1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    500000,
+                    0.00099
+                ],
+                [
+                    1000000,
+                    0.00099
+                ],
+                [
+                    1500000,
+                    0.00099
+                ],
+                [
+                    3000000,
+                    0.00095
+                ],
+                [
+                    5000000,
+                    0.0009
+                ],
+                [
+                    10000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.00069
+                ],
+                [
+                    20000000,
+                    0.0006
+                ],
+                [
+                    9999999999,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    500000,
+                    0.00095
+                ],
+                [
+                    1000000,
+                    0.0009
+                ],
+                [
+                    1500000,
+                    0.00084
+                ],
+                [
+                    3000000,
+                    0.0008
+                ],
+                [
+                    5000000,
+                    0.00075
+                ],
+                [
+                    10000000,
+                    0.00069
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    20000000,
+                    0.0005
+                ],
+                [
+                    9999999999,
+                    0.0004
+                ]
+            ]
+        }
     }
 }

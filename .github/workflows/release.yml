@@ -1,0 +1,268 @@
+name: Release workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input value'
+        required: false
+        default: 'default-value'
+
+permissions:
+  contents: write
+
+
+jobs:
+  manual-job:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
+
+    steps:
+      - name: Print Trigger Info
+        run: |
+          echo "This workflow was triggered manually."
+          echo "Input value: ${{ github.event.inputs.example_input }}"
+      - uses: actions/checkout@v4
+        if: github.ref == 'refs/heads/master'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 2
+      - uses: actions/checkout@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          fetch-depth: 2
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # cache: true
+          ini-values: |
+            zend.assertions=1
+            display_errors=On
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+          run: |
+            sudo mkdir -p /usr/share/dotnet
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Composer install
+        run: composer install
+      - name: Install python dependencies
+        run: pip install -r ci-requirements.txt
+      - name: Install Wheel
+        run: pip install wheel twine
+      - name: export exchanges (remove later)
+        run: npm run export-exchanges
+      - name: Transpile and Build
+        run: npm run force-build
+      - name: Base tests Rest
+        run: npm run test-base-rest
+      - name: Base tests Ws
+        run: npm run test-base-ws
+      - name: Id tests
+        run: npm run id-tests
+      - name: Request tests
+        run: npm run request-tests
+      - name: Response tests
+        run: npm run response-tests
+      - name: CommonJs tests
+        run: npm run commonjs-test
+      - name: Package Test
+        run: npm run package-test
+      - name: Freshness Test
+        run: npm run test-freshness
+      - name: Set new Version
+        run: |
+          npm config set git-tag-version=false
+          NPM_VERSION=$(npm version patch)
+          echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
+          COMMIT_MESSAGE=${NPM_VERSION:1}
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+      # - name: Pull changes
+      #   run: |
+      #       git config --global user.name "github-actions[bot]"
+      #       git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #       git config --global pull.rebase false
+      #       git add go/
+      #       git commit -m "[Automated changes] GO"
+      #       git pull -X ours origin master --no-edit
+      - name: vss and copy python-files
+        run: npm run vss && npm run copy-python-files
+      - name: Commit files
+        run: git add . -A
+      - name: Git status
+        run: git status
+      - name: cleanup old tags
+        run: npm run cleanup-old-tags --limit
+      - name: Create GH Release and git-tag-version and push
+        env:
+          COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+               echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
+               git config --global user.name "github-actions[bot]"
+               git config --global user.email "github-actions[bot]@users.noreply.github.com"
+               git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
+               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+               git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
+               git push origin --tags HEAD:master
+               echo "Creating github release..."
+               gh release create "${VERSION}" --generate-notes --verify-tag
+               git push
+
+      - name: Publish Go node_modules
+        env:
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          cd go/
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
+          cd ..
+      - name: C# Release Build
+        run: npm run buildCSRelease
+      - name: Deploy C#
+        env:
+          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: ./cs/deploy.sh;
+      - name: Deploy Python
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: cd python && ./deploy.sh && cd ..;
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+
+# jobs:
+#   manual-job:
+#     runs-on: ubuntu-latest
+#     if: github.ref == 'refs/heads/master'
+#     steps:
+#       - name: Print Trigger Info
+#         run: |
+#           echo "This workflow was triggered manually."
+#           echo "Input value: ${{ github.event.inputs.example_input }}"
+#       - uses: actions/checkout@v4
+#         with:
+#           ssh-key: ${{secrets.SECRET_KEY}}
+#           fetch-depth: 2
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           registry-url: "https://registry.npmjs.org"
+#       - name: Setup PHP with PECL extension
+#         uses: shivammathur/setup-php@v2
+#         with:
+#           php-version: '8.1'
+#       - uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.11'
+#           cache: 'pip'
+#       - name: create usr/share/dotnet folder
+#         run: |
+#           sudo mkdir -p /usr/share/dotnet
+#       - uses: actions/setup-dotnet@v4
+#         with:
+#           dotnet-version: '7.0.x'
+#           dotnet-quality: 'preview'
+#           run: |
+#             sudo mkdir -p /usr/share/dotnet
+#       - uses: actions/checkout@v4
+#       - name: Setup Go
+#         uses: actions/setup-go@v5
+#         with:
+#           go-version: "1.21.x"
+#       - name: Install NPM dependencies
+#         run: npm ci
+#       - name: Composer install
+#         run: composer install
+#       - name: Install python dependencies
+#         run: pip install -r ci-requirements.txt
+#       - name: Install Wheel
+#         run: pip install wheel twine
+#       - name: export exchanges (remove later)
+#         run: npm run export-exchanges
+#       # # - name: Transpile and Build
+#       # #   run: npm run force-build
+#       # - name: Base tests Rest
+#       #   run: npm run test-base-rest
+#       # - name: Base tests Ws
+#       #   run: npm run test-base-ws
+#       # - name: Id tests
+#       #   run: npm run id-tests
+#       # - name: Request tests
+#       #   run: npm run request-tests
+#       # - name: Response tests
+#       #   run: npm run response-tests
+#       # # - name: CommonJs tests
+#       # #   run: npm run commonjs-test tmp disabling it
+#       # - name: Package Test
+#       #   run: npm run package-test
+#       # - name: Freshness Test
+#       #   run: npm run test-freshness
+#       # - name: Go Types Test
+#       #   run: npm run test-types-go
+#       # Will start the deployment process
+#       - name: Set new Version
+#         run: |
+#           npm config set git-tag-version=false
+#           NPM_VERSION=$(npm version patch)
+#           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
+#           COMMIT_MESSAGE=${NPM_VERSION:1}
+#           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+#       - name: Pull changes
+#         run: |
+#             git config --global pull.rebase false
+#             git pull origin master
+#       - name: vss and copy python-files
+#         run: npm run vss && npm run copy-python-files
+#       - name: Commit files
+#         run: git add . -A
+#       - name: Git status
+#         run: git status
+#       - name: cleanup old tags
+#         run: npm run cleanup-old-tags --limit
+#       - name: Create GH Release and git-tag-version and push
+#         env:
+#           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+#           NPM_VERSION: ${{ env.NPM_VERSION }}
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
+#                git config --global user.name "github-actions[bot]"
+#                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+#                git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+#                git tag -a "${NPM_VERSION}" -m "${COMMIT_MESSAGE}"
+#                git commit -m "${COMMIT_MESSAGE}"
+#                git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+#                git push --tags
+#                echo "Creating github release..."
+#                gh release create "${NPM_VERSION}" --generate-notes --verify-tag
+#                git push origin HEAD:master
+
+#       - name: Publish Go node_modules
+#         env:
+#           VERSION: ${{ env.NPM_VERSION }}
+#         run: |
+#           GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt@$VERSION
+#       - name: C# Release Build
+#         run: npm run buildCSRelease
+#       - name: Deploy C#
+#         env:
+#           NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+#         run: ./cs/deploy.sh;
+#       - name: Deploy Python
+#         env:
+#           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+#         run: cd python && ./deploy.sh && cd ..;
+#       - uses: JS-DevTools/npm-publish@v3
+#         with:
+#           token: ${{ secrets.NPM_TOKEN }}

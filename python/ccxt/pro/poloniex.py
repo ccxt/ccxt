@@ -6,19 +6,19 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
+from ccxt.base.types import Any, Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.precise import Precise
 
 
 class poloniex(ccxt.async_support.poloniex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(poloniex, self).describe(), {
             'has': {
                 'ws': True,
@@ -27,6 +27,7 @@ class poloniex(ccxt.async_support.poloniex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchBalance': True,
                 'watchStatus': False,
                 'watchOrders': True,
@@ -84,9 +85,11 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def authenticate(self, params={}):
         """
-         * @ignore
+ @ignore
         authenticates the user to access private web socket channels
-        :see: https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+
+        https://api-docs.poloniex.com/spot/websocket/authentication
+
         :returns dict: response from exchange
         """
         self.check_required_credentials()
@@ -99,7 +102,7 @@ class poloniex(ccxt.async_support.poloniex):
             accessPath = '/ws'
             requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp
             signature = self.hmac(self.encode(requestString), self.encode(self.secret), hashlib.sha256, 'base64')
-            request = {
+            request: dict = {
                 'event': 'subscribe',
                 'channel': ['auth'],
                 'params': {
@@ -111,7 +114,7 @@ class poloniex(ccxt.async_support.poloniex):
                 },
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             #
             #    {
             #        "data": {
@@ -137,17 +140,18 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel
+        :param str messageHash: unique identifier for the message
         :param boolean isPrivate: True for the authenticated url, False for the public url
-        :param str[]|None symbols: CCXT market symbols
+        :param str[] [symbols]: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
         publicOrPrivate = 'private' if isPrivate else 'public'
         url = self.urls['api']['ws'][publicOrPrivate]
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -166,42 +170,44 @@ class poloniex(ccxt.async_support.poloniex):
 
     async def trade_request(self, name: str, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param str[]|None symbols: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
-        subscribe = {
+        messageHash = str(self.nonce())
+        subscribe: dict = {
             'id': messageHash,
             'event': name,
             'params': params,
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
         :param boolean [params.allowBorrow]: allow order to be placed by borrowing funds(Default: False)
         :param str [params.stpMode]: self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
         :param str [params.slippageTolerance]: used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-       """
+        """
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
@@ -210,36 +216,41 @@ class poloniex(ccxt.async_support.poloniex):
         isPostOnly = self.is_post_only(uppercaseType == 'MARKET', uppercaseType == 'LIMIT_MAKER', params)
         if isPostOnly:
             uppercaseType = 'LIMIT_MAKER'
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side.upper(),
             'type': type.upper(),
         }
         if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
-            quoteAmount = self.safe_string(params, 'amount')
-            if (quoteAmount is None) and (self.options['createMarketBuyOrderRequiresPrice']):
-                cost = self.safe_number(params, 'cost')
-                params = self.omit(params, 'cost')
-                if price is None and cost is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_number(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    quote = Precise.string_mul(amountString, priceString)
-                    amount = cost if (cost is not None) else self.parse_number(quote)
-                    quoteAmount = self.cost_to_precision(symbol, amount)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
             else:
                 quoteAmount = self.cost_to_precision(symbol, amount)
-            request['amount'] = self.amount_to_precision(market['symbol'], quoteAmount)
+            request['amount'] = quoteAmount
         else:
             request['quantity'] = self.amount_to_precision(market['symbol'], amount)
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
         return await self.trade_request('createOrder', self.extend(request, params))
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
         cancel multiple orders
         :param str id: order id
         :param str [symbol]: unified market symbol
@@ -253,9 +264,11 @@ class poloniex(ccxt.async_support.poloniex):
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
         return await self.cancel_orders_ws([id], symbol, params)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
@@ -265,14 +278,16 @@ class poloniex(ccxt.async_support.poloniex):
         """
         await self.load_markets()
         await self.authenticate()
-        request = {
+        request: dict = {
             'orderIds': ids,
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+
+        https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the poloniex api endpoint
@@ -294,7 +309,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        }]
         #    }
         #
-        messageHash = self.safe_integer(message, 'id')
+        messageHash = self.safe_string(message, 'id')
         data = self.safe_value(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
@@ -303,10 +318,12 @@ class poloniex(ccxt.async_support.poloniex):
             orders.append(parsedOrder)
         client.resolve(orders, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.poloniex.com/#public-channels-market-data-candlesticks
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -324,10 +341,12 @@ class poloniex(ccxt.async_support.poloniex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -337,11 +356,13 @@ class poloniex(ccxt.async_support.poloniex):
         tickers = await self.watch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+
+        :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -353,28 +374,62 @@ class poloniex(ccxt.async_support.poloniex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.poloniex.com/#public-channels-market-data-trades
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#trades
+
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        symbol = self.symbol(symbol)
+        symbols = self.market_symbols(symbols, None, False, True, True)
         name = 'trades'
-        trades = await self.subscribe(name, name, False, [symbol], params)
+        url = self.urls['api']['ws']['public']
+        marketIds = self.market_ids(symbols)
+        subscribe: dict = {
+            'event': 'subscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': marketIds,
+        }
+        request = self.extend(subscribe, params)
+        messageHashes = []
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                messageHashes.append(name + '::' + symbols[i])
+        trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.poloniex.com/#public-channels-market-data-book-level-2
+
+        https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -387,10 +442,12 @@ class poloniex(ccxt.async_support.poloniex):
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
+
+        https://api-docs.poloniex.com/spot/websocket/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchOrders
         :param int [limit]: not used by poloniex watchOrders
@@ -408,10 +465,12 @@ class poloniex(ccxt.async_support.poloniex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user using orders stream
-        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
+
+        https://api-docs.poloniex.com/spot/websocket/order
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
@@ -430,10 +489,12 @@ class poloniex(ccxt.async_support.poloniex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.poloniex.com/#authenticated-channels-market-data-balances
+
+        https://api-docs.poloniex.com/spot/websocket/balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -494,7 +555,8 @@ class poloniex(ccxt.async_support.poloniex):
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(symbol)
-        timeframe = self.find_timeframe(channel)
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframe = self.find_timeframe(channel, timeframes)
         messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -601,8 +663,8 @@ class poloniex(ccxt.async_support.poloniex):
             'type': self.safe_string_lower(trade, 'type'),
             'side': self.safe_string_lower_2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': self.omit_zero(self.safe_number_2(trade, 'tradePrice', 'price')),
-            'amount': self.omit_zero(self.safe_number_2(trade, 'filledQuantity', 'quantity')),
+            'price': self.omit_zero(self.safe_string_2(trade, 'tradePrice', 'price')),
+            'amount': self.omit_zero(self.safe_string_2(trade, 'filledQuantity', 'quantity')),
             'cost': self.safe_string_2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': None,
@@ -612,7 +674,7 @@ class poloniex(ccxt.async_support.poloniex):
         }, market)
 
     def parse_status(self, status):
-        statuses = {
+        statuses: dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -875,7 +937,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        newTickers = []
+        newTickers: dict = {}
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -883,7 +945,7 @@ class poloniex(ccxt.async_support.poloniex):
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
                 self.tickers[symbol] = ticker
-                newTickers.append(ticker)
+                newTickers[symbol] = ticker
         messageHashes = self.find_message_hashes(client, 'ticker::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -969,13 +1031,15 @@ class poloniex(ccxt.async_support.poloniex):
                         bid = self.safe_value(bids, j)
                         price = self.safe_number(bid, 0)
                         amount = self.safe_number(bid, 1)
-                        orderbook['bids'].store(price, amount)
+                        bidsSide = orderbook['bids']
+                        bidsSide.store(price, amount)
                 if asks is not None:
                     for j in range(0, len(asks)):
                         ask = self.safe_value(asks, j)
                         price = self.safe_number(ask, 0)
                         amount = self.safe_number(ask, 1)
-                        orderbook['asks'].store(price, amount)
+                        asksSide = orderbook['asks']
+                        asksSide.store(price, amount)
                 orderbook['symbol'] = symbol
                 orderbook['timestamp'] = timestamp
                 orderbook['datetime'] = self.iso8601(timestamp)
@@ -1025,7 +1089,7 @@ class poloniex(ccxt.async_support.poloniex):
         #
         firstBalance = self.safe_value(response, 0, {})
         timestamp = self.safe_integer(firstBalance, 'ts')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1063,7 +1127,7 @@ class poloniex(ccxt.async_support.poloniex):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.lastPong = self.milliseconds()
-        methods = {
+        methods: dict = {
             'candles_minute_1': self.handle_ohlcv,
             'candles_minute_5': self.handle_ohlcv,
             'candles_minute_10': self.handle_ohlcv,
@@ -1093,18 +1157,12 @@ class poloniex(ccxt.async_support.poloniex):
         if type == 'auth':
             self.handle_authenticate(client, message)
         elif type is None:
-            data = self.safe_value(message, 'data')
-            item = self.safe_value(data, 0)
-            orderId = self.safe_string(item, 'orderId')
-            if orderId == '0':
-                self.handle_error_message(client, item)
-            else:
-                return self.handle_order_request(client, message)
+            self.handle_order_request(client, message)
         else:
             data = self.safe_value(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
-                return method(client, message)
+                method(client, message)
 
     def handle_error_message(self, client: Client, message):
         #
@@ -1124,12 +1182,40 @@ class poloniex(ccxt.async_support.poloniex):
         #       "event": "error",
         #       "message": "Platform in maintenance mode"
         #    }
+        #    {
+        #       "id":"1722386782048",
+        #       "data":[
+        #          {
+        #             "orderId":0,
+        #             "clientOrderId":null,
+        #             "message":"available insufficient",
+        #             "code":21721
+        #          }
+        #       ]
+        #    }
         #
+        id = self.safe_string(message, 'id')
         event = self.safe_string(message, 'event')
-        orderId = self.safe_string(message, 'orderId')
+        data = self.safe_list(message, 'data')
+        first = self.safe_dict(data, 0)
+        orderId = self.safe_string(first, 'orderId')
         if (event == 'error') or (orderId == '0'):
-            error = self.safe_string(message, 'message')
-            raise ExchangeError(self.id + ' error: ' + self.json(error))
+            try:
+                error = self.safe_string(first, 'message')
+                code = self.safe_string(first, 'code')
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+                raise ExchangeError(feedback)
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    messageHash = 'authenticated'
+                    client.reject(e, messageHash)
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+                else:
+                    client.reject(e, id)
+                return True
         return False
 
     def handle_authenticate(self, client: Client, message):
@@ -1153,7 +1239,7 @@ class poloniex(ccxt.async_support.poloniex):
                 del client.subscriptions[messageHash]
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'event': 'ping',
         }

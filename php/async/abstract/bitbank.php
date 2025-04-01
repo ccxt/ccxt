@@ -40,11 +40,20 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function private_get_user_spot_active_orders($params = array()) {
         return $this->request('user/spot/active_orders', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_user_margin_positions($params = array()) {
+        return $this->request('user/margin/positions', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_user_spot_trade_history($params = array()) {
         return $this->request('user/spot/trade_history', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_user_deposit_history($params = array()) {
         return $this->request('user/deposit_history', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_user_unconfirmed_deposits($params = array()) {
+        return $this->request('user/unconfirmed_deposits', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_user_deposit_originators($params = array()) {
+        return $this->request('user/deposit_originators', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_user_withdrawal_account($params = array()) {
         return $this->request('user/withdrawal_account', 'private', 'GET', $params, null, null, array());
@@ -69,6 +78,12 @@ abstract class bitbank extends \ccxt\async\Exchange {
     }
     public function private_post_user_spot_orders_info($params = array()) {
         return $this->request('user/spot/orders_info', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_user_confirm_deposits($params = array()) {
+        return $this->request('user/confirm_deposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_user_confirm_deposits_all($params = array()) {
+        return $this->request('user/confirm_deposits_all', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_user_request_withdrawal($params = array()) {
         return $this->request('user/request_withdrawal', 'private', 'POST', $params, null, null, array());
@@ -109,11 +124,20 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function privateGetUserSpotActiveOrders($params = array()) {
         return $this->request('user/spot/active_orders', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetUserMarginPositions($params = array()) {
+        return $this->request('user/margin/positions', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetUserSpotTradeHistory($params = array()) {
         return $this->request('user/spot/trade_history', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetUserDepositHistory($params = array()) {
         return $this->request('user/deposit_history', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetUserUnconfirmedDeposits($params = array()) {
+        return $this->request('user/unconfirmed_deposits', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetUserDepositOriginators($params = array()) {
+        return $this->request('user/deposit_originators', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetUserWithdrawalAccount($params = array()) {
         return $this->request('user/withdrawal_account', 'private', 'GET', $params, null, null, array());
@@ -138,6 +162,12 @@ abstract class bitbank extends \ccxt\async\Exchange {
     }
     public function privatePostUserSpotOrdersInfo($params = array()) {
         return $this->request('user/spot/orders_info', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostUserConfirmDeposits($params = array()) {
+        return $this->request('user/confirm_deposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostUserConfirmDepositsAll($params = array()) {
+        return $this->request('user/confirm_deposits_all', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostUserRequestWithdrawal($params = array()) {
         return $this->request('user/request_withdrawal', 'private', 'POST', $params, null, null, array());

@@ -5,21 +5,23 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from ccxt.base.errors import ArgumentsRequired
+from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bitstamp(ccxt.async_support.bitstamp):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': False,
                 'watchTickers': False,
@@ -47,7 +49,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -61,7 +63,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'orderbook:' + symbol
         channel = 'diff_order_book_' + market['id']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -110,7 +112,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             # usually it takes at least 4-5 deltas to resolve
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 6)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaNonce:
@@ -149,7 +151,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 return i + 1
         return len(deltas)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -164,7 +166,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'trades:' + symbol
         url = self.urls['api']['ws']
         channel = 'live_trades_' + market['id']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -252,7 +254,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -268,7 +270,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'type': channel,
@@ -418,7 +420,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #     }
         #
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'live_trades': self.handle_trade,
             'diff_order_book': self.handle_order_book,
             'private-my_orders': self.handle_orders,
@@ -481,9 +483,9 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         event = self.safe_string(message, 'event')
         if event == 'bts:subscription_succeeded':
-            return self.handle_subscription_status(client, message)
+            self.handle_subscription_status(client, message)
         else:
-            return self.handle_subject(client, message)
+            self.handle_subject(client, message)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
@@ -505,13 +507,12 @@ class bitstamp(ccxt.async_support.bitstamp):
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId
                 self.options['wsSessionToken'] = sessionToken
-                return response
 
     async def subscribe_private(self, subscription, messageHash, params={}):
         url = self.urls['api']['ws']
         await self.authenticate()
         messageHash += '-' + self.options['userId']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': messageHash,

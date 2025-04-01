@@ -129,5 +129,137 @@
                 ]
             ]
         }
+    },
+    "LTC/EUR": {
+        "id": "LTC-EUR",
+        "symbol": "LTC/EUR",
+        "base": "LTC",
+        "quote": "EUR",
+        "baseId": "LTC",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.002,
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 5
+            }
+        },
+        "info": {
+            "market": "LTC-EUR",
+            "status": "trading",
+            "base": "LTC",
+            "quote": "EUR",
+            "pricePrecision": "5",
+            "minOrderInBaseAsset": "0.01",
+            "minOrderInQuoteAsset": "5",
+            "maxOrderInBaseAsset": "1000000000",
+            "maxOrderInQuoteAsset": "1000000000",
+            "orderTypes": [
+                "market",
+                "limit",
+                "stopLoss",
+                "stopLossLimit",
+                "takeProfit",
+                "takeProfitLimit"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    250000,
+                    0.0016
+                ],
+                [
+                    500000,
+                    0.0012
+                ],
+                [
+                    1000000,
+                    0.001
+                ],
+                [
+                    2500000,
+                    0.0008
+                ],
+                [
+                    5000000,
+                    0.0006
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0004
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0006
+                ],
+                [
+                    1000000,
+                    0.0005
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    10000000,
+                    0.0003
+                ],
+                [
+                    25000000,
+                    0.0003
+                ]
+            ]
+        }
     }
 }

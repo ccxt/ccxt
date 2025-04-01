@@ -7,20 +7,21 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\NotSupported;
-use React\Async;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class exmo extends \ccxt\async\exmo {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => true,
-                'watchOrders' => false, // TODO
+                'watchOrders' => true,
                 'watchOrderBook' => true,
                 'watchOHLCV' => false,
             ),
@@ -48,7 +49,7 @@ class exmo extends \ccxt\async\exmo {
         return $requestId;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -205,10 +206,13 @@ class exmo extends \ccxt\async\exmo {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -227,6 +231,38 @@ class exmo extends \ccxt\async\exmo {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+             *
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = 'ticker:' . $market['symbol'];
+                $args[] = 'spot/ticker:' . $market['id'];
+            }
+            $url = $this->urls['api']['ws']['public'];
+            $message = array(
+                'method' => 'subscribe',
+                'topics' => $args,
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $params);
+            Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $request));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -262,7 +298,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -328,7 +364,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -457,7 +493,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($myTrades, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -526,24 +562,23 @@ class exmo extends \ccxt\async\exmo {
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $event = $this->safe_string($message, 'event');
         if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bid', 'ask');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($orderBook, 'ask', array());
-            $bids = $this->safe_value($orderBook, 'bid', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
+            $asks = $this->safe_list($orderBook, 'ask', array());
+            $bids = $this->safe_list($orderBook, 'bid', array());
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -555,6 +590,223 @@ class exmo extends \ccxt\async\exmo {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             *
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+             *
+             * watches information on multiple $orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            list($type, $query) = $this->handle_market_type_and_params('watchOrders', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $messageHash = null;
+            if ($symbol === null) {
+                $messageHash = 'orders:' . $type;
+            } else {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = 'orders:' . $market['symbol'];
+            }
+            $message = array(
+                'method' => 'subscribe',
+                'topics' => array(
+                    $type . '/orders',
+                ),
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $query);
+            $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_orders(Client $client, $message) {
+        //
+        //  spot
+        // {
+        //     "ts" => 1574427585174,
+        //     "event" => "snapshot",
+        //     "topic" => "spot/orders",
+        //     "data" => array(
+        //       {
+        //         "order_id" => "14",
+        //         "client_id":"100500",
+        //         "created" => "1574427585",
+        //         "pair" => "BTC_USD",
+        //         "price" => "7750",
+        //         "quantity" => "0.1",
+        //         "amount" => "775",
+        //         "original_quantity" => "0.1",
+        //         "original_amount" => "775",
+        //         "type" => "sell",
+        //         "status" => "open"
+        //       }
+        //     )
+        // }
+        //
+        //  margin
+        // {
+        //     "ts":1624371281773,
+        //     "event":"snapshot",
+        //     "topic":"margin/orders",
+        //     "data":array(
+        //        {
+        //           "order_id":"692844278081168665",
+        //           "created":"1624371250919761600",
+        //           "type":"limit_buy",
+        //           "previous_type":"limit_buy",
+        //           "pair":"BTC_USD",
+        //           "leverage":"2",
+        //           "price":"10000",
+        //           "stop_price":"0",
+        //           "distance":"0",
+        //           "trigger_price":"10000",
+        //           "init_quantity":"0.1",
+        //           "quantity":"0.1",
+        //           "funding_currency":"USD",
+        //           "funding_quantity":"1000",
+        //           "funding_rate":"0",
+        //           "client_id":"111111",
+        //           "expire":0,
+        //           "src":1,
+        //           "comment":"comment1",
+        //           "updated":1624371250938136600,
+        //           "status":"active"
+        //        }
+        //     )
+        // }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $parts = explode('/', $topic);
+        $type = $this->safe_string($parts, 0);
+        $messageHash = 'orders:' . $type;
+        $event = $this->safe_string($message, 'event');
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $cachedOrders = $this->orders;
+        $rawOrders = array();
+        if ($event === 'snapshot') {
+            $rawOrders = $this->safe_value($message, 'data', array());
+        } elseif ($event === 'update') {
+            $rawOrder = $this->safe_dict($message, 'data', array());
+            $rawOrders[] = $rawOrder;
+        }
+        $symbols = array();
+        for ($j = 0; $j < count($rawOrders); $j++) {
+            $order = $this->parse_ws_order($rawOrders[$j]);
+            $cachedOrders->append ($order);
+            $symbols[$order['symbol']] = true;
+        }
+        $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
+        for ($i = 0; $i < count($symbolKeys); $i++) {
+            $symbol = $symbolKeys[$i];
+            $symbolSpecificMessageHash = 'orders:' . $symbol;
+            $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
+        }
+        $client->resolve ($cachedOrders, $messageHash);
+    }
+
+    public function parse_ws_order(array $order, ?array $market = null): array {
+        //
+        // {
+        //     order_id => '43226756791',
+        //     client_id => 0,
+        //     created => '1730371416',
+        //     $type => 'market_buy',
+        //     pair => 'TRX_USD',
+        //     quantity => '0',
+        //     original_quantity => '30',
+        //     status => 'cancelled',
+        //     last_trade_id => '726480870',
+        //     last_trade_price => '0.17',
+        //     last_trade_quantity => '30'
+        // }
+        //
+        $id = $this->safe_string($order, 'order_id');
+        $timestamp = $this->safe_timestamp($order, 'created');
+        $orderType = $this->safe_string($order, 'type');
+        $side = $this->parseSide ($orderType);
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $amount = $this->safe_string($order, 'quantity');
+        if ($amount === null) {
+            $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
+            $amount = $this->safe_string($order, $amountField);
+        }
+        $price = $this->safe_string($order, 'price');
+        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stop_price'));
+        $type = null;
+        if (($orderType !== 'buy') && ($orderType !== 'sell')) {
+            $type = $orderType;
+        }
+        $trades = null;
+        if (is_array($order) && array_key_exists('last_trade_id', $order)) {
+            $trade = $this->parse_ws_trade($order, $market);
+            $trades = array( $trade );
+        }
+        return $this->safe_order(array(
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
+            'status' => $this->parseStatus ($this->safe_string($order, 'status')),
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'cost' => null,
+            'amount' => $this->safe_string($order, 'original_quantity'),
+            'filled' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
+            'average' => null,
+            'trades' => $trades,
+            'fee' => null,
+            'info' => $order,
+        ), $market);
+    }
+
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
+        $id = $this->safe_string($trade, 'order_id');
+        $orderType = $this->safe_string($trade, 'type');
+        $side = $this->parseSide ($orderType);
+        $marketId = $this->safe_string($trade, 'pair');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $type = null;
+        if (($orderType !== 'buy') && ($orderType !== 'sell')) {
+            $type = $orderType;
+        }
+        return $this->safe_trade(array(
+            'id' => $this->safe_string($trade, 'last_trade_id'),
+            'symbol' => $symbol,
+            'order' => $id,
+            'type' => $type,
+            'side' => $side,
+            'price' => $this->safe_string($trade, 'last_trade_price'),
+            'amount' => $this->safe_string($trade, 'last_trade_quantity'),
+            'cost' => null,
+            'fee' => null,
+        ), $market);
     }
 
     public function handle_message(Client $client, $message) {
@@ -581,7 +833,8 @@ class exmo extends \ccxt\async\exmo {
         );
         $eventHandler = $this->safe_value($events, $event);
         if ($eventHandler !== null) {
-            return $eventHandler($client, $message);
+            $eventHandler($client, $message);
+            return;
         }
         if (($event === 'update') || ($event === 'snapshot')) {
             $topic = $this->safe_string($message, 'topic');
@@ -596,14 +849,15 @@ class exmo extends \ccxt\async\exmo {
                     'spot/trades' => array($this, 'handle_trades'),
                     'margin/trades' => array($this, 'handle_trades'),
                     'spot/order_book_updates' => array($this, 'handle_order_book'),
-                    // 'spot/orders' => $this->handleOrders,
-                    // 'margin/orders' => $this->handleOrders,
+                    'spot/orders' => array($this, 'handle_orders'),
+                    'margin/orders' => array($this, 'handle_orders'),
                     'spot/user_trades' => array($this, 'handle_my_trades'),
                     'margin/user_trades' => array($this, 'handle_my_trades'),
                 );
                 $handler = $this->safe_value($handlers, $channel);
                 if ($handler !== null) {
-                    return $handler($client, $message);
+                    $handler($client, $message);
+                    return;
                 }
             }
         }
@@ -649,28 +903,30 @@ class exmo extends \ccxt\async\exmo {
     }
 
     public function authenticate($params = array ()) {
-        $messageHash = 'authenticated';
-        list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $time = $this->milliseconds();
-            $this->check_required_credentials();
-            $requestId = $this->request_id();
-            $signData = $this->apiKey . (string) $time;
-            $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
-            $request = array(
-                'method' => 'login',
-                'id' => $requestId,
-                'api_key' => $this->apiKey,
-                'sign' => $sign,
-                'nonce' => $time,
-            );
-            $message = array_merge($request, $query);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $messageHash = 'authenticated';
+            list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $time = $this->milliseconds();
+                $this->check_required_credentials();
+                $requestId = $this->request_id();
+                $signData = $this->apiKey . (string) $time;
+                $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
+                $request = array(
+                    'method' => 'login',
+                    'id' => $requestId,
+                    'api_key' => $this->apiKey,
+                    'sign' => $sign,
+                    'nonce' => $time,
+                );
+                $message = $this->extend($request, $query);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

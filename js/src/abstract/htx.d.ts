@@ -192,6 +192,7 @@ interface Exchange {
     spotPrivatePostV2SubUserApiKeyModification(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV2SubUserApiKeyDeletion(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1SubuserTransfer(params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostV1TrustUserActiveCredit(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersPlace(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderBatchOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderAutoPlace(params?: {}): Promise<implicitReturnType>;
@@ -315,8 +316,11 @@ interface Exchange {
     contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(params?: {}): Promise<implicitReturnType>;
     contractPublicGetIndexMarketHistoryLinearSwapBasis(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetApiV1ContractSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetApiV1ContractApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetSwapApiV1SwapSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapCrossPositionSide(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapPositionSide(params?: {}): Promise<implicitReturnType>;

@@ -2,5 +2,14 @@
     "exchange": "huobijp",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-cloud.bittrade.co.jp/v1/common/timestamp",
+                "input": []
+            }
+        ]
+    }
 }

@@ -1230,5 +1230,159 @@
             ]
         },
         "numericId": 147
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0022
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "base_currency": "ETH",
+            "base_currency_scale": "8",
+            "counter_currency": "USDT",
+            "counter_currency_scale": "6",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "220000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "27",
+            "auction_price": "1820.0",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "0.04103895"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 27
     }
 }

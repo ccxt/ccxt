@@ -1,2 +1,3 @@
-declare function testBorrowRate(exchange: any, skippedProperties: any, method: any, entry: any, requestedCode: any): void;
+import { Exchange } from "../../../../ccxt";
+declare function testBorrowRate(exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string): void;
 export default testBorrowRate;

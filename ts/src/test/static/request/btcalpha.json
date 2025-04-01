@@ -97,6 +97,59 @@
                 ],
                 "output": "amount=0.1&pair=LTC_USDT&price=50&type=buy"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://btc-alpha.com/api/v1/exchanges/?pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://btc-alpha.com/api/v1/orderbook/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://btc-alpha.com/api/v1/ticker/?pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://btc-alpha.com/api/v1/ticker/",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/5/chart/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

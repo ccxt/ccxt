@@ -1,0 +1,72 @@
+{
+    "exchange": "bitbns",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coinone.co.kr/public/v2/currencies",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinone.co.kr/public/v2/orderbook/KRW/BTC",
+                "input": [
+                    "BTC/KRW"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/BTC",
+                "input": [
+                    [
+                        "BTC/KRW"
+                    ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/BTC",
+                "input": [
+                    "BTC/KRW"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.coinone.co.kr/public/v2/trades/KRW/BTC",
+                "input": [
+                    "BTC/KRW"
+                ]
+            }
+        ]
+    }
+}

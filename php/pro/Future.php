@@ -5,6 +5,7 @@ namespace ccxt\pro;
 use React\EventLoop\Loop;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
+use function React\Promise\race;
 
 class Future implements PromiseInterface {
     private Deferred $deferred;
@@ -50,5 +51,12 @@ class Future implements PromiseInterface {
 
     public function always(callable $onFulfilledOrRejected): PromiseInterface {
         return $this->deferred->promise()->always($onFulfilledOrRejected);
+    }
+
+    public static function race(array $futures): Future {
+        $future = new Future();
+        $promise = race($futures);
+        $promise->then(array($future, 'resolve'), array($future, 'reject'));
+        return $future;
     }
 };

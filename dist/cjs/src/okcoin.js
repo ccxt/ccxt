@@ -6,11 +6,11 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okcoin
- * @extends Exchange
+ * @augments Exchange
  */
 class okcoin extends okcoin$1 {
     describe() {
@@ -31,12 +31,33 @@ class okcoin extends okcoin$1 {
                 'future': true,
                 'option': undefined,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -54,6 +75,10 @@ class okcoin extends okcoin$1 {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'setMargin': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -180,6 +205,87 @@ class okcoin extends okcoin$1 {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1 / 12,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'taker': 0.002,
@@ -229,6 +335,16 @@ class okcoin extends okcoin$1 {
                     '50026': errors.ExchangeNotAvailable,
                     '50027': errors.PermissionDenied,
                     '50028': errors.ExchangeError,
+                    '50029': errors.ExchangeError,
+                    '50030': errors.PermissionDenied,
+                    '50032': errors.AccountSuspended,
+                    '50033': errors.AccountSuspended,
+                    '50035': errors.BadRequest,
+                    '50036': errors.BadRequest,
+                    '50037': errors.BadRequest,
+                    '50038': errors.ExchangeError,
+                    '50039': errors.ExchangeError,
+                    '50041': errors.ExchangeError,
                     '50044': errors.BadRequest,
                     // API Class
                     '50100': errors.ExchangeError,
@@ -272,9 +388,25 @@ class okcoin extends okcoin$1 {
                     '51024': errors.AccountSuspended,
                     '51025': errors.ExchangeError,
                     '51026': errors.BadSymbol,
+                    '51030': errors.InvalidOrder,
+                    '51031': errors.InvalidOrder,
+                    '51032': errors.InvalidOrder,
+                    '51033': errors.InvalidOrder,
+                    '51037': errors.InvalidOrder,
+                    '51038': errors.InvalidOrder,
+                    '51044': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
-                    '51031': errors.InvalidOrder,
+                    '51048': errors.InvalidOrder,
+                    '51049': errors.InvalidOrder,
+                    '51050': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
+                    '51052': errors.InvalidOrder,
+                    '51053': errors.InvalidOrder,
+                    '51054': errors.BadRequest,
+                    '51056': errors.InvalidOrder,
+                    '51058': errors.InvalidOrder,
+                    '51059': errors.InvalidOrder,
                     '51100': errors.InvalidOrder,
                     '51102': errors.InvalidOrder,
                     '51103': errors.InvalidOrder,
@@ -535,6 +667,9 @@ class okcoin extends okcoin$1 {
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ERC20': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'OMNI': 'Omni',
+                    'TRC20': 'TRON',
                 },
             },
             'commonCurrencies': {
@@ -551,32 +686,40 @@ class okcoin extends okcoin$1 {
             },
         });
     }
+    /**
+     * @method
+     * @name okcoin#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.publicGetPublicTime(params);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601(this.safeString(response, 'iso'));
+        const data = this.safeList(response, 'data');
+        const timestamp = this.safeDict(data, 0);
+        return this.safeInteger(timestamp, 'ts');
     }
+    /**
+     * @method
+     * @name okcoin#fetchMarkets
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+     * @description retrieves data on all markets for okcoin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchMarkets
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
-         * @description retrieves data on all markets for okcoin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const request = {
             'instType': 'SPOT',
         };
@@ -667,22 +810,14 @@ class okcoin extends okcoin$1 {
             'info': market,
         });
     }
-    safeNetwork(networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
+    /**
+     * @method
+     * @name okcoin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         if (!this.checkRequiredCredentials(false)) {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new errors.ExchangeError(this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
@@ -718,7 +853,7 @@ class okcoin extends okcoin$1 {
                     if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                         const parts = networkId.split('-');
                         const chainPart = this.safeString(parts, 1, networkId);
-                        const networkCode = this.safeNetwork(chainPart);
+                        const networkCode = this.networkIdToCode(chainPart);
                         const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
                         if (maxPrecision === undefined) {
                             maxPrecision = precision;
@@ -767,17 +902,17 @@ class okcoin extends okcoin$1 {
             return result;
         }
     }
+    /**
+     * @method
+     * @name okcoin#fetchOrderBook
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchOrderBook
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -841,7 +976,7 @@ class okcoin extends okcoin$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -869,16 +1004,16 @@ class okcoin extends okcoin$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name okcoin#fetchTicker
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchTicker
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -915,22 +1050,22 @@ class okcoin extends okcoin$1 {
         //
         return this.parseTicker(first, market);
     }
+    /**
+     * @method
+     * @name okcoin#fetchTickers
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchTickers
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         symbols = this.marketSymbols(symbols);
         const request = {
             'instType': 'SPOT',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols, params);
     }
     parseTrade(trade, market = undefined) {
@@ -1009,19 +1144,19 @@ class okcoin extends okcoin$1 {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name okcoin#fetchTrades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchTrades
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if ((limit === undefined) || (limit > 100)) {
@@ -1039,7 +1174,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1065,20 +1200,20 @@ class okcoin extends okcoin$1 {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name okcoin#fetchOHLCV
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchOHLCV
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const duration = this.parseTimeframe(timeframe);
@@ -1091,8 +1226,10 @@ class okcoin extends okcoin$1 {
         const request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         let response = undefined;
@@ -1102,7 +1239,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseAccountBalance(response) {
@@ -1164,14 +1301,14 @@ class okcoin extends okcoin$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name okcoin#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const request = {
@@ -1253,34 +1390,55 @@ class okcoin extends okcoin$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name okcoin#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        params['tgtCcy'] = 'quote_ccy';
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
+    /**
+     * @method
+     * @name okcoin#createOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
+     * @param {bool} [params.postOnly] true to place a post only order
+     * @param {float} [params.triggerPrice] conditional orders only, the price at which the order is to be triggered
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+     * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+     * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#createOrder
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
-         * @param {bool} [params.postOnly] true to place a post only order
-         * @param {float} [params.triggerPrice] conditional orders only, the price at which the order is to be triggered
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
-         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
-         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -1289,16 +1447,25 @@ class okcoin extends okcoin$1 {
         if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
             method = 'privatePostTradeOrderAlgo';
         }
-        if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
-            throw new errors.ExchangeError(this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
-        }
         if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
             request = [request];
         }
-        const response = await this[method](request);
+        let response = undefined;
+        if (method === 'privatePostTradeOrder') {
+            response = await this.privatePostTradeOrder(request);
+        }
+        else if (method === 'privatePostTradeOrderAlgo') {
+            response = await this.privatePostTradeOrderAlgo(request);
+        }
+        else if (method === 'privatePostTradeBatchOrders') {
+            response = await this.privatePostTradeBatchOrders(request);
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+        }
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
@@ -1318,7 +1485,7 @@ class okcoin extends okcoin$1 {
             'ordType': type,
             // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': this.amountToPrecision(symbol, amount),
+            // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false,
             //
@@ -1355,7 +1522,7 @@ class okcoin extends okcoin$1 {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (margin) {
             const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -1380,35 +1547,45 @@ class okcoin extends okcoin$1 {
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if ((side === 'buy')) {
+            if (side === 'buy') {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    let notional = this.safeNumber2(params, 'cost', 'sz');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString(amount);
-                                const priceString = this.numberToString(price);
-                                const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                                notional = this.parseNumber(quoteAmount);
-                            }
+                    let quoteAmount = undefined;
+                    let createMarketBuyOrderRequiresPrice = true;
+                    [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    const cost = this.safeNumber2(params, 'cost', 'sz');
+                    params = this.omit(params, ['cost', 'sz']);
+                    if (cost !== undefined) {
+                        quoteAmount = this.costToPrecision(symbol, cost);
+                    }
+                    else if (createMarketBuyOrderRequiresPrice) {
+                        if (price === undefined) {
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                         }
-                        else if (notional === undefined) {
-                            throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                        else {
+                            const amountString = this.numberToString(amount);
+                            const priceString = this.numberToString(price);
+                            const costRequest = Precise["default"].stringMul(amountString, priceString);
+                            quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     }
                     else {
-                        notional = (notional === undefined) ? amount : notional;
+                        quoteAmount = this.costToPrecision(symbol, amount);
                     }
-                    request['sz'] = this.costToPrecision(symbol, notional);
-                    params = this.omit(params, ['cost', 'sz']);
+                    request['sz'] = quoteAmount;
                 }
+                else {
+                    request['sz'] = this.amountToPrecision(symbol, amount);
+                }
+            }
+            else {
+                request['sz'] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
+            request['sz'] = this.amountToPrecision(symbol, amount);
             if ((!trigger) && (!conditional)) {
                 request['px'] = this.priceToPrecision(symbol, price);
             }
@@ -1426,7 +1603,7 @@ class okcoin extends okcoin$1 {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                 }
                 request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
@@ -1439,7 +1616,7 @@ class okcoin extends okcoin$1 {
                     }
                     else if (stopLossLimitOrderType) {
                         if (stopLossLimitPrice === undefined) {
-                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order');
                         }
                         else {
                             request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
@@ -1541,28 +1718,28 @@ class okcoin extends okcoin$1 {
         }
         return this.extend(request, params);
     }
+    /**
+     * @method
+     * @name okcoin#cancelOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
+     * @param {bool} [params.advanced] True if canceling advanced orders only
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#cancelOrder
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if cancel trigger or conditional orders
-         * @param {bool} [params.advanced] True if canceling advanced orders only
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         const advanced = this.safeValue(params, 'advanced');
-        if (stop || advanced) {
+        if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
         }
@@ -1583,7 +1760,7 @@ class okcoin extends okcoin$1 {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -1601,24 +1778,24 @@ class okcoin extends okcoin$1 {
             return ids;
         }
     }
+    /**
+     * @method
+     * @name okcoin#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#cancelOrders
-         * @description cancel multiple orders
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         const advanced = this.safeValue(params, 'advanced');
         params = this.omit(params, ['stop', 'trigger', 'advanced']);
         const market = this.market(symbol);
@@ -1636,7 +1813,7 @@ class okcoin extends okcoin$1 {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop || advanced) {
+                if (trigger || advanced) {
                     request.push({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1659,7 +1836,7 @@ class okcoin extends okcoin$1 {
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privatePostTradeCancelAlgos(request);
         }
         else if (advanced) {
@@ -1684,7 +1861,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
     parseOrderStatus(status) {
@@ -1861,7 +2038,6 @@ class okcoin extends okcoin$1 {
         }
         const stopLossPrice = this.safeNumber2(order, 'slTriggerPx', 'slOrdPx');
         const takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
-        const stopPrice = this.safeNumberN(order, ['triggerPx', 'moveTriggerPx']);
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         let reduceOnly = false;
         if (reduceOnly !== undefined) {
@@ -1883,8 +2059,7 @@ class okcoin extends okcoin$1 {
             'price': price,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumberN(order, ['triggerPx', 'moveTriggerPx']),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1896,17 +2071,18 @@ class okcoin extends okcoin$1 {
             'reduceOnly': reduceOnly,
         }, market);
     }
+    /**
+     * @method
+     * @name okcoin#fetchOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchOrder
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
-         * @description fetches information on an order made by the user
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1918,8 +2094,8 @@ class okcoin extends okcoin$1 {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop');
-        if (stop) {
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        if (trigger) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
             }
@@ -1935,33 +2111,33 @@ class okcoin extends okcoin$1 {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit(params, ['clientOrderId', 'stop']);
+        const query = this.omit(params, ['clientOrderId', 'stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         }
         else {
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
+    /**
+     * @method
+     * @name okcoin#fetchOpenOrders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchOpenOrders
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'instId': market['id'],
@@ -1980,37 +2156,37 @@ class okcoin extends okcoin$1 {
             request['limit'] = limit; // default 100, max 100
         }
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit(params, ['stop']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, params));
         }
         else {
             response = await this.privateGetTradeOrdersPending(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name okcoin#fetchClosedOrders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchClosedOrders
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'instType': 'SPOT',
@@ -2021,13 +2197,13 @@ class okcoin extends okcoin$1 {
             request['instId'] = market['id'];
         }
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit(params, ['stop']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, params));
         }
         else {
@@ -2081,7 +2257,7 @@ class okcoin extends okcoin$1 {
         //         "msg":""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -2168,23 +2344,23 @@ class okcoin extends okcoin$1 {
         //
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
+    /**
+     * @method
+     * @name okcoin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name okx#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const defaultNetwork = this.safeString(this.options, 'defaultNetwork', 'ERC20');
         const networkId = this.safeString(params, 'network', defaultNetwork);
@@ -2197,16 +2373,16 @@ class okcoin extends okcoin$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name okcoin#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        /**
-         * @method
-         * @name okx#fetchDepositAddressesByNetwork
-         * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2239,19 +2415,19 @@ class okcoin extends okcoin$1 {
         const parsed = this.parseDepositAddresses(filtered, [currency['code']], false);
         return this.indexBy(parsed, 'network');
     }
+    /**
+     * @method
+     * @name okcoin#transfer
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name okcoin#transfer
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
-         * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
@@ -2297,7 +2473,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2383,19 +2559,19 @@ class okcoin extends okcoin$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name okcoin#withdraw
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#withdraw
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
@@ -2440,21 +2616,21 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
+    /**
+     * @method
+     * @name okcoin#fetchDeposits
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchDeposits
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
-         * @description fetch all deposits made to an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         let request = {
         // 'ccy': currency['id'],
@@ -2514,21 +2690,21 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name okcoin#fetchWithdrawals
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchWithdrawals
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
-         * @description fetch all withdrawals made from an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         let request = {
         // 'ccy': currency['id'],
@@ -2580,7 +2756,7 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -2717,19 +2893,19 @@ class okcoin extends okcoin$1 {
             },
         };
     }
+    /**
+     * @method
+     * @name okcoin#fetchMyTrades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchMyTrades
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const request = {
             'instType': 'SPOT',
@@ -2751,21 +2927,21 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.privateGetTradeFills(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name okcoin#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         const request = {
             // 'instrument_id': market['id'],
             'order_id': id,
@@ -2775,20 +2951,20 @@ class okcoin extends okcoin$1 {
         };
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name okcoin#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchLedger
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
-         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         await this.loadMarkets();
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchLedger', 'method', 'privateGetAccountBills');
@@ -2813,7 +2989,16 @@ class okcoin extends okcoin$1 {
             request['ccy'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, params));
+        }
+        else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetAccountBills(this.extend(request, params));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -2918,46 +3103,37 @@ class okcoin extends okcoin$1 {
         //         "ts": "1597026383085"
         //     }
         //
-        const id = this.safeString(item, 'billId');
-        const account = undefined;
-        const referenceId = this.safeString(item, 'ordId');
-        const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'ccy'), currency);
-        const amountString = this.safeString(item, 'balChg');
-        const amount = this.parseNumber(amountString);
+        const currencyId = this.safeString(item, 'ccy');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'ts');
         const feeCostString = this.safeString(item, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringNeg(feeCostString)),
+                'cost': this.parseToNumeric(Precise["default"].stringNeg(feeCostString)),
                 'currency': code,
             };
         }
-        const before = undefined;
-        const afterString = this.safeString(item, 'bal');
-        const after = this.parseNumber(afterString);
-        const status = 'ok';
         const marketId = this.safeString(item, 'instId');
         const symbol = this.safeSymbol(marketId, undefined, '-');
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': this.safeString(item, 'billId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
+            'account': undefined,
+            'referenceId': this.safeString(item, 'ordId'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
             'currency': code,
             'symbol': symbol,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': this.safeNumber(item, 'balChg'),
+            'before': undefined,
+            'after': this.safeNumber(item, 'bal'),
+            'status': 'ok',
             'fee': fee,
-        };
+        }, currency);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray(params);

@@ -23,6 +23,7 @@ class BaseCache(list):
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
     clear = Delegate('clear', '_deque')
+    pop = Delegate('pop', '_deque')
 
     def __init__(self, max_size=None):
         super(BaseCache, self).__init__()
@@ -46,6 +47,14 @@ class BaseCache(list):
             return [deque[i] for i in range(start, stop, step)]
         else:
             return deque[item]
+
+    # to be overriden
+    def getLimit(self, symbol, limit):
+        pass
+
+    # support transpiled snake_case calls
+    def get_limit(self, symbol, limit):
+        return self.getLimit(symbol, limit)
 
 
 class ArrayCache(BaseCache):
@@ -176,7 +185,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             if reference != item:
                 reference.update(item)
             item = reference
-            index = self._index.index(item['side'])
+            index = self._index.index(item['symbol'] + item['side'])
             del self._deque[index]
             del self._index[index]
         else:
@@ -186,7 +195,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             self._index.popleft()
             del self.hashmap[delete_item['symbol']][delete_item['side']]
         self._deque.append(item)
-        self._index.append(item['side'])
+        self._index.append(item['symbol'] + item['side'])
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()

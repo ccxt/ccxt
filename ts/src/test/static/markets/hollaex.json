@@ -346,5 +346,63 @@
         "taker": 0.001,
         "maker": 0.001,
         "created": 1615999918053
+    },
+    "ETH/USDT": {
+        "id": "eth-usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001,
+                "max": 100000
+            },
+            "price": {
+                "min": 500,
+                "max": 10000
+            },
+            "cost": {}
+        },
+        "created": 1611216687380,
+        "info": {
+            "id": "3",
+            "name": "eth-usdt",
+            "pair_base": "eth",
+            "pair_2": "usdt",
+            "min_size": "0.001",
+            "max_size": "100000",
+            "min_price": "500",
+            "max_price": "10000",
+            "increment_size": "0.0001",
+            "increment_price": "0.01",
+            "active": true,
+            "verified": true,
+            "code": "eth-usdt",
+            "is_public": true,
+            "estimated_price": "1000",
+            "circuit_breaker": true,
+            "created_at": "2021-01-21T08:11:27.380Z",
+            "updated_at": "2022-06-16T11:03:09.095Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true
     }
 }

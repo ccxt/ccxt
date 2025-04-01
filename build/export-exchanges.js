@@ -5,6 +5,7 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs'
+import path from 'path'
 import log  from 'ololog'
 import ansi from 'ansicolor'
 import { pathToFileURL } from 'url'
@@ -13,6 +14,7 @@ import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
+import { capitalize } from '../js/src/base/functions.js'
 
 const { keys, values, entries, fromEntries } = Object
 
@@ -37,7 +39,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function getIncludedExchangeIds (path) {
+function getIncludedExchangeIds (pathToDirectory) {
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
@@ -46,7 +48,7 @@ function getIncludedExchangeIds (path) {
         .filter (exchange => exchange); // filter empty lines
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-    const ids = fs.readdirSync (path)
+    const ids = fs.readdirSync (pathToDirectory)
         .filter (file => file.match (/[a-zA-Z0-9_-]+.ts$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -93,6 +95,7 @@ function createExchange (id, content) {
         const isPro = definesPro ? content.indexOf("'pro': true") > -1 : undefined;
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
+        const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -129,6 +132,7 @@ function createExchange (id, content) {
             'version': version,
             'countries': countries,
             'parent': parent,
+            'dex': isDex,
         }
     }
     return {
@@ -174,11 +178,11 @@ function extendedExchangesById (exchanges){
 // ----------------------------------------------------------------------------
 
 async function createExchanges (ids) {
-    const path = './ts/src/'
+    const pathToSrcDirectory = './ts/src/'
 
     // readd all files simultaneously
     const promiseReadFile = promisify (fs.readFile);
-    const fileArray = await Promise.all (ids.map (id => promiseReadFile (path + id + '.ts', 'utf8')));
+    const fileArray = await Promise.all (ids.map (id => promiseReadFile (pathToSrcDirectory + id + '.ts', 'utf8')));
 
 
     let exchanges = fileArray.map ((file, index) => createExchange(ids[index], file)).filter(exchange => exchange !== undefined)
@@ -262,6 +266,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
+        'type': exchange.dex ? '![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")' : '![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange")',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -400,8 +405,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , totalString = beginning + numExchanges + ending
             , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
             , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
+        for (const exchangePath of allExchangesPaths) {
+            logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
     }
 
@@ -414,8 +419,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , totalString = beginning + numProExchanges + ending
             , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
             , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
+        for (const exchangePath of proExchangesPaths) {
+            logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }
     }
 
@@ -424,17 +429,17 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
+        for (const exchangePath of certifiedExchangesPaths) {
+            logExportExchanges (exchangePath, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
     }
 
     if (exchangesByCountriesPaths) {
         const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
-        for (const path of exchangesByCountriesPaths) {
-            fs.truncateSync (path)
-            fs.writeFileSync (path, result)
+        for (const exchangePath of exchangesByCountriesPaths) {
+            fs.truncateSync (exchangePath)
+            fs.writeFileSync (exchangePath, result)
         }
     }
 }
@@ -507,12 +512,74 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 function getErrorHierarchy() {
-    const path = './ts/src/base/errorHierarchy.ts';
-    const content = fs.readFileSync (path, 'utf8');
+    const pathToErrorHierarchy = './ts/src/base/errorHierarchy.ts';
+    const content = fs.readFileSync (pathToErrorHierarchy, 'utf8');
     let errorObject = content.matchAll (/const\s*[\w\d]+\s*=\s({(.|\n)+});/gm).next().value[1];
     errorObject = errorObject.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
     errorObject = errorObject.replace(/'/g, '"');
     return JSON.parse(errorObject);
+}
+
+// ----------------------------------------------------------------------------
+
+function generateErrorsTs () {
+    const classBlock = (className, extendedClassName) => {
+        return '' + 
+            `class ${className} extends ${extendedClassName} {\n` +
+            `    constructor (message: string) {\n` +
+            `        super (message);\n` +
+            `        this.name = '${className}';\n` +
+            `    }\n` +
+            `}`;
+    }
+    const errorsHierarchyJson = getErrorHierarchy ();
+    const errorsFlatArray = [];
+    let result = '/* eslint-disable max-classes-per-file */\n\n';
+    // recursively go through the error hierarchy
+    const generateErrorClasses = (errorObject, parentClassName) => {
+        for (const key in errorObject) {
+            const className = key;
+            const extendedClassName = parentClassName;
+            errorsFlatArray.push(className);
+            result += classBlock(className, extendedClassName) + '\n';
+            if (Object.keys(errorObject[key]).length) {
+                generateErrorClasses(errorObject[key], className);
+            }
+        }
+    }
+    generateErrorClasses(errorsHierarchyJson, 'Error');
+    result += '\n';
+    result += 'export { ' + errorsFlatArray.join(', ') + ' };\n';
+    result += '\n';
+    result += 'export default { ' + errorsFlatArray.join(', ') + ' };\n';
+    const errorsTsPath = './ts/src/base/errors.ts';
+    fs.writeFileSync(errorsTsPath, result);
+}
+
+// ----------------------------------------------------------------------------
+
+function getTypesExports() {
+    const typesPath = './ts/src/base/types.ts';
+    const fileContent = fs.readFileSync(typesPath, 'utf8');
+
+    // Regular expressions to match type and interface declarations
+    const typeRegex = /export\stype\s+([A-Za-z0-9_]+)/g;
+    const interfaceRegex = /export\sinterface\s+([A-Za-z0-9_]+)/g;
+
+    const typeNames = [];
+    const interfaceNames = [];
+
+    let match;
+      // Extract type names
+    while ((match = typeRegex.exec(fileContent)) !== null) {
+      typeNames.push(match[1]);
+    }
+
+    // Extract interface names
+    while ((match = interfaceRegex.exec(fileContent)) !== null) {
+      interfaceNames.push(match[1]);
+    }
+    return typeNames.concat(interfaceNames);
 }
 
 // ----------------------------------------------------------------------------
@@ -522,18 +589,25 @@ async function exportEverything () {
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
+    generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
-    const flat = flatten (errorHierarchy)
+    const flat = flatten (errorHierarchy);
+    const errorsExports = [...flat];
     flat.push ('error_hierarchy')
 
-    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks']
-    const errorsExports = ['BaseError', 'ExchangeError', 'PermissionDenied', 'AccountNotEnabled', 'AccountSuspended', 'ArgumentsRequired', 'BadRequest', 'BadSymbol', 'MarginModeAlreadySet', 'BadResponse', 'NullResponse', 'InsufficientFunds', 'InvalidAddress', 'InvalidOrder', 'OrderNotFound', 'OrderNotCached', 'CancelPending', 'OrderImmediatelyFillable', 'OrderNotFillable', 'DuplicateOrderId', 'NotSupported', 'NetworkError', 'DDoSProtection', 'RateLimitExceeded', 'ExchangeNotAvailable', 'OnMaintenance', 'InvalidNonce', 'RequestTimeout', 'AuthenticationError', 'AddressPending', 'NoChange']
+    const typeExports = getTypesExports();
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 
     const ccxtFileDir = './ts/ccxt.ts'
     const replacements = [
+        {
+            // exceptions automatic import statement
+            file: ccxtFileDir,
+            regex:  /(import\s+\{)(.*?)(\}\s+from\s+'.\/src\/base\/errors.js'\n+)/g,
+            replacement: '$1' + errorsExports.join(", ") + '$3'
+        },
         {
             file: ccxtFileDir,
             regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/src\/(\2).js'\n)+/g,
@@ -609,6 +683,16 @@ async function exportEverything () {
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
+        {
+            file: './cs/ccxt/base/Exchange.MetaData.cs',
+            regex: /public static List<string> exchanges =.+$/gm,
+            replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
+        },
+        {
+            file: './go/v4/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} };`,
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
@@ -646,12 +730,17 @@ async function exportEverything () {
     unlimitedLog.bright.green ('Exported successfully.')
 }
 
+
 // ============================================================================
 // main entry point
+
+// remove extensions
 let metaUrl = import.meta.url
-metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+metaUrl = path.join(path.dirname(metaUrl), path.parse(metaUrl).name) 
 const url = pathToFileURL(process.argv[1]);
-const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+const href = path.join(path.dirname(url.href), path.parse(url.href).name)
+
+// compare paths to check if it's launched directly or included as a module
 if (metaUrl === href) {
 
     // if called directly like `node module`

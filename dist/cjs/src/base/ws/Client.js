@@ -10,8 +10,11 @@ require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
+// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
+        this.useMessageQueue = false;
+        this.verbose = false;
         const defaults = {
             url,
             onMessageCallback,
@@ -24,6 +27,8 @@ class Client {
             futures: {},
             subscriptions: {},
             rejections: {},
+            messageQueue: {},
+            useMessageQueue: false,
             connected: undefined,
             error: undefined,
             connectionStarted: undefined,
@@ -44,16 +49,25 @@ class Client {
         };
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
-        this.connected = Future.createFuture();
+        this.connected = Future.Future();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future.createFuture();
+            this.futures[messageHash] = Future.Future();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
             future.reject(this.rejections[messageHash]);
             delete this.rejections[messageHash];
+            delete this.messageQueue[messageHash];
+            return future;
+        }
+        if (this.useMessageQueue) {
+            const queue = this.messageQueue[messageHash];
+            if (queue && queue.length) {
+                future.resolve(queue.shift());
+                delete this.futures[messageHash];
+            }
         }
         return future;
     }
@@ -61,10 +75,27 @@ class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log(new Date(), 'resolve received undefined messageHash');
         }
-        if (messageHash in this.futures) {
-            const promise = this.futures[messageHash];
-            promise.resolve(result);
-            delete this.futures[messageHash];
+        if (this.useMessageQueue === true) {
+            if (!(messageHash in this.messageQueue)) {
+                this.messageQueue[messageHash] = [];
+            }
+            const queue = this.messageQueue[messageHash];
+            queue.push(result);
+            while (queue.length > 10) { // limit size to 10 messages in the queue
+                queue.shift();
+            }
+            if ((messageHash !== undefined) && (messageHash in this.futures)) {
+                const promise = this.futures[messageHash];
+                promise.resolve(queue.shift());
+                delete this.futures[messageHash];
+            }
+        }
+        else {
+            if (messageHash in this.futures) {
+                const promise = this.futures[messageHash];
+                promise.resolve(result);
+                delete this.futures[messageHash];
+            }
         }
         return result;
     }
@@ -105,6 +136,7 @@ class Client {
     reset(error) {
         this.clearConnectionTimeout();
         this.clearPingInterval();
+        this.messageQueue = {};
         this.reject(error);
     }
     onConnectionTimeout() {
@@ -144,8 +176,14 @@ class Client {
                 this.onError(new errors.RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (platform.isNode) {
                     // can't do this inside browser
@@ -209,6 +247,9 @@ class Client {
             // todo: exception types for server-side disconnects
             this.reset(new errors.NetworkError('connection closed by remote server, closing code ' + String(event.code)));
         }
+        if (this.error instanceof errors.ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve(true);
         }
@@ -226,9 +267,10 @@ class Client {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        const future = Future.createFuture();
+        const future = Future.Future();
         if (platform.isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);

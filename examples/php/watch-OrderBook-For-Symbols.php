@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -20,9 +20,9 @@ use React\Promise;
 function example() {
     return Async\async(function () {
         $binance = new \ccxt\pro\binance(array());
-        $symbol = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
+        $symbols = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
         while (true) {
-            $orderbook = Async\await($binance->watch_order_book_for_symbols($symbol));
+            $orderbook = Async\await($binance->watch_order_book_for_symbols($symbols));
             var_dump($orderbook['symbol'], $orderbook['asks'][0], $orderbook['bids'][0]);
         }
     }) ();

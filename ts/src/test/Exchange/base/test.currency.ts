@@ -1,7 +1,7 @@
-
+import { Currency, Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testCurrency (exchange, skippedProperties, method, entry) {
+function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
     const format = {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
@@ -32,7 +32,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         };
         // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
         if (currencyType !== undefined) {
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'other' ]);
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'leveraged', 'other' ]);
         }
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if (currencyType === 'crypto' || !('depositForNonCrypto' in skippedProperties)) {

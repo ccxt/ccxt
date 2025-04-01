@@ -7,12 +7,13 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
-use React\Async;
+use ccxt\ChecksumError;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -20,6 +21,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => false,
                 'watchOrderBook' => true,
@@ -31,7 +33,9 @@ class independentreserve extends \ccxt\async\independentreserve {
                 ),
             ),
             'options' => array(
-                'checksum' => false, // TODO => currently only working for snapshot
+                'watchOrderBook' => array(
+                    'checksum' => true, // TODO => currently only working for snapshot
+                ),
             ),
             'streaming' => array(
             ),
@@ -40,7 +44,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -127,7 +131,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -142,9 +146,9 @@ class independentreserve extends \ccxt\async\independentreserve {
             if ($limit === null) {
                 $limit = 100;
             }
-            $limit = $this->number_to_string($limit);
-            $url = $this->urls['api']['ws'] . '/orderbook/' . $limit . '?subscribe=' . $market['base'] . '-' . $market['quote'];
-            $messageHash = 'orderbook:' . $symbol . ':' . $limit;
+            $limitString = $this->number_to_string($limit);
+            $url = $this->urls['api']['ws'] . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+            $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
             $subscription = array(
                 'receivedSnapshot' => false,
             );
@@ -185,32 +189,32 @@ class independentreserve extends \ccxt\async\independentreserve {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $orderBook = $this->safe_value($message, 'Data', array());
+        $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
-        $receivedSnapshot = $this->safe_value($subscription, 'receivedSnapshot', false);
+        $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
             $subscription['receivedSnapshot'] = true;
         } else {
-            $asks = $this->safe_value($orderBook, 'Offers', array());
-            $bids = $this->safe_value($orderBook, 'Bids', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
+            $asks = $this->safe_list($orderBook, 'Offers', array());
+            $bids = $this->safe_list($orderBook, 'Bids', array());
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $checksum = $this->safe_value($this->options, 'checksum', true);
+        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         if ($checksum && $receivedSnapshot) {
-            $storedAsks = $storedOrderBook['asks'];
-            $storedBids = $storedOrderBook['bids'];
+            $storedAsks = $orderbook['asks'];
+            $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
             $payload = '';
@@ -227,12 +231,14 @@ class independentreserve extends \ccxt\async\independentreserve {
             $calculatedChecksum = $this->crc32($payload, true);
             $responseChecksum = $this->safe_integer($orderBook, 'Crc32');
             if ($calculatedChecksum !== $responseChecksum) {
-                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                unset($client->subscriptions[$messageHash]);
+                unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
             }
         }
         if ($receivedSnapshot) {
-            $client->resolve ($storedOrderBook, $messageHash);
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 
@@ -288,7 +294,8 @@ class independentreserve extends \ccxt\async\independentreserve {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }

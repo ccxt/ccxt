@@ -6,17 +6,17 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coincheck(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
             'name': 'coincheck',
@@ -56,8 +56,11 @@ class coincheck(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -69,6 +72,7 @@ class coincheck(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
@@ -152,6 +156,60 @@ class coincheck(Exchange, ImplicitAPI):
                 # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
                 # 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,  # todo
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': False,
@@ -171,7 +229,7 @@ class coincheck(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -188,6 +246,9 @@ class coincheck(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -198,6 +259,9 @@ class coincheck(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+
+        https://coincheck.com/documents/exchange/api#order-opens
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -217,7 +281,7 @@ class coincheck(Exchange, ImplicitAPI):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOpenOrders
         #
@@ -257,7 +321,6 @@ class coincheck(Exchange, ImplicitAPI):
             'status': status,
             'symbol': symbol,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'fee': None,
@@ -269,6 +332,9 @@ class coincheck(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://coincheck.com/documents/exchange/api#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -276,13 +342,13 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -323,6 +389,9 @@ class coincheck(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://coincheck.com/documents/exchange/api#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -331,7 +400,7 @@ class coincheck(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         ticker = await self.publicGetTicker(self.extend(request, params))
@@ -348,7 +417,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -429,6 +498,9 @@ class coincheck(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://coincheck.com/documents/exchange/api#order-transactions-pagination
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -437,7 +509,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
@@ -463,12 +535,15 @@ class coincheck(Exchange, ImplicitAPI):
         #                  ]
         #      }
         #
-        transactions = self.safe_value(response, 'data', [])
+        transactions = self.safe_list(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://coincheck.com/documents/exchange/api#public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -477,7 +552,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -493,12 +568,15 @@ class coincheck(Exchange, ImplicitAPI):
         #          "created_at": "2021-12-08T14:10:33.000Z"
         #      }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
+
+        https://coincheck.com/documents/exchange/api#account-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -524,7 +602,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'exchange_fees', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -539,20 +617,23 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://coincheck.com/documents/exchange/api#order-new
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if type == 'market':
@@ -574,19 +655,32 @@ class coincheck(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://coincheck.com/documents/exchange/api#order-cancel
+
         :param str id: order id
         :param str symbol: not used by coincheck cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'id': id,
         }
-        return await self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        response = await self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "success": True,
+        #        "id": 12345
+        #    }
+        #
+        return self.parse_order(response)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://coincheck.com/documents/exchange/api#account-deposits
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -595,7 +689,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -625,12 +719,15 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #   ]
         # }
-        data = self.safe_value(response, 'deposits', [])
+        data = self.safe_list(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+
+        https://coincheck.com/documents/exchange/api#withdraws
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -641,7 +738,7 @@ class coincheck(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetWithdraws(self.extend(request, params))
@@ -666,11 +763,11 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #   ]
         # }
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             # withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -682,7 +779,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -776,14 +873,14 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #
         #     {"success":false,"error":"disabled API Key"}'
         #     {"success":false,"error":"invalid authentication"}
         #
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)

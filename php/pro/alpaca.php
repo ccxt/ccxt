@@ -8,11 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
-use React\Async;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class alpaca extends \ccxt\async\alpaca {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -52,10 +53,13 @@ class alpaca extends \ccxt\async\alpaca {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
+             * @see https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#quotes
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -69,7 +73,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'action' => 'subscribe',
                 'quotes' => [ $market['id'] ],
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -130,10 +134,13 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#bars
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -151,7 +158,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'bars' => [ $market['id'] ],
             );
             $messageHash = 'ohlcv:' . $symbol;
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -188,10 +195,13 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#orderbooks
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -207,7 +217,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'action' => 'subscribe',
                 'orderbooks' => [ $market['id'] ],
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             return $orderbook->limit ();
         }) ();
     }
@@ -238,17 +248,17 @@ class alpaca extends \ccxt\async\alpaca {
         $symbol = $this->safe_symbol($marketId);
         $datetime = $this->safe_string($message, 't');
         $timestamp = $this->parse8601($datetime);
-        $isSnapshot = $this->safe_value($message, 'r', false);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        $isSnapshot = $this->safe_bool($message, 'r', false);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
+        $orderbook = $this->orderbooks[$symbol];
         if ($isSnapshot) {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a', 'p', 's');
             $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($message, 'a', array());
-            $bids = $this->safe_value($message, 'b', array());
+            $asks = $this->safe_list($message, 'a', array());
+            $bids = $this->safe_list($message, 'b', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;
@@ -270,15 +280,18 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
+             *
+             * @see https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#$trades
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
@@ -290,7 +303,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'action' => 'subscribe',
                 'trades' => [ $market['id'] ],
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -324,16 +337,19 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
+             * @see https://docs.alpaca.markets/docs/websocket-streaming#trade-updates
+             *
              * @param {string} $symbol unified market $symbol of the market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $url = $this->urls['api']['ws']['trading'];
             Async\await($this->authenticate($url));
@@ -349,7 +365,7 @@ class alpaca extends \ccxt\async\alpaca {
                     'streams' => array( 'trade_updates' ),
                 ),
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -357,15 +373,15 @@ class alpaca extends \ccxt\async\alpaca {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws']['trading'];
             Async\await($this->authenticate($url));
@@ -382,7 +398,7 @@ class alpaca extends \ccxt\async\alpaca {
                     'streams' => array( 'trade_updates' ),
                 ),
             );
-            $orders = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $orders = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -584,30 +600,32 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function authenticate($url, $params = array ()) {
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $request = array(
-                'action' => 'auth',
-                'key' => $this->apiKey,
-                'secret' => $this->secret,
-            );
-            if ($url === $this->urls['api']['ws']['trading']) {
-                // this auth $request is being deprecated in test environment
+        return Async\async(function () use ($url, $params) {
+            $this->check_required_credentials();
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
                 $request = array(
-                    'action' => 'authenticate',
-                    'data' => array(
-                        'key_id' => $this->apiKey,
-                        'secret_key' => $this->secret,
-                    ),
+                    'action' => 'auth',
+                    'key' => $this->apiKey,
+                    'secret' => $this->secret,
                 );
+                if ($url === $this->urls['api']['ws']['trading']) {
+                    // this auth $request is being deprecated in test environment
+                    $request = array(
+                        'action' => 'authenticate',
+                        'data' => array(
+                            'key_id' => $this->apiKey,
+                            'secret_key' => $this->secret,
+                        ),
+                    );
+                }
+                $this->watch($url, $messageHash, $request, $messageHash, $future);
             }
-            $this->watch($url, $messageHash, $request, $messageHash, $future);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -637,15 +655,18 @@ class alpaca extends \ccxt\async\alpaca {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
-            $msg = $this->safe_value($data, 'msg', array());
+            $msg = $this->safe_string($data, 'msg');
             if ($T === 'subscription') {
-                return $this->handle_subscription($client, $data);
+                $this->handle_subscription($client, $data);
+                return;
             }
             if ($T === 'success' && $msg === 'connected') {
-                return $this->handle_connected($client, $data);
+                $this->handle_connected($client, $data);
+                return;
             }
             if ($T === 'success' && $msg === 'authenticated') {
-                return $this->handle_authenticate($client, $data);
+                $this->handle_authenticate($client, $data);
+                return;
             }
             $methods = array(
                 'error' => array($this, 'handle_error_message'),
@@ -676,7 +697,8 @@ class alpaca extends \ccxt\async\alpaca {
 
     public function handle_message(Client $client, $message) {
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
-            return $this->handle_crypto_message($client, $message);
+            $this->handle_crypto_message($client, $message);
+            return;
         }
         $this->handle_trading_message($client, $message);
     }

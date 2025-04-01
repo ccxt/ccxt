@@ -5,14 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Int
+from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 
 
 class huobijp(ccxt.async_support.huobijp):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(huobijp, self).describe(), {
             'has': {
                 'ws': True,
@@ -20,6 +21,7 @@ class huobijp(ccxt.async_support.huobijp):
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,  # for now
                 'watchOHLCV': True,
             },
@@ -48,7 +50,7 @@ class huobijp(ccxt.async_support.huobijp):
         self.options['requestId'] = requestId
         return str(requestId)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -61,14 +63,14 @@ class huobijp(ccxt.async_support.huobijp):
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -108,7 +110,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(ticker, ch)
         return message
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -123,14 +125,14 @@ class huobijp(ccxt.async_support.huobijp):
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -180,7 +182,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -196,14 +198,14 @@ class huobijp(ccxt.async_support.huobijp):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -250,7 +252,7 @@ class huobijp(ccxt.async_support.huobijp):
         stored.append(parsed)
         client.resolve(stored, ch)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -267,14 +269,14 @@ class huobijp(ccxt.async_support.huobijp):
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -327,16 +329,16 @@ class huobijp(ccxt.async_support.huobijp):
             limit = self.safe_integer(subscription, 'limit')
             params = self.safe_value(subscription, 'params')
             api = self.safe_string(self.options, 'api', 'api')
-            hostname = {'hostname': self.hostname}
+            hostname: dict = {'hostname': self.hostname}
             url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
             requestId = self.request_id()
-            request = {
+            request: dict = {
                 'req': messageHash,
                 'id': requestId,
             }
             # self is a temporary subscription by a specific requestId
             # it has a very short lifetime until the snapshot is received over ws
-            snapshotSubscription = {
+            snapshotSubscription: dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'symbol': symbol,
@@ -349,6 +351,7 @@ class huobijp(ccxt.async_support.huobijp):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+        return None
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -498,7 +501,7 @@ class huobijp(ccxt.async_support.huobijp):
         type = self.safe_string(parts, 0)
         if type == 'market':
             methodName = self.safe_string(parts, 2)
-            methods = {
+            methods: dict = {
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
                 'trade': self.handle_trades,
@@ -506,10 +509,8 @@ class huobijp(ccxt.async_support.huobijp):
                 # ...
             }
             method = self.safe_value(methods, methodName)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
 
     async def pong(self, client, message):
         #

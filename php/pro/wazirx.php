@@ -8,11 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use React\Async;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class wazirx extends \ccxt\async\wazirx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -20,6 +21,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -46,11 +48,13 @@ class wazirx extends \ccxt\async\wazirx {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.wazirx.com/#account-update
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -169,11 +173,13 @@ class wazirx extends \ccxt\async\wazirx {
         ), $market);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.wazirx.com/#all-$market-tickers-$stream
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -193,11 +199,13 @@ class wazirx extends \ccxt\async\wazirx {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://docs.wazirx.com/#all-market-$tickers-$stream
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -295,10 +303,13 @@ class wazirx extends \ccxt\async\wazirx {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
+             * @see https://docs.wazirx.com/#trade-streams
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -314,7 +325,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'event' => 'subscribe',
                 'streams' => array( $messageHash ),
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -362,11 +373,13 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch $trades by user
+             *
              * @see https://docs.wazirx.com/#trade-update
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -395,10 +408,13 @@ class wazirx extends \ccxt\async\wazirx {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://docs.wazirx.com/#kline-candlestick-$stream
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -486,11 +502,13 @@ class wazirx extends \ccxt\async\wazirx {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.wazirx.com/#depth-$stream
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -545,25 +563,25 @@ class wazirx extends \ccxt\async\wazirx {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($currentOrderBook === null) {
+        // $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
-            $orderBook = $this->order_book($snapshot);
-            $this->orderbooks[$symbol] = $orderBook;
+            $this->orderbooks[$symbol] = $this->order_book($snapshot);
         } else {
-            $asks = $this->safe_value($data, 'a', array());
-            $bids = $this->safe_value($data, 'b', array());
-            $this->handle_deltas($currentOrderBook['asks'], $asks);
-            $this->handle_deltas($currentOrderBook['bids'], $bids);
-            $currentOrderBook['nonce'] = $timestamp;
-            $currentOrderBook['timestamp'] = $timestamp;
-            $currentOrderBook['datetime'] = $this->iso8601($timestamp);
-            $this->orderbooks[$symbol] = $currentOrderBook;
+            $orderbook = $this->orderbooks[$symbol];
+            $asks = $this->safe_list($data, 'a', array());
+            $bids = $this->safe_list($data, 'b', array());
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['nonce'] = $timestamp;
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -753,7 +771,8 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_message(Client $client, $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
-            return $this->handle_error($client, $message);
+            $this->handle_error($client, $message);
+            return;
         }
         $event = $this->safe_string($message, 'event');
         $eventHandlers = array(
@@ -763,7 +782,8 @@ class wazirx extends \ccxt\async\wazirx {
         );
         $eventHandler = $this->safe_value($eventHandlers, $event);
         if ($eventHandler !== null) {
-            return $eventHandler($client, $message);
+            $eventHandler($client, $message);
+            return;
         }
         $stream = $this->safe_string($message, 'stream', '');
         $streamHandlers = array(
@@ -777,9 +797,11 @@ class wazirx extends \ccxt\async\wazirx {
         );
         $streams = is_array($streamHandlers) ? array_keys($streamHandlers) : array();
         for ($i = 0; $i < count($streams); $i++) {
-            if ($this->in_array($streams[$i], $stream)) {
+            $streamContains = mb_strpos($stream, $streams[$i]) > -1;
+            if ($streamContains) {
                 $handler = $streamHandlers[$streams[$i]];
-                return $handler($client, $message);
+                $handler($client, $message);
+                return;
             }
         }
         throw new NotSupported($this->id . ' this $message type is not supported yet. Message => ' . $this->json($message));

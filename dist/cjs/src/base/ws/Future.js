@@ -2,8 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-// @ts-nocheck
-function createFuture() {
+var unpromise = require('../../static_dependencies/watchable/src/unpromise.js');
+
+// ----------------------------------------------------------------------------
+function Future() {
     let resolve = undefined, reject = undefined;
     const p = new Promise((resolve_, reject_) => {
         resolve = resolve_;
@@ -23,5 +25,12 @@ function createFuture() {
     };
     return p;
 }
+function wrapFuture(aggregatePromise) {
+    const p = Future();
+    // wrap the promises as a future
+    aggregatePromise.then(p.resolve, p.reject);
+    return p;
+}
+Future.race = (futures) => wrapFuture(unpromise.Unpromise.race(futures));
 
-exports.createFuture = createFuture;
+exports.Future = Future;

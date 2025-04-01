@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +22,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class bitvavo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
@@ -65,6 +65,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -88,8 +90,11 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -122,7 +127,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
@@ -207,6 +212,75 @@ class bitvavo(Exchange, ImplicitAPI):
                 'apiKey': True,
                 'secret': True,
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '101': ExchangeError,  # Unknown error. Operation may or may not have succeeded.
@@ -281,6 +355,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
@@ -292,9 +367,6 @@ class bitvavo(Exchange, ImplicitAPI):
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -310,7 +382,7 @@ class bitvavo(Exchange, ImplicitAPI):
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -322,8 +394,11 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
+
+        https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+
         retrieves data on all markets for bitvavo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -343,12 +418,15 @@ class bitvavo(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        return self.parse_markets(response)
+
+    def parse_markets(self, markets):
         currencies = self.currencies
         currenciesById = self.index_by(currencies, 'id')
         result = []
         fees = self.fees
-        for i in range(0, len(response)):
-            market = response[i]
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = self.safe_string(market, 'market')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
@@ -410,8 +488,11 @@ class bitvavo(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -450,12 +531,48 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            currency = response[i]
+        return self.parse_currencies_custom(response)
+
+    def parse_currencies_custom(self, currencies):
+        #
+        #     [
+        #         {
+        #             "symbol": "USDT",
+        #             "displayTicker": "USDT",
+        #             "name": "Tether",
+        #             "slug": "tether",
+        #             "popularity": -1,
+        #             "decimals": 6,
+        #             "depositFee": "0",
+        #             "depositConfirmations": 64,
+        #             "depositStatus": "OK",
+        #             "withdrawalFee": "3.2",
+        #             "withdrawalMinAmount": "3.2",
+        #             "withdrawalStatus": "OK",
+        #             "networks": [
+        #               "ETH"
+        #             ],
+        #             "light": {
+        #               "color": "#009393",
+        #               "icon": {"hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        #               }
+        #             },
+        #             "dark": {
+        #               "color": "#009393",
+        #               "icon": {"hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
+        #               }
+        #             },
+        #             "visibility": "PUBLIC",
+        #             "message": ""
+        #         },
+        #     ]
+        #
+        result: dict = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            networks = {}
+            networks: dict = {}
             networksArray = self.safe_value(currency, 'networks', [])
             networksLength = len(networksArray)
             isOneNetwork = (networksLength == 1)
@@ -517,7 +634,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -525,7 +644,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetTicker24h(self.extend(request, params))
@@ -534,7 +653,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "market":"ETH-BTC",
         #         "open":"0.022578",
         #         "high":"0.023019",
-        #         "low":"0.022573",
+        #         "low":"0.022572",
         #         "last":"0.023019",
         #         "volume":"25.16366324",
         #         "volumeQuote":"0.57333305",
@@ -547,7 +666,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -627,7 +746,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -643,7 +764,7 @@ class bitvavo(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
-        request = {
+        request: dict = {
             'market': market['id'],
             # "limit": 500,  # default 500, max 1000
             # "start": since,
@@ -670,7 +791,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -764,8 +885,11 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -781,14 +905,26 @@ class bitvavo(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        fees = self.safe_value(response, 'fees')
-        maker = self.safe_number(fees, 'maker')
-        taker = self.safe_number(fees, 'taker')
-        result = {}
+        return self.parse_trading_fees(response)
+
+    def parse_trading_fees(self, fees, market=None):
+        #
+        #     {
+        #         "fees": {
+        #           "taker": "0.0025",
+        #           "maker": "0.0015",
+        #           "volume": "10000.00"
+        #         }
+        #     }
+        #
+        feesValue = self.safe_value(fees, 'fees')
+        maker = self.safe_number(feesValue, 'maker')
+        taker = self.safe_number(feesValue, 'taker')
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
-                'info': response,
+                'info': fees,
                 'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
@@ -799,7 +935,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -808,7 +946,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -854,9 +992,34 @@ class bitvavo(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv_request(self, symbol: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+            # "limit": 1440,  # default 1440, max 1440
+            # "start": since,
+            # "end": self.milliseconds(),
+        }
+        if since is not None:
+            # https://github.com/ccxt/ccxt/issues/9227
+            duration = self.parse_timeframe(timeframe)
+            request['start'] = since
+            if limit is None:
+                limit = 1440
+            else:
+                limit = min(limit, 1440)
+            request['end'] = self.sum(since, limit * duration * 1000)
+        request, params = self.handle_until_option('end', request, params)
+        if limit is not None:
+            request['limit'] = limit  # default 1440, max 1440
+        return self.extend(request, params)
+
+    def fetch_ohlcv(self, symbol: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -873,24 +1036,8 @@ class bitvavo(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
-        request = {
-            'market': market['id'],
-            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            # "limit": 1440,  # default 1440, max 1440
-            # "start": since,
-            # "end": self.milliseconds(),
-        }
-        if since is not None:
-            # https://github.com/ccxt/ccxt/issues/9227
-            duration = self.parse_timeframe(timeframe)
-            request['start'] = since
-            if limit is None:
-                limit = 1440
-            request['end'] = self.sum(since, limit * duration * 1000)
-        request, params = self.handle_until_option('end', request, params)
-        if limit is not None:
-            request['limit'] = limit  # default 1440, max 1440
-        response = self.publicGetMarketCandles(self.extend(request, params))
+        request = self.fetch_ohlcv_request(symbol, timeframe, since, limit, params)
+        response = self.publicGetMarketCandles(request)
         #
         #     [
         #         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
@@ -901,7 +1048,7 @@ class bitvavo(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -918,6 +1065,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -935,7 +1085,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -944,7 +1094,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'symbol': currency['id'],
         }
         response = self.privateGetDeposit(self.extend(request, params))
@@ -958,39 +1108,16 @@ class bitvavo(Exchange, ImplicitAPI):
         tag = self.safe_string(response, 'paymentId')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
-        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
-        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
-        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
-        :param str [params.triggerType]: "price"
-        :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-        :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
-        :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        self.load_markets()
+    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'side': side,
             'orderType': type,
@@ -1039,7 +1166,37 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
-        response = self.privatePostOrder(self.extend(request, params))
+        return self.extend(request, params)
+
+    def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.stopPrice]: Alias for triggerPrice
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
+        :param str [params.triggerType]: "price"
+        :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
+        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
+        :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = self.privatePostOrder(request)
         #
         #      {
         #          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
@@ -1082,44 +1239,80 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
-        self.load_markets()
+    def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        request: dict = {}
         market = self.market(symbol)
-        request = {}
         amountRemaining = self.safe_number(params, 'amountRemaining')
-        params = self.omit(params, 'amountRemaining')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
+        params = self.omit(params, ['amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount'])
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['amount'] = self.amount_to_precision(symbol, amount)
         if amountRemaining is not None:
             request['amountRemaining'] = self.amount_to_precision(symbol, amountRemaining)
+        if triggerPrice is not None:
+            request['triggerAmount'] = self.price_to_precision(symbol, triggerPrice)
         request = self.extend(request, params)
-        if request:
-            request['orderId'] = id
-            request['market'] = market['id']
-            response = self.privatePutOrder(self.extend(request, params))
-            return self.parse_order(response, market)
-        else:
+        if self.is_empty(request):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
+        request['market'] = market['id']
+        return request
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        response = self.privatePutOrder(request)
+        return self.parse_order(response, market)
+
+    def cancel_order_request(self, id: Str, symbol: Str = None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
+        return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+
         cancels an open order
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'orderId': id,
-            'market': market['id'],
-        }
-        response = self.privateDeleteOrder(self.extend(request, params))
+        request = self.cancel_order_request(id, symbol, params)
+        response = self.privateDeleteOrder(request)
         #
         #     {
         #         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
@@ -1129,13 +1322,16 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1153,6 +1349,10 @@ class bitvavo(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1161,10 +1361,12 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'orderId': id,
+        request: dict = {
             'market': market['id'],
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
         response = self.privateGetOrder(self.extend(request, params))
         #
         #     {
@@ -1202,13 +1404,32 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
+    def fetch_orders_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            # "limit": 500,
+            # "start": since,
+            # "end": self.milliseconds(),
+            # "orderIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            # "orderIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        }
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 500, max 1000
+        request, params = self.handle_until_option('end', request, params)
+        return self.extend(request, params)
+
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: the latest time in ms to fetch entries for
@@ -1222,20 +1443,8 @@ class bitvavo(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            # "limit": 500,
-            # "start": since,
-            # "end": self.milliseconds(),
-            # "orderIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-            # "orderIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        }
-        if since is not None:
-            request['start'] = since
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
-        request, params = self.handle_until_option('end', request, params)
-        response = self.privateGetOrders(self.extend(request, params))
+        request = self.fetch_orders_request(symbol, since, limit, params)
+        response = self.privateGetOrders(request)
         #
         #     [
         #         {
@@ -1276,6 +1485,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1284,7 +1496,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # "market": market["id"],  # rate limit 25 without a market, 1 with market specified
         }
         market = None
@@ -1330,8 +1542,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'new': 'open',
             'canceled': 'canceled',
             'canceledAuction': 'canceled',
@@ -1348,7 +1560,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # cancelOrder, cancelAllOrders
         #
@@ -1424,7 +1636,6 @@ class bitvavo(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
-        stopPrice = self.safe_number(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1438,8 +1649,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -1450,9 +1660,28 @@ class bitvavo(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades_request(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            # "limit": 500,
+            # "start": since,
+            # "end": self.milliseconds(),
+            # "tradeIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            # "tradeIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        }
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 500, max 1000
+        request, params = self.handle_until_option('end', request, params)
+        return self.extend(request, params)
+
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1470,20 +1699,8 @@ class bitvavo(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            # "limit": 500,
-            # "start": since,
-            # "end": self.milliseconds(),
-            # "tradeIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-            # "tradeIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        }
-        if since is not None:
-            request['start'] = since
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
-        request, params = self.handle_until_option('end', request, params)
-        response = self.privateGetTrades(self.extend(request, params))
+        request = self.fetch_my_trades_request(symbol, since, limit, params)
+        response = self.privateGetTrades(request)
         #
         #     [
         #         {
@@ -1503,7 +1720,20 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw_request(self, code: Str, amount, address, tag=None, params={}):
+        currency = self.currency(code)
+        request: dict = {
+            'symbol': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,  # address or IBAN
+            # 'internal': False,  # transfer to another Bitvavo user address, no fees
+            # 'addWithdrawalFee': False,  # True = add the fee on top, otherwise the fee is subtracted from the amount
+        }
+        if tag is not None:
+            request['paymentId'] = tag
+        return self.extend(request, params)
+
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1517,16 +1747,8 @@ class bitvavo(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
-            'symbol': currency['id'],
-            'amount': self.currency_to_precision(code, amount),
-            'address': address,  # address or IBAN
-            # "internal": False,  # transfer to another Bitvavo user address, no fees
-            # "addWithdrawalFee": False,  # True = add the fee on top, otherwise the fee is subtracted from the amount
-        }
-        if tag is not None:
-            request['paymentId'] = tag
-        response = self.privatePostWithdrawal(self.extend(request, params))
+        request = self.withdraw_request(code, amount, address, tag, params)
+        response = self.privatePostWithdrawal(request)
         #
         #     {
         #         "success": True,
@@ -1536,17 +1758,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
-        """
-        fetch all withdrawals made from an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
-        :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        self.load_markets()
-        request = {
+    def fetch_withdrawals_request(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        request: dict = {
             # 'symbol': currency['id'],
             # 'limit': 500,  # default 500, max 1000
             # 'start': since,
@@ -1560,7 +1773,26 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        response = self.privateGetWithdrawalHistory(self.extend(request, params))
+        return self.extend(request, params)
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        request = self.fetch_withdrawals_request(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetWithdrawalHistory(request)
         #
         #     [
         #         {
@@ -1577,17 +1809,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
-        """
-        fetch all deposits made to an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
-        :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        self.load_markets()
-        request = {
+    def fetch_deposits_request(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        request: dict = {
             # 'symbol': currency['id'],
             # 'limit': 500,  # default 500, max 1000
             # 'start': since,
@@ -1601,7 +1824,26 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        response = self.privateGetDepositHistory(self.extend(request, params))
+        return self.extend(request, params)
+
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        request = self.fetch_deposits_request(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetDepositHistory(request)
         #
         #     [
         #         {
@@ -1616,8 +1858,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',
             'awaiting_bitvavo_inspection': 'pending',
@@ -1630,7 +1872,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1726,7 +1968,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #       "message": ""
         #   }
         #
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': self.safe_number(fee, 'withdrawalFee'),
@@ -1753,7 +1995,9 @@ class bitvavo(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1810,7 +2054,7 @@ class bitvavo(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

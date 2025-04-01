@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class coinspot(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -60,8 +60,11 @@ class coinspot(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -141,11 +144,59 @@ class coinspot(Exchange, ImplicitAPI):
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': None,  # todo implement
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
             for i in range(0, len(balances)):
@@ -171,6 +222,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://www.coinspot.com.au/api#listmybalance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -198,6 +252,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.coinspot.com.au/api#listopenorders
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -205,13 +262,13 @@ class coinspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
         }
         orderbook = self.privatePostOrders(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buyorders', 'sellorders', 'rate', 'amount')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "btc":{
@@ -249,6 +306,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://www.coinspot.com.au/api#latestprices
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -258,7 +318,7 @@ class coinspot(Exchange, ImplicitAPI):
         response = self.publicGetLatest(params)
         id = market['id']
         id = id.lower()
-        prices = self.safe_value(response, 'prices')
+        prices = self.safe_dict(response, 'prices', {})
         #
         #     {
         #         "status":"ok",
@@ -271,13 +331,15 @@ class coinspot(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(prices, id)
+        ticker = self.safe_dict(prices, id)
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.coinspot.com.au/api#latestprices
+
+        https://www.coinspot.com.au/api#latestprices
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -287,22 +349,22 @@ class coinspot(Exchange, ImplicitAPI):
         #
         #    {
         #        "status": "ok",
-        #        "prices": {
-        #        "btc": {
-        #        "bid": "25050",
-        #        "ask": "25370",
-        #        "last": "25234"
-        #        },
-        #        "ltc": {
-        #        "bid": "79.39192993",
-        #        "ask": "87.98",
-        #        "last": "87.95"
+        #        "prices":   {
+        #            "btc":   {
+        #                "bid": "25050",
+        #                "ask": "25370",
+        #                "last": "25234"
+        #            },
+        #            "ltc":   {
+        #                "bid": "79.39192993",
+        #                "ask": "87.98",
+        #                "last": "87.95"
+        #            }
         #        }
-        #      }
         #    }
         #
-        result = {}
-        prices = self.safe_value(response, 'prices')
+        result: dict = {}
+        prices = self.safe_dict(response, 'prices', {})
         ids = list(prices.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -316,6 +378,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://www.coinspot.com.au/api#orderhistory
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -324,7 +389,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
         }
         response = self.privatePostOrdersHistory(self.extend(request, params))
@@ -336,12 +401,15 @@ class coinspot(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        trades = self.safe_value(response, 'orders', [])
+        trades = self.safe_list(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://www.coinspot.com.au/api#rotransaction
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -349,7 +417,7 @@ class coinspot(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -357,41 +425,41 @@ class coinspot(Exchange, ImplicitAPI):
             request['startdate'] = self.yyyymmdd(since)
         response = self.privatePostRoMyTransactions(self.extend(request, params))
         #  {
-        #   "status": "ok",
-        #   "buyorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "ALGO/AUD",
-        #       "amount": 386.95197925,
-        #       "created": "2022-10-20T09:56:44.502Z",
-        #       "audfeeExGst": 1.80018002,
-        #       "audGst": 0.180018,
-        #       "audtotal": 200
-        #     },
-        #   ],
-        #   "sellorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "SOLO/ALGO",
-        #       "amount": 154.52345614,
-        #       "total": 115.78858204658796,
-        #       "created": "2022-04-16T09:36:43.698Z",
-        #       "audfeeExGst": 1.08995731,
-        #       "audGst": 0.10899573,
-        #       "audtotal": 118.7
-        #     },
-        #   ]
+        #      "status": "ok",
+        #      "buyorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "ALGO/AUD",
+        #              "amount": 386.95197925,
+        #              "created": "2022-10-20T09:56:44.502Z",
+        #              "audfeeExGst": 1.80018002,
+        #              "audGst": 0.180018,
+        #              "audtotal": 200
+        #          },
+        #      ],
+        #      "sellorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "SOLO/ALGO",
+        #              "amount": 154.52345614,
+        #              "total": 115.78858204658796,
+        #              "created": "2022-04-16T09:36:43.698Z",
+        #              "audfeeExGst": 1.08995731,
+        #              "audGst": 0.10899573,
+        #              "audtotal": 118.7
+        #          },
+        #      ]
         # }
-        buyTrades = self.safe_value(response, 'buyorders', [])
+        buyTrades = self.safe_list(response, 'buyorders', [])
         for i in range(0, len(buyTrades)):
             buyTrades[i]['side'] = 'buy'
-        sellTrades = self.safe_value(response, 'sellorders', [])
+        sellTrades = self.safe_list(response, 'sellorders', [])
         for i in range(0, len(sellTrades)):
             sellTrades[i]['side'] = 'sell'
         trades = self.array_concat(buyTrades, sellTrades)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -459,15 +527,17 @@ class coinspot(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://www.coinspot.com.au/api#placebuyorder
+
+        https://www.coinspot.com.au/api#placebuyorder
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -476,7 +546,7 @@ class coinspot(Exchange, ImplicitAPI):
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
             'amount': amount,
             'rate': price,
@@ -486,6 +556,10 @@ class coinspot(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://www.coinspot.com.au/api#cancelbuyorder
+        https://www.coinspot.com.au/api#cancelsellorder
+
         :param str id: order id
         :param str symbol: not used by coinspot cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -495,11 +569,20 @@ class coinspot(Exchange, ImplicitAPI):
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
-        method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
-        request = {
+        request: dict = {
             'id': id,
         }
-        return getattr(self, method)(self.extend(request, params))
+        response = None
+        if side == 'buy':
+            response = self.privatePostMyBuyCancel(self.extend(request, params))
+        else:
+            response = self.privatePostMySellCancel(self.extend(request, params))
+        #
+        # status - ok, error
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
