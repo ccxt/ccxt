@@ -11780,7 +11780,7 @@ export default class binance extends Exchange {
         //
         //     [
         //         {
-        //             "id": "1125899906845701870",
+        //             "id": "1125899906845701871",
         //             "asset": "USDT",
         //             "amount": "-0.16518203",
         //             "type": "FEE",
