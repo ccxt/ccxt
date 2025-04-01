@@ -1621,11 +1621,12 @@ export default class okx extends Exchange {
         let optionType = undefined;
         if (contract) {
             symbol = symbol + ':' + settle;
-            expiry = this.safeInteger (market, 'expTime');
             if (future) {
+                expiry = this.safeInteger (market, 'expTime');
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             } else if (option) {
+                expiry = this.safeInteger (market, 'expTime');
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
                 const ymd = this.yymmdd (expiry);
