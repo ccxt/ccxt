@@ -1716,7 +1716,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"not provided",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "expiry": "perpetual options"
 	          }
 	      }
     },
