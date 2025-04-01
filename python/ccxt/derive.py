@@ -1811,7 +1811,7 @@ class derive(Exchange, ImplicitAPI):
         order = self.safe_dict(rawOrder, 'data')
         if order is None:
             order = rawOrder
-        timestamp = self.safe_integer(rawOrder, 'nonce')
+        timestamp = self.safe_integer_2(rawOrder, 'creation_timestamp', 'nonce')
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
         if marketId is not None:
