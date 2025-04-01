@@ -2034,7 +2034,7 @@ func  (this *derive) ParseOrder(rawOrder interface{}, optionalArgs ...interface{
     if IsTrue(IsEqual(order, nil)) {
         order = rawOrder
     }
-    var timestamp interface{} = this.SafeInteger(rawOrder, "nonce")
+    var timestamp interface{} = this.SafeInteger2(rawOrder, "creation_timestamp", "nonce")
     var orderId interface{} = this.SafeString(order, "order_id")
     var marketId interface{} = this.SafeString(order, "instrument_name")
     if IsTrue(!IsEqual(marketId, nil)) {
