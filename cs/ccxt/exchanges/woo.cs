@@ -557,6 +557,7 @@ public partial class woo : Exchange
         object symbol = add(add(bs, "/"), quote);
         object contractSize = null;
         object linear = null;
+        object inverse = null;
         object margin = true;
         object contract = swap;
         if (isTrue(contract))
@@ -567,6 +568,7 @@ public partial class woo : Exchange
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             contractSize = this.parseNumber("1");
             linear = true;
+            inverse = false;
         }
         return new Dictionary<string, object>() {
             { "id", marketId },
@@ -586,7 +588,7 @@ public partial class woo : Exchange
             { "active", isEqual(this.safeString(market, "is_trading"), "1") },
             { "contract", contract },
             { "linear", linear },
-            { "inverse", null },
+            { "inverse", inverse },
             { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
