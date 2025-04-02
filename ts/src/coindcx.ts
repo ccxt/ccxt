@@ -1023,7 +1023,7 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
-        let request: Dict = {};
+        const request: Dict = {};
         let response: Dict = undefined;
         if (market['spot']) {
             request['pair'] = pair;
