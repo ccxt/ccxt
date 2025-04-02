@@ -220,8 +220,6 @@
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "withdraw": "not provided",
-                "deposit": "not provided",
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
