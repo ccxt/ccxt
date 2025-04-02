@@ -1815,6 +1815,9 @@
     },
     "coindcx": {
         "skipMethods": {
+	    "fetchMarkets": {
+	    	"contractSize": "some markets return null"
+	    },
             "fetchTrades": {
                 "takerOrMaker": "handle error in tests with maker"
             },
