@@ -513,7 +513,7 @@ func  (this *ace) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}
             //                 ],
             //                 [
             //                     "0.001",
-            //                     "20948.12"
+            //                     "20948.13"
             //                 ]
             //             ]
             //         },
