@@ -640,6 +640,8 @@ class derive(Exchange, ImplicitAPI):
                 optionType = 'put'
             else:
                 optionType = 'call'
+            linear = True
+            inverse = False
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
