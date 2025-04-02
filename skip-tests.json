@@ -149,15 +149,12 @@
         }
     },
     "bitbns": {
-        "skip": "temp",
         "skipMethods": {
             "loadMarkets": {
-                "limits": "only one market has min>max limit",
-                "active": "not provided",
+                "limits": "market limits have min>max ",
                 "currencyIdAndCode": "broken"
             },
             "ticker": {
-                "symbol": "might be missing",
                 "spread": "ask equals to bid"
             }
         }
