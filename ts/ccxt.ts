@@ -59,7 +59,6 @@ import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
-import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
 import bitfinex1 from  './src/bitfinex1.js'
 import bitflyer from  './src/bitflyer.js'
@@ -167,7 +166,6 @@ import binancecoinmPro from  './src/pro/binancecoinm.js'
 import binanceusPro from  './src/pro/binanceus.js'
 import binanceusdmPro from  './src/pro/binanceusdm.js'
 import bingxPro from  './src/pro/bingx.js'
-import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex1Pro from  './src/pro/bitfinex1.js'
 import bitgetPro from  './src/pro/bitget.js'
@@ -247,7 +245,6 @@ const exchanges = {
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbns':                 bitbns,
-    'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
     'bitfinex1':              bitfinex1,
     'bitflyer':               bitflyer,
@@ -355,7 +352,6 @@ const pro = {
     'binanceus':              binanceusPro,
     'binanceusdm':            binanceusdmPro,
     'bingx':                  bingxPro,
-    'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
     'bitfinex1':              bitfinex1Pro,
     'bitget':                 bitgetPro,
@@ -576,7 +572,6 @@ export {
     bit2c,
     bitbank,
     bitbns,
-    bitcoincom,
     bitfinex,
     bitfinex1,
     bitflyer,
