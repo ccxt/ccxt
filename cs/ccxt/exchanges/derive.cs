@@ -539,6 +539,8 @@ public partial class derive : Exchange
             {
                 optionType = "call";
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
