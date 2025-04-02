@@ -915,10 +915,9 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
-            'pair': pair,
-        };
+        const request: Dict = {};
         if (market['spot']) {
+            request['pair'] = pair;
             request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -946,6 +945,7 @@ export default class coindcx extends Exchange {
             //
             return this.parseOHLCVs (response, market, timeframe, since, limit);
         } else if (market['swap']) {
+            request['pair'] = market['id'];
             const options = this.safeDict (this.options, 'fetchOHLCV', {});
             const timeframes = this.safeDict (options, 'swapTimeframes', {});
             request['resolution'] = this.safeString (timeframes, timeframe, timeframe);
@@ -1104,11 +1104,10 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
-            'pair': pair,
-        };
+        const request: Dict = {};
         let response = undefined;
         if (market['spot']) {
+            request['pair'] = pair;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -1125,6 +1124,7 @@ export default class coindcx extends Exchange {
             //     ]
             //
         } else if (market['swap']) {
+            request['pair'] = market['id'];
             response = await this.public1GetExchangeV1DerivativesFuturesDataTrades (this.extend (request, params));
             //
             //     [
