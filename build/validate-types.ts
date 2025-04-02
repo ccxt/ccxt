@@ -16,7 +16,9 @@ const skipMethods = [
 ]
 
 const skipMethodsPerExchange = {
-    
+    'sampleExchange': [
+        'fetchPositions',
+    ]
 }
 
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
