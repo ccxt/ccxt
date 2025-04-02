@@ -7,6 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1023,11 +1024,10 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
-            'pair': pair,
-        };
+        let request: Dict = {};
         let response: Dict = undefined;
         if (market['spot']) {
+            request['pair'] = pair;
             response = await this.public2GetMarketDataOrderbook (this.extend (request, params));
             //
             //     {
@@ -1059,6 +1059,7 @@ export default class coindcx extends Exchange {
             //     }
             //
         } else if (market['swap']) {
+            request['pair'] = market['id'];
             let depth = 50;
             if (limit !== undefined) {
                 if (limit <= 10) {
