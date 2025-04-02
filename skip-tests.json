@@ -216,9 +216,6 @@
     "bitget": {
         "skipMethods": {
             "loadMarkets": {
-                "precision": "broken precision",
-                "limits": "limit max value is zero, lwer than min",
-                "contractSize": "not defined when contract",
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
