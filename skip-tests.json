@@ -205,7 +205,9 @@
     "bitflyer": {
         "skipMethods": {
             "loadMarkets": {
-                "contractSize": "not defined when contract"
+                "contractSize": "not defined when contract",
+                "settle": "set hardcoded, not settleid provided",
+                "currencyIdAndCode": "messed"
             },
             "trade": {
                 "side": "side key has an null value, but is expected to have a value"
