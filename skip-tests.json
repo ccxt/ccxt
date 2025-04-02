@@ -49,12 +49,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
-            "fetchCurrencies": {
-                "precision": "not provided in public api"
-            },
-            "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
             }
