@@ -223,8 +223,6 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
-                "bid":"broken bid-ask",
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "watchOrderBook": {
