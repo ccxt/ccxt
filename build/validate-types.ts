@@ -15,34 +15,8 @@ const skipMethods = [
     'watchTickers', // will be updated later
 ]
 
-const skipExchanges = [
-    'someExchange'
-    // place exchanges here
-]
-
 const skipMethodsPerExchange = {
-    'bitfinex1': [
-        'fetchPositions',
-    ],
-    'bitflyer': [
-        'fetchPositions',
-    ],
-    'kraken': [
-        'fetchPositions',
-    ],
-    'okcoin': [
-        'fetchPositions',
-        'fetchPosition'
-    ],
-    'btctradeua': [
-        'createOrder'
-    ],
-    'coinspot': [
-        'createOrder'
-    ],
-    'poloniex': [
-        'fetchOrderStatus'
-    ]
+    
 }
 
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -147,9 +121,6 @@ function main() {
 
     for (const exchange of exchangesToCheck) {
 
-        if (skipExchanges.includes(exchange)) {
-            continue;
-        }
         const restPath = basePath + exchange + '.d.ts';
         const wsPath = basePath + 'pro/' + exchange + '.d.ts';
         const restMethodsInfo = extractMethodsInfo(restPath, program); // rest API
