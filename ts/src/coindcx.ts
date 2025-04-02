@@ -127,7 +127,7 @@ export default class coindcx extends Exchange {
                 'signIn': false,
                 'transfer': true,
                 'withdraw': false,
-                'ws': false,
+                'ws': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -3468,12 +3468,12 @@ export default class coindcx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         }
-        if (api === 'private') {
+        if (method === 'POST') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             const secret = this.encode (this.secret);
