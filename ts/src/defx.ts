@@ -615,7 +615,7 @@ export default class defx extends Exchange {
             'active': this.safeString (market, 'status', '') === 'active',
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': this.safeNumber (fees, 'taker'),
             'maker': this.safeNumber (fees, 'maker'),
             'contractSize': this.parseNumber ('1'),
