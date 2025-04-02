@@ -15,9 +15,20 @@ const skipMethods = [
     'watchTickers', // will be updated later
 ]
 
+const skipExchanges = [
+    'someExchange'
+    // place exchanges here
+]
+
 const skipMethodsPerExchange = {
-    'sampleExchange': [
+    'bitflyer': [
         'fetchPositions',
+    ],
+    'coinspot': [
+        'createOrder'
+    ],
+    'poloniex': [
+        'fetchOrderStatus'
     ]
 }
 
@@ -123,6 +134,9 @@ function main() {
 
     for (const exchange of exchangesToCheck) {
 
+        if (skipExchanges.includes(exchange)) {
+            continue;
+        }
         const restPath = basePath + exchange + '.d.ts';
         const wsPath = basePath + 'pro/' + exchange + '.d.ts';
         const restMethodsInfo = extractMethodsInfo(restPath, program); // rest API
