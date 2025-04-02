@@ -142,6 +142,10 @@ class NotSupported(ExchangeError):
     pass
 
 
+class OperationFailed(BaseError):
+    pass
+
+
 class NetworkError(BaseError):
     pass
 

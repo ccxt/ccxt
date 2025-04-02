@@ -6,73 +6,112 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from typing import Optional
+import numbers
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class bingx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bingx, self).describe(), {
             'id': 'bingx',
             'name': 'BingX',
             'countries': ['US'],  # North America, Canada, the EU, Hong Kong and Taiwan
-            # cheapest is 60 requests a minute = 1 requests per second on average =>( 1000ms / 1) = 1000 ms between requests on average
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
             'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': True,
+                'margin': False,
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': True,
+                'closePosition': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
+                'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
+                'createReduceOnlyOrder': True,
+                'createStopLossOrder': True,
+                'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingAmountOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchLeverage': True,
+                'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
+                'fetchMarkPrices': True,
+                'fetchMyLiquidations': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchPosition': True,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
-                'setMagin': True,
+                'setMargin': True,
                 'setMarginMode': True,
+                'setPositionMode': True,
                 'transfer': True,
             },
             'hostname': 'bingx.com',
@@ -83,16 +122,30 @@ class bingx(Exchange, ImplicitAPI):
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'user': 'https://open-api.{hostname}/openApi',
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
+                    'copyTrading': 'https://open-api.{hostname}/openApi',
+                    'cswap': 'https://open-api.{hostname}/openApi',
+                },
+                'test': {
+                    'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
                 'referral': 'https://bingx.com/invite/OHETOM',
-                'fees': {
-                    'trading': {
-                        'tierBased': True,
-                    },
+            },
+            'fees': {
+                'tierBased': True,
+                'spot': {
+                    'feeSide': 'get',
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
+                },
+                'swap': {
+                    'feeSide': 'quote',
+                    'maker': self.parse_number('0.0002'),
+                    'taker': self.parse_number('0.0005'),
                 },
             },
             'requiredCredentials': {
@@ -104,47 +157,98 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'common/symbols': 3,
-                                'market/trades': 3,
-                                'market/depth': 3,
-                                'market/kline': 3,
+                                'server/time': 1,
+                                'common/symbols': 1,
+                                'market/trades': 1,
+                                'market/depth': 1,
+                                'market/kline': 1,
                                 'ticker/24hr': 1,
+                                'ticker/price': 1,
+                                'ticker/bookTicker': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 3,
-                                'trade/openOrders': 3,
-                                'trade/historyOrders': 3,
-                                'account/balance': 3,
+                                'trade/query': 1,
+                                'trade/openOrders': 1,
+                                'trade/historyOrders': 1,
+                                'trade/myTrades': 2,
+                                'user/commissionRate': 5,
+                                'account/balance': 2,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/cancel': 3,
-                                'trade/batchOrders': 3,
-                                'trade/cancelOrders': 3,
+                                'trade/order': 2,
+                                'trade/cancel': 2,
+                                'trade/batchOrders': 5,
+                                'trade/order/cancelReplace': 5,
+                                'trade/cancelOrders': 5,
+                                'trade/cancelOpenOrders': 5,
+                                'trade/cancelAllAfter': 5,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': {
+                                'market/depth': 1,
+                                'market/kline': 1,
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 3,
-                                'asset/transfer': 3,
-                                'capital/deposit/hisrec': 3,
-                                'capital/withdraw/history': 3,
+                                'get/asset/transfer': 1,
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
                             },
                             'post': {
-                                'post/asset/transfer': 3,
+                                'post/asset/transfer': 5,
                             },
                         },
                     },
                 },
                 'swap': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ticker/price': 1,
+                                'market/historicalTrades': 1,
+                                'market/markPriceKlines': 1,
+                                'trade/multiAssetsRules': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'positionSide/dual': 5,
+                                'trade/batchCancelReplace': 5,
+                                'trade/fullOrder': 2,
+                                'maintMarginRatio': 2,
+                                'trade/positionHistory': 2,
+                                'positionMargin/history': 2,
+                                'twap/openOrders': 5,
+                                'twap/historyOrders': 5,
+                                'twap/orderDetail': 5,
+                                'trade/assetMode': 5,
+                                'user/marginAssets': 5,
+                            },
+                            'post': {
+                                'trade/cancelReplace': 2,
+                                'positionSide/dual': 5,
+                                'trade/batchCancelReplace': 5,
+                                'trade/closePosition': 2,
+                                'trade/getVst': 5,
+                                'twap/order': 5,
+                                'twap/cancelOrder': 5,
+                                'trade/assetMode': 5,
+                            },
+                        },
+                    },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 3,
+                                'server/time': 1,
                                 'quote/contracts': 1,
                                 'quote/price': 1,
                                 'quote/depth': 1,
@@ -159,33 +263,83 @@ class bingx(Exchange, ImplicitAPI):
                         },
                         'private': {
                             'get': {
-                                'user/balance': 3,
-                                'user/positions': 3,
-                                'user/income': 3,
-                                'trade/openOrders': 3,
-                                'trade/order': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/forceOrders': 3,
-                                'trade/allOrders': 3,
-                                'trade/allFillOrders': 3,
-                                'user/income/export': 3,
-                                'user/commissionRate': 3,
-                                'quote/bookTicker': 3,
+                                'user/balance': 2,
+                                'user/positions': 2,
+                                'user/income': 2,
+                                'trade/openOrders': 2,
+                                'trade/openOrder': 2,
+                                'trade/order': 2,
+                                'trade/marginType': 5,
+                                'trade/leverage': 2,
+                                'trade/forceOrders': 1,
+                                'trade/allOrders': 2,
+                                'trade/allFillOrders': 2,
+                                'trade/fillHistory': 2,
+                                'user/income/export': 2,
+                                'user/commissionRate': 2,
+                                'quote/bookTicker': 1,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/closeAllPositions': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/positionMargin': 3,
-                                'trade/order/test': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/closeAllPositions': 2,
+                                'trade/cancelAllAfter': 5,
+                                'trade/marginType': 5,
+                                'trade/leverage': 5,
+                                'trade/positionMargin': 5,
+                                'trade/order/test': 2,
                             },
                             'delete': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/allOpenOrders': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/allOpenOrders': 2,
+                            },
+                        },
+                    },
+                    'v3': {
+                        'public': {
+                            'get': {
+                                'quote/klines': 1,
+                            },
+                        },
+                    },
+                },
+                'cswap': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'market/contracts': 1,
+                                'market/premiumIndex': 1,
+                                'market/openInterest': 1,
+                                'market/klines': 1,
+                                'market/depth': 1,
+                                'market/ticker': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'trade/leverage': 2,
+                                'trade/forceOrders': 2,
+                                'trade/allFillOrders': 2,
+                                'trade/openOrders': 2,
+                                'trade/orderDetail': 2,
+                                'trade/orderHistory': 2,
+                                'trade/marginType': 2,
+                                'user/commissionRate': 2,
+                                'user/positions': 2,
+                                'user/balance': 2,
+                            },
+                            'post': {
+                                'trade/order': 2,
+                                'trade/leverage': 2,
+                                'trade/allOpenOrders': 2,
+                                'trade/closeAllPositions': 2,
+                                'trade/marginType': 2,
+                                'trade/positionMargin': 2,
+                            },
+                            'delete': {
+                                'trade/allOpenOrders': 2,  # post method in doc
+                                'trade/cancelOrder': 2,
                             },
                         },
                     },
@@ -194,9 +348,9 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 3,
-                                'allOrders': 3,
-                                'balance': 3,
+                                'allPosition': 2,
+                                'allOrders': 2,
+                                'balance': 2,
                             },
                         },
                     },
@@ -205,18 +359,19 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 3,
-                                'capital/deposit/address': 1,
+                                'capital/config/getall': 5,
+                                'capital/deposit/address': 5,
                                 'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 1,
-                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/deposit/address': 5,
+                                'capital/deposit/subHisrec': 2,
                                 'capital/subAccount/innerTransfer/records': 1,
+                                'capital/deposit/riskRecords': 5,
                             },
                             'post': {
-                                'capital/withdraw/apply': 3,
-                                'capital/innerTransfer/apply': 3,
-                                'capital/subAccountInnerTransfer/apply': 3,
-                                'capital/deposit/createSubAddress': 1,
+                                'capital/withdraw/apply': 5,
+                                'capital/innerTransfer/apply': 5,
+                                'capital/subAccountInnerTransfer/apply': 2,
+                                'capital/deposit/createSubAddress': 2,
                             },
                         },
                     },
@@ -225,16 +380,16 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 3,
-                                'assets': 3,
-                                'apiKey/query': 1,
+                                'list': 10,
+                                'assets': 2,
+                                'allAccountBalance': 2,
                             },
                             'post': {
-                                'create': 3,
-                                'apiKey/create': 3,
-                                'apiKey/edit': 3,
-                                'apiKey/del': 3,
-                                'updateStatus': 3,
+                                'create': 10,
+                                'apiKey/create': 2,
+                                'apiKey/edit': 2,
+                                'apiKey/del': 2,
+                                'updateStatus': 10,
                             },
                         },
                     },
@@ -244,9 +399,40 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'uid': 1,
+                                'apiKey/query': 2,
+                                'account/apiPermissions': 5,
+                                'allAccountBalance': 2,
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 3,
+                                'innerTransfer/authorizeSubAccount': 1,
+                            },
+                        },
+                    },
+                    'transfer': {
+                        'v1': {
+                            'private': {
+                                'get': {
+                                    'subAccount/asset/transferHistory': 1,
+                                },
+                                'post': {
+                                    'subAccount/transferAsset/supportCoins': 1,
+                                    'subAccount/transferAsset': 1,
+                                },
+                            },
+                        },
+                    },
+                },
+                'user': {
+                    'auth': {
+                        'private': {
+                            'post': {
+                                'userDataStream': 2,
+                            },
+                            'put': {
+                                'userDataStream': 2,
+                            },
+                            'delete': {
+                                'userDataStream': 2,
                             },
                         },
                     },
@@ -255,11 +441,12 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 1,
+                                'swap/trace/currentTrack': 2,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 1,
-                                'swap/trace/setTPSL': 1,
+                                'swap/trace/closeTrackOrder': 2,
+                                'swap/trace/setTPSL': 2,
+                                'spot/trader/sellOrder': 10,
                             },
                         },
                     },
@@ -295,11 +482,7 @@ class bingx(Exchange, ImplicitAPI):
                 '1w': '1w',
                 '1M': '1M',
             },
-            'fees': {
-                'trading': {
-                },
-            },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest,
@@ -313,22 +496,35 @@ class bingx(Exchange, ImplicitAPI):
                     '100001': AuthenticationError,
                     '100412': AuthenticationError,
                     '100202': InsufficientFunds,
+                    '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed,  # {"code":100410,"msg":"The current system is busy, please try again later"}
+                    '100421': BadSymbol,  # {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': ExchangeError,
-                    '100500': ExchangeError,
+                    '100500': OperationFailed,  # {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""}
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': ExchangeNotAvailable,
+                    '80012': InsufficientFunds,  # {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}}
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
+                    '100414': AccountSuspended,  # {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
+                    '100419': PermissionDenied,  # {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
+                    '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
+                'OMNI': 'OmniCat',
+                'NAP': '$NAP',  # NAP on SOL = SNAP
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
+                'defaultType': 'spot',
                 'accountsByType': {
                     'spot': 'FUND',
                     'swap': 'PFUTURES',
@@ -340,14 +536,159 @@ class bingx(Exchange, ImplicitAPI):
                     'SFUTURES': 'future',
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
+                'broker': 'CCXT',
+                'defaultNetworks': {
+                    'ETH': 'ETH',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
+                },
+                'networks': {
+                    'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
+                },
+            },
+            'features': {
+                'defaultForLinear': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                                'index': True,
+                            },
+                            'price': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
+                        'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 20000,  # since epoch
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'defaultForInverse': {
+                    'extends': 'defaultForLinear',
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrders': None,
+                },
+                #
+                'spot': {
+                    'extends': 'defaultForLinear',
+                    'createOrder': {
+                        'triggerPriceType': None,
+                        'attachedStopLossTakeProfit': None,
+                        'trailing': False,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': 1,
+                        'untilDays': 1,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'untilDays': None,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'defaultForLinear',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForInverse',
+                    },
+                },
+                'defaultForFuture': {
+                    'extends': 'defaultForLinear',
+                    'fetchOrders': None,
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'defaultForFuture',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForFuture',
+                    },
+                },
             },
         })
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the bingx server
-        see https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+
+        https://bingx-api.github.io/docs/#/swapV2/base-info.html#Get%20Server%20Time
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the bingx server
         """
         response = self.swapV2PublicGetServerTime(params)
@@ -360,91 +701,109 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.safe_integer(data, 'serverTime')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+
+        https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
             return None
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
+        if isSandbox:
+            return None
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
-        #        'code': 0,
-        #        'timestamp': 1688045966616,
-        #        'data': [
+        #      "code": 0,
+        #      "timestamp": 1702623271477,
+        #      "data": [
+        #        {
+        #          "coin": "BTC",
+        #          "name": "BTC",
+        #          "networkList": [
         #            {
-        #              coin: 'BTC',
-        #              name: 'BTC',
-        #              networkList: [
-        #                {
-        #                  name: 'BTC',
-        #                  network: 'BTC',
-        #                  isDefault: True,
-        #                  minConfirm: '2',
-        #                  withdrawEnable: True,
-        #                  withdrawFee: '0.00035',
-        #                  withdrawMax: '1.62842',
-        #                  withdrawMin: '0.0005'
-        #                },
-        #                {
-        #                  name: 'BTC',
-        #                  network: 'BEP20',
-        #                  isDefault: False,
-        #                  minConfirm: '15',
-        #                  withdrawEnable: True,
-        #                  withdrawFee: '0.00001',
-        #                  withdrawMax: '1.62734',
-        #                  withdrawMin: '0.0001'
-        #                }
-        #              ]
-        #          },
-        #          ...
-        #        ],
+        #              "name": "BTC",
+        #              "network": "BTC",
+        #              "isDefault": True,
+        #              "minConfirm": 2,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0006",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0005",
+        #              "depositMin": "0.0002"
+        #            },
+        #            {
+        #              "name": "BTC",
+        #              "network": "BEP20",
+        #              "isDefault": False,
+        #              "minConfirm": 15,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0000066",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0000066",
+        #              "depositMin": "0.0002"
+        #            }
+        #          ]
+        #        }
+        #      ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
-        result = {}
+        data = self.safe_list(response, 'data', [])
+        result: dict = {}
         for i in range(0, len(data)):
             entry = data[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(entry, 'name')
-            networkList = self.safe_value(entry, 'networkList')
-            networks = {}
+            networkList = self.safe_list(entry, 'networkList')
+            networks: dict = {}
             fee = None
-            active = None
-            withdrawEnabled = None
-            defaultLimits = {}
+            depositEnabled = False
+            withdrawEnabled = False
+            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
-                isDefault = self.safe_value(rawNetwork, 'isDefault')
-                withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnable')
-                limits = {
-                    'amounts': {'min': self.safe_number(rawNetwork, 'withdrawMin'), 'max': self.safe_number(rawNetwork, 'withdrawMax')},
+                isDefault = self.safe_bool(rawNetwork, 'isDefault')
+                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
+                if networkDepositEnabled:
+                    depositEnabled = True
+                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
+                if networkWithdrawEnabled:
+                    withdrawEnabled = True
+                limits: dict = {
+                    'withdraw': {
+                        'min': self.safe_number(rawNetwork, 'withdrawMin'),
+                        'max': self.safe_number(rawNetwork, 'withdrawMax'),
+                    },
                 }
+                fee = self.safe_number(rawNetwork, 'withdrawFee')
                 if isDefault:
-                    fee = self.safe_number(rawNetwork, 'withdrawFee')
-                    active = withdrawEnabled
                     defaultLimits = limits
+                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
+                networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
                     'fee': fee,
-                    'active': active,
-                    'deposit': None,
-                    'withdraw': withdrawEnabled,
-                    'precision': None,
+                    'active': networkActive,
+                    'deposit': networkDepositEnabled,
+                    'withdraw': networkWithdrawEnabled,
+                    'precision': precision,
                     'limits': limits,
                 }
+            active = depositEnabled or withdrawEnabled
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -452,7 +811,7 @@ class bingx(Exchange, ImplicitAPI):
                 'precision': None,
                 'name': name,
                 'active': active,
-                'deposit': None,
+                'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee,
@@ -460,7 +819,7 @@ class bingx(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_spot_markets(self, params):
+    def fetch_spot_markets(self, params) -> List[Market]:
         response = self.spotV1PublicGetCommonSymbols(params)
         #
         #    {
@@ -471,25 +830,27 @@ class bingx(Exchange, ImplicitAPI):
         #              "symbols": [
         #                  {
         #                    "symbol": "GEAR-USDT",
-        #                    "minQty": 735,
-        #                    "maxQty": 2941177,
+        #                    "minQty": 735,  # deprecated
+        #                    "maxQty": 2941177,  # deprecated.
         #                    "minNotional": 5,
         #                    "maxNotional": 20000,
         #                    "status": 1,
         #                    "tickSize": 0.000001,
-        #                    "stepSize": 1
+        #                    "stepSize": 1,
+        #                    "apiStateSell": True,
+        #                    "apiStateBuy": True,
+        #                    "timeOnline": 0,
+        #                    "offTime": 0,
+        #                    "maintainTime": 0
         #                  },
         #                  ...
         #              ]
         #         }
         #    }
         #
-        result = []
-        data = self.safe_value(response, 'data')
-        markets = self.safe_value(data, 'symbols', [])
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
+        data = self.safe_dict(response, 'data')
+        markets = self.safe_list(data, 'symbols', [])
+        return self.parse_markets(markets)
 
     def fetch_swap_markets(self, params):
         response = self.swapV2PublicGetQuoteContracts(params)
@@ -499,30 +860,58 @@ class bingx(Exchange, ImplicitAPI):
         #        "msg": "",
         #        "data": [
         #            {
-        #              "contractId": "100",
-        #              "symbol": "BTC-USDT",
-        #              "size": "0.0001",
-        #              "quantityPrecision": 4,
-        #              "pricePrecision": 1,
-        #              "feeRate": 0.0005,
-        #              "tradeMinLimit": 1,
-        #              "maxLongLeverage": 150,
-        #              "maxShortLeverage": 150,
-        #              "currency": "USDT",
-        #              "asset": "BTC",
-        #              "status": 1
+        #                "contractId": "100",
+        #                "symbol": "BTC-USDT",
+        #                "size": "0.0001",
+        #                "quantityPrecision": "4",
+        #                "pricePrecision": "1",
+        #                "feeRate": "0.0005",
+        #                "makerFeeRate": "0.0002",
+        #                "takerFeeRate": "0.0005",
+        #                "tradeMinLimit": "0",
+        #                "tradeMinQuantity": "0.0001",
+        #                "tradeMinUSDT": "2",
+        #                "maxLongLeverage": "125",
+        #                "maxShortLeverage": "125",
+        #                "currency": "USDT",
+        #                "asset": "BTC",
+        #                "status": "1",
+        #                "apiStateOpen": "true",
+        #                "apiStateClose": "true",
+        #                "ensureTrigger": True,
+        #                "triggerFeeRate": "0.00020000"
         #            },
         #            ...
         #        ]
         #    }
         #
-        result = []
-        markets = self.safe_value(response, 'data')
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
+        markets = self.safe_list(response, 'data', [])
+        return self.parse_markets(markets)
 
-    def parse_market(self, market):
+    def fetch_inverse_swap_markets(self, params):
+        response = self.cswapV1PublicGetMarketContracts(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720074487610,
+        #         "data": [
+        #             {
+        #                 "symbol": "BNB-USD",
+        #                 "pricePrecision": 2,
+        #                 "minTickSize": "10",
+        #                 "minTradeValue": "10",
+        #                 "minQty": "1.00000000",
+        #                 "status": 1,
+        #                 "timeOnline": 1713175200000
+        #             },
+        #         ]
+        #     }
+        #
+        markets = self.safe_list(response, 'data', [])
+        return self.parse_markets(markets)
+
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         symbolParts = id.split('-')
         baseId = symbolParts[0]
@@ -530,24 +919,43 @@ class bingx(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         currency = self.safe_string(market, 'currency')
+        checkIsInverse = False
+        checkIsLinear = True
+        minTickSize = self.safe_number(market, 'minTickSize')
+        if minTickSize is not None:
+            # inverse swap market
+            currency = baseId
+            checkIsInverse = True
+            checkIsLinear = False
         settle = self.safe_currency_code(currency)
-        pricePrecision = self.safe_integer(market, 'pricePrecision')
+        pricePrecision = self.safe_number(market, 'tickSize')
         if pricePrecision is None:
-            pricePrecision = self.precision_from_string(self.safe_string(market, 'tickSize'))
-        quantityPrecision = self.safe_integer(market, 'quantityPrecision')
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
+        quantityPrecision = self.safe_number(market, 'stepSize')
         if quantityPrecision is None:
-            quantityPrecision = self.precision_from_string(self.safe_string(market, 'stepSize'))
+            quantityPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         type = 'swap' if (settle is not None) else 'spot'
         spot = type == 'spot'
         swap = type == 'swap'
         symbol = base + '/' + quote
         if settle is not None:
             symbol += ':' + settle
-        contractSize = self.safe_number(market, 'size')
-        isActive = self.safe_string(market, 'status') == '1'
-        isInverse = None if (spot) else False
-        isLinear = None if (spot) else swap
-        entry = {
+        fees = self.safe_dict(self.fees, type, {})
+        contractSize = self.parse_number('1') if (swap) else None
+        isActive = False
+        if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
+            isActive = True  # swap active
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_string(market, 'status') == '1'):
+            isActive = True  # spot active
+        isInverse = None if (spot) else checkIsInverse
+        isLinear = None if (spot) else checkIsLinear
+        minAmount = None
+        if not spot:
+            minAmount = self.safe_number_2(market, 'minQty', 'tradeMinQuantity')
+        timeOnline = self.safe_integer(market, 'timeOnline')
+        if timeOnline == 0:
+            timeOnline = None
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -566,8 +974,9 @@ class bingx(Exchange, ImplicitAPI):
             'contract': swap,
             'linear': isLinear,
             'inverse': isInverse,
-            'taker': None,
-            'maker': None,
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
+            'feeSide': self.safe_string(fees, 'feeSide'),
             'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
@@ -576,76 +985,102 @@ class bingx(Exchange, ImplicitAPI):
             'precision': {
                 'amount': quantityPrecision,
                 'price': pricePrecision,
-                'base': None,
-                'quote': None,
             },
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': self.safe_integer(market, 'maxLongLeverage'),
+                    'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'minQty'),
-                    'max': self.safe_number(market, 'maxQty'),
+                    'min': minAmount,
+                    'max': None,
                 },
                 'price': {
-                    'min': None,
+                    'min': minTickSize,
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_number(market, 'minNotional'),
+                    'min': self.safe_number_n(market, ['minNotional', 'tradeMinUSDT', 'minTradeValue']),
                     'max': self.safe_number(market, 'maxNotional'),
                 },
             },
+            'created': timeOnline,
             'info': market,
-        }
-        return entry
+        })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bingx
-        see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+
+        https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
-        requests = [self.fetch_spot_markets(params), self.fetch_swap_markets(params)]
+        requests = [self.fetch_swap_markets(params)]
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
+        if not isSandbox:
+            requests.append(self.fetch_inverse_swap_markets(params))
+            requests.append(self.fetch_spot_markets(params))  # sandbox is swap only
         promises = requests
-        spotMarkets = self.safe_value(promises, 0, [])
-        swapMarkets = self.safe_value(promises, 1, [])
+        linearSwapMarkets = self.safe_list(promises, 0, [])
+        inverseSwapMarkets = self.safe_list(promises, 1, [])
+        spotMarkets = self.safe_list(promises, 2, [])
+        swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
-        see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+        https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :param str [params.price]: "mark" or "index" for mark price and index price candles
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
-        else:
-            request['limit'] = 50
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = until
         response = None
         if market['spot']:
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteKlines(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketKlines(self.extend(request, params))
+            else:
+                price = self.safe_string(params, 'price')
+                params = self.omit(params, 'price')
+                if price == 'mark':
+                    response = self.swapV1PublicGetMarketMarkPriceKlines(self.extend(request, params))
+                else:
+                    response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -663,12 +1098,30 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "data": [
+        #            {
+        #                "open": "42191.7",
+        #                "close": "42189.5",
+        #                "high": "42196.5",
+        #                "low": "42189.5",
+        #                "volume": "0.00",
+        #                "openTime": 1706508840000,
+        #                "closeTime": 1706508840000
+        #            }
+        #        ]
+        #    }
+        #
         ohlcvs = self.safe_value(response, 'data', [])
         if not isinstance(ohlcvs, list):
             ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "open": "19394.4",
@@ -677,6 +1130,18 @@ class bingx(Exchange, ImplicitAPI):
         #        "low": "19368.3",
         #        "volume": "167.44",
         #        "time": 1666584000000
+        #    }
+        #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "open": "42191.7",
+        #        "close": "42189.5",
+        #        "high": "42196.5",
+        #        "low": "42189.5",
+        #        "volume": "0.00",
+        #        "openTime": 1706508840000,
+        #        "closeTime": 1706508840000
         #    }
         # spot
         #    [
@@ -700,7 +1165,7 @@ class bingx(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 5),
             ]
         return [
-            self.safe_integer(ohlcv, 'time'),
+            self.safe_integer_2(ohlcv, 'time', 'closeTime'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -708,20 +1173,22 @@ class bingx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+
+        https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -766,13 +1233,12 @@ class bingx(Exchange, ImplicitAPI):
         #      ]
         #    }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # spot
-        # fetchTrades
+        # spot fetchTrades
         #
         #    {
         #        "id": 43148253,
@@ -782,8 +1248,23 @@ class bingx(Exchange, ImplicitAPI):
         #        "buyerMaker": False
         #    }
         #
-        # swap
-        # fetchTrades
+        # spot fetchMyTrades
+        #
+        #     {
+        #         "symbol": "LTC-USDT",
+        #         "id": 36237072,
+        #         "orderId": 1674069326895775744,
+        #         "price": "85.891",
+        #         "qty": "0.0582",
+        #         "quoteQty": "4.9988562000000005",
+        #         "commission": -0.00005820000000000001,
+        #         "commissionAsset": "LTC",
+        #         "time": 1687964205000,
+        #         "isBuyer": True,
+        #         "isMaker": False
+        #     }
+        #
+        # swap fetchTrades
         #
         #    {
         #        "time": 1672025549368,
@@ -793,68 +1274,144 @@ class bingx(Exchange, ImplicitAPI):
         #        "quoteQty": "55723.87"
         #    }
         #
-        # swap
-        # fetchMyTrades
+        # swap fetchMyTrades
         #
         #    {
-        #        volume: '0.1',
-        #        price: '106.75',
-        #        amount: '10.6750',
-        #        commission: '-0.0053',
-        #        currency: 'USDT',
-        #        orderId: '1676213270274379776',
-        #        liquidatedPrice: '0.00',
-        #        liquidatedMarginRatio: '0.00',
-        #        filledTime: '2023-07-04T20:56:01.000+0800'
+        #        "volume": "0.1",
+        #        "price": "106.75",
+        #        "amount": "10.6750",
+        #        "commission": "-0.0053",
+        #        "currency": "USDT",
+        #        "orderId": "1676213270274379776",
+        #        "liquidatedPrice": "0.00",
+        #        "liquidatedMarginRatio": "0.00",
+        #        "filledTime": "2023-07-04T20:56:01.000+0800"
         #    }
         #
-        time = self.safe_integer_2(trade, 'time', 'filledTm')
+        # ws spot
+        #
+        #    {
+        #        "E": 1690214529432,
+        #        "T": 1690214529386,
+        #        "e": "trade",
+        #        "m": True,
+        #        "p": "29110.19",
+        #        "q": "0.1868",
+        #        "s": "BTC-USDT",
+        #        "t": "57903921"
+        #    }
+        #
+        # ws linear swap
+        #
+        #    {
+        #        "q": "0.0421",
+        #        "p": "29023.5",
+        #        "T": 1690221401344,
+        #        "m": False,
+        #        "s": "BTC-USDT"
+        #    }
+        #
+        # ws inverse swap
+        #
+        #     {
+        #         "e": "trade",
+        #         "E": 1722920589665,
+        #         "s": "BTC-USD",
+        #         "t": "39125001",
+        #         "p": "55360.0",
+        #         "q": "1",
+        #         "T": 1722920589582,
+        #         "m": False
+        #     }
+        #
+        # inverse swap fetchMyTrades
+        #
+        #     {
+        #         "orderId": "1817441228670648320",
+        #         "symbol": "SOL-USD",
+        #         "type": "MARKET",
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "tradeId": "97244554",
+        #         "volume": "2",
+        #         "tradePrice": "182.652",
+        #         "amount": "20.00000000",
+        #         "realizedPnl": "0.00000000",
+        #         "commission": "-0.00005475",
+        #         "currency": "SOL",
+        #         "buyer": True,
+        #         "maker": False,
+        #         "tradeTime": 1722146730000
+        #     }
+        #
+        time = self.safe_integer_n(trade, ['time', 'filledTm', 'T', 'tradeTime'])
         datetimeId = self.safe_string(trade, 'filledTm')
         if datetimeId is not None:
             time = self.parse8601(datetimeId)
-        isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
-        takeOrMaker = None
-        side = None
-        if isBuyerMaker is not None:
-            side = 'sell' if isBuyerMaker else 'buy'
-            takeOrMaker = 'taker'
+        if time == 0:
+            time = None
         cost = self.safe_string(trade, 'quoteQty')
-        type = 'spot' if (cost is None) else 'swap'
-        currencyId = self.safe_string(trade, 'currency')
+        # type = 'spot' if (cost is None) else 'swap'; self is not reliable
+        currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
+        m = self.safe_bool(trade, 'm')
+        marketId = self.safe_string_2(trade, 's', 'symbol')
+        isBuyerMaker = self.safe_bool_n(trade, ['buyerMaker', 'isBuyerMaker', 'maker'])
+        takeOrMaker = None
+        if (isBuyerMaker is not None) or (m is not None):
+            takeOrMaker = 'maker' if (isBuyerMaker or m) else 'taker'
+        side = self.safe_string_lower_2(trade, 'side', 'S')
+        if side is None:
+            if (isBuyerMaker is not None) or (m is not None):
+                side = 'sell' if (isBuyerMaker or m) else 'buy'
+                takeOrMaker = 'taker'
+        isBuyer = self.safe_bool(trade, 'isBuyer')
+        if isBuyer is not None:
+            side = 'buy' if isBuyer else 'sell'
+        isMaker = self.safe_bool(trade, 'isMaker')
+        if isMaker is not None:
+            takeOrMaker = 'maker' if isMaker else 'taker'
+        amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
+        if (market is not None) and market['swap'] and ('volume' in trade):
+            # private trade returns num of contracts instead of base currency(as the order-related methods do)
+            contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
+            volume = self.safe_string(trade, 'volume')
+            amount = Precise.string_mul(volume, contractSize)
         return self.safe_trade({
-            'id': self.safe_string_2(trade, 'id', 'orderId'),
+            'id': self.safe_string_n(trade, ['id', 't']),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
-            'symbol': self.safe_symbol(None, market, '-', type),
-            'order': None,
-            'type': None,
-            'side': side,
+            'symbol': self.safe_symbol(marketId, market, '-'),
+            'order': self.safe_string_2(trade, 'orderId', 'i'),
+            'type': self.safe_string_lower(trade, 'o'),
+            'side': self.parse_order_side(side),
             'takerOrMaker': takeOrMaker,
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string_2(trade, 'qty', 'amount'),
+            'price': self.safe_string_n(trade, ['price', 'p', 'tradePrice']),
+            'amount': amount,
             'cost': cost,
             'fee': {
-                'cost': self.parse_number(Precise.string_abs(self.safe_string(trade, 'commission'))),
+                'cost': self.parse_number(Precise.string_abs(self.safe_string_2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': None,
             },
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+
+        https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -865,82 +1422,112 @@ class bingx(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.spotV1PublicGetMarketDepth(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteDepth(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketDepth(self.extend(request, params))
+            else:
+                response = self.swapV2PublicGetQuoteDepth(self.extend(request, params))
         #
         # spot
         #
         #     {
-        #         "code": 0,
-        #         "data": {
-        #           "bids": [
-        #             [
-        #               "26324.73",
-        #               "0.37655"
+        #         "code":0,
+        #         "timestamp":1743240504535,
+        #         "data":{
+        #             "bids":[
+        #                 ["83775.39","1.981875"],
+        #                 ["83775.38","0.001076"],
+        #                 ["83775.34","0.254716"],
         #             ],
-        #             [
-        #               "26324.71",
-        #               "0.31888"
+        #             "asks":[
+        #                 ["83985.40","0.000013"],
+        #                 ["83980.00","0.000011"],
+        #                 ["83975.70","0.000061000000000000005"],
         #             ],
-        #         ],
-        #         "asks": [
-        #             [
-        #               "26340.30",
-        #               "6.45221"
-        #             ],
-        #             [
-        #               "26340.15",
-        #               "6.73261"
-        #             ],
-        #         ]}
+        #             "ts":1743240504535,
+        #             "lastUpdateId":13565639906
+        #         }
         #     }
         #
-        # swap
+        #
+        # linear swap
         #
         #     {
-        #         "code": 0,
-        #         "msg": "",
-        #         "data": {
-        #           "T": 1683914263304,
-        #           "bids": [
-        #             [
-        #               "26300.90000000",
-        #               "30408.00000000"
+        #         "code":0,
+        #         "msg":"",
+        #         "data":{
+        #             "T":1743240836255,
+        #             "bids":[
+        #                 ["83760.7","7.0861"],
+        #                 ["83760.6","0.0044"],
+        #                 ["83757.7","1.9526"],
         #             ],
-        #             [
-        #               "26300.80000000",
-        #               "50906.00000000"
+        #             "asks":[
+        #                 ["83784.3","8.3531"],
+        #                 ["83782.8","23.7289"],
+        #                 ["83780.1","18.0617"],
         #             ],
-        #         ],
-        #         "asks": [
-        #             [
-        #               "26301.00000000",
-        #               "43616.00000000"
+        #             "bidsCoin":[
+        #                 ["83760.7","0.0007"],
+        #                 ["83760.6","0.0000"],
+        #                 ["83757.7","0.0002"],
         #             ],
-        #             [
-        #               "26301.10000000",
-        #               "49402.00000000"
-        #             ],
-        #         ]}
+        #             "asksCoin":[
+        #                 ["83784.3","0.0008"],
+        #                 ["83782.8","0.0024"],
+        #                 ["83780.1","0.0018"],
+        #             ]
+        #         }
         #     }
         #
-        orderbook = self.safe_value(response, 'data', {})
+        # inverse swap
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"",
+        #         "timestamp":1743240979146,
+        #         "data":{
+        #             "T":1743240978691,
+        #             "bids":[
+        #                 ["83611.4","241.0"],
+        #                 ["83611.3","1.0"],
+        #                 ["83602.9","666.0"],
+        #             ],
+        #             "asks":[
+        #                 ["83645.0","4253.0"],
+        #                 ["83640.5","3188.0"],
+        #                 ["83636.0","5540.0"],
+        #             ]
+        #         }
+        #     }
+        #
+        orderbook = self.safe_dict(response, 'data', {})
+        nonce = self.safe_integer(orderbook, 'lastUpdateId')
         timestamp = self.safe_integer_2(orderbook, 'T', 'ts')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
+        result = self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
+        result['nonce'] = nonce
+        return result
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
+        else:
+            response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
         #
         #    {
         #        "code":0,
@@ -957,10 +1544,26 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the current funding rate for multiple symbols
+
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True)
+        response = self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rates(data, symbols)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -990,28 +1593,42 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
+
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
-        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'startTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['startTime'] = until
         response = self.swapV2PublicGetQuoteFundingRate(self.extend(request, params))
         #
         #    {
@@ -1027,37 +1644,49 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol')
-            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rate_histories(data, market, since, limit)
+
+    def parse_funding_rate_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "fundingRate": "0.0001",
+        #         "fundingTime": 1585684800000
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(self.safe_string(contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
-        Retrieves the open interest of a currency
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-        :param str symbol: Unified CCXT market symbol
+        retrieves the open interest of a trading pair
+
+        https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+
+        :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PublicGetQuoteOpenInterest(self.extend(request, params))
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PublicGetMarketOpenInterest(self.extend(request, params))
+        else:
+            response = self.swapV2PublicGetQuoteOpenInterest(self.extend(request, params))
+        #
+        # linear swap
         #
         #     {
         #         "code": 0,
@@ -1069,154 +1698,353 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_open_interest(data, market)
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720328247986,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC-USD",
+        #                 "openInterest": "749.1160",
+        #                 "timestamp": 1720310400000
+        #             }
+        #         ]
+        #     }
+        #
+        result: dict = {}
+        if market['inverse']:
+            data = self.safe_list(response, 'data', [])
+            result = self.safe_dict(data, 0, {})
+        else:
+            result = self.safe_dict(response, 'data', {})
+        return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
-        #    {
-        #        "openInterest": "3289641547.10",
-        #        "symbol": "BTC-USDT",
-        #        "time": 1672026617364
-        #    }
+        # linear swap
         #
-        timestamp = self.safe_integer(interest, 'time')
+        #     {
+        #         "openInterest": "3289641547.10",
+        #         "symbol": "BTC-USDT",
+        #         "time": 1672026617364
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "BTC-USD",
+        #         "openInterest": "749.1160",
+        #         "timestamp": 1720310400000
+        #     }
+        #
+        timestamp = self.safe_integer_2(interest, 'time', 'timestamp')
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
-        return {
+        return self.safe_open_interest({
             'symbol': symbol,
+            'baseVolume': None,
+            'quoteVolume': None,  # deprecated
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-        see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+        https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = None
         if market['spot']:
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketTicker(self.extend(request, params))
+            else:
+                response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "symbol": "BTC-USDT",
-        #          "priceChange": "52.5",
-        #          "priceChangePercent": "0.31",
-        #          "lastPrice": "16880.5",
-        #          "lastQty": "2.2238",
-        #          "highPrice": "16897.5",
-        #          "lowPrice": "16726.0",
-        #          "volume": "245870.1692",
-        #          "quoteVolume": "4151395117.73",
-        #          "openPrice": "16832.0",
-        #          "openTime": 1672026667803,
-        #          "closeTime": 1672026648425
-        #        }
-        #    }
+        # spot and swap
         #
-        data = self.safe_value(response, 'data')
-        ticker = self.safe_value(data, 0, data)
-        return self.parse_ticker(ticker, market)
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720647285296,
+        #         "data": [
+        #             {
+        #                 "symbol": "SOL-USD",
+        #                 "priceChange": "-2.418",
+        #                 "priceChangePercent": "-1.6900%",
+        #                 "lastPrice": "140.574",
+        #                 "lastQty": "1",
+        #                 "highPrice": "146.190",
+        #                 "lowPrice": "138.586",
+        #                 "volume": "1464648.00",
+        #                 "quoteVolume": "102928.12",
+        #                 "openPrice": "142.994",
+        #                 "closeTime": "1720647284976",
+        #                 "bidPrice": "140.573",
+        #                 "bidQty": "372",
+        #                 "askPrice": "140.577",
+        #                 "askQty": "58"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data')
+        if data is not None:
+            first = self.safe_dict(data, 0, {})
+            return self.parse_ticker(first, market)
+        dataDict = self.safe_dict(response, 'data', {})
+        return self.parse_ticker(dataDict, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+        https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+        https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             firstSymbol = self.safe_string(symbols, 0)
-            market = self.market(firstSymbol)
+            if firstSymbol is not None:
+                market = self.market(firstSymbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         response = None
         if type == 'spot':
             response = self.spotV1PublicGetTicker24hr(params)
         else:
-            response = self.swapV2PublicGetQuoteTicker(params)
+            if subType == 'inverse':
+                response = self.cswapV1PublicGetMarketTicker(params)
+            else:
+                response = self.swapV2PublicGetQuoteTicker(params)
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": [
-        #            {
-        #                "symbol": "BTC-USDT",
-        #                "priceChange": "52.5",
-        #                "priceChangePercent": "0.31",
-        #                "lastPrice": "16880.5",
-        #                "lastQty": "2.2238",
-        #                "highPrice": "16897.5",
-        #                "lowPrice": "16726.0",
-        #                "volume": "245870.1692",
-        #                "quoteVolume": "4151395117.73",
-        #                "openPrice": "16832.0",
-        #                "openTime": 1672026667803,
-        #                "closeTime": 1672026648425
-        #            },
-        #        ]
-        #    }
+        # spot and swap
         #
-        tickers = self.safe_value(response, 'data')
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720647285296,
+        #         "data": [
+        #             {
+        #                 "symbol": "SOL-USD",
+        #                 "priceChange": "-2.418",
+        #                 "priceChangePercent": "-1.6900%",
+        #                 "lastPrice": "140.574",
+        #                 "lastQty": "1",
+        #                 "highPrice": "146.190",
+        #                 "lowPrice": "138.586",
+        #                 "volume": "1464648.00",
+        #                 "quoteVolume": "102928.12",
+        #                 "openPrice": "142.994",
+        #                 "closeTime": "1720647284976",
+        #                 "bidPrice": "140.573",
+        #                 "bidQty": "372",
+        #                 "askPrice": "140.577",
+        #                 "askQty": "58"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark prices for the market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMarkPrice', market, params, 'linear')
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if subType == 'inverse':
+            response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
+            #
+            # {
+            #     "code": 0,
+            #     "msg": "",
+            #     "timestamp": 1728577213289,
+            #     "data": [
+            #         {
+            #             "symbol": "ETH-USD",
+            #             "lastFundingRate": "0.0001",
+            #             "markPrice": "2402.68",
+            #             "indexPrice": "2404.92",
+            #             "nextFundingTime": 1728604800000
+            #         }
+            #     ]
+            # }
+            #
+        else:
+            response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
+            #
+            # {
+            #     "code": 0,
+            #     "msg": "",
+            #     "data": {
+            #         "symbol": "ETH-USDT",
+            #         "markPrice": "2408.40",
+            #         "indexPrice": "2409.62",
+            #         "lastFundingRate": "0.00009900",
+            #         "nextFundingTime": 1728604800000
+            #     }
+            # }
+            #
+        if isinstance(response['data'], list):
+            return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
+        return self.parse_ticker(response['data'], market)
+
+    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches mark prices for multiple markets
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            firstSymbol = self.safe_string(symbols, 0)
+            if firstSymbol is not None:
+                market = self.market(firstSymbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMarkPrices', market, params, 'linear')
+        response = None
+        if subType == 'inverse':
+            response = self.cswapV1PublicGetMarketPremiumIndex(params)
+        else:
+            response = self.swapV2PublicGetQuotePremiumIndex(params)
+        #
+        # spot and swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720647285296,
+        #         "data": [
+        #             {
+        #                 "symbol": "SOL-USD",
+        #                 "priceChange": "-2.418",
+        #                 "priceChangePercent": "-1.6900%",
+        #                 "lastPrice": "140.574",
+        #                 "lastQty": "1",
+        #                 "highPrice": "146.190",
+        #                 "lowPrice": "138.586",
+        #                 "volume": "1464648.00",
+        #                 "quoteVolume": "102928.12",
+        #                 "openPrice": "142.994",
+        #                 "closeTime": "1720647284976",
+        #                 "bidPrice": "140.573",
+        #                 "bidQty": "372",
+        #                 "askPrice": "140.577",
+        #                 "askQty": "58"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'data')
+        return self.parse_tickers(tickers, symbols)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        # mark price
+        # {
+        #     "symbol": "string",
+        #     "lastFundingRate": "string",
+        #     "markPrice": "string",
+        #     "indexPrice": "string",
+        #     "nextFundingTime": "int64"
+        # }
         #
         # spot
         #    {
-        #        symbol: 'BTC-USDT',
-        #        openPrice: '26032.08',
-        #        highPrice: '26178.86',
-        #        lowPrice: '25968.18',
-        #        lastPrice: '26113.60',
-        #        volume: '1161.79',
-        #        quoteVolume: '30288466.44',
-        #        openTime: '1693081020762',
-        #        closeTime: '1693167420762'
+        #        "symbol": "BTC-USDT",
+        #        "openPrice": "26032.08",
+        #        "highPrice": "26178.86",
+        #        "lowPrice": "25968.18",
+        #        "lastPrice": "26113.60",
+        #        "volume": "1161.79",
+        #        "quoteVolume": "30288466.44",
+        #        "openTime": "1693081020762",
+        #        "closeTime": "1693167420762",
+        #  added 2023-11-10:
+        #        "bidPrice": 16726.0,
+        #        "bidQty": 0.05,
+        #        "askPrice": 16726.0,
+        #        "askQty": 0.05,
         #    }
         # swap
         #
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
-        #        "priceChangePercent": "0.31",
+        #        "priceChangePercent": "0.31%",  # they started to add the percent sign in value
         #        "lastPrice": "16880.5",
-        #        "lastQty": "2.2238",
+        #        "lastQty": "2.2238",          # only present in swap!
         #        "highPrice": "16897.5",
         #        "lowPrice": "16726.0",
         #        "volume": "245870.1692",
         #        "quoteVolume": "4151395117.73",
         #        "openPrice": "16832.0",
         #        "openTime": 1672026667803,
-        #        "closeTime": 1672026648425
+        #        "closeTime": 1672026648425,
+        #  added 2023-11-10:
+        #        "bidPrice": 16726.0,
+        #        "bidQty": 0.05,
+        #        "askPrice": 16726.0,
+        #        "askQty": 0.05,
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        change = self.safe_string(ticker, 'priceChange')
-        type = 'spot' if (change is None) else 'swap'
-        symbol = self.safe_symbol(marketId, market, None, type)
+        lastQty = self.safe_string(ticker, 'lastQty')
+        # in spot markets, lastQty is not present
+        # it's(bad, but) the only way we can check the tickers origin
+        type = 'spot' if (lastQty is None) else 'swap'
+        market = self.safe_market(marketId, market, None, type)
+        symbol = market['symbol']
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
@@ -1224,18 +2052,27 @@ class bingx(Exchange, ImplicitAPI):
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
         percentage = self.safe_string(ticker, 'priceChangePercent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+        change = self.safe_string(ticker, 'priceChange')
         ts = self.safe_integer(ticker, 'closeTime')
+        if ts == 0:
+            ts = None
         datetime = self.iso8601(ts)
+        bid = self.safe_string(ticker, 'bidPrice')
+        bidVolume = self.safe_string(ticker, 'bidQty')
+        ask = self.safe_string(ticker, 'askPrice')
+        askVolume = self.safe_string(ticker, 'askQty')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': ts,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': None,
             'open': open,
             'close': close,
@@ -1246,128 +2083,306 @@ class bingx(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-        see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
-        see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+
+        https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
+        https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+        https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         response = None
         standard = None
         standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
         if standard:
             response = self.contractV1PrivateGetBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "timestamp": 1721192833454,
+            #         "data": [
+            #             {
+            #                 "asset": "USDT",
+            #                 "balance": "4.72644300000000000000",
+            #                 "crossWalletBalance": "4.72644300000000000000",
+            #                 "crossUnPnl": "0",
+            #                 "availableBalance": "4.72644300000000000000",
+            #                 "maxWithdrawAmount": "4.72644300000000000000",
+            #                 "marginAvailable": False,
+            #                 "updateTime": 1721192833443
+            #             },
+            #         ]
+            #     }
+            #
         elif marketType == 'spot':
             response = self.spotV1PrivateGetAccountBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "balances": [
+            #                 {
+            #                     "asset": "USDT",
+            #                     "free": "45.733046995800514",
+            #                     "locked": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
         else:
-            response = self.swapV2PrivateGetUserBalance(marketTypeQuery)
+            if subType == 'inverse':
+                response = self.cswapV1PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1721191833813,
+                #         "data": [
+                #             {
+                #                 "asset": "SOL",
+                #                 "balance": "0.35707951",
+                #                 "equity": "0.35791051",
+                #                 "unrealizedProfit": "0.00083099",
+                #                 "availableMargin": "0.35160653",
+                #                 "usedMargin": "0.00630397",
+                #                 "freezedMargin": "0",
+                #                 "shortUid": "12851936"
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = self.swapV2PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "balance": {
+                #                 "userId": "1177064765068660742",
+                #                 "asset": "USDT",
+                #                 "balance": "51.5198",
+                #                 "equity": "50.5349",
+                #                 "unrealizedProfit": "-0.9849",
+                #                 "realisedProfit": "-0.2134",
+                #                 "availableMargin": "49.1428",
+                #                 "usedMargin": "1.3922",
+                #                 "freezedMargin": "0.0000",
+                #                 "shortUid": "12851936"
+                #             }
+                #         }
+                #     }
+                #
+        return self.parse_balance(response)
+
+    def parse_balance(self, response) -> Balances:
+        #
+        # standard
+        #
+        #     {
+        #         "code": 0,
+        #         "timestamp": 1721192833454,
+        #         "data": [
+        #             {
+        #                 "asset": "USDT",
+        #                 "balance": "4.72644300000000000000",
+        #                 "crossWalletBalance": "4.72644300000000000000",
+        #                 "crossUnPnl": "0",
+        #                 "availableBalance": "4.72644300000000000000",
+        #                 "maxWithdrawAmount": "4.72644300000000000000",
+        #                 "marginAvailable": False,
+        #                 "updateTime": 1721192833443
+        #             },
+        #         ]
+        #     }
         #
         # spot
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "ttl": 1,
-        #        "data": {
-        #            "balances": [
-        #                {
-        #                    "asset": "USDT",
-        #                    "free": "16.73971130673954",
-        #                    "locked": "0"
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
-        # swap
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "balance": {
-        #            "asset": "USDT",
-        #            "balance": "15.6128",
-        #            "equity": "15.6128",
-        #            "unrealizedProfit": "0.0000",
-        #            "realisedProfit": "0.0000",
-        #            "availableMargin": "15.6128",
-        #            "usedMargin": "0.0000",
-        #            "freezedMargin": "0.0000"
-        #          }
-        #        }
-        #    }
-        # standard futures
-        #    {
-        #        "code":"0",
-        #        "timestamp":"1691148990942",
-        #        "data":[
-        #           {
-        #              "asset":"VST",
-        #              "balance":"100000.00000000000000000000",
-        #              "crossWalletBalance":"100000.00000000000000000000",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"100000.00000000000000000000",
-        #              "maxWithdrawAmount":"100000.00000000000000000000",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #           {
-        #              "asset":"USDT",
-        #              "balance":"0",
-        #              "crossWalletBalance":"0",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"0",
-        #              "maxWithdrawAmount":"0",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #        ]
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "debugMsg": "",
+        #         "data": {
+        #             "balances": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "free": "45.733046995800514",
+        #                     "locked": "0"
+        #                 },
+        #             ]
+        #         }
         #     }
         #
-        return self.parse_balance(response)
-
-    def parse_balance(self, response):
-        data = self.safe_value(response, 'data')
-        balances = self.safe_value_2(data, 'balance', 'balances', data)
-        result = {'info': response}
-        if isinstance(balances, list):
-            for i in range(0, len(balances)):
-                balance = balances[i]
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1721191833813,
+        #         "data": [
+        #             {
+        #                 "asset": "SOL",
+        #                 "balance": "0.35707951",
+        #                 "equity": "0.35791051",
+        #                 "unrealizedProfit": "0.00083099",
+        #                 "availableMargin": "0.35160653",
+        #                 "usedMargin": "0.00630397",
+        #                 "freezedMargin": "0",
+        #                 "shortUid": "12851936"
+        #             }
+        #         ]
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "balance": {
+        #                 "userId": "1177064765068660742",
+        #                 "asset": "USDT",
+        #                 "balance": "51.5198",
+        #                 "equity": "50.5349",
+        #                 "unrealizedProfit": "-0.9849",
+        #                 "realisedProfit": "-0.2134",
+        #                 "availableMargin": "49.1428",
+        #                 "usedMargin": "1.3922",
+        #                 "freezedMargin": "0.0000",
+        #                 "shortUid": "12851936"
+        #             }
+        #         }
+        #     }
+        #
+        result: dict = {'info': response}
+        standardAndInverseBalances = self.safe_list(response, 'data')
+        firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
+        isStandardOrInverse = firstStandardOrInverse is not None
+        spotData = self.safe_dict(response, 'data', {})
+        spotBalances = self.safe_list(spotData, 'balances')
+        firstSpot = self.safe_dict(spotBalances, 0)
+        isSpot = firstSpot is not None
+        if isStandardOrInverse:
+            for i in range(0, len(standardAndInverseBalances)):
+                balance = standardAndInverseBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
+                account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
+                account['used'] = self.safe_string(balance, 'usedMargin')
+                account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
+                result[code] = account
+        elif isSpot:
+            for i in range(0, len(spotBalances)):
+                balance = spotBalances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                account['total'] = self.safe_string(balance, 'balance')
                 result[code] = account
         else:
-            currencyId = self.safe_string(balances, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balances, 'availableMargin')
-            account['used'] = self.safe_string(balances, 'usedMargin')
-            result[code] = account
+            linearSwapData = self.safe_dict(response, 'data', {})
+            linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
+            if linearSwapBalance:
+                currencyId = self.safe_string(linearSwapBalance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+
+        :param str symbol: unified contract symbol
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum amount of records to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: the latest time in ms to fetch positions for
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startTs'] = since
+        request, params = self.handle_until_option('endTs', request, params)
+        response = None
+        if market['linear']:
+            response = self.swapV1PrivateGetTradePositionHistory(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchPositionHistory() is not supported for inverse swap positions')
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "positionHistory": [
+        #                 {
+        #                     "positionId": "1861675561156571136",
+        #                     "symbol": "LTC-USDT",
+        #                     "isolated": False,
+        #                     "positionSide": "LONG",
+        #                     "openTime": 1732693017000,
+        #                     "updateTime": 1733310292000,
+        #                     "avgPrice": "95.18",
+        #                     "avgClosePrice": "129.48",
+        #                     "realisedProfit": "102.89",
+        #                     "netProfit": "99.63",
+        #                     "positionAmt": "30.0",
+        #                     "closePositionAmt": "30.0",
+        #                     "leverage": 6,
+        #                     "closeAllPositions": True,
+        #                     "positionCommission": "-0.33699650000000003",
+        #                     "totalFunding": "-2.921461693902908"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        records = self.safe_list(data, 'positionHistory', [])
+        positions = self.parse_positions(records)
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-        see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-        :param [str]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns [dict]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1377,85 +2392,275 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = self.contractV1PrivateGetAllPosition(params)
         else:
-            response = self.swapV2PrivateGetUserPositions(params)
-        #
-        #    {
-        #        "code": 0,
-        #            "msg": "",
-        #            "data": [
-        #            {
-        #                "symbol": "BTC-USDT",
-        #                "positionId": "12345678",
-        #                "positionSide": "LONG",
-        #                "isolated": True,
-        #                "positionAmt": "123.33",
-        #                "availableAmt": "128.99",
-        #                "unrealizedProfit": "1.22",
-        #                "realisedProfit": "8.1",
-        #                "initialMargin": "123.33",
-        #                "avgPrice": "2.2",
-        #                "leverage": 10,
-        #            }
-        #        ]
-        #    }
-        #
-        positions = self.safe_value(response, 'data', [])
+            market = None
+            if symbols is not None:
+                symbols = self.market_symbols(symbols)
+                firstSymbol = self.safe_string(symbols, 0)
+                if firstSymbol is not None:
+                    market = self.market(firstSymbol)
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+            if subType == 'inverse':
+                response = self.cswapV1PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 0,
+                #         "data": [
+                #             {
+                #                 "symbol": "SOL-USD",
+                #                 "positionId": "1813080351385337856",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "positionAmt": "1",
+                #                 "availableAmt": "1",
+                #                 "unrealizedProfit": "-0.00009074",
+                #                 "initialMargin": "0.00630398",
+                #                 "liquidationPrice": 23.968303426677032,
+                #                 "avgPrice": "158.63",
+                #                 "leverage": 10,
+                #                 "markPrice": "158.402",
+                #                 "riskRate": "0.00123783",
+                #                 "maxMarginReduction": "0",
+                #                 "updateTime": 1721107015848
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = self.swapV2PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": [
+                #             {
+                #                 "positionId": "1792480725958881280",
+                #                 "symbol": "LTC-USDT",
+                #                 "currency": "USDT",
+                #                 "positionAmt": "0.1",
+                #                 "availableAmt": "0.1",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "avgPrice": "83.53",
+                #                 "initialMargin": "1.3922",
+                #                 "margin": "0.3528",
+                #                 "leverage": 6,
+                #                 "unrealizedProfit": "-1.0393",
+                #                 "realisedProfit": "-0.2119",
+                #                 "liquidationPrice": 0,
+                #                 "pnlRatio": "-0.7465",
+                #                 "maxMarginReduction": "0.0000",
+                #                 "riskRate": "0.0008",
+                #                 "markPrice": "73.14",
+                #                 "positionValue": "7.3136",
+                #                 "onlyOnePosition": True,
+                #                 "updateTime": 1721088016688
+                #             }
+                #         ]
+                #     }
+                #
+        positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position, market=None):
+    def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchPosition() supports swap markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 0,
+            #         "data": [
+            #             {
+            #                 "symbol": "SOL-USD",
+            #                 "positionId": "1813080351385337856",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "positionAmt": "1",
+            #                 "availableAmt": "1",
+            #                 "unrealizedProfit": "-0.00009074",
+            #                 "initialMargin": "0.00630398",
+            #                 "liquidationPrice": 23.968303426677032,
+            #                 "avgPrice": "158.63",
+            #                 "leverage": 10,
+            #                 "markPrice": "158.402",
+            #                 "riskRate": "0.00123783",
+            #                 "maxMarginReduction": "0",
+            #                 "updateTime": 1721107015848
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            response = self.swapV2PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": [
+            #             {
+            #                 "positionId": "1792480725958881280",
+            #                 "symbol": "LTC-USDT",
+            #                 "currency": "USDT",
+            #                 "positionAmt": "0.1",
+            #                 "availableAmt": "0.1",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "avgPrice": "83.53",
+            #                 "initialMargin": "1.3922",
+            #                 "margin": "0.3528",
+            #                 "leverage": 6,
+            #                 "unrealizedProfit": "-1.0393",
+            #                 "realisedProfit": "-0.2119",
+            #                 "liquidationPrice": 0,
+            #                 "pnlRatio": "-0.7465",
+            #                 "maxMarginReduction": "0.0000",
+            #                 "riskRate": "0.0008",
+            #                 "markPrice": "73.14",
+            #                 "positionValue": "7.3136",
+            #                 "onlyOnePosition": True,
+            #                 "updateTime": 1721088016688
+            #             }
+            #         ]
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_position(first, market)
+
+    def parse_position(self, position: dict, market: Market = None):
+        #
+        # inverse swap
         #
         #     {
-        #         "symbol": "BTC-USDT",
-        #         "positionId": "12345678",
+        #         "symbol": "SOL-USD",
+        #         "positionId": "1813080351385337856",
         #         "positionSide": "LONG",
-        #         "isolated": True,
-        #         "positionAmt": "123.33",
-        #         "availableAmt": "128.99",
-        #         "unrealizedProfit": "1.22",
-        #         "realisedProfit": "8.1",
-        #         "initialMargin": "123.33",
-        #         "avgPrice": "2.2",
+        #         "isolated": False,
+        #         "positionAmt": "1",
+        #         "availableAmt": "1",
+        #         "unrealizedProfit": "-0.00009074",
+        #         "initialMargin": "0.00630398",
+        #         "liquidationPrice": 23.968303426677032,
+        #         "avgPrice": "158.63",
         #         "leverage": 10,
-        #     }
-        # standard position
-        #     {
-        #         "currentPrice":"82.91",
-        #         "symbol":"LTC/USDT",
-        #         "initialMargin":"5.00000000000000000000",
-        #         "unrealizedProfit":"-0.26464500",
-        #         "leverage":"20.000000000",
-        #         "isolated":true,
-        #         "entryPrice":"83.13",
-        #         "positionSide":"LONG",
-        #         "positionAmt":"1.20365912",
+        #         "markPrice": "158.402",
+        #         "riskRate": "0.00123783",
+        #         "maxMarginReduction": "0",
+        #         "updateTime": 1721107015848
         #     }
         #
-        marketId = self.safe_string(position, 'symbol')
+        # linear swap
+        #
+        #     {
+        #         "positionId": "1792480725958881280",
+        #         "symbol": "LTC-USDT",
+        #         "currency": "USDT",
+        #         "positionAmt": "0.1",
+        #         "availableAmt": "0.1",
+        #         "positionSide": "LONG",
+        #         "isolated": False,
+        #         "avgPrice": "83.53",
+        #         "initialMargin": "1.3922",
+        #         "margin": "0.3528",
+        #         "leverage": 6,
+        #         "unrealizedProfit": "-1.0393",
+        #         "realisedProfit": "-0.2119",
+        #         "liquidationPrice": 0,
+        #         "pnlRatio": "-0.7465",
+        #         "maxMarginReduction": "0.0000",
+        #         "riskRate": "0.0008",
+        #         "markPrice": "73.14",
+        #         "positionValue": "7.3136",
+        #         "onlyOnePosition": True,
+        #         "updateTime": 1721088016688
+        #     }
+        #
+        # standard position
+        #
+        #     {
+        #         "currentPrice": "82.91",
+        #         "symbol": "LTC/USDT",
+        #         "initialMargin": "5.00000000000000000000",
+        #         "unrealizedProfit": "-0.26464500",
+        #         "leverage": "20.000000000",
+        #         "isolated": True,
+        #         "entryPrice": "83.13",
+        #         "positionSide": "LONG",
+        #         "positionAmt": "1.20365912",
+        #     }
+        #
+        # linear swap fetchPositionHistory
+        #
+        #     {
+        #         "positionId": "1861675561156571136",
+        #         "symbol": "LTC-USDT",
+        #         "isolated": False,
+        #         "positionSide": "LONG",
+        #         "openTime": 1732693017000,
+        #         "updateTime": 1733310292000,
+        #         "avgPrice": "95.18",
+        #         "avgClosePrice": "129.48",
+        #         "realisedProfit": "102.89",
+        #         "netProfit": "99.63",
+        #         "positionAmt": "30.0",
+        #         "closePositionAmt": "30.0",
+        #         "leverage": 6,
+        #         "closeAllPositions": True,
+        #         "positionCommission": "-0.33699650000000003",
+        #         "totalFunding": "-2.921461693902908"
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol', '')
         marketId = marketId.replace('/', '-')  # standard return different format
-        isolated = self.safe_value(position, 'isolated')
-        marginMode = 'isolated' if isolated else 'cross'
+        isolated = self.safe_bool(position, 'isolated')
+        marginMode = None
+        if isolated is not None:
+            marginMode = 'isolated' if isolated else 'cross'
+        timestamp = self.safe_integer(position, 'openTime')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'positionId'),
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
-            'notional': self.safe_string(position, 'positionAmt'),
+            'notional': self.safe_number(position, 'positionValue'),
             'marginMode': marginMode,
             'liquidationPrice': None,
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
+            'realizedPnl': self.safe_number(position, 'realisedProfit'),
             'percentage': None,
-            'contracts': None,
+            'contracts': self.safe_number(position, 'positionAmt'),
             'contractSize': None,
-            'markPrice': None,
+            'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'side': self.safe_string_lower(position, 'positionSide'),
             'hedged': None,
-            'timestamp': None,
-            'datetime': None,
-            'lastUpdateTimestamp': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'collateral': self.safe_string(position, 'positionAmt'),
+            'collateral': None,
             'initialMargin': self.safe_number(position, 'initialMargin'),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
@@ -1464,99 +2669,282 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
-        create a trade order
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+        create a market order by providing the symbol, side and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', side, cost, None, params)
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        params['quoteOrderQty'] = cost
+        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+ @ignore
+        helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :param bool [params.postOnly]: True to place a post only order
-        :param float [params.triggerPrice]: *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
-        :param float [params.stopLossPrice]: *swap only* stop loss trigger price
-        :param float [params.takeProfitPrice]: *swap only* take profit trigger price
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: request to be sent to the exchange
         """
-        self.load_markets()
         market = self.market(symbol)
-        response = None
-        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        postOnly = None
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         type = type.upper()
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'type': type,
             'side': side.upper(),
         }
         isMarketOrder = type == 'MARKET'
-        isSpotMarket = marketType == 'spot'
-        stopPriceRaw = None
-        stopPrice = None
-        stopLossPrice = None
-        takeProfitPrice = None
-        if not isSpotMarket:
-            stopPriceRaw = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            if stopPriceRaw is not None:
-                stopPrice = self.price_to_precision(symbol, stopPriceRaw)
-            stopLossPrice = self.safe_value(params, 'stopLossPrice')
-            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        if (stopLossPrice is not None) and (takeProfitPrice is not None):
-            raise InvalidOrder('Order is either a takeProfit order or a stopLoss order')
-        if (type == 'LIMIT') or (type == 'TRIGGER_LIMIT'):
-            request['price'] = self.price_to_precision(symbol, price)
-            if (stopPrice is not None):
-                request['type'] = 'TRIGGER_LIMIT'
-                request['stopPrice'] = stopPrice
-            if type == 'TRIGGER_LIMIT':
-                if stopPrice is None:
-                    raise InvalidOrder('TRIGGER_LIMIT requires a triggerPrice / stopPrice')
-                request['stopPrice'] = stopPrice
-        if isMarketOrder or (type == 'TRIGGER_MARKET'):
-            if (stopPrice is not None):
-                request['type'] = 'TRIGGER_MARKET'
-                request['stopPrice'] = stopPrice
-            if type == 'TRIGGER_MARKET':
-                if stopPrice is None:
-                    raise InvalidOrder('TRIGGER_MARKET requires a triggerPrice / stopPrice')
-                request['stopPrice'] = stopPrice
-        exchangeSpecificTifParam = self.safe_string_upper_n(params, ['force', 'timeInForce'])
-        postOnly = None
-        postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'POC', params)
-        if isSpotMarket:
-            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
-                else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['quoteOrderQty'] = self.price_to_precision(symbol, cost)
-            else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
-        else:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
-        if (stopLossPrice is not None):
-            request['type'] = 'STOP_MARKET'
-            request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
-        if (takeProfitPrice is not None):
-            request['type'] = 'TAKE_PROFIT_MARKET'
-            request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-        if postOnly:
-            request['timeInForce'] = 'POC'
-        elif exchangeSpecificTifParam == 'POC':
-            request['timeInForce'] = 'POC'
-        elif not isSpotMarket:
+        isSpot = marketType == 'spot'
+        isTwapOrder = type == 'TWAP'
+        if isTwapOrder and isSpot:
+            raise BadSymbol(self.id + ' createOrder() twap order supports swap contracts only')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        isTriggerOrder = triggerPrice is not None
+        isStopLossPriceOrder = stopLossPrice is not None
+        isTakeProfitPriceOrder = takeProfitPrice is not None
+        exchangeClientOrderId = 'newClientOrderId' if isSpot else 'clientOrderID'
+        clientOrderId = self.safe_string_2(params, exchangeClientOrderId, 'clientOrderId')
+        if clientOrderId is not None:
+            request[exchangeClientOrderId] = clientOrderId
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
+        if postOnly or (timeInForce == 'PostOnly'):
+            request['timeInForce'] = 'PostOnly'
+        elif timeInForce == 'IOC':
+            request['timeInForce'] = 'IOC'
+        elif timeInForce == 'GTC':
             request['timeInForce'] = 'GTC'
-        if isSpotMarket:
-            response = self.spotV1PrivatePostTradeOrder(self.extend(request, query))
+        if isSpot:
+            cost = self.safe_string_2(params, 'cost', 'quoteOrderQty')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
+            else:
+                if isMarketOrder and (price is not None):
+                    # keep the legacy behavior, to avoid  breaking the old spot-market-buying code
+                    calculatedCost = Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))
+                    request['quoteOrderQty'] = self.parse_to_numeric(calculatedCost)
+                else:
+                    request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+            if not isMarketOrder:
+                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            if triggerPrice is not None:
+                if isMarketOrder and self.safe_string(request, 'quoteOrderQty') is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if type == 'LIMIT':
+                    request['type'] = 'TRIGGER_LIMIT'
+                elif type == 'MARKET':
+                    request['type'] = 'TRIGGER_MARKET'
+            elif (stopLossPrice is not None) or (takeProfitPrice is not None):
+                stopTakePrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
+                if type == 'LIMIT':
+                    request['type'] = 'TAKE_STOP_LIMIT'
+                elif type == 'MARKET':
+                    request['type'] = 'TAKE_STOP_MARKET'
+                request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, stopTakePrice))
         else:
-            response = self.swapV2PrivatePostTradeOrder(self.extend(request, query))
+            if isTwapOrder:
+                twapRequest: dict = {
+                    'symbol': request['symbol'],
+                    'side': request['side'],
+                    'positionSide': 'LONG' if (side == 'buy') else 'SHORT',
+                    'triggerPrice': self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice)),
+                    'totalAmount': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+                }
+                #     {
+                #         "symbol": "LTC-USDT",
+                #         "side": "BUY",
+                #         "positionSide": "LONG",
+                #         "priceType": "constant",
+                #         "priceVariance": "10",
+                #         "triggerPrice": "120",
+                #         "interval": 8,
+                #         "amountPerOrder": "0.5",
+                #         "totalAmount": "1"
+                #     }
+                return self.extend(twapRequest, params)
+            if timeInForce == 'FOK':
+                request['timeInForce'] = 'FOK'
+            trailingAmount = self.safe_string(params, 'trailingAmount')
+            trailingPercent = self.safe_string_2(params, 'trailingPercent', 'priceRate')
+            trailingType = self.safe_string(params, 'trailingType', 'TRAILING_STOP_MARKET')
+            isTrailingAmountOrder = trailingAmount is not None
+            isTrailingPercentOrder = trailingPercent is not None
+            isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
+            stopLoss = self.safe_value(params, 'stopLoss')
+            takeProfit = self.safe_value(params, 'takeProfit')
+            isStopLoss = stopLoss is not None
+            isTakeProfit = takeProfit is not None
+            if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
+                request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+            if isTriggerOrder:
+                request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
+                if isMarketOrder or (type == 'TRIGGER_MARKET'):
+                    request['type'] = 'TRIGGER_MARKET'
+                elif (type == 'LIMIT') or (type == 'TRIGGER_LIMIT'):
+                    request['type'] = 'TRIGGER_LIMIT'
+            elif isStopLossPriceOrder or isTakeProfitPriceOrder:
+                # This can be used to set the stop loss and take profit, but the position needs to be opened first
+                reduceOnly = True
+                if isStopLossPriceOrder:
+                    request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    if isMarketOrder or (type == 'STOP_MARKET'):
+                        request['type'] = 'STOP_MARKET'
+                    elif (type == 'LIMIT') or (type == 'STOP'):
+                        request['type'] = 'STOP'
+                elif isTakeProfitPriceOrder:
+                    request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    if isMarketOrder or (type == 'TAKE_PROFIT_MARKET'):
+                        request['type'] = 'TAKE_PROFIT_MARKET'
+                    elif (type == 'LIMIT') or (type == 'TAKE_PROFIT'):
+                        request['type'] = 'TAKE_PROFIT'
+            elif isTrailing:
+                request['type'] = trailingType
+                if isTrailingAmountOrder:
+                    request['price'] = self.parse_to_numeric(trailingAmount)
+                elif isTrailingPercentOrder:
+                    requestTrailingPercent = Precise.string_div(trailingPercent, '100')
+                    request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
+            if isStopLoss or isTakeProfit:
+                stringifiedAmount = self.number_to_string(amount)
+                if isStopLoss:
+                    slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                    slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
+                    slType = self.safe_string(stopLoss, 'type', 'STOP_MARKET')
+                    slRequest: dict = {
+                        'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, slTriggerPrice)),
+                        'workingType': slWorkingType,
+                        'type': slType,
+                    }
+                    slPrice = self.safe_string(stopLoss, 'price')
+                    if slPrice is not None:
+                        slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
+                    slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
+                    slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
+                    request['stopLoss'] = self.json(slRequest)
+                if isTakeProfit:
+                    tkTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                    tkWorkingType = self.safe_string(takeProfit, 'workingType', 'MARK_PRICE')
+                    tpType = self.safe_string(takeProfit, 'type', 'TAKE_PROFIT_MARKET')
+                    tpRequest: dict = {
+                        'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, tkTriggerPrice)),
+                        'workingType': tkWorkingType,
+                        'type': tpType,
+                    }
+                    slPrice = self.safe_string(takeProfit, 'price')
+                    if slPrice is not None:
+                        tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
+                    tkQuantity = self.safe_string(takeProfit, 'quantity', stringifiedAmount)
+                    tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
+                    request['takeProfit'] = self.json(tpRequest)
+            positionSide = None
+            hedged = self.safe_bool(params, 'hedged', False)
+            if hedged:
+                params = self.omit(params, 'reduceOnly')
+                if reduceOnly:
+                    positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+                else:
+                    positionSide = 'LONG' if (side == 'buy') else 'SHORT'
+            else:
+                positionSide = 'BOTH'
+            request['positionSide'] = positionSide
+            amountReq = amount
+            if not market['inverse']:
+                amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+            request['quantity'] = amountReq  # precision not available for inverse contracts
+        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
+        :param bool [params.postOnly]: True to place a post only order
+        :param str [params.timeInForce]: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
+        :param float [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered
+        :param float [params.stopLossPrice]: stop loss trigger price
+        :param float [params.takeProfitPrice]: take profit trigger price
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount
+        :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
+        :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+        :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        test = self.safe_bool(params, 'test', False)
+        params = self.omit(params, 'test')
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if market['swap']:
+            if test:
+                response = self.swapV2PrivatePostTradeOrderTest(request)
+            elif market['inverse']:
+                response = self.cswapV1PrivatePostTradeOrder(request)
+            elif type == 'twap':
+                response = self.swapV1PrivatePostTwapOrder(request)
+            else:
+                response = self.swapV2PrivatePostTradeOrder(request)
+        else:
+            response = self.spotV1PrivatePostTradeOrder(request)
         #
         # spot
+        #
         #    {
         #        "code": 0,
         #        "msg": "",
@@ -1574,30 +2962,190 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        # swap
+        # linear swap
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "order": {
-        #            "symbol": "BTC-USDT",
-        #            "orderId": 1590973236294713344,
-        #            "side": "BUY",
-        #            "positionSide": "LONG",
-        #            "type": "LIMIT"
-        #          }
-        #        }
-        #    }
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "order": {
+        #                 "symbol": "BTC-USDT",
+        #                 "orderId": 1709036527545438208,
+        #                 "side": "BUY",
+        #                 "positionSide": "LONG",
+        #                 "type": "TRIGGER_LIMIT",
+        #                 "clientOrderID": "",
+        #                 "workingType": ""
+        #             }
+        #         }
+        #     }
         #
-        data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
-        return self.parse_order(first, market)
+        # inverse swap
+        #
+        #     {
+        #         "orderId": 1809841379603398656,
+        #         "symbol": "SOL-USD",
+        #         "positionSide": "LONG",
+        #         "side": "BUY",
+        #         "type": "LIMIT",
+        #         "price": 100,
+        #         "quantity": 1,
+        #         "stopPrice": 0,
+        #         "workingType": "",
+        #         "timeInForce": ""
+        #     }
+        #
+        # twap order
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1732693774386,
+        #         "data": {
+        #             "mainOrderId": "4633860139993029715"
+        #         }
+        #     }
+        #
+        if isinstance(response, str):
+            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
+            response = self.fix_stringified_json_members(response)
+            response = self.parse_json(response)
+        data = self.safe_dict(response, 'data', {})
+        result: dict = {}
+        if market['swap']:
+            if market['inverse']:
+                result = response
+            else:
+                result = self.safe_dict(data, 'order', data)
+        else:
+            result = data
+        return self.parse_order(result, market)
 
-    def parse_order(self, order, market=None):
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+
+        https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        marketIds = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            type = self.safe_string(rawOrder, 'type')
+            marketIds.append(marketId)
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        symbols = self.market_symbols(marketIds, None, False, True, True)
+        symbolsLength = len(symbols)
+        market = self.market(symbols[0])
+        request: dict = {}
+        response = None
+        if market['swap']:
+            if symbolsLength > 5:
+                raise InvalidOrder(self.id + ' createOrders() can not create more than 5 orders at once for swap markets')
+            request['batchOrders'] = self.json(ordersRequests)
+            response = self.swapV2PrivatePostTradeBatchOrders(request)
+        else:
+            sync = self.safe_bool(params, 'sync', False)
+            if sync:
+                request['sync'] = True
+            request['data'] = self.json(ordersRequests)
+            response = self.spotV1PrivatePostTradeBatchOrders(request)
         #
         # spot
-        # createOrder, cancelOrder
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "debugMsg": "",
+        #         "data": {
+        #             "orders": [
+        #                 {
+        #                     "symbol": "BTC-USDT",
+        #                     "orderId": 1720661389564968960,
+        #                     "transactTime": 1699072618272,
+        #                     "price": "25000",
+        #                     "origQty": "0.0002",
+        #                     "executedQty": "0",
+        #                     "cummulativeQuoteQty": "0",
+        #                     "status": "PENDING",
+        #                     "type": "LIMIT",
+        #                     "side": "BUY"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "orders": [
+        #                 {
+        #                     "symbol": "BTC-USDT",
+        #                     "orderId": 1720657081994006528,
+        #                     "side": "BUY",
+        #                     "positionSide": "LONG",
+        #                     "type": "LIMIT",
+        #                     "clientOrderID": "",
+        #                     "workingType": ""
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        if isinstance(response, str):
+            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
+            response = self.fix_stringified_json_members(response)
+            response = self.parse_json(response)
+        data = self.safe_dict(response, 'data', {})
+        result = self.safe_list(data, 'orders', [])
+        return self.parse_orders(result, market)
+
+    def parse_order_side(self, side):
+        sides: dict = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            'SHORT': 'sell',
+            'LONG': 'buy',
+            'ask': 'sell',
+            'bid': 'buy',
+        }
+        return self.safe_string(sides, side, side)
+
+    def parse_order_type(self, type: Str):
+        types: dict = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_order(self, order: dict, market: Market = None) -> Order:
+        #
+        # spot
+        # createOrder, createOrders, cancelOrder
         #
         #    {
         #        "symbol": "XRP-USDT",
@@ -1615,20 +3163,20 @@ class bingx(Exchange, ImplicitAPI):
         # fetchOrder
         #
         #    {
-        #        symbol: 'ETH-USDT',
-        #        orderId: '1660602123001266176',
-        #        price: '1700',
-        #        origQty: '0.003',
-        #        executedQty: '0',
-        #        cummulativeQuoteQty: '0',
-        #        status: 'PENDING',
-        #        type: 'LIMIT',
-        #        side: 'BUY',
-        #        time: '1684753373276',
-        #        updateTime: '1684753373276',
-        #        origQuoteOrderQty: '0',
-        #        fee: '0',
-        #        feeAsset: 'ETH'
+        #        "symbol": "ETH-USDT",
+        #        "orderId": "1660602123001266176",
+        #        "price": "1700",
+        #        "origQty": "0.003",
+        #        "executedQty": "0",
+        #        "cummulativeQuoteQty": "0",
+        #        "status": "PENDING",
+        #        "type": "LIMIT",
+        #        "side": "BUY",
+        #        "time": "1684753373276",
+        #        "updateTime": "1684753373276",
+        #        "origQuoteOrderQty": "0",
+        #        "fee": "0",
+        #        "feeAsset": "ETH"
         #    }
         #
         # fetchOpenOrders, fetchClosedOrders
@@ -1637,20 +3185,22 @@ class bingx(Exchange, ImplicitAPI):
         #       "symbol": "XRP-USDT",
         #       "orderId": 1514073325788200960,
         #       "price": "0.5",
+        #       "StopPrice": "0",
         #       "origQty": "20",
-        #       "executedQty": "0",
-        #       "cummulativeQuoteQty": "0",
+        #       "executedQty": "10",
+        #       "cummulativeQuoteQty": "5",
         #       "status": "PENDING",
         #       "type": "LIMIT",
         #       "side": "BUY",
         #       "time": 1649818185647,
         #       "updateTime": 1649818185647,
         #       "origQuoteOrderQty": "0"
+        #       "fee": "-0.01"
         #   }
         #
         #
-        # swap
-        # createOrder
+        # linear swap
+        # createOrder, createOrders
         #
         #    {
         #      "symbol": "BTC-USDT",
@@ -1660,106 +3210,389 @@ class bingx(Exchange, ImplicitAPI):
         #      "type": "LIMIT"
         #    }
         #
+        # inverse swap createOrder
+        #
+        #     {
+        #         "orderId": 1809841379603398656,
+        #         "symbol": "SOL-USD",
+        #         "positionSide": "LONG",
+        #         "side": "BUY",
+        #         "type": "LIMIT",
+        #         "price": 100,
+        #         "quantity": 1,
+        #         "stopPrice": 0,
+        #         "workingType": "",
+        #         "timeInForce": ""
+        #     }
+        #
         # fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "orderId": 1709036527545438208,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "type": "TRIGGER_LIMIT",
+        #         "origQty": "0.0010",
+        #         "price": "22000.0",
+        #         "executedQty": "0.0000",
+        #         "avgPrice": "0.0",
+        #         "cumQuote": "",
+        #         "stopPrice": "23000.0",
+        #         "profit": "",
+        #         "commission": "",
+        #         "status": "NEW",
+        #         "time": 1696301035187,
+        #         "updateTime": 1696301035187,
+        #         "clientOrderId": "",
+        #         "leverage": "",
+        #         "takeProfit": "",
+        #         "stopLoss": "",
+        #         "advanceAttr": 0,
+        #         "positionID": 0,
+        #         "takeProfitEntrustPrice": 0,
+        #         "stopLossEntrustPrice": 0,
+        #         "orderType": "",
+        #         "workingType": "MARK_PRICE"
+        #     }
+        # with tp and sl
         #    {
-        #        "symbol": "LINK-USDT",
-        #        "orderId": 1585839271162413056,
-        #        "side": "BUY",
-        #        "positionSide": "LONG",
-        #        "type": "TRIGGER_MARKET",
-        #        "origQty": "5.0",
-        #        "price": "9",
-        #        "executedQty": "0.0",
-        #        "avgPrice": "0",
-        #        "cumQuote": "0",
-        #        "stopPrice": "5",
-        #        "profit": "0.0000",
-        #        "commission": "0.000000",
-        #        "status": "CANCELLED",
-        #        "time": 1667631605000,
-        #        "updateTime": 1667631605000
+        #        orderId: 1741440894764281900,
+        #        symbol: 'LTC-USDT',
+        #        positionSide: 'LONG',
+        #        side: 'BUY',
+        #        type: 'MARKET',
+        #        price: 0,
+        #        quantity: 1,
+        #        stopPrice: 0,
+        #        workingType: 'MARK_PRICE',
+        #        clientOrderID: '',
+        #        timeInForce: 'GTC',
+        #        priceRate: 0,
+        #        stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+        #        takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+        #        reduceOnly: False
         #    }
         #
-        positionSide = self.safe_string(order, 'positionSide')
+        # editOrder(swap)
+        #
+        #    {
+        #        cancelResult: 'true',
+        #        cancelMsg: '',
+        #        cancelResponse: {
+        #            cancelClientOrderId: '',
+        #            cancelOrderId: '1755336244265705472',
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755336244265705472',
+        #            side: 'SELL',
+        #            positionSide: 'SHORT',
+        #            type: 'LIMIT',
+        #            origQty: '1',
+        #            price: '100.000',
+        #            executedQty: '0',
+        #            avgPrice: '0.000',
+        #            cumQuote: '0',
+        #            stopPrice: '',
+        #            profit: '0.0000',
+        #            commission: '0.000000',
+        #            status: 'PENDING',
+        #            time: '1707339747860',
+        #            updateTime: '1707339747860',
+        #            clientOrderId: '',
+        #            leverage: '20X',
+        #            workingType: 'MARK_PRICE',
+        #            onlyOnePosition: False,
+        #            reduceOnly: False
+        #        },
+        #        replaceResult: 'true',
+        #        replaceMsg: '',
+        #        newOrderResponse: {
+        #            orderId: '1755338440612995072',
+        #            symbol: 'SOL-USDT',
+        #            positionSide: 'SHORT',
+        #            side: 'SELL',
+        #            type: 'LIMIT',
+        #            price: '99',
+        #            quantity: '2',
+        #            stopPrice: '0',
+        #            workingType: 'MARK_PRICE',
+        #            clientOrderID: '',
+        #            timeInForce: 'GTC',
+        #            priceRate: '0',
+        #            stopLoss: '',
+        #            takeProfit: '',
+        #            reduceOnly: False
+        #        }
+        #    }
+        #
+        # editOrder(spot)
+        #
+        #    {
+        #        cancelResult: {code: '0', msg: '', result: True},
+        #        openResult: {code: '0', msg: '', result: True},
+        #        orderOpenResponse: {
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755334007697866752',
+        #            transactTime: '1707339214620',
+        #            price: '99',
+        #            stopPrice: '0',
+        #            origQty: '0.2',
+        #            executedQty: '0',
+        #            cummulativeQuoteQty: '0',
+        #            status: 'PENDING',
+        #            type: 'LIMIT',
+        #            side: 'SELL',
+        #            clientOrderID: ''
+        #        },
+        #        orderCancelResponse: {
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755117055251480576',
+        #            price: '100',
+        #            stopPrice: '0',
+        #            origQty: '0.2',
+        #            executedQty: '0',
+        #            cummulativeQuoteQty: '0',
+        #            status: 'CANCELED',
+        #            type: 'LIMIT',
+        #            side: 'SELL'
+        #        }
+        #    }
+        #
+        # stop loss order
+        #
+        #    {
+        #        "symbol": "ETH-USDT",
+        #        "orderId": "1792461744476422144",
+        #        "price": "2775.65",
+        #        "StopPrice": "2778.42",
+        #        "origQty": "0.032359",
+        #        "executedQty": "0",
+        #        "cummulativeQuoteQty": "0",
+        #        "status": "NEW",
+        #        "type": "TAKE_STOP_LIMIT",
+        #        "side": "SELL",
+        #        "time": "1716191156868",
+        #        "updateTime": "1716191156868",
+        #        "origQuoteOrderQty": "0",
+        #        "fee": "0",
+        #        "feeAsset": "USDT",
+        #        "clientOrderID": ""
+        #    }
+        #
+        # inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "orderId": "1809845251327672320",
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "type": "LIMIT",
+        #         "quantity": 1,
+        #         "origQty": "0",
+        #         "price": "90",
+        #         "executedQty": "0",
+        #         "avgPrice": "0",
+        #         "cumQuote": "0",
+        #         "stopPrice": "",
+        #         "profit": "0.0000",
+        #         "commission": "0.000000",
+        #         "status": "CANCELLED",
+        #         "time": 1720335707872,
+        #         "updateTime": 1720335707912,
+        #         "clientOrderId": "",
+        #         "leverage": "",
+        #         "takeProfit": {
+        #             "type": "",
+        #             "quantity": 0,
+        #             "stopPrice": 0,
+        #             "price": 0,
+        #             "workingType": "",
+        #             "stopGuaranteed": ""
+        #         },
+        #         "stopLoss": {
+        #             "type": "",
+        #             "quantity": 0,
+        #             "stopPrice": 0,
+        #             "price": 0,
+        #             "workingType": "",
+        #             "stopGuaranteed": ""
+        #         },
+        #         "advanceAttr": 0,
+        #         "positionID": 0,
+        #         "takeProfitEntrustPrice": 0,
+        #         "stopLossEntrustPrice": 0,
+        #         "orderType": "",
+        #         "workingType": ""
+        #     }
+        #
+        info = order
+        newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
+        if newOrder is not None:
+            order = newOrder
+        positionSide = self.safe_string_2(order, 'positionSide', 'ps')
         marketType = 'spot' if (positionSide is None) else 'swap'
-        marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-', marketType)
-        orderId = self.safe_string(order, 'orderId')
-        side = self.safe_string_lower(order, 'side')
-        type = self.safe_string_lower(order, 'type')
-        timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-        price = self.safe_string(order, 'price')
-        average = self.safe_string(order, 'avgPrice')
-        amount = self.safe_string(order, 'origQty')
-        filled = self.safe_string(order, 'executedQty')
-        statusId = self.safe_string(order, 'status')
-        fee = {
-            'currency': self.safe_string(order, 'feeAsset'),
-            'rate': self.safe_string_2(order, 'fee', 'commission'),
-        }
-        clientOrderId = self.safe_string(order, 'clientOrderId')
+        marketId = self.safe_string_2(order, 'symbol', 's')
+        if market is None:
+            market = self.safe_market(marketId, None, None, marketType)
+        side = self.safe_string_lower_2(order, 'side', 'S')
+        timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E', 'createdTime'])
+        lastTradeTimestamp = self.safe_integer_2(order, 'updateTime', 'T')
+        statusId = self.safe_string_upper_n(order, ['status', 'X', 'orderStatus'])
+        feeCurrencyCode = self.safe_string_2(order, 'feeAsset', 'N')
+        feeCost = self.safe_string_n(order, ['fee', 'commission', 'n'])
+        if (feeCurrencyCode is None):
+            if market['spot']:
+                if side == 'buy':
+                    feeCurrencyCode = market['base']
+                else:
+                    feeCurrencyCode = market['quote']
+            else:
+                feeCurrencyCode = market['quote']
+        stopLoss = self.safe_value(order, 'stopLoss')
+        stopLossPrice = None
+        if (stopLoss is not None) and (stopLoss != ''):
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopLoss'))
+        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
+            #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
+            if isinstance(stopLoss, str):
+                stopLoss = self.parse_json(stopLoss)
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopPrice'))
+        takeProfit = self.safe_value(order, 'takeProfit')
+        takeProfitPrice = None
+        if takeProfit is not None and (takeProfit != ''):
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'takeProfit'))
+        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
+            #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
+            if isinstance(takeProfit, str):
+                takeProfit = self.parse_json(takeProfit)
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'stopPrice'))
+        rawType = self.safe_string_lower_2(order, 'type', 'o')
+        stopPrice = self.omit_zero(self.safe_string_2(order, 'StopPrice', 'stopPrice'))
+        triggerPrice = stopPrice
+        if stopPrice is not None:
+            if (rawType.find('stop') > -1) and (stopLossPrice is None):
+                stopLossPrice = stopPrice
+                triggerPrice = None
+            if (rawType.find('take') > -1) and (takeProfitPrice is None):
+                takeProfitPrice = stopPrice
+                triggerPrice = None
         return self.safe_order({
-            'info': order,
-            'id': orderId,
-            'clientOrderId': clientOrderId,
+            'info': info,
+            'id': self.safe_string_n(order, ['orderId', 'i', 'mainOrderId']),
+            'clientOrderId': self.safe_string_n(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
+            'symbol': self.safe_symbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': None,
+            'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
+            'type': self.parse_order_type(rawType),
+            'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
-            'side': side,
-            'price': price,
-            'stopPrice': self.safe_number(order, 'triggerPrice'),
-            'triggerPrice': self.safe_number(order, 'triggerPrice'),
-            'average': average,
-            'cost': None,
-            'amount': amount,
-            'filled': filled,
+            'side': self.parse_order_side(side),
+            'price': self.safe_string_2(order, 'price', 'p'),
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'average': self.safe_string_2(order, 'avgPrice', 'ap'),
+            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
+            'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
+            'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
             'status': self.parse_order_status(statusId),
-            'fee': fee,
+            'fee': {
+                'currency': feeCurrencyCode,
+                'cost': Precise.string_abs(feeCost),
+            },
             'trades': None,
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'ro'),
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
+            'RUNNING': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
-            'FAILED': 'failed',
+            'FAILED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20an%20Order
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'orderId': id,
-        }
+        isTwapOrder = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         response = None
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        if marketType == 'spot':
-            response = self.spotV1PrivatePostTradeCancel(self.extend(request, query))
+        market = None
+        if isTwapOrder:
+            twapRequest: dict = {
+                'mainOrderId': id,
+            }
+            response = self.swapV1PrivatePostTwapCancelOrder(self.extend(twapRequest, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1702731661854,
+            #         "data": {
+            #             "symbol": "BNB-USDT",
+            #             "side": "BUY",
+            #             "positionSide": "LONG",
+            #             "priceType": "constant",
+            #             "priceVariance": "2000",
+            #             "triggerPrice": "68000",
+            #             "interval": 8,
+            #             "amountPerOrder": "0.111",
+            #             "totalAmount": "0.511",
+            #             "orderStatus": "Running",
+            #             "executedQty": "0.1",
+            #             "duration": 800,
+            #             "maxDuration": 9000,
+            #             "createdTime": 1702731661854,
+            #             "updateTime": 1702731661854
+            #         }
+            #     }
+            #
         else:
-            response = self.swapV2PrivateDeleteTradeOrder(self.extend(request, query))
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            market = self.market(symbol)
+            request: dict = {
+                'symbol': market['id'],
+            }
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOrderID')
+            params = self.omit(params, ['clientOrderId'])
+            if clientOrderId is not None:
+                request['clientOrderID'] = clientOrderId
+            else:
+                request['orderId'] = id
+            type = None
+            subType = None
+            type, params = self.handle_market_type_and_params('cancelOrder', market, params)
+            subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
+            if type == 'spot':
+                response = self.spotV1PrivatePostTradeCancel(self.extend(request, params))
+            else:
+                if subType == 'inverse':
+                    response = self.cswapV1PrivateDeleteTradeCancelOrder(self.extend(request, params))
+                else:
+                    response = self.swapV2PrivateDeleteTradeOrder(self.extend(request, params))
         #
         # spot
         #
@@ -1779,7 +3612,59 @@ class bingx(Exchange, ImplicitAPI):
         #       }
         #   }
         #
-        # swap
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "order": {
+        #                 "symbol": "SOL-USD",
+        #                 "orderId": "1816002957423951872",
+        #                 "side": "BUY",
+        #                 "positionSide": "Long",
+        #                 "type": "Pending",
+        #                 "quantity": 0,
+        #                 "origQty": "0",
+        #                 "price": "150",
+        #                 "executedQty": "0",
+        #                 "avgPrice": "0",
+        #                 "cumQuote": "0",
+        #                 "stopPrice": "",
+        #                 "profit": "0.0000",
+        #                 "commission": "0.000000",
+        #                 "status": "CANCELLED",
+        #                 "time": 1721803819410,
+        #                 "updateTime": 1721803819427,
+        #                 "clientOrderId": "",
+        #                 "leverage": "",
+        #                 "takeProfit": {
+        #                     "type": "",
+        #                     "quantity": 0,
+        #                     "stopPrice": 0,
+        #                     "price": 0,
+        #                     "workingType": "",
+        #                     "stopGuaranteed": ""
+        #                 },
+        #                 "stopLoss": {
+        #                     "type": "",
+        #                     "quantity": 0,
+        #                     "stopPrice": 0,
+        #                     "price": 0,
+        #                     "workingType": "",
+        #                     "stopGuaranteed": ""
+        #                 },
+        #                 "advanceAttr": 0,
+        #                 "positionID": 0,
+        #                 "takeProfitEntrustPrice": 0,
+        #                 "stopLossEntrustPrice": 0,
+        #                 "orderType": "",
+        #                 "workingType": ""
+        #             }
+        #         }
+        #     }
+        #
+        # linear swap
         #
         #    {
         #        "code": 0,
@@ -1806,217 +3691,587 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
-        return self.parse_order(first, market)
+        data = self.safe_dict(response, 'data', {})
+        order = self.safe_dict(data, 'order', data)
+        return self.parse_order(order, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
+
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelAllOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if market['type'] != 'swap':
-            raise BadRequest(self.id + ' cancelAllOrders is only supported for swap markets.')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "success": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1597783835095859200,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_LIMIT",
-        #              "origQty": "5.0",
-        #              "price": "9.0000",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0.0000",
-        #              "cumQuote": "0",
-        #              "stopPrice": "9.5000",
-        #              "profit": "",
-        #              "commission": "",
-        #              "status": "NEW",
-        #              "time": 1669776326000,
-        #              "updateTime": 1669776326000
-        #            }
-        #          ],
-        #          "failed": null
-        #        }
-        #    }
-        #
-        return response
+        response = None
+        if market['spot']:
+            response = self.spotV1PrivatePostTradeCancelOpenOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "orders": [{
+            #                 "symbol": "ADA-USDT",
+            #                 "orderId": 1740659971369992192,
+            #                 "transactTime": 1703840651730,
+            #                 "price": 5,
+            #                 "stopPrice": 0,
+            #                 "origQty": 10,
+            #                 "executedQty": 0,
+            #                 "cummulativeQuoteQty": 0,
+            #                 "status": "CANCELED",
+            #                 "type": "LIMIT",
+            #                 "side": "SELL"
+            #             }]
+            #         }
+            #     }
+            #
+        elif market['swap']:
+            if market['inverse']:
+                response = self.cswapV1PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1720501468364,
+                #         "data": {
+                #             "success": [
+                #                 {
+                #                     "symbol": "SOL-USD",
+                #                     "orderId": "1809845251327672320",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "LIMIT",
+                #                     "quantity": 1,
+                #                     "origQty": "0",
+                #                     "price": "90",
+                #                     "executedQty": "0",
+                #                     "avgPrice": "0",
+                #                     "cumQuote": "0",
+                #                     "stopPrice": "",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "CANCELLED",
+                #                     "time": 1720335707872,
+                #                     "updateTime": 1720335707912,
+                #                     "clientOrderId": "",
+                #                     "leverage": "",
+                #                     "takeProfit": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "stopLoss": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "advanceAttr": 0,
+                #                     "positionID": 0,
+                #                     "takeProfitEntrustPrice": 0,
+                #                     "stopLossEntrustPrice": 0,
+                #                     "orderType": "",
+                #                     "workingType": ""
+                #                 }
+                #             ],
+                #             "failed": null
+                #         }
+                #     }
+                #
+            else:
+                response = self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 0,
+                #        "msg": "",
+                #        "data": {
+                #          "success": [
+                #            {
+                #              "symbol": "LINK-USDT",
+                #              "orderId": 1597783835095859200,
+                #              "side": "BUY",
+                #              "positionSide": "LONG",
+                #              "type": "TRIGGER_LIMIT",
+                #              "origQty": "5.0",
+                #              "price": "9.0000",
+                #              "executedQty": "0.0",
+                #              "avgPrice": "0.0000",
+                #              "cumQuote": "0",
+                #              "stopPrice": "9.5000",
+                #              "profit": "",
+                #              "commission": "",
+                #              "status": "NEW",
+                #              "time": 1669776326000,
+                #              "updateTime": 1669776326000
+                #            }
+                #          ],
+                #          "failed": null
+                #        }
+                #    }
+                #
+        else:
+            raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(orders)
 
-    def cancel_orders(self, ids: List[int], symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-        :param [str] ids: order ids
+
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+        https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+
+        :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        params = self.omit(params, 'clientOrderIds')
+        idsToParse = ids
+        areClientOrderIds = (clientOrderIds is not None)
+        if areClientOrderIds:
+            idsToParse = clientOrderIds
         parsedIds = []
-        for i in range(0, len(ids)):
-            id = ids[i]
+        for i in range(0, len(idsToParse)):
+            id = idsToParse[i]
             stringId = str(id)
             parsedIds.append(stringId)
         response = None
         if market['spot']:
-            request['orderIds'] = ','.join(parsedIds)
+            spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
+            request[spotReqKey] = ','.join(parsedIds)
             response = self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "",
+            #       "debugMsg": "",
+            #       "data": {
+            #           "orders": [
+            #                {
+            #                    "symbol": "SOL-USDT",
+            #                    "orderId": 1795970045910614016,
+            #                    "transactTime": 1717027601111,
+            #                    "price": "180.25",
+            #                    "stopPrice": "0",
+            #                    "origQty": "0.03",
+            #                    "executedQty": "0",
+            #                    "cummulativeQuoteQty": "0",
+            #                    "status": "CANCELED",
+            #                    "type": "LIMIT",
+            #                    "side": "SELL",
+            #                    "clientOrderID": ""
+            #                },
+            #                ...
+            #            ]
+            #        }
+            #    }
+            #
         else:
-            request['orderIdList'] = parsedIds
+            if areClientOrderIds:
+                request['clientOrderIDList'] = self.json(parsedIds)
+            else:
+                request['orderIdList'] = parsedIds
             response = self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #          "success": [
+            #            {
+            #              "symbol": "LINK-USDT",
+            #              "orderId": 1597783850786750464,
+            #              "side": "BUY",
+            #              "positionSide": "LONG",
+            #              "type": "TRIGGER_MARKET",
+            #              "origQty": "5.0",
+            #              "price": "5.5710",
+            #              "executedQty": "0.0",
+            #              "avgPrice": "0.0000",
+            #              "cumQuote": "0",
+            #              "stopPrice": "5.0000",
+            #              "profit": "0.0000",
+            #              "commission": "0.000000",
+            #              "status": "CANCELLED",
+            #              "time": 1669776330000,
+            #              "updateTime": 1672370837000
+            #            }
+            #          ],
+            #          "failed": null
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data', {})
+        success = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(success)
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: spot or swap market
+        :returns dict: the api result
+        """
+        self.load_markets()
+        isActive = (timeout > 0)
+        request: dict = {
+            'type': 'ACTIVATE' if (isActive) else 'CLOSE',
+            'timeOut': (self.parse_to_int(timeout / 1000)) if (isActive) else 0,
+        }
+        response = None
+        type = None
+        type, params = self.handle_market_type_and_params('cancelAllOrdersAfter', None, params)
+        if type == 'spot':
+            response = self.spotV1PrivatePostTradeCancelAllAfter(self.extend(request, params))
+        elif type == 'swap':
+            response = self.swapV2PrivatePostTradeCancelAllAfter(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported for ' + type + ' markets')
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "success": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1597783850786750464,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_MARKET",
-        #              "origQty": "5.0",
-        #              "price": "5.5710",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0.0000",
-        #              "cumQuote": "0",
-        #              "stopPrice": "5.0000",
-        #              "profit": "0.0000",
-        #              "commission": "0.000000",
-        #              "status": "CANCELLED",
-        #              "time": 1669776330000,
-        #              "updateTime": 1672370837000
-        #            }
-        #          ],
-        #          "failed": null
-        #        }
-        #    }
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         data: {
+        #             triggerTime: '1712645434',
+        #             status: 'ACTIVATED',
+        #             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or self.extend triggerTime time by self request'
+        #         }
+        #     }
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
+
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.twap]: if fetching twap order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'orderId': id,
-        }
+        isTwapOrder = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         response = None
-        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if marketType == 'spot':
-            response = self.spotV1PrivateGetTradeQuery(self.extend(request, query))
+        market = None
+        if isTwapOrder:
+            twapRequest: dict = {
+                'mainOrderId': id,
+            }
+            response = self.swapV1PrivateGetTwapOrderDetail(self.extend(twapRequest, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "success cancel order",
+            #         "timestamp": 1732760856617,
+            #         "data": {
+            #             "symbol": "LTC-USDT",
+            #             "mainOrderId": "5596903086063901779",
+            #             "side": "BUY",
+            #             "positionSide": "LONG",
+            #             "priceType": "constant",
+            #             "priceVariance": "10.00",
+            #             "triggerPrice": "120.00",
+            #             "interval": 8,
+            #             "amountPerOrder": "0.5",
+            #             "totalAmount": "1.0",
+            #             "orderStatus": "Filled",
+            #             "executedQty": "1.0",
+            #             "duration": 16,
+            #             "maxDuration": 86400,
+            #             "createdTime": 1732693017000,
+            #             "updateTime": 1732693033000
+            #         }
+            #     }
+            #
         else:
-            response = self.swapV2PrivateGetTradeOrder(self.extend(request, query))
-        #
-        # spot
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            market = self.market(symbol)
+            request: dict = {
+                'symbol': market['id'],
+                'orderId': id,
+            }
+            type = None
+            subType = None
+            type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
+            if type == 'spot':
+                response = self.spotV1PrivateGetTradeQuery(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "symbol": "XRP-USDT",
+                #             "orderId": 1514087361158316032,
+                #             "price": "0.5",
+                #             "origQty": "10",
+                #             "executedQty": "0",
+                #             "cummulativeQuoteQty": "0",
+                #             "status": "CANCELED",
+                #             "type": "LIMIT",
+                #             "side": "BUY",
+                #             "time": 1649821532000,
+                #             "updateTime": 1649821543000,
+                #             "origQuoteOrderQty": "0",
+                #             "fee": "0",
+                #             "feeAsset": "XRP"
+                #         }
+                #     }
+                #
+            else:
+                if subType == 'inverse':
+                    response = self.cswapV1PrivateGetTradeOrderDetail(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "msg": "",
+                    #         "data": {
+                    #             "order": {
+                    #                 "symbol": "SOL-USD",
+                    #                 "orderId": "1816342420721254400",
+                    #                 "side": "BUY",
+                    #                 "positionSide": "Long",
+                    #                 "type": "LIMIT",
+                    #                 "quantity": 1,
+                    #                 "origQty": "",
+                    #                 "price": "150",
+                    #                 "executedQty": "0",
+                    #                 "avgPrice": "0.000",
+                    #                 "cumQuote": "",
+                    #                 "stopPrice": "",
+                    #                 "profit": "0.0000",
+                    #                 "commission": "0.0000",
+                    #                 "status": "Pending",
+                    #                 "time": 1721884753767,
+                    #                 "updateTime": 1721884753786,
+                    #                 "clientOrderId": "",
+                    #                 "leverage": "",
+                    #                 "takeProfit": {
+                    #                     "type": "TAKE_PROFIT",
+                    #                     "quantity": 0,
+                    #                     "stopPrice": 0,
+                    #                     "price": 0,
+                    #                     "workingType": "MARK_PRICE",
+                    #                     "stopGuaranteed": ""
+                    #                 },
+                    #                 "stopLoss": {
+                    #                     "type": "STOP",
+                    #                     "quantity": 0,
+                    #                     "stopPrice": 0,
+                    #                     "price": 0,
+                    #                     "workingType": "MARK_PRICE",
+                    #                     "stopGuaranteed": ""
+                    #                 },
+                    #                 "advanceAttr": 0,
+                    #                 "positionID": 0,
+                    #                 "takeProfitEntrustPrice": 0,
+                    #                 "stopLossEntrustPrice": 0,
+                    #                 "orderType": "",
+                    #                 "workingType": "MARK_PRICE"
+                    #             }
+                    #         }
+                    #     }
+                    #
+                else:
+                    response = self.swapV2PrivateGetTradeOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "msg": "",
+                    #         "data": {
+                    #             "order": {
+                    #                 "symbol": "BTC-USDT",
+                    #                 "orderId": 1597597642269917184,
+                    #                 "side": "SELL",
+                    #                 "positionSide": "LONG",
+                    #                 "type": "TAKE_PROFIT_MARKET",
+                    #                 "origQty": "1.0000",
+                    #                 "price": "0.0",
+                    #                 "executedQty": "0.0000",
+                    #                 "avgPrice": "0.0",
+                    #                 "cumQuote": "",
+                    #                 "stopPrice": "16494.0",
+                    #                 "profit": "",
+                    #                 "commission": "",
+                    #                 "status": "FILLED",
+                    #                 "time": 1669731935000,
+                    #                 "updateTime": 1669752524000
+                    #             }
+                    #         }
+                    #     }
+                    #
+        data = self.safe_dict(response, 'data', {})
+        order = self.safe_dict(data, 'order', data)
+        return self.parse_order(order, market)
+
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history(returns less fields than above)
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param int [params.orderId]: Only return subsequent orders, and return the latest order by default
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOrders', market, params)
+        if type != 'swap':
+            raise NotSupported(self.id + ' fetchOrders() is only supported for swap markets')
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        request, params = self.handle_until_option('endTime', request, params)
+        response = self.swapV1PrivateGetTradeFullOrder(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "msg": "",
         #         "data": {
-        #             "symbol": "XRP-USDT",
-        #             "orderId": 1514087361158316032,
-        #             "price": "0.5",
-        #             "origQty": "10",
-        #             "executedQty": "0",
-        #             "cummulativeQuoteQty": "0",
-        #             "status": "CANCELED",
+        #         "orders": [
+        #           {
+        #             "symbol": "PYTH-USDT",
+        #             "orderId": 1736007506620112100,
+        #             "side": "SELL",
+        #             "positionSide": "SHORT",
         #             "type": "LIMIT",
-        #             "side": "BUY",
-        #             "time": 1649821532000,
-        #             "updateTime": 1649821543000,
-        #             "origQuoteOrderQty": "0",
-        #             "fee": "0",
-        #             "feeAsset": "XRP"
-        #         }
+        #             "origQty": "33",
+        #             "price": "0.3916",
+        #             "executedQty": "33",
+        #             "avgPrice": "0.3916",
+        #             "cumQuote": "13",
+        #             "stopPrice": "",
+        #             "profit": "0.0000",
+        #             "commission": "-0.002585",
+        #             "status": "FILLED",
+        #             "time": 1702731418000,
+        #             "updateTime": 1702731470000,
+        #             "clientOrderId": "",
+        #             "leverage": "15X",
+        #             "takeProfit": {
+        #                 "type": "TAKE_PROFIT",
+        #                 "quantity": 0,
+        #                 "stopPrice": 0,
+        #                 "price": 0,
+        #                 "workingType": ""
+        #             },
+        #             "stopLoss": {
+        #                 "type": "STOP",
+        #                 "quantity": 0,
+        #                 "stopPrice": 0,
+        #                 "price": 0,
+        #                 "workingType": ""
+        #             },
+        #             "advanceAttr": 0,
+        #             "positionID": 0,
+        #             "takeProfitEntrustPrice": 0,
+        #             "stopLossEntrustPrice": 0,
+        #             "orderType": "",
+        #             "workingType": "MARK_PRICE",
+        #             "stopGuaranteed": False,
+        #             "triggerOrderId": 1736012449498123500
+        #           }
+        #         ]
+        #       }
         #     }
         #
-        # swap
-        #
-        #      {
-        #          "code": 0,
-        #          "msg": "",
-        #          "data": {
-        #            "order": {
-        #              "symbol": "BTC-USDT",
-        #              "orderId": 1597597642269917184,
-        #              "side": "SELL",
-        #              "positionSide": "LONG",
-        #              "type": "TAKE_PROFIT_MARKET",
-        #              "origQty": "1.0000",
-        #              "price": "0.0",
-        #              "executedQty": "0.0000",
-        #              "avgPrice": "0.0",
-        #              "cumQuote": "",
-        #              "stopPrice": "16494.0",
-        #              "profit": "",
-        #              "commission": "",
-        #              "status": "FILLED",
-        #              "time": 1669731935000,
-        #              "updateTime": 1669752524000
-        #            }
-        #          }
-        #      }
-        #
-        data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
-        return self.parse_order(first, market)
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list(data, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
         fetch all unfilled currently open orders
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.twap]: if fetching twap open orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
+        market = None
+        request: dict = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        subType = None
         response = None
-        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if marketType == 'spot':
-            response = self.spotV1PrivateGetTradeOpenOrders(self.extend(request, query))
+        type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
+        if type == 'spot':
+            response = self.spotV1PrivateGetTradeOpenOrders(self.extend(request, params))
         else:
-            response = self.swapV2PrivateGetTradeOpenOrders(self.extend(request, query))
+            isTwapOrder = self.safe_bool(params, 'twap', False)
+            params = self.omit(params, 'twap')
+            if isTwapOrder:
+                response = self.swapV1PrivateGetTwapOpenOrders(self.extend(request, params))
+            elif subType == 'inverse':
+                response = self.cswapV1PrivateGetTradeOpenOrders(self.extend(request, params))
+            else:
+                response = self.swapV2PrivateGetTradeOpenOrders(self.extend(request, params))
         #
         #  spot
         #
@@ -2043,7 +4298,61 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        # swap
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "orders": [
+        #                 {
+        #                     "symbol": "SOL-USD",
+        #                     "orderId": "1816013900044320768",
+        #                     "side": "BUY",
+        #                     "positionSide": "Long",
+        #                     "type": "LIMIT",
+        #                     "quantity": 1,
+        #                     "origQty": "",
+        #                     "price": "150",
+        #                     "executedQty": "0",
+        #                     "avgPrice": "0.000",
+        #                     "cumQuote": "",
+        #                     "stopPrice": "",
+        #                     "profit": "0.0000",
+        #                     "commission": "0.0000",
+        #                     "status": "Pending",
+        #                     "time": 1721806428334,
+        #                     "updateTime": 1721806428352,
+        #                     "clientOrderId": "",
+        #                     "leverage": "",
+        #                     "takeProfit": {
+        #                         "type": "TAKE_PROFIT",
+        #                         "quantity": 0,
+        #                         "stopPrice": 0,
+        #                         "price": 0,
+        #                         "workingType": "MARK_PRICE",
+        #                         "stopGuaranteed": ""
+        #                     },
+        #                     "stopLoss": {
+        #                         "type": "STOP",
+        #                         "quantity": 0,
+        #                         "stopPrice": 0,
+        #                         "price": 0,
+        #                         "workingType": "MARK_PRICE",
+        #                         "stopGuaranteed": ""
+        #                     },
+        #                     "advanceAttr": 0,
+        #                     "positionID": 0,
+        #                     "takeProfitEntrustPrice": 0,
+        #                     "stopLossEntrustPrice": 0,
+        #                     "orderType": "",
+        #                     "workingType": "MARK_PRICE"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        # linear swap
         #
         #    {
         #        "code": 0,
@@ -2072,116 +4381,292 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', [])
-        orders = self.safe_value(data, 'orders', [])
+        # twap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1702731661854,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BNB-USDT",
+        #                     "side": "BUY",
+        #                     "positionSide": "LONG",
+        #                     "priceType": "constant",
+        #                     "priceVariance": "2000",
+        #                     "triggerPrice": "68000",
+        #                     "interval": 8,
+        #                     "amountPerOrder": "0.111",
+        #                     "totalAmount": "0.511",
+        #                     "orderStatus": "Running",
+        #                     "executedQty": "0.1",
+        #                     "duration": 800,
+        #                     "maxDuration": 9000,
+        #                     "createdTime": 1702731661854,
+        #                     "updateTime": 1702731661854
+        #                 }
+        #             ],
+        #             "total": 1
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
-        see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-        :param str [symbol]: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+        https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+        :param str symbol: unified market symbol of the closed orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the max number of closed orders to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
-        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchClosedOrders', symbol)
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = None
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+        https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+        :param str symbol: unified market symbol of the canceled orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the max number of canceled orders to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
+        :param boolean [params.standard]: whether to fetch standard contract orders
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'canceled')
+
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+        https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
+
+        :param str [symbol]: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
+        :param boolean [params.standard]: whether to fetch standard contract orders
+        :param boolean [params.twap]: if fetching twap orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        request: dict = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        subType = None
         standard = None
+        response = None
+        type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchClosedOrders', market, params)
         standard, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'standard', False)
-        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         if standard:
-            response = self.contractV1PrivateGetAllOrders(self.extend(request, query))
-        elif marketType == 'spot':
-            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, query))
+            response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
+        elif type == 'spot':
+            if limit is not None:
+                request['pageSize'] = limit
+            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #            "orders": [
+            #                {
+            #                    "symbol": "XRP-USDT",
+            #                    "orderId": 1514073325788200960,
+            #                    "price": "0.5",
+            #                    "origQty": "20",
+            #                    "executedQty": "0",
+            #                    "cummulativeQuoteQty": "0",
+            #                    "status": "PENDING",
+            #                    "type": "LIMIT",
+            #                    "side": "BUY",
+            #                    "time": 1649818185647,
+            #                    "updateTime": 1649818185647,
+            #                    "origQuoteOrderQty": "0"
+            #                }
+            #            ]
+            #        }
+            #    }
+            #
         else:
-            response = self.swapV2PrivateGetTradeAllOrders(self.extend(request, query))
-        #
-        #  spot
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "orders": [
-        #                {
-        #                    "symbol": "XRP-USDT",
-        #                    "orderId": 1514073325788200960,
-        #                    "price": "0.5",
-        #                    "origQty": "20",
-        #                    "executedQty": "0",
-        #                    "cummulativeQuoteQty": "0",
-        #                    "status": "PENDING",
-        #                    "type": "LIMIT",
-        #                    "side": "BUY",
-        #                    "time": 1649818185647,
-        #                    "updateTime": 1649818185647,
-        #                    "origQuoteOrderQty": "0"
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
-        # swap
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "orders": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1585839271162413056,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_MARKET",
-        #              "origQty": "5.0",
-        #              "price": "9",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0",
-        #              "cumQuote": "0",
-        #              "stopPrice": "5",
-        #              "profit": "0.0000",
-        #              "commission": "0.000000",
-        #              "status": "CANCELLED",
-        #              "time": 1667631605000,
-        #              "updateTime": 1667631605000
-        #            },
-        #          ]
-        #        }
-        #    }
-        #
-        data = self.safe_value(response, 'data', [])
-        orders = self.safe_value(data, 'orders', [])
+            isTwapOrder = self.safe_bool(params, 'twap', False)
+            params = self.omit(params, 'twap')
+            if isTwapOrder:
+                request['pageIndex'] = 1
+                request['pageSize'] = 100 if (limit is None) else limit
+                request['startTime'] = 1 if (since is None) else since
+                until = self.safe_integer(params, 'until', self.milliseconds())
+                params = self.omit(params, 'until')
+                request['endTime'] = until
+                response = self.swapV1PrivateGetTwapHistoryOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1702731661854,
+                #         "data": {
+                #             "list": [
+                #                 {
+                #                     "symbol": "BNB-USDT",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "priceType": "constant",
+                #                     "priceVariance": "2000",
+                #                     "triggerPrice": "68000",
+                #                     "interval": 8,
+                #                     "amountPerOrder": "0.111",
+                #                     "totalAmount": "0.511",
+                #                     "orderStatus": "Running",
+                #                     "executedQty": "0.1",
+                #                     "duration": 800,
+                #                     "maxDuration": 9000,
+                #                     "createdTime": 1702731661854,
+                #                     "updateTime": 1702731661854
+                #                 }
+                #             ],
+                #             "total": 1
+                #         }
+                #     }
+                #
+            elif subType == 'inverse':
+                response = self.cswapV1PrivateGetTradeOrderHistory(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "orders": [
+                #                 {
+                #                     "symbol": "SOL-USD",
+                #                     "orderId": "1816002957423951872",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "LIMIT",
+                #                     "quantity": 1,
+                #                     "origQty": "10.00000000",
+                #                     "price": "150.000",
+                #                     "executedQty": "0.00000000",
+                #                     "avgPrice": "0.000",
+                #                     "cumQuote": "",
+                #                     "stopPrice": "0.000",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "Filled",
+                #                     "time": 1721803819000,
+                #                     "updateTime": 1721803856000,
+                #                     "clientOrderId": "",
+                #                     "leverage": "",
+                #                     "takeProfit": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "stopLoss": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "advanceAttr": 0,
+                #                     "positionID": 0,
+                #                     "takeProfitEntrustPrice": 0,
+                #                     "stopLossEntrustPrice": 0,
+                #                     "orderType": "",
+                #                     "workingType": "MARK_PRICE"
+                #                 },
+                #             ]
+                #         }
+                #     }
+                #
+            else:
+                response = self.swapV2PrivateGetTradeAllOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "orders": [
+                #                 {
+                #                     "symbol": "LINK-USDT",
+                #                     "orderId": 1585839271162413056,
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "TRIGGER_MARKET",
+                #                     "origQty": "5.0",
+                #                     "price": "9",
+                #                     "executedQty": "0.0",
+                #                     "avgPrice": "0",
+                #                     "cumQuote": "0",
+                #                     "stopPrice": "5",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "CANCELLED",
+                #                     "time": 1667631605000,
+                #                     "updateTime": 1667631605000
+                #                 },
+                #             ]
+                #         }
+                #     }
+                #
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+
+        https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'type': fromId + '_' + toId,
@@ -2204,28 +4689,30 @@ class bingx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+
+        https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromAccount = self.safe_string(params, 'fromAccount')
         toAccount = self.safe_string(params, 'toAccount')
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId is None or toId is None:
             raise ExchangeError(self.id + ' fromAccount & toAccount parameter are required')
-        request = {
+        request: dict = {
             'type': fromId + '_' + toId,
         }
         if since is not None:
@@ -2235,8 +4722,8 @@ class bingx(Exchange, ImplicitAPI):
         response = self.spotV3PrivateGetAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         total: 3,
-        #         rows: [
+        #         "total": 3,
+        #         "rows": [
         #             {
         #                 "asset":"USDT",
         #                 "amount":"-100.00000000000000000000",
@@ -2248,15 +4735,15 @@ class bingx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rows = self.safe_value(response, 'rows', [])
+        rows = self.safe_list(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         tranId = self.safe_string(transfer, 'tranId')
         timestamp = self.safe_integer(transfer, 'timestamp')
         currencyCode = self.safe_currency_code(None, currency)
         status = self.safe_string(transfer, 'status')
-        accountsById = self.safe_value(self.options, 'accountsById', {})
+        accountsById = self.safe_dict(self.options, 'accountsById', {})
         typeId = self.safe_string(transfer, 'type')
         typeIdSplit = typeId.split('_')
         fromId = self.safe_string(typeIdSplit, 0)
@@ -2275,19 +4762,21 @@ class bingx(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
-        fetch the deposit address for a currency associated with self account
-        see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+        fetch the deposit addresses for a currency associated with self account
+
+        https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
         """
         self.load_markets()
         currency = self.currency(code)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'offset': 0,
             'limit': 1000,
@@ -2296,63 +4785,92 @@ class bingx(Exchange, ImplicitAPI):
         response = self.walletsV1PrivateGetCapitalDepositAddress(self.extend(request, params))
         #
         #     {
-        #         code: '0',
-        #         timestamp: '1695200226859',
-        #         data: {
-        #           data: [
+        #         "code": "0",
+        #         "timestamp": "1695200226859",
+        #         "data": {
+        #           "data": [
         #             {
-        #               coinId: '799',
-        #               coin: 'USDT',
-        #               network: 'BEP20',
-        #               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        #               tag: ''
+        #               "coinId": "799",
+        #               "coin": "USDT",
+        #               "network": "BEP20",
+        #               "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        #               "tag": ''
         #             }
         #           ],
-        #           total: '1'
+        #           "total": "1"
         #         }
         #     }
         #
-        data = self.safe_value(self.safe_value(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, ['network'])
+        addressStructures = self.fetch_deposit_addresses_by_network(code, params)
+        if network is not None:
+            return self.safe_dict(addressStructures, network)
+        else:
+            options = self.safe_dict(self.options, 'defaultNetworks')
+            defaultNetworkForCurrency = self.safe_string(options, code)
+            if defaultNetworkForCurrency is not None:
+                return self.safe_dict(addressStructures, defaultNetworkForCurrency)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
-        #     {
-        #         coinId: '799',
-        #         coin: 'USDT',
-        #         network: 'BEP20',
-        #         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        #         tag: ''
-        #     }
+        # {
+        #     "coinId":"4",
+        #     "coin":"USDT",
+        #     "network":"OMNI",
+        #     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        #     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        # }
         #
-        address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'tag')
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        network = self.safe_string(depositAddress, 'network')
+        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        networkdId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkdId, code)
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        see https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
+
+        https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
         }
         currency = None
         if code is not None:
@@ -2382,18 +4900,20 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        see https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
+
+        https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
         }
         currency = None
         if code is not None:
@@ -2425,7 +4945,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2461,6 +4981,21 @@ class bingx(Exchange, ImplicitAPI):
         #        "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
         #    }
         #
+        # withdraw
+        #
+        #     {
+        #         "code":0,
+        #         "timestamp":1705274263621,
+        #         "data":{
+        #             "id":"1264246141278773252"
+        #         }
+        #     }
+        #
+        # parse withdraw-type output first...
+        #
+        data = self.safe_value(transaction, 'data')
+        dataId = None if (data is None) else self.safe_string(data, 'id')
+        id = self.safe_string(transaction, 'id', dataId)
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
         timestamp = self.safe_integer(transaction, 'insertTime')
@@ -2471,13 +5006,14 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string(transaction, 'network')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        if code is not None and code.find(network) >= 0:
-            code = code.replace(network, '')
+        if (code is not None) and (code != network) and code.find(network) >= 0:
+            if network is not None:
+                code = code.replace(network, '')
         rawType = self.safe_string(transaction, 'transferType')
         type = 'deposit' if (rawType == '0') else 'withdrawal'
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': id,
             'txid': self.safe_string(transaction, 'txId'),
             'type': type,
             'currency': code,
@@ -2499,11 +5035,13 @@ class bingx(Exchange, ImplicitAPI):
                 'cost': self.safe_number(transaction, 'transactionFee'),
                 'rate': None,
             },
+            'internal': None,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
-            '0': 'ok',
+    def parse_transaction_status(self, status: str):
+        statuses: dict = {
+            '0': 'pending',
+            '1': 'ok',
             '10': 'pending',
             '20': 'rejected',
             '30': 'ok',
@@ -2519,16 +5057,20 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def set_margin_mode(self, marginMode: str, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        self.check_required_symbol('setMarginMode', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
@@ -2538,20 +5080,39 @@ class bingx(Exchange, ImplicitAPI):
             marginMode = 'CROSSED'
         if marginMode != 'ISOLATED' and marginMode != 'CROSSED':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginType': marginMode,
         }
-        return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('setMarginMode', market, params)
+        if subType == 'inverse':
+            return self.cswapV1PrivatePostTradeMarginType(self.extend(request, params))
+        else:
+            return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    def set_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        request: dict = {
+            'type': 1,
+        }
+        return self.set_margin(symbol, amount, self.extend(request, params))
+
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        request: dict = {
+            'type': 2,
+        }
+        return self.set_margin(symbol, amount, self.extend(request, params))
+
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the bingx api endpoint
-        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
@@ -2560,7 +5121,7 @@ class bingx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'amount': self.amount_to_precision(market['symbol'], amount),
             'type': type,
@@ -2574,147 +5135,353 @@ class bingx(Exchange, ImplicitAPI):
         #        "type": 1
         #    }
         #
-        return response
+        return self.parse_margin_modification(response, market)
 
-    def fetch_leverage(self, symbol: str, params={}):
-        """
-        fetch the set leverage for a market
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `leverage structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure>`
-        """
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = self.swapV2PrivateGetTradeLeverage(self.extend(request, params))
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #    {
         #        "code": 0,
         #        "msg": "",
-        #        "data": {
-        #            "longLeverage": 6,
-        #            "shortLeverage": 6
-        #        }
+        #        "amount": 1,
+        #        "type": 1
         #    }
         #
-        return response
+        type = self.safe_string(data, 'type')
+        return {
+            'info': data,
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': 'add' if (type == '1') else 'reduce',
+            'marginMode': 'isolated',
+            'amount': self.safe_number(data, 'amount'),
+            'total': self.safe_number(data, 'margin'),
+            'code': self.safe_string(market, 'settle'),
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
-        set the level of leverage for a market
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
-        :param float leverage: the rate of leverage
+        fetch the set leverage for a market
+
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: response from the exchange
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
-        self.check_required_symbol('setLeverage', symbol)
-        side = self.safe_string_upper(params, 'side')
-        self.check_required_argument('setLeverage', side, 'side', ['LONG', 'SHORT'])
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PrivateGetTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720683803391,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "longLeverage": 5,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 50,
+            #             "maxShortLeverage": 50,
+            #             "availableLongVol": "4000000",
+            #             "availableShortVol": "4000000"
+            #         }
+            #     }
+            #
+        else:
+            response = self.swapV2PrivateGetTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "longLeverage": 5,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 125,
+            #             "maxShortLeverage": 125,
+            #             "availableLongVol": "0.0000",
+            #             "availableShortVol": "0.0000",
+            #             "availableLongVal": "0.0",
+            #             "availableShortVal": "0.0",
+            #             "maxPositionLongVal": "0.0",
+            #             "maxPositionShortVal": "0.0"
+            #         }
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        #
+        # linear swap
+        #
+        #     {
+        #         "longLeverage": 5,
+        #         "shortLeverage": 5,
+        #         "maxLongLeverage": 125,
+        #         "maxShortLeverage": 125,
+        #         "availableLongVol": "0.0000",
+        #         "availableShortVol": "0.0000",
+        #         "availableLongVal": "0.0",
+        #         "availableShortVal": "0.0",
+        #         "maxPositionLongVal": "0.0",
+        #         "maxPositionShortVal": "0.0"
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "longLeverage": 5,
+        #         "shortLeverage": 5,
+        #         "maxLongLeverage": 50,
+        #         "maxShortLeverage": 50,
+        #         "availableLongVol": "4000000",
+        #         "availableShortVol": "4000000"
+        #     }
+        #
+        marketId = self.safe_string(leverage, 'symbol')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': None,
+            'longLeverage': self.safe_integer(leverage, 'longLeverage'),
+            'shortLeverage': self.safe_integer(leverage, 'shortLeverage'),
+        }
+
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+        """
+        set the level of leverage for a market
+
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.side]: hedged: ['long' or 'short']. one way: ['both']
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        side = self.safe_string_upper(params, 'side')
+        self.check_required_argument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH'])
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
             'symbol': market['id'],
             'side': side,
             'leverage': leverage,
         }
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "leverage": 6,
-        #            "symbol": "BTC-USDT"
-        #        }
-        #    }
-        #
-        return self.swapV2PrivatePostTradeLeverage(self.extend(request, params))
+        if market['inverse']:
+            return self.cswapV1PrivatePostTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720725058059,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "longLeverage": 10,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 50,
+            #             "maxShortLeverage": 50,
+            #             "availableLongVol": "4000000",
+            #             "availableShortVol": "4000000"
+            #         }
+            #     }
+            #
+        else:
+            return self.swapV2PrivatePostTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "leverage": 10,
+            #             "symbol": "BTC-USDT",
+            #             "availableLongVol": "0.0000",
+            #             "availableShortVol": "0.0000",
+            #             "availableLongVal": "0.0",
+            #             "availableShortVal": "0.0",
+            #             "maxPositionLongVal": "0.0",
+            #             "maxPositionShortVal": "0.0"
+            #         }
+            #     }
+            #
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms for the ending date filter, default is None
         :param str params['trandingUnit']: COIN(directly represent assets such and ETH) or CONT(represents the number of contract sheets)
-        :returns [dict]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :param str params['orderId']: the order id required for inverse swap
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        self.check_required_argument('fetchMyTrades', symbol, 'symbol')
-        self.check_required_argument('fetchMyTrades', since, 'since')
-        tradingUnit = self.safe_string_upper(params, 'tradingUnit', 'CONT')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            raise BadSymbol(self.id + ' fetchMyTrades() supports swap contracts only')
-        request = {
-            'symbol': market['id'],
-            'tradingUnit': tradingUnit,
-            'startTs': since,
-            'endTs': self.nonce(),
-        }
-        query = self.omit(params, 'tradingUnit')
-        response = self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, query))
-        #
-        #    {
-        #       code: '0',
-        #       msg: '',
-        #       data: {fill_orders: [
-        #          {
-        #              volume: '0.1',
-        #              price: '106.75',
-        #              amount: '10.6750',
-        #              commission: '-0.0053',
-        #              currency: 'USDT',
-        #              orderId: '1676213270274379776',
-        #              liquidatedPrice: '0.00',
-        #              liquidatedMarginRatio: '0.00',
-        #              filledTime: '2023-07-04T20:56:01.000+0800'
-        #          }
-        #        ]
-        #      }
-        #    }
-        #
-        data = self.safe_value(response, 'data', [])
-        fillOrders = self.safe_value(data, 'fill_orders', [])
-        return self.parse_trades(fillOrders, market, since, limit, query)
+        request: dict = {}
+        fills = None
+        response = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params)
+        if subType == 'inverse':
+            orderId = self.safe_string(params, 'orderId')
+            if orderId is None:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades')
+            response = self.cswapV1PrivateGetTradeAllFillOrders(self.extend(request, params))
+            fills = self.safe_list(response, 'data', [])
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1722147756019,
+            #         "data": [
+            #             {
+            #                 "orderId": "1817441228670648320",
+            #                 "symbol": "SOL-USD",
+            #                 "type": "MARKET",
+            #                 "side": "BUY",
+            #                 "positionSide": "LONG",
+            #                 "tradeId": "97244554",
+            #                 "volume": "2",
+            #                 "tradePrice": "182.652",
+            #                 "amount": "20.00000000",
+            #                 "realizedPnl": "0.00000000",
+            #                 "commission": "-0.00005475",
+            #                 "currency": "SOL",
+            #                 "buyer": True,
+            #                 "maker": False,
+            #                 "tradeTime": 1722146730000
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            request['symbol'] = market['id']
+            now = self.milliseconds()
+            if since is not None:
+                startTimeReq = 'startTime' if market['spot'] else 'startTs'
+                request[startTimeReq] = since
+            elif market['swap']:
+                request['startTs'] = now - 30 * 24 * 60 * 60 * 1000  # 30 days for swap
+            until = self.safe_integer(params, 'until')
+            params = self.omit(params, 'until')
+            if until is not None:
+                endTimeReq = 'endTime' if market['spot'] else 'endTs'
+                request[endTimeReq] = until
+            elif market['swap']:
+                request['endTs'] = now
+            if market['spot']:
+                if limit is not None:
+                    request['limit'] = limit  # default 500, maximum 1000
+                response = self.spotV1PrivateGetTradeMyTrades(self.extend(request, params))
+                data = self.safe_dict(response, 'data', {})
+                fills = self.safe_list(data, 'fills', [])
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "debugMsg": "",
+                #         "data": {
+                #             "fills": [
+                #                 {
+                #                     "symbol": "LTC-USDT",
+                #                     "id": 36237072,
+                #                     "orderId": 1674069326895775744,
+                #                     "price": "85.891",
+                #                     "qty": "0.0582",
+                #                     "quoteQty": "4.9988562000000005",
+                #                     "commission": -0.00005820000000000001,
+                #                     "commissionAsset": "LTC",
+                #                     "time": 1687964205000,
+                #                     "isBuyer": True,
+                #                     "isMaker": False
+                #                 }
+                #             ]
+                #         }
+                #     }
+                #
+            else:
+                tradingUnit = self.safe_string_upper(params, 'tradingUnit', 'CONT')
+                params = self.omit(params, 'tradingUnit')
+                request['tradingUnit'] = tradingUnit
+                response = self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, params))
+                data = self.safe_dict(response, 'data', {})
+                fills = self.safe_list(data, 'fill_orders', [])
+                #
+                #    {
+                #       "code": "0",
+                #       "msg": '',
+                #       "data": {fill_orders: [
+                #          {
+                #              "volume": "0.1",
+                #              "price": "106.75",
+                #              "amount": "10.6750",
+                #              "commission": "-0.0053",
+                #              "currency": "USDT",
+                #              "orderId": "1676213270274379776",
+                #              "liquidatedPrice": "0.00",
+                #              "liquidatedMarginRatio": "0.00",
+                #              "filledTime": "2023-07-04T20:56:01.000+0800"
+                #          }
+                #        ]
+                #      }
+                #    }
+                #
+        return self.parse_trades(fills, market, since, limit, params)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
-        #        coin: 'BTC',
-        #        name: 'BTC',
-        #        networkList: [
+        #        "coin": "BTC",
+        #        "name": "BTC",
+        #        "networkList": [
         #          {
-        #            name: 'BTC',
-        #            network: 'BTC',
-        #            isDefault: True,
-        #            minConfirm: '2',
-        #            withdrawEnable: True,
-        #            withdrawFee: '0.00035',
-        #            withdrawMax: '1.62842',
-        #            withdrawMin: '0.0005'
+        #            "name": "BTC",
+        #            "network": "BTC",
+        #            "isDefault": True,
+        #            "minConfirm": "2",
+        #            "withdrawEnable": True,
+        #            "withdrawFee": "0.00035",
+        #            "withdrawMax": "1.62842",
+        #            "withdrawMin": "0.0005"
         #          },
         #          {
-        #            name: 'BTC',
-        #            network: 'BEP20',
-        #            isDefault: False,
-        #            minConfirm: '15',
-        #            withdrawEnable: True,
-        #            withdrawFee: '0.00001',
-        #            withdrawMax: '1.62734',
-        #            withdrawMin: '0.0001'
+        #            "name": "BTC",
+        #            "network": "BEP20",
+        #            "isDefault": False,
+        #            "minConfirm": "15",
+        #            "withdrawEnable": True,
+        #            "withdrawFee": "0.00001",
+        #            "withdrawMax": "1.62734",
+        #            "withdrawMin": "0.0001"
         #          }
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'networkList', [])
+        networkList = self.safe_list(fee, 'networkList', [])
         networkListLength = len(networkList)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2730,7 +5497,7 @@ class bingx(Exchange, ImplicitAPI):
             for i in range(0, networkListLength):
                 network = networkList[i]
                 networkId = self.safe_string(network, 'network')
-                isDefault = self.safe_value(network, 'isDefault')
+                isDefault = self.safe_bool(network, 'isDefault')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
                 result['networks'][networkCode] = {
@@ -2742,31 +5509,37 @@ class bingx(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
-        :param [str]|None codes: list of unified currency codes
-        :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+
+        https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
+
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
-        coins = self.safe_value(response, 'data')
+        coins = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+
+        https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str [tag]:
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         walletType = self.safe_integer(params, 'walletType')
@@ -2774,15 +5547,17 @@ class bingx(Exchange, ImplicitAPI):
             walletType = 1
         if not self.in_array(walletType, [1, 2, 3]):
             raise BadRequest(self.id + ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType')
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.number_to_string(amount),
+            'amount': self.currency_to_precision(code, amount),
             'walletType': walletType,
         }
         network = self.safe_string_upper(params, 'network')
         if network is not None:
             request['network'] = self.network_code_to_id(network)
+        if tag is not None:
+            request['addressTag'] = tag
         params = self.omit(params, ['walletType', 'network'])
         response = self.walletsV1PrivatePostCapitalWithdrawApply(self.extend(request, params))
         data = self.safe_value(response, 'data')
@@ -2793,7 +5568,7 @@ class bingx(Exchange, ImplicitAPI):
         #           "id":"1197073063359000577"
         #        }
         #    }
-        self.parse_transaction(data)
+        return self.parse_transaction(data)
 
     def parse_params(self, params):
         sortedParams = self.keysort(params)
@@ -2812,52 +5587,697 @@ class bingx(Exchange, ImplicitAPI):
                 sortedParams[key] = arrStr
         return sortedParams
 
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves the users liquidated positions
+
+        https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bingx api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'autoCloseType': 'LIQUIDATION',
+        }
+        request, params = self.handle_until_option('endTime', request, params)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params)
+        response = None
+        liquidations = None
+        if subType == 'inverse':
+            response = self.cswapV1PrivateGetTradeForceOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1721280071678,
+            #         "data": [
+            #             {
+            #                 "orderId": "string",
+            #                 "symbol": "string",
+            #                 "type": "string",
+            #                 "side": "string",
+            #                 "positionSide": "string",
+            #                 "price": "string",
+            #                 "quantity": "float64",
+            #                 "stopPrice": "string",
+            #                 "workingType": "string",
+            #                 "status": "string",
+            #                 "time": "int64",
+            #                 "avgPrice": "string",
+            #                 "executedQty": "string",
+            #                 "profit": "string",
+            #                 "commission": "string",
+            #                 "updateTime": "string"
+            #             }
+            #         ]
+            #     }
+            #
+            liquidations = self.safe_list(response, 'data', [])
+        else:
+            response = self.swapV2PrivateGetTradeForceOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "orders": [
+            #                 {
+            #                     "time": "int64",
+            #                     "symbol": "string",
+            #                     "side": "string",
+            #                     "type": "string",
+            #                     "positionSide": "string",
+            #                     "cumQuote": "string",
+            #                     "status": "string",
+            #                     "stopPrice": "string",
+            #                     "price": "string",
+            #                     "origQty": "string",
+            #                     "avgPrice": "string",
+            #                     "executedQty": "string",
+            #                     "orderId": "int64",
+            #                     "profit": "string",
+            #                     "commission": "string",
+            #                     "workingType": "string",
+            #                     "updateTime": "int64"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            liquidations = self.safe_list(data, 'orders', [])
+        return self.parse_liquidations(liquidations, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market: Market = None):
+        #
+        #     {
+        #         "time": "int64",
+        #         "symbol": "string",
+        #         "side": "string",
+        #         "type": "string",
+        #         "positionSide": "string",
+        #         "cumQuote": "string",
+        #         "status": "string",
+        #         "stopPrice": "string",
+        #         "price": "string",
+        #         "origQty": "string",
+        #         "avgPrice": "string",
+        #         "executedQty": "string",
+        #         "orderId": "int64",
+        #         "profit": "string",
+        #         "commission": "string",
+        #         "workingType": "string",
+        #         "updateTime": "int64"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer(liquidation, 'time')
+        contractsString = self.safe_string(liquidation, 'executedQty')
+        contractSizeString = self.safe_string(market, 'contractSize')
+        priceString = self.safe_string(liquidation, 'avgPrice')
+        baseValueString = Precise.string_mul(contractsString, contractSizeString)
+        quoteValueString = Precise.string_mul(baseValueString, priceString)
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.parse_number(contractSizeString),
+            'price': self.parse_number(priceString),
+            'baseValue': self.parse_number(baseValueString),
+            'quoteValue': self.parse_number(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+
+        :param str symbol: Unified CCXT market symbol
+        :param str [side]: not used by bingx
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param str|None [params.positionId]: the id of the position you would like to close
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        positionId = self.safe_string(params, 'positionId')
+        request: dict = {}
+        response = None
+        if positionId is not None:
+            response = self.swapV1PrivatePostTradeClosePosition(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "timestamp": 1710992264190,
+            #        "data": {
+            #            "orderId": 1770656007907930112,
+            #            "positionId": "1751667128353910784",
+            #            "symbol": "LTC-USDT",
+            #            "side": "Ask",
+            #            "type": "MARKET",
+            #            "positionSide": "Long",
+            #            "origQty": "0.2"
+            #        }
+            #    }
+            #
+        else:
+            request['symbol'] = market['id']
+            if market['inverse']:
+                response = self.cswapV1PrivatePostTradeCloseAllPositions(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1720771601428,
+                #         "data": {
+                #             "success": ["1811673520637231104"],
+                #             "failed": null
+                #         }
+                #     }
+                #
+            else:
+                response = self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+                #
+                #    {
+                #        "code": 0,
+                #        "msg": "",
+                #        "data": {
+                #            "success": [
+                #                1727686766700486656,
+                #            ],
+                #            "failed": null
+                #        }
+                #    }
+                #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data, market)
+
+    def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes open positions for a market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param str [params.recvWindow]: request valid time window value
+        :returns dict[]: `a list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
+        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('closeAllPositions', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
+        if marketType == 'margin':
+            raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
+        request: dict = {
+            'recvWindow': recvWindow,
+        }
+        response = None
+        if subType == 'inverse':
+            response = self.cswapV1PrivatePostTradeCloseAllPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720771601428,
+            #         "data": {
+            #             "success": ["1811673520637231104"],
+            #             "failed": null
+            #         }
+            #     }
+            #
+        else:
+            response = self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #            "success": [
+            #                1727686766700486656,
+            #                1727686767048613888
+            #            ],
+            #            "failed": null
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data', {})
+        success = self.safe_list(data, 'success', [])
+        positions = []
+        for i in range(0, len(success)):
+            position = self.parse_position({'positionId': success[i]})
+            positions.append(position)
+        return positions
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.swapV1PrivateGetPositionSideDual(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "timeStamp": "1709002057516",
+        #         "data": {
+        #             "dualSidePosition": "false"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        dualSidePosition = self.safe_string(data, 'dualSidePosition')
+        return {
+            'info': response,
+            'hedged': (dualSidePosition == 'true'),
+        }
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request: dict = {
+            'dualSidePosition': dualSidePosition,
+        }
+        #
+        #     {
+        #         code: '0',
+        #         msg: '',
+        #         timeStamp: '1703327432734',
+        #         data: {dualSidePosition: 'false'}
+        #     }
+        #
+        return self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        cancels an order and places a new order
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  # spot
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  # swap
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.triggerPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+
+ EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.cancelClientOrderID]: the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+        :param str [params.cancelRestrictions]: cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
+        :param str [params.cancelReplaceMode]: STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
+        :param float [params.quoteOrderQty]: order amount
+        :param str [params.newClientOrderId]: custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
+        :param str [params.positionSide]: *contract only* position direction, required for single position, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
+        :param str [params.reduceOnly]: *contract only* True or False, default=false for single position mode. self parameter is not accepted for both long and short positions mode
+        :param float [params.priceRate]: *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
+        :param str [params.workingType]: *contract only* StopPrice trigger price types, MARK_PRICE(default), CONTRACT_PRICE, or INDEX_PRICE
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        request['cancelOrderId'] = id
+        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
+        response = None
+        if market['swap']:
+            response = self.swapV1PrivatePostTradeCancelReplace(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        data: {
+            #            cancelResult: 'true',
+            #            cancelMsg: '',
+            #            cancelResponse: {
+            #                cancelClientOrderId: '',
+            #                cancelOrderId: '1755336244265705472',
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755336244265705472',
+            #                side: 'SELL',
+            #                positionSide: 'SHORT',
+            #                type: 'LIMIT',
+            #                origQty: '1',
+            #                price: '100.000',
+            #                executedQty: '0',
+            #                avgPrice: '0.000',
+            #                cumQuote: '0',
+            #                stopPrice: '',
+            #                profit: '0.0000',
+            #                commission: '0.000000',
+            #                status: 'PENDING',
+            #                time: '1707339747860',
+            #                updateTime: '1707339747860',
+            #                clientOrderId: '',
+            #                leverage: '20X',
+            #                workingType: 'MARK_PRICE',
+            #                onlyOnePosition: False,
+            #                reduceOnly: False
+            #            },
+            #            replaceResult: 'true',
+            #            replaceMsg: '',
+            #            newOrderResponse: {
+            #                orderId: '1755338440612995072',
+            #                symbol: 'SOL-USDT',
+            #                positionSide: 'SHORT',
+            #                side: 'SELL',
+            #                type: 'LIMIT',
+            #                price: '99',
+            #                quantity: '2',
+            #                stopPrice: '0',
+            #                workingType: 'MARK_PRICE',
+            #                clientOrderID: '',
+            #                timeInForce: 'GTC',
+            #                priceRate: '0',
+            #                stopLoss: '',
+            #                takeProfit: '',
+            #                reduceOnly: False
+            #            }
+            #        }
+            #    }
+            #
+        else:
+            response = self.spotV1PrivatePostTradeOrderCancelReplace(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        debugMsg: '',
+            #        data: {
+            #            cancelResult: {code: '0', msg: '', result: True},
+            #            openResult: {code: '0', msg: '', result: True},
+            #            orderOpenResponse: {
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755334007697866752',
+            #                transactTime: '1707339214620',
+            #                price: '99',
+            #                stopPrice: '0',
+            #                origQty: '0.2',
+            #                executedQty: '0',
+            #                cummulativeQuoteQty: '0',
+            #                status: 'PENDING',
+            #                type: 'LIMIT',
+            #                side: 'SELL',
+            #                clientOrderID: ''
+            #            },
+            #            orderCancelResponse: {
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755117055251480576',
+            #                price: '100',
+            #                stopPrice: '0',
+            #                origQty: '0.2',
+            #                executedQty: '0',
+            #                cummulativeQuoteQty: '0',
+            #                status: 'CANCELED',
+            #                type: 'LIMIT',
+            #                side: 'SELL'
+            #            }
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data, market)
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of the trading pair
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        subType = None
+        response = None
+        subType, params = self.handle_sub_type_and_params('fetchMarginMode', market, params)
+        if subType == 'inverse':
+            response = self.cswapV1PrivateGetTradeMarginType(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1721966069132,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "marginType": "CROSSED"
+            #         }
+            #     }
+            #
+        else:
+            response = self.swapV2PrivateGetTradeMarginType(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "marginType": "CROSSED"
+            #         }
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
+        marginType = self.safe_string_lower(marginMode, 'marginType')
+        marginType = 'cross' if (marginType == 'crossed') else marginType
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
+            'marginMode': marginType,
+        }
+
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a market
+
+        https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+        https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+        https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        commission: dict = {}
+        data = self.safe_dict(response, 'data', {})
+        if market['spot']:
+            response = self.spotV1PrivateGetUserCommissionRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "takerCommissionRate": 0.001,
+            #             "makerCommissionRate": 0.001
+            #         }
+            #     }
+            #
+            commission = data
+        else:
+            if market['inverse']:
+                response = self.cswapV1PrivateGetUserCommissionRate(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1721365261438,
+                #         "data": {
+                #             "takerCommissionRate": "0.0005",
+                #             "makerCommissionRate": "0.0002"
+                #         }
+                #     }
+                #
+                commission = data
+            else:
+                response = self.swapV2PrivateGetUserCommissionRate(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "commission": {
+                #                 "takerCommissionRate": 0.0005,
+                #                 "makerCommissionRate": 0.0002
+                #             }
+                #         }
+                #     }
+                #
+                commission = self.safe_dict(data, 'commission', {})
+        return self.parse_trading_fee(commission, market)
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        #
+        #     {
+        #         "takerCommissionRate": 0.001,
+        #         "makerCommissionRate": 0.001
+        #     }
+        #
+        symbol = market['symbol'] if (market is not None) else None
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'makerCommissionRate'),
+            'taker': self.safe_number(fee, 'takerCommissionRate'),
+            'percentage': False,
+            'tierBased': False,
+        }
+
+    def custom_encode(self, params):
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        adjustedValue = None
+        result = None
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = sortedParams[key]
+            if isinstance(value, list):
+                arrStr = None
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    isString = (isinstance(arrayElement, str))
+                    if isString:
+                        if j > 0:
+                            arrStr += ',' + '"' + str(arrayElement) + '"'
+                        else:
+                            arrStr = '"' + str(arrayElement) + '"'
+                    else:
+                        if j > 0:
+                            arrStr += ',' + str(arrayElement)
+                        else:
+                            arrStr = str(arrayElement)
+                adjustedValue = '[' + arrStr + ']'
+                value = adjustedValue
+            if i == 0:
+                result = key + '=' + value
+            else:
+                result += '&' + key + '=' + value
+        return result
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
         access = section[2]
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
+        if isSandbox and (type != 'swap'):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
-        if type == 'spot' and version == 'v3':
-            url += '/api'
-        else:
-            url += '/' + type
-        url += '/' + version + '/'
         path = self.implode_params(path, params)
-        url += path
+        if version == 'transfer':
+            type = 'account/transfer'
+            version = section[2]
+            access = section[3]
+        if path != 'account/apiPermissions':
+            if type == 'spot' and version == 'v3':
+                url += '/api'
+            else:
+                url += '/' + type
+        url += '/' + version + '/' + path
         params = self.omit(params, self.extract_params(path))
+        params['timestamp'] = self.nonce()
         params = self.keysort(params)
         if access == 'public':
-            params['timestamp'] = self.nonce()
             if params:
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()
-            params['timestamp'] = self.nonce()
-            parsedParams = self.parse_params(params)
-            query = self.urlencode(parsedParams)
-            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
-            if params:
-                query = '?' + query + '&'
+            isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
+            parsedParams = None
+            encodeRequest = None
+            if isJsonContentType:
+                encodeRequest = self.custom_encode(params)
             else:
-                query += '?'
-            query += 'signature=' + signature
+                parsedParams = self.parse_params(params)
+                encodeRequest = self.rawencode(parsedParams)
+            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
-            url += query
+            if isJsonContentType:
+                headers['Content-Type'] = 'application/json'
+                params['signature'] = signature
+                body = self.json(params)
+            else:
+                query = self.urlencode(parsedParams)
+                url += '?' + query + '&' + 'signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def set_sandbox_mode(self, enable: bool):
+        super(bingx, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #
         #    {
         #        "code": 80014,
-        #        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        #        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         #        "data": {
         #        }
         #    }

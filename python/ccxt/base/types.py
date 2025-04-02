@@ -264,6 +264,14 @@ class MarginMode(TypedDict):
     marginMode: Str
 
 
+class Leverage(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    marginMode: Str
+    longLeverage: Num
+    shortLeverage: Num
+
+
 class Greeks(TypedDict):
     symbol: Str
     timestamp: Int
@@ -424,6 +432,14 @@ class LedgerEntry:
     after: float
     status: Str
     fee: Fee
+
+
+class DepositAddress:
+    info: Any
+    currency: Str
+    network: Optional[Str]
+    address: Str
+    tag: Optional[Str]
 
 
 LastPrices = Dict[Str, LastPrice]
