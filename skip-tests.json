@@ -71,8 +71,7 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
-            },
-            "fetchStatus": "private endpoints"
+            }
         }
     },
     "binancecoinm": {
