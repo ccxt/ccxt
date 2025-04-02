@@ -353,7 +353,7 @@
             }
         }
     },
-    "BTC/USDT:USDT" {
+    "BTC/USDT:USDT": {
         "id": "B-BTC_USDT",
         "lowercaseId": "undefined",
         "symbol": "BTC/USDT:USDT",
