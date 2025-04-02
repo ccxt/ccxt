@@ -223,6 +223,7 @@ export default class apex extends Exchange {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
+                'brokerId': '6956',
             },
             'features': {
                 'default': {
@@ -598,7 +599,7 @@ export default class apex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const settleId = this.safeString (market, 'settleAssetId');
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = baseId + '/' + settleId;
+        const symbol = baseId + '/' + base + ':' + settle;
         const expiry = 0;
         const takerFee = this.parseNumber ('0.0002');
         const makerFee = this.parseNumber ('0.0005');
@@ -1328,7 +1329,7 @@ export default class apex extends Exchange {
             'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce': timeInForce,
             'clientId': clientOrderId,
-            'brokerId': this.safeString (this.options, 'brokerId'),
+            'brokerId': this.safeString (this.options, 'brokerId', '6956'),
         };
         if (reduceOnly !== undefined) {
             request['reduceOnly'] = reduceOnly;
