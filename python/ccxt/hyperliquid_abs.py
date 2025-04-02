@@ -1,9 +1,20 @@
-from ccxt.base.types import Market, Str
+from typing import Any
+
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.types import Str, Int
 from ccxt.hyperliquid import hyperliquid
 
 
 class hyperliquid_abs(hyperliquid):
+    def describe(self) -> Any:
+        return self.deep_extend(super().describe(), {
+            'exceptions': {
+                'broad': {
+                    'User or API Wallet ': PermissionDenied,
+                }
+            }
+        })
+
     def coin_to_market_id(self, coin: Str):
         market_id = super().coin_to_market_id(coin)
         return market_id.split(':')[0]

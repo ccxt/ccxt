@@ -7,7 +7,7 @@ __version__ = 'ccxt'  # custom ccxt version
 #del get_versions
 
 __all__ = ["curves", "der", "ecdsa", "ellipticcurve", "keys", "numbertheory",
-           "test_pyecdsa", "util", "six"]
+           "util"]
 
 _hush_pyflakes = [SigningKey, VerifyingKey, BadSignatureError, BadDigestError,
                   NIST192p, NIST224p, NIST256p, NIST384p, NIST521p, SECP256k1]

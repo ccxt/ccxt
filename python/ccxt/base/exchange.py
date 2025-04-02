@@ -1352,12 +1352,16 @@ class Exchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
-        h = hashlib.new(algorithm, request)
-        if digest == 'hex':
-            return h.hexdigest()
-        elif digest == 'base64':
-            return base64.b64encode(h.digest())
-        return h.digest()
+        if algorithm == 'keccak':
+            binary = bytes(keccak.SHA3(request))
+        else:
+            h = hashlib.new(algorithm, request)
+            binary = h.digest()
+        if digest == 'base64':
+            return Exchange.binary_to_base64(binary)
+        elif digest == 'hex':
+            return Exchange.binary_to_base16(binary)
+        return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
@@ -2649,9 +2653,9 @@ class Exchange(object):
             balance['total'][code] = balance[code]['total']
         return balance
 
-    def safe_order(self, order, market=None):
-        # parses numbers as strings
-        # it is important pass the trades as unparsed rawTrades
+    def safe_order(self, order: dict, market: Market = None):
+        # parses numbers
+        # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
@@ -2659,31 +2663,35 @@ class Exchange(object):
         average = self.omit_zero(self.safe_string(order, 'average'))
         price = self.omit_zero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        symbol = self.safe_string(order, 'symbol')
+        side = self.safe_string(order, 'side')
+        status = self.safe_string(order, 'status')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         fee = self.safe_value(order, 'fee')
         parseFee = (fee is None)
         parseFees = self.safe_value(order, 'fees') is None
+        parseSymbol = symbol is None
+        parseSide = side is None
         shouldParseFees = parseFee or parseFees
-        fees = self.safe_value(order, 'fees', [])
+        fees = self.safe_list(order, 'fees', [])
         trades = []
+        isTriggerOrSLTpOrder = ((self.safe_string(order, 'triggerPrice') is not None or (self.safe_string(order, 'stopLossPrice') is not None)) or (self.safe_string(order, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
-            if rawTrades:
-                self.logger.warning(f'{self.id} Parsing trades in safe_order')
-            # we parse trades as strings here!
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            })
-            # we transform all numbers to strings as in ccxt
-            for trade in trades:
-                for k, v in trade.items():
-                    if type(v) in self.number_types:
-                        trade[k] = str(v)
+            # oldNumber = self.number
+            # we parse trades here!
+            # i don't think self is needed anymore
+            # self.number = str
+            firstTrade = self.safe_value(rawTrades, 0)
+            # parse trades if they haven't already been parsed
+            tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
+            if not tradesAreParsed:
+                trades = self.parse_trades(rawTrades, market)
+            else:
+                trades = rawTrades
+            # self.number = oldNumber; why parse trades if you read the value using `safeString` ?
             tradesLength = 0
             isArray = isinstance(trades, list)
             if isArray:
@@ -2710,6 +2718,10 @@ class Exchange(object):
                     tradeCost = self.safe_string(trade, 'cost')
                     if parseCost and (tradeCost is not None):
                         cost = Precise.string_add(cost, tradeCost)
+                    if parseSymbol:
+                        symbol = self.safe_string(trade, 'symbol')
+                    if parseSide:
+                        side = self.safe_string(trade, 'side')
                     tradeTimestamp = self.safe_value(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
@@ -2734,10 +2746,12 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.safe_number(fee, 'cost')
-                if 'rate' in fee:
-                    fee['rate'] = self.safe_number(fee, 'rate')
-                reducedFees.append(fee)
+                # copy fee to avoid modification by reference
+                feeCopy = self.deep_extend(fee)
+                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
+                if 'rate' in feeCopy:
+                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
+                reducedFees.append(feeCopy)
             order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
@@ -2745,14 +2759,18 @@ class Exchange(object):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = Precise.string_add(filled, remaining)
-            elif self.safe_string(order, 'status') == 'closed':
+            elif status == 'closed':
                 amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = Precise.string_sub(amount, remaining)
+            elif status == 'closed' and amount is not None:
+                filled = amount
         if remaining is None:
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
+            elif status == 'closed':
+                remaining = '0'
         # ensure that the average field is calculated correctly
         inverse = self.safe_bool(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
@@ -2768,8 +2786,12 @@ class Exchange(object):
                     average = Precise.string_div(filledTimesContractSize, cost)
                 else:
                     average = Precise.string_div(cost, filledTimesContractSize)
-
-        # also ensure the cost field is calculated correctly
+        # similarly
+        # inverse
+        # cost = filled * contract size / price
+        #
+        # linear
+        # cost = filled * contract size * price
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
             multiplyPrice = None
@@ -2778,12 +2800,11 @@ class Exchange(object):
             else:
                 multiplyPrice = average
             # contract trading
-            contractSize = self.safe_string(market, 'contractSize')
-            if contractSize is not None:
-                if inverse:
-                    multiplyPrice = Precise.string_div('1', multiplyPrice)
-                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
-            cost = Precise.string_mul(multiplyPrice, filled)
+            filledTimesContractSize = Precise.string_mul(filled, contractSize)
+            if inverse:
+                cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
+            else:
+                cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
         # support for market orders
         orderType = self.safe_value(order, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
@@ -2795,21 +2816,45 @@ class Exchange(object):
             entry['amount'] = self.safe_number(entry, 'amount')
             entry['price'] = self.safe_number(entry, 'price')
             entry['cost'] = self.safe_number(entry, 'cost')
-            fee = self.safe_value(entry, 'fee', {})
-            fee['cost'] = self.safe_number(fee, 'cost')
-            if 'rate' in fee:
-                fee['rate'] = self.safe_number(fee, 'rate')
-            entry['fee'] = fee
-        # timeInForceHandling
+            tradeFee = self.safe_dict(entry, 'fee', {})
+            tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
+            if 'rate' in tradeFee:
+                tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entryFees = self.safe_list(entry, 'fees', [])
+            for j in range(0, len(entryFees)):
+                entryFees[j]['cost'] = self.safe_number(entryFees[j], 'cost')
+            entry['fees'] = entryFees
+            entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = self.safe_value(order, 'postOnly')
+        # timeInForceHandling
         if timeInForce is None:
-            if self.safe_string(order, 'type') == 'market':
+            if not isTriggerOrSLTpOrder and (self.safe_string(order, 'type') == 'market'):
                 timeInForce = 'IOC'
             # allow postOnly override
-            if self.safe_value(order, 'postOnly', False):
+            if postOnly:
                 timeInForce = 'PO'
+        elif postOnly is None:
+            # timeInForce is not None here
+            postOnly = timeInForce == 'PO'
+        timestamp = self.safe_integer(order, 'timestamp')
+        lastUpdateTimestamp = self.safe_integer(order, 'lastUpdateTimestamp')
+        datetime = self.safe_string(order, 'datetime')
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
+        takeProfitPrice = self.parse_number(self.safe_string(order, 'takeProfitPrice'))
+        stopLossPrice = self.parse_number(self.safe_string(order, 'stopLossPrice'))
         return self.extend(order, {
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'type': self.safe_string(order, 'type'),
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
             'cost': self.parse_number(cost),
@@ -2817,7 +2862,15 @@ class Exchange(object):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'status': status,
+            'fee': self.safe_value(order, 'fee'),
         })
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
