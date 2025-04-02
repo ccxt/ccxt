@@ -883,8 +883,9 @@ export default class apex extends Exchange {
             'symbol': market['id2'],
         };
         if (limit === undefined) {
-            limit = 500; // default is 500
+            limit = 500; // default is 50
         }
+        request['limit'] = limit;
         const response = await this.publicGetV3Trades (this.extend (request, params));
         //
         // [

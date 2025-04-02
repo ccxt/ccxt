@@ -1760,7 +1760,7 @@ class Exchange(object):
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
 
         slotId = self.safe_string(params, 'slotId')
-        nonceInt = int (self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
+        nonceInt = int(self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
 
         maxUint64 = 18446744073709551615
         maxUint32 = 4294967295
@@ -1795,7 +1795,7 @@ class Exchange(object):
         nonce = self.safe_string(params, 'nonce', '0')
         if self.safe_bool(params, 'isContract'):
             formattedUint32 = '4294967295'
-            formattedNonce = int (self.remove0x_prefix(self.hash(self.encode(nonce), 'sha256', 'hex')), 16)
+            formattedNonce = int(self.remove0x_prefix(self.hash(self.encode(nonce), 'sha256', 'hex')), 16)
             nonce = Precise.string_mod(str(formattedNonce), formattedUint32)
 
         tx_builder = zklink_sdk.TransferBuilder(
