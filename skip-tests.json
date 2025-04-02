@@ -3,13 +3,13 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "quoteId": "numeric",
-                "quote": "numeric",
-                "baseId": "numeric",
-                "base": "numeric",
-                "settleId": "numeric",
-                "settle": "numeric",
                 "active":"is undefined"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
+            },
+            "fetchL2OrderBook": {
+                "timestamp": "same"
             }
         }
     },
