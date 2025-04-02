@@ -87,13 +87,6 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         // otherwise, it must be false or undefined
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
-    if (!('contractSize' in skippedProperties)) {
-        if (!market['spot']) {
-            // if not spot, then contractSize should be defined
-            assert (market['contractSize'] !== undefined, '"contractSize" must be defined when "spot" is false' + logText);
-        }
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
-    }
     // typical values
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
@@ -107,13 +100,13 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     } else {
         assert (!market['contract'], '"contract" must be false when neither "future", "swap","option" or "index" is true' + logText);
     }
-    const isSwapOrFuture = market['swap'] || market['future'];
+    const isSwapFutureOption = market['swap'] || market['future'] || market['option'];
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
         // linear & inverse should have different values (true/false)
         // todo: expand logic on other market types
-        if (isSwapOrFuture) {
+        if (isSwapFutureOption) {
             assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
             if (!('contractSize' in skippedProperties)) {
                 // contract size should be defined
