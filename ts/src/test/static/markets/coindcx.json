@@ -352,5 +352,54 @@
                 "15000000": "10.0"
             }
         }
+    },
+    "BTC/USDT:USDT" {
+        "id": "B-BTC_USDT",
+        "lowercaseId": "undefined",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": null,
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": null,
+            "price": null,
+            "cost": null,
+            "base": null,
+            "quote": null
+        },
+        "limits": {
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": null, "max": null },
+            "price": { "min": null, "max": null },
+            "cost": { "min": null, "max": null }
+        },
+        "marginModes": { "cross": null, "isolated": null },
+        "created": null,
+        "info": {},
+        "percentage": true,
+        "tierBased": true,
+        "feeSide": "get"
     }
 }
