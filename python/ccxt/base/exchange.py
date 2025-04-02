@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.106.71'
+__version__ = '4.0.106.72'
 
 # -----------------------------------------------------------------------------
 import random
@@ -2746,12 +2746,10 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                # copy fee to avoid modification by reference
-                feeCopy = self.deep_extend(fee)
-                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
-                if 'rate' in feeCopy:
-                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
-                reducedFees.append(feeCopy)
+                fee['cost'] = self.safe_number(fee, 'cost')
+                if 'rate' in fee:
+                    fee['rate'] = self.safe_number(fee, 'rate')
+                reducedFees.append(fee)
             order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
