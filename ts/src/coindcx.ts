@@ -557,6 +557,7 @@ export default class coindcx extends Exchange {
                 'contract': true,
                 'linear': true,
                 'inverse': false,
+                'contractSize': 1,
                 'taker': this.safeNumber (fees, 'taker', 0),
                 'maker': this.safeNumber (fees, 'maker', 0),
                 'percentage': this.safeBool (fees, 'percentage'),
