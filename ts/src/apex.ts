@@ -3,26 +3,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import {
-    Account,
-    Balances,
-    Currencies, Currency,
-    Dict,
-    FundingRateHistory,
-    Int,
-    Market,
-    Num,
-    OHLCV,
-    Order,
-    OrderBook,
-    OrderSide,
-    OrderType,
-    Str,
-    Strings,
-    Ticker,
-    Tickers,
-    Trade, TransferEntry,
-} from './base/types';
+import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types';
 import { ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -32,7 +13,7 @@ import { ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.
  * @augments Exchange
  */
 export default class apex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'apex',
             'name': 'Apex',
