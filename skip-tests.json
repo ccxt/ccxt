@@ -165,20 +165,6 @@
     "bitcoincom": {
         "skipWs": true
     },
-    "bitfinex1": {
-        "skipMethods": {
-            "features": "not implemented for this old ex",
-            "loadMarkets": "linear and inverse values are same",
-            "ticker": {
-                "symbol": "something broken with symbol",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179"
-            },
-            "orderBook":{
-                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846",
-                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
-            }
-        }
-    },
     "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
