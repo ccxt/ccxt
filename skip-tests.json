@@ -223,6 +223,7 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
+		"open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "watchOrderBook": {
