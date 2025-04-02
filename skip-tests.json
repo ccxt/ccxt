@@ -209,11 +209,8 @@
                 "settle": "set hardcoded, not settleid provided",
                 "currencyIdAndCode": "messed"
             },
-            "trade": {
-                "side": "side key has an null value, but is expected to have a value"
-            },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4205"
+                "timestamp": "not provided from endoint"
             }
         }
     },
