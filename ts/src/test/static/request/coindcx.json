@@ -3,6 +3,95 @@
     "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "My trades for swap",
+                "method": "fetchMyTrades",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/trades",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"pair\":\"B-ETH_USDT\",\"timestamp\":1743620285746}"
+            },
+            {
+                "description": "My trades for spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.coindcx.com/exchange/v1/orders/trade_history",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"timestamp\":1743620254539}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Trades for spot",
+                "method": "fetchTrades",
+                "url": "https://public.coindcx.com/market_data/trade_history?pair=B-ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "Trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/data/trades?pair=B-ETH_USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Orderbook for swap",
+                "method": "fetchOrderBook",
+                "url": "https://public.coindcx.com/market_data/v3/orderbook/B-ETH_USDT-futures/50",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "Orderbook for spot",
+                "method": "fetchOrderBook",
+                "url": "https://public.coindcx.com/market_data/orderbook?pair=B-ETH_USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://public.coindcx.com/market_data/candles?pair=B-ETH_USDT&interval=1m",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coindcx.com/exchange/ticker",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Markets",
+                "method": "fetchMarkets",
+                "url": "https://api.coindcx.com/exchange/v1/markets_details",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch balance",
