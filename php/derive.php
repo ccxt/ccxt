@@ -638,6 +638,8 @@ class derive extends Exchange {
             } else {
                 $optionType = 'call';
             }
+            $linear = true;
+            $inverse = false;
         }
         return $this->safe_market_structure(array(
             'id' => $marketId,
