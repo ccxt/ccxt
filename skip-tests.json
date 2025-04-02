@@ -162,9 +162,6 @@
             }
         }
     },
-    "bitcoincom": {
-        "skipWs": true
-    },
     "bitfinex1": {
         "skipMethods": {
             "features": "not implemented for this old ex",
