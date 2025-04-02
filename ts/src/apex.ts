@@ -599,7 +599,7 @@ export default class apex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const settleId = this.safeString (market, 'settleAssetId');
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = baseId + '/' + base + ':' + settle;
+        const symbol = baseId + '/' + quote + ':' + settle;
         const expiry = 0;
         const takerFee = this.parseNumber ('0.0002');
         const makerFee = this.parseNumber ('0.0005');

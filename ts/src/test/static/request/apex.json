@@ -1,0 +1,18 @@
+{
+    "exchange": "apex",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://omni.apex.exchange/api/v3/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ]
+  }
+}
