@@ -284,9 +284,9 @@ export default class aftermath extends Exchange {
     }
 
     parseTradingFee (market: Market = undefined): TradingFeeInterface {
-        const symbol = this.safeSymbol (undefined, market);
+        const symbol = this.safeString (market, 'symbol');
         return {
-            'info': {},
+            'info': market,
             'symbol': symbol,
             'maker': this.safeNumber (market, 'maker'),
             'taker': this.safeNumber (market, 'taker'),
@@ -295,11 +295,20 @@ export default class aftermath extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name aftermath#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const chId = this.safeString (market, 'id');
-        const request = { 'chId': chId, 'symbol': symbol };
+        const request = {
+            'chId': market['id'],
+        };
         const response = await this.publicPostTicker (this.extend (request, params));
         return this.parseTicker (response);
     }
