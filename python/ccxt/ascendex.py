@@ -556,7 +556,7 @@ class ascendex(Exchange, ImplicitAPI):
         ids = list(dataById.keys())
         result: dict = {}
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             currency = dataById[id]
             code = self.safe_currency_code(id)
             scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')

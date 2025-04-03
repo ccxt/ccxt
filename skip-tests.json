@@ -3,13 +3,13 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "quoteId": "numeric",
-                "quote": "numeric",
-                "baseId": "numeric",
-                "base": "numeric",
-                "settleId": "numeric",
-                "settle": "numeric",
                 "active":"is undefined"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
+            },
+            "fetchL2OrderBook": {
+                "timestamp": "same"
             }
         }
     },
@@ -49,12 +49,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
-            "fetchCurrencies": {
-                "precision": "not provided in public api"
-            },
-            "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
             }
@@ -71,8 +65,7 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
-            },
-            "fetchStatus": "private endpoints"
+            }
         }
     },
     "binancecoinm": {
@@ -166,20 +159,6 @@
     "bitcoincom": {
         "skipWs": true
     },
-    "bitfinex1": {
-        "skipMethods": {
-            "features": "not implemented for this old ex",
-            "loadMarkets": "linear and inverse values are same",
-            "ticker": {
-                "symbol": "something broken with symbol",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179"
-            },
-            "orderBook":{
-                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846",
-                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
-            }
-        }
-    },
     "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
@@ -217,38 +196,25 @@
     "bitget": {
         "skipMethods": {
             "loadMarkets": {
-                "precision": "broken precision",
-                "limits": "limit max value is zero, lwer than min",
-                "contractSize": "not defined when contract",
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "withdraw": "not provided",
-                "deposit": "not provided",
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
-                "bid":"broken bid-ask",
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
+		"open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "watchOrderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3729"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
             }
         }
     },
     "bithumb": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "orderBook": {
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+                "bid": "frequently, zero amount is set in some orderbook entry"
             },
             "watchTrades":{
                 "timestamp": "it could be ahead of the current time"

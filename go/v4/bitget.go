@@ -1887,7 +1887,7 @@ func  (this *bitget) ParseMarket(market interface{}) interface{}  {
         var priceDecimals interface{} = this.SafeInteger(market, "pricePlace")
         var amountDecimals interface{} = this.SafeInteger(market, "volumePlace")
         var priceStep interface{} = this.SafeString(market, "priceEndStep")
-        var amountStep interface{} = this.SafeString(market, "minTradeNum")
+        var amountStep interface{} = this.SafeString(market, "sizeMultiplier")
         precise := NewPrecise(priceStep)
         precise.Decimals = mathMax(precise.Decimals, priceDecimals)
         precise.Reduce()
