@@ -211,16 +211,62 @@ export default class aftermath extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const parsed = this.safeMarketStructure (market);
-        parsed['taker'] = this.safeNumber (market, 'taker');
-        parsed['maker'] = this.safeNumber (market, 'taker');
-        parsed['contractSize'] = this.safeNumber (market, 'contractSize');
-        parsed['precision']['amount'] = this.safeNumber (market['precision'], 'amount');
-        parsed['precision']['price'] = this.safeNumber (market['precision'], 'price');
-        parsed['limits']['cost']['min'] = this.safeNumber (market['limits']['cost'], 'min');
-        parsed['limits']['leverage']['max'] = this.safeNumber (market['limits']['leverage'], 'max');
-        parsed['info'] = market;
-        return parsed;
+        const precision = this.safeDict (market, 'precision');
+        const limits = this.safeDict (market, 'limits');
+        return this.safeMarketStructure ({
+            'id': this.safeString (market, 'id'),
+            'symbol': this.safeString (market, 'symbol'),
+            'base': this.safeString (market, 'base'),
+            'quote': this.safeString (market, 'quote'),
+            'settle': this.safeString (market, 'settle'),
+            'baseId': this.safeString (market, 'baseId'),
+            'quoteId': this.safeString (market, 'quoteId'),
+            'settleId': this.safeString (market, 'settleId'),
+            'type': this.safeString (market, 'type'),
+            'spot': this.safeBool (market, 'spot'),
+            'margin': this.safeBool (market, 'margin'),
+            'swap': this.safeBool (market, 'swap'),
+            'future': this.safeBool (market, 'future'),
+            'option': this.safeBool (market, 'option'),
+            'active': this.safeBool (market, 'active'),
+            'contract': this.safeBool (market, 'contract'),
+            'linear': this.safeBool (market, 'linear'),
+            'inverse': this.safeBool (market, 'inverse'),
+            'tierBased': this.safeBool (market, 'tierBased'),
+            'percentage': this.safeBool (market, 'percentage'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': this.safeNumber (market, 'taker'),
+            'maker': this.safeNumber (market, 'maker'),
+            'precision': {
+                'amount': this.safeNumber (precision, 'amount'),
+                'price': this.safeNumber (precision, 'price'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': this.safeNumber (limits['leverage'], 'max'),
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (limits['cost'], 'min'),
+                    'max': undefined,
+                },
+            },
+            'marginModes': this.safeDict (market, 'marginModes'),
+            'created': undefined,
+            'info': market,
+        });
     }
 
     /**
