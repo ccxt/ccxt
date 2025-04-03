@@ -1888,7 +1888,7 @@ public partial class bitget : Exchange
             object priceDecimals = this.safeInteger(market, "pricePlace");
             object amountDecimals = this.safeInteger(market, "volumePlace");
             object priceStep = this.safeString(market, "priceEndStep");
-            object amountStep = this.safeString(market, "minTradeNum");
+            object amountStep = this.safeString(market, "sizeMultiplier");
             var precise = new Precise(priceStep);
             precise.decimals = mathMax(precise.decimals, priceDecimals);
             precise.reduce();

@@ -1922,7 +1922,7 @@ class bitget extends bitget$1 {
             const priceDecimals = this.safeInteger(market, 'pricePlace');
             const amountDecimals = this.safeInteger(market, 'volumePlace');
             const priceStep = this.safeString(market, 'priceEndStep');
-            const amountStep = this.safeString(market, 'minTradeNum');
+            const amountStep = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise["default"](priceStep);
             precise.decimals = Math.max(precise.decimals, priceDecimals);
             precise.reduce();
