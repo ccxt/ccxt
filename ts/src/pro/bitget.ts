@@ -13,7 +13,7 @@ import Client from '../base/ws/Client.js';
 /**
  * @class bitget
  * @augments Exchange
- * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 
 export default class bitget extends bitgetRest {

@@ -550,7 +550,7 @@ func  (this *ascendex) FetchCurrencies(optionalArgs ...interface{}) <- chan inte
             var ids interface{} = ObjectKeys(dataById)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                var id interface{} = GetValue(ids, i)
+                var id interface{} = this.SafeString(ids, i)
                 var currency interface{} = GetValue(dataById, id)
                 var code interface{} = this.SafeCurrencyCode(id)
                 var scale interface{} = this.SafeString2(currency, "precisionScale", "nativeScale")
