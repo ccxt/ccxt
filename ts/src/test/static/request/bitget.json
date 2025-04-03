@@ -1699,6 +1699,13 @@
         ],
         "fetchWithdrawals": [
             {
+                "description": "fetchWitdrawals without currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?endTime=1743676539420&startTime=1735900539420",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "fetch withdrawals",
                 "method": "fetchWithdrawals",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?coin=USDT&endTime=1712048411669&startTime=1704272411669",

@@ -1925,7 +1925,7 @@ export default class bitget extends Exchange {
             const priceDecimals = this.safeInteger(market, 'pricePlace');
             const amountDecimals = this.safeInteger(market, 'volumePlace');
             const priceStep = this.safeString(market, 'priceEndStep');
-            const amountStep = this.safeString(market, 'minTradeNum');
+            const amountStep = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise(priceStep);
             precise.decimals = Math.max(precise.decimals, priceDecimals);
             precise.reduce();

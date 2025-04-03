@@ -246,7 +246,7 @@ export default class Exchange {
 
     timeout: Int      = 10000 // milliseconds
     verbose: boolean  = false
-    twofa             = undefined // two-factor authentication (2FA)
+    twofa             = undefined // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
