@@ -834,6 +834,21 @@
             }
         }
     },
+    "fxopen": {
+        "skipPhpAsync": "Exchange sends response only with gzip or deflate encodings",
+        "skipMethods": {
+            "fetchTickers": {
+                "ask": "zero spread on some symbols"
+            },
+            "fetchOpenOrders": {
+                "average": "not available",
+                "lastTradeTimestamp": "Incorrect test: can be undefined if remaining === amount"
+            },
+            "fetchPositions": {
+                "percentage": "Incorrect test: should have same sign as unrealizedPnl"
+            }
+        }
+    },
     "gemini": {
         "skipWs": "fixes needed",
         "skipMethods": {
