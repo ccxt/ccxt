@@ -6851,7 +6851,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
+    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
