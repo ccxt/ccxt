@@ -33,18 +33,24 @@ NO_PADDING = 5
 PAD_WITH_ZERO = 6
 
 
-def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert precision is not None
-    if counting_mode == TICK_SIZE:
-        assert(isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral) or isinstance(precision, str))
-    else:
-        assert(isinstance(precision, numbers.Integral))
-    assert rounding_mode in [TRUNCATE, ROUND]
-    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
-    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
+def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+    assert numPrecisionDigits is not None, 'numPrecisionDigits should not be None'
 
-    if isinstance(precision, str):
-        precision = float(precision)
+    if isinstance(numPrecisionDigits, str):
+        numPrecisionDigits = float(numPrecisionDigits)
+    assert isinstance(numPrecisionDigits, float) or isinstance(numPrecisionDigits, decimal.Decimal) or isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits has an invalid number'
+
+    if counting_mode == TICK_SIZE:
+        assert numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode'
+    else:
+        assert isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode'
+
+    assert rounding_mode in [TRUNCATE, ROUND], 'invalid rounding_mode provided'
+    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE], 'invalid counting_mode provided'
+    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO], 'invalid padding_mode provided'
+    # end of checks
+
+    precision = numPrecisionDigits  # "precision" variable name was in signature, but to make function signature similar to php/js, I had to change the argument name to "numPrecisionDigits". however, the below codes use "precision" variable name, so we have to assign that name here (you can change the usage of 'precision' variable name below everywhere, but i've refrained to do that to avoid many changes)
 
     context = decimal.getcontext()
 
