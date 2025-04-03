@@ -4644,7 +4644,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<{}> {
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'timeWindow': this.parseToInt (timeout / 1000),
@@ -4677,7 +4677,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<{}> {
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         await this.loadMarkets ();
         const types = await this.isUnifiedEnabled ();
         const enableUnifiedAccount = types[1];
@@ -4771,7 +4771,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -6676,7 +6676,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -6771,7 +6771,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -6810,7 +6810,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -7343,7 +7343,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
      */
-    async borrowCrossMargin (code: string, amount: number, params = {}): Promise<{}> {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -7380,7 +7380,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
      */
-    async repayCrossMargin (code: string, amount, params = {}): Promise<{}> {
+    async repayCrossMargin (code: string, amount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
