@@ -6919,7 +6919,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.category] "linear" or "inverse"
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (!market['contract']) {
