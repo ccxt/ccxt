@@ -588,6 +588,7 @@ async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
+    const wsIdsWithSuffix = wsIds.map (id => id + "Pro");
 
     generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
@@ -597,8 +598,7 @@ async function exportEverything () {
 
     const typeExports = getTypesExports();
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
-
-    const fullExports  = staticExports.concat(ids)
+    const fullExports  = staticExports.concat(ids).concat(wsIdsWithSuffix)
 
     const ccxtFileDir = './ts/ccxt.ts'
     const replacements = [
