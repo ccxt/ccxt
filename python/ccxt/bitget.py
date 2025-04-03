@@ -1917,7 +1917,7 @@ class bitget(Exchange, ImplicitAPI):
             priceDecimals = self.safe_integer(market, 'pricePlace')
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
-            amountStep = self.safe_string(market, 'minTradeNum')
+            amountStep = self.safe_string(market, 'sizeMultiplier')
             precise = Precise(priceStep)
             precise.decimals = max(precise.decimals, priceDecimals)
             precise.reduce()
