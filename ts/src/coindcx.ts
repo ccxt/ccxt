@@ -2541,6 +2541,9 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument for spot markets without margin');
+            }
             return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
             //
             //     {
