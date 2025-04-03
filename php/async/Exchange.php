@@ -133,7 +133,7 @@ class Exchange extends \ccxt\Exchange {
             $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
             if ($proxyUrl !== null) {
                 $headers['Origin'] = $this->origin;
-                $url = $proxyUrl . $url;
+                $url = $proxyUrl . $this->encode_uri_component ($url);
             }
             // proxy agents
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
