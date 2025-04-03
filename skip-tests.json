@@ -369,14 +369,10 @@
             },
             "orderBook":{
                 "compareToNextItem": "messed bids sequence",
-                
                 "timestamp": "not provided"
             },
-            "fetchTrades": {
-                "emptyResponse": "sometimes response is empty"
-            },
             "ticker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
