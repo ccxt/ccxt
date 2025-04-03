@@ -154,7 +154,7 @@ class Exchange(BaseExchange):
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
-            url = proxyUrl + self.encode_uri_component (url)
+            url = proxyUrl + self.encode_uri_component(url)
         # proxy agents
         final_proxy = None  # set default
         proxy_session = None
