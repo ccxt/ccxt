@@ -1272,7 +1272,13 @@ export default class bitmart extends Exchange {
                     },
                 },
             };
-            result[currencyCode] = this.safeCurrencyStructure (entry);
+            result[currencyCode] = entry;
+        }
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = result[key];
+            result[key] = this.safeCurrencyStructure (currency);
         }
         return result;
     }
