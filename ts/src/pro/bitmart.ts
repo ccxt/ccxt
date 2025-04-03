@@ -66,6 +66,9 @@ export default class bitmart extends bitmartRest {
                 'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100',
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
+                },
                 'ws': {
                     'inflate': true,
                 },
@@ -946,7 +949,12 @@ export default class bitmart extends bitmartRest {
                 symbol = this.handleTradeLoop (data[i]);
             }
         }
-        client.resolve (this.trades[symbol], 'trade:' + symbol);
+        const messageHash = 'trade:' + symbol;
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            client.resolve (this.removeRepeatedElementsFromArray (this.trades[symbol]), messageHash);
+            return;
+        }
+        client.resolve (this.trades[symbol], messageHash);
     }
 
     handleTradeLoop (entry) {
