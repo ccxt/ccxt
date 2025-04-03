@@ -3,6 +3,163 @@
     "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.coindcx.com/exchange/v1/orders/cancel_all",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"timestamp\":1743699380721}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/cancel",
+                "input": [
+                    "65d06f5c-10ab-11f0-9ec7-4730ead48422"
+                ],
+                "output": "{\"id\":\"65d06f5c-10ab-11f0-9ec7-4730ead48422\",\"timestamp\":1743699217620}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coindcx.com/exchange/v1/orders/active_orders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"timestamp\":1743699170006}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/orders",
+                "input": [],
+                "output": "{\"status\":\"filled,partially_filled\",\"timestamp\":1743699124203}"
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch cancelled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/orders",
+                "input": [],
+                "output": "{\"status\":\"partially_cancelled,cancelled,filled,partially_filled\",\"timestamp\":1743699086538}"
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch cancelled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/orders",
+                "input": [],
+                "output": "{\"status\":\"partially_cancelled,cancelled\",\"timestamp\":1743699053816}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/status",
+                "input": [
+                    "8149236e-10ab-11f0-8721-03b22a0e743e"
+                ],
+                "output": "{\"id\":\"8149236e-10ab-11f0-8721-03b22a0e743e\",\"timestamp\":1743699006233}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer to spot account",
+                "method": "transfer",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/wallets/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "transferType": "withdraw"
+                    }
+                ],
+                "output": "{\"currency_short_name\":\"USDT\",\"amount\":\"10\",\"transfer_type\":\"withdraw\",\"timestamp\":1743698706180}"
+            },
+            {
+                "description": "Transfer to swap account",
+                "method": "transfer",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/wallets/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "transferType": "deposit"
+                    }
+                ],
+                "output": "{\"currency_short_name\":\"USDT\",\"amount\":\"10\",\"transfer_type\":\"deposit\",\"timestamp\":1743698684047}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Limit spot buy order",
+                "method": "createOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/create",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"order_type\":\"limit_order\",\"side\":\"buy\",\"total_quantity\":\"0.01\",\"price_per_unit\":\"1000\",\"timestamp\":1743698923966}"
+            },
+            {
+                "description": "Limit spot sell order",
+                "method": "createOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/create",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.01,
+                    3500
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"order_type\":\"limit_order\",\"side\":\"sell\",\"total_quantity\":\"0.01\",\"price_per_unit\":\"3500\",\"timestamp\":1743698877890}"
+            },
+            {
+                "description": "Market spot sell order",
+                "method": "createOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/create",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.01
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"order_type\":\"market_order\",\"side\":\"sell\",\"total_quantity\":\"0.01\",\"timestamp\":1743698606605}"
+            },
+            {
+                "description": "Market spot order",
+                "method": "createOrder",
+                "url": "https://api.coindcx.com/exchange/v1/orders/create",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.01
+                ],
+                "output": "{\"market\":\"ETHUSDT\",\"order_type\":\"market_order\",\"side\":\"buy\",\"total_quantity\":\"0.01\",\"timestamp\":1743698558771}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "My trades for swap",
