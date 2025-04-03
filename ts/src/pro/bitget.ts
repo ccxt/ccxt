@@ -73,6 +73,10 @@ export default class bitget extends bitgetRest {
                 'watchOrderBook': {
                     'checksum': true,
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
+                },
+                'tradeIdsCache': {},
             },
             'streaming': {
                 'ping': this.ping,
@@ -862,11 +866,25 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < length; i++) {
             const index = length - i - 1;
             const rawTrade = data[index];
+            if (this.ignoreDuplicateTrade (rawTrade, 'tradeId')) {
+                continue;
+            }
             const parsed = this.parseWsTrade (rawTrade, market);
             stored.append (parsed);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
+    }
+
+    ignoreDuplicateTrade (rawTrade: any, idKey: string): boolean {
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            const id = this.safeString (rawTrade, idKey);
+            if (id in this.options['tradeIdsCache']) {
+                return true;
+            }
+            this.options['tradeIdsCache'][id] = 1;
+        }
+        return false;
     }
 
     parseWsTrade (trade, market = undefined) {
