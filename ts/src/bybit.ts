@@ -7721,7 +7721,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFeeNetwork>> {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const response = await this.privateGetV5AssetCoinQueryInfo (params);
