@@ -1,0 +1,222 @@
+{
+    "exchange": "bit2me",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "spot markets",
+                "method": "fetchMarkets",
+                "url": "https://gateway.bit2me.com/v1/trading/market-config",
+                "input": []
+            },
+            {
+                "description": "spot market",
+                "method": "fetchMarkets",
+                "url": "https://gateway.bit2me.com/v1/trading/market-config?symbol=BTC%2FUSDT",
+                "input": [
+                    {
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers?symbol=BTC%2FUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.bit2me.com/v2/trading/order-book?symbol=BTC%2FUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.bit2me.com/v1/trading/candle?symbol=BTC%2FUSDT&interval=1&startTime=1716451293953&endTime=1716537693953&limit=1000",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1716451293953,
+                    null,
+                    {
+                        "endTime": 1716537693953
+                    }
+                ]
+            },
+            {
+                "description": "spot OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.bit2me.com/v1/trading/candle?symbol=BTC%2FUSDT&interval=1440&startTime=1716451293953&endTime=1716537693953&limit=1000",
+                "input": [
+                    "BTC/USDT",
+                    "1d",
+                    1716451293953,
+                    null,
+                    {
+                        "endTime": 1716537693953
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create market order",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "B2M/EUR",
+                    "market",
+                    "buy",
+                    1000
+                ],
+                "output": "{\"symbol\":\"B2M/EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"1000\"}"
+            },
+            {
+                "description": "create limit order",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "B2M/EUR",
+                    "limit",
+                    "buy",
+                    1000,
+                    0.008
+                ],
+                "output": "{\"symbol\":\"B2M/EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"1000\",\"price\":\"0.008\"}"
+            },
+            {
+                "description": "create stop-limit order",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "B2M/EUR",
+                    "STOP-LIMIT",
+                    "BUY",
+                    1000,
+                    0.008,
+                    {
+                        "stopPrice": 0.0085
+                    }
+                ],
+                "output": "{\"symbol\":\"B2M/EUR\",\"side\":\"buy\",\"orderType\":\"stop-limit\",\"amount\":\"1000\",\"price\":\"0.008\",\"stopPrice\":\"0.0085\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/4893ab8c-b4f4-4431-ac73-d90bae7d5768",
+                "input": [
+                    "4893ab8c-b4f4-4431-ac73-d90bae7d5768"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/048b64a9-f73a-4a5c-b5bc-54ceb32b0395",
+                "input": [
+                    "048b64a9-f73a-4a5c-b5bc-54ceb32b0395"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": []
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?status=open",
+                "input": []
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?status=filled",
+                "input": []
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/order/ce82cb1a-4a8a-4fe7-96bb-573ed087f59b/trades",
+                "input": [
+                    "ce82cb1a-4a8a-4fe7-96bb-573ed087f59b"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/trade?sort=createdAt&direction=desc",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/balance",
+                "input": []
+            },
+            {
+                "description": "fetch balance from currencies",
+                "method": "fetchBalance",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/balance?symbols=BTC%2CB2M",
+                "input": [
+                    {
+                        "symbols": "BTC,B2M"
+                    }
+                ]
+            }
+        ]
+    }
+}
