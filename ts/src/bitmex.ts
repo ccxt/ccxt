@@ -759,7 +759,7 @@ export default class bitmex extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
         } else {
-            // for index/exotic markets, default to id
+            // for index or exotic markets, default to id
             symbol = id;
         }
         const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
