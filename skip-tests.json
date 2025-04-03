@@ -345,7 +345,6 @@
         }
     },
     "bitopro": {
-        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
