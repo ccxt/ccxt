@@ -1926,7 +1926,7 @@ class bitget extends Exchange {
             $priceDecimals = $this->safe_integer($market, 'pricePlace');
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');
-            $amountStep = $this->safe_string($market, 'minTradeNum');
+            $amountStep = $this->safe_string($market, 'sizeMultiplier');
             $precise = new Precise ($priceStep);
             $precise->decimals = max ($precise->decimals, $priceDecimals);
             $precise->reduce ();
