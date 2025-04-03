@@ -2417,16 +2417,17 @@ class bitget(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a `code` argument')
-        currency = self.currency(code)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
         request: dict = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
         }
+        if currency is not None:
+            request['coin'] = currency['id']
         request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
             request['limit'] = limit

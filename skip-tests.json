@@ -356,14 +356,8 @@
                 "deposit": "not provided",
                 "currencyIdAndCode": "broken currencies"
             },
-            "fetchTrades": {
-                "side": "not set"
-            },
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4978"
             }
         }
     },
