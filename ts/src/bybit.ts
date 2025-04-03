@@ -7006,7 +7006,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //    {
         //        "openInterest": 64757.62400000,
