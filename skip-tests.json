@@ -286,7 +286,20 @@
     },
     "bitmex": {
         "skipMethods": {
-           
+           "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",	
+            "watchOHLCV": "same as above, needs key fix",	
+            "ticker": {
+                "average": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4030",	
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",	
+                "close": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L3862",	
+                "last": "same",	
+                "low": "same",	
+                "high": "same",	
+                "previousClose": "same",	
+                "vwap": "same",	
+                "baseVolume":"temp",	
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"	
+            },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",

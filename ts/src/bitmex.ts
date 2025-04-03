@@ -977,6 +977,7 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
+        let highestTimestamp = 0;
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
@@ -989,6 +990,16 @@ export default class bitmex extends Exchange {
                 const resultSide = result[side];
                 resultSide.push ([ price, amount ]);
             }
+            // all dates are same
+            const dateString = this.safeString (order, 'timestamp');
+            const timestamp = this.parse8601 (dateString);
+            if (timestamp > highestTimestamp) {
+                highestTimestamp = timestamp;
+            }
+        }
+        if (highestTimestamp !== 0) {
+            result['timestamp'] = highestTimestamp;
+            result['datetime'] = this.iso8601 (highestTimestamp);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
