@@ -355,7 +355,6 @@
             },
             "watchTicker": "datetime error: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
             "orderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4373"
             }
         }
