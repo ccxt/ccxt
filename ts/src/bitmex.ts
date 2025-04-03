@@ -990,7 +990,7 @@ export default class bitmex extends Exchange {
                 const resultSide = result[side];
                 resultSide.push ([ price, amount ]);
             }
-            // all dates are same
+            // dates are included separately in each entry, so latest is needed
             const dateString = this.safeString (order, 'timestamp');
             const timestamp = this.parse8601 (dateString);
             if (timestamp > highestTimestamp) {
