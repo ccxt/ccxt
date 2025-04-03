@@ -62,6 +62,10 @@ jobs:
         cat shared_env.txt
     - name: Check ref
       run: echo $GITHUB_REF
+    - name: Remove JS Folder
+      if: github.ref == 'refs/heads/master'
+      run: |
+        rm -rf js/
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
