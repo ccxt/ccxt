@@ -550,7 +550,7 @@ export default class ascendex extends Exchange {
         const ids = Object.keys(dataById);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const currency = dataById[id];
             const code = this.safeCurrencyCode(id);
             const scale = this.safeString2(currency, 'precisionScale', 'nativeScale');
