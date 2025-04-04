@@ -6399,9 +6399,15 @@ class bybit extends Exchange {
              * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
              * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
              * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchPositions', $symbols, null, null, $params, 'nextPageCursor', 'cursor', null, 200));
+            }
             $symbol = null;
             if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = count($symbols);
@@ -6438,6 +6444,9 @@ class bybit extends Exchange {
                         $request['category'] = 'inverse';
                     }
                 }
+            }
+            if ($this->safe_integer($params, 'limit') === null) {
+                $request['limit'] = 200; // max limit
             }
             $params = $this->omit($params, array( 'type' ));
             $request['category'] = $type;
