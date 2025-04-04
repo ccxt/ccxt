@@ -108,7 +108,6 @@ export default class onetrading extends onetradingRest {
     handleBalanceSnapshot (client, message) {
         //
         // snapshot
-        //
         //     {
         //         "account_id": "b355abb8-aaae-4fae-903c-c60ff74723c6",
         //         "type": "BALANCES_SNAPSHOT",
