@@ -22,7 +22,6 @@ from ccxt.pro.binanceusdm import binanceusdm                              # noqa
 from ccxt.pro.bingx import bingx                                          # noqa: F401
 from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
-from ccxt.pro.bitfinex1 import bitfinex1                                  # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
@@ -97,7 +96,6 @@ exchanges = [
     'bingx',
     'bitcoincom',
     'bitfinex',
-    'bitfinex1',
     'bitget',
     'bithumb',
     'bitmart',

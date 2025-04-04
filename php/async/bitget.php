@@ -2461,18 +2461,20 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', null, $since, $limit, $params, 'idLessThan', 'idLessThan', null, 100));
             }
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a `$code` argument');
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
             }
-            $currency = $this->currency($code);
             if ($since === null) {
                 $since = $this->milliseconds() - 7776000000; // 90 days
             }
             $request = array(
-                'coin' => $currency['id'],
                 'startTime' => $since,
                 'endTime' => $this->milliseconds(),
             );
+            if ($currency !== null) {
+                $request['coin'] = $currency['id'];
+            }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($limit !== null) {
                 $request['limit'] = $limit;

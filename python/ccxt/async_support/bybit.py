@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2476,7 +2476,7 @@ class bybit(Exchange, ImplicitAPI):
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -3690,7 +3690,7 @@ class bybit(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -3707,7 +3707,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
         create a market sell order by providing the symbol and cost
 
@@ -3728,7 +3728,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
 
@@ -3987,7 +3987,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
         create a list of trade orders
 
@@ -4137,7 +4137,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
         return request
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
 
@@ -4187,7 +4187,7 @@ class bybit(Exchange, ImplicitAPI):
             'id': self.safe_string(result, 'orderId'),
         })
 
-    async def edit_orders(self, orders: List[OrderRequest], params={}):
+    async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
         edit a list of trade orders
 
@@ -4298,7 +4298,7 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'option'
         return self.extend(request, params)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         cancels an open order
 
@@ -4333,7 +4333,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -4602,7 +4602,7 @@ class bybit(Exchange, ImplicitAPI):
             return response
         return self.parse_orders(orders, market)
 
-    async def fetch_order_classic(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order_classic(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user *classic accounts only*
 
@@ -4847,7 +4847,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on a closed order made by the user
 
@@ -4877,7 +4877,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an open order made by the user
 
@@ -5033,7 +5033,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return await self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -5156,7 +5156,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -5178,7 +5178,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all trades made by the user
 
@@ -5901,7 +5901,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         return self.parse_transaction(result, currency)
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -5972,7 +5972,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         position['datetime'] = self.iso8601(timestamp)
         return position
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -6065,7 +6065,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             results.append(self.parse_position(rawPosition))
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # linear swap
         #
@@ -7016,7 +7016,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info, currency: Currency = None) -> dict:
         #
         # borrowCrossMargin
         #
@@ -7254,7 +7254,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             result[symbol] = fee
         return result
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None) -> Any:
         #
         #    {
         #        "name": "BTC",
@@ -7702,7 +7702,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'info': greeks,
         }
 
-    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -7781,7 +7781,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         liquidations = self.add_pagination_cursor_to_result(response)
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation, market: Market = None) -> Liquidation:
         #
         #     {
         #         "symbol": "ETHPERP",
@@ -7944,7 +7944,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             })
         return tiers
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -7985,7 +7985,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         fundings = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income, market: Market = None) -> object:
         #
         # {
         #     "symbol": "XMRUSDT",
