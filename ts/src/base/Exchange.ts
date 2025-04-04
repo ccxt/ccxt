@@ -1523,7 +1523,7 @@ export default class Exchange {
     }
 
     starknetSign (hash, pri) {
-        // TODO: unify to ecdsa
+        // TODO:  unify to ecdsa
         const signature = starknetCurveSign (hash.replace ('0x', ''), pri.slice (-64));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
