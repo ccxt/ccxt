@@ -167,7 +167,8 @@ public partial class Exchange
         var proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
         if (proxyUrl != null) {
             proxyUrl = proxyUrl.ToString();
-            url = proxyUrl + this.encodeURIComponent(url);
+            var encodedUrl = url.Contains("?") ?this.encodeURIComponent(url) : url;
+            url = proxyUrl + encodedUrl;
         }
 
         if (this.verbose)

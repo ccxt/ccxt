@@ -841,7 +841,8 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + this.encodeURIComponent (url); 
+            const encodedUrl = proxyUrl.includes ('?') ? this.encodeURIComponent (url) : url;
+            url = proxyUrl + encodedUrl; 
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
