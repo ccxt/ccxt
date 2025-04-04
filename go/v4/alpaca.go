@@ -45,6 +45,10 @@ func  (this *alpaca) Describe() interface{}  {
             "swap": false,
             "future": false,
             "option": false,
+            "addMargin": false,
+            "borrowCrossMargin": false,
+            "borrowIsolatedMargin": false,
+            "borrowMargin": false,
             "cancelAllOrders": true,
             "cancelOrder": true,
             "closeAllPositions": false,
@@ -53,26 +57,61 @@ func  (this *alpaca) Describe() interface{}  {
             "createMarketBuyOrderWithCost": true,
             "createMarketOrderWithCost": true,
             "createOrder": true,
+            "createOrderWithTakeProfitAndStopLoss": false,
+            "createOrderWithTakeProfitAndStopLossWs": false,
+            "createReduceOnlyOrder": false,
             "createStopOrder": true,
             "createTriggerOrder": true,
             "editOrder": true,
             "fetchBalance": true,
             "fetchBidsAsks": false,
+            "fetchBorrowInterest": false,
+            "fetchBorrowRate": false,
+            "fetchBorrowRateHistories": false,
+            "fetchBorrowRateHistory": false,
+            "fetchBorrowRates": false,
+            "fetchBorrowRatesPerSymbol": false,
             "fetchClosedOrders": true,
+            "fetchCrossBorrowRate": false,
+            "fetchCrossBorrowRates": false,
             "fetchCurrencies": false,
             "fetchDepositAddress": true,
             "fetchDepositAddressesByNetwork": false,
             "fetchDeposits": true,
             "fetchDepositsWithdrawals": true,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
+            "fetchIndexOHLCV": false,
+            "fetchIsolatedBorrowRate": false,
+            "fetchIsolatedBorrowRates": false,
+            "fetchIsolatedPositions": false,
             "fetchL1OrderBook": true,
             "fetchL2OrderBook": false,
+            "fetchLeverage": false,
+            "fetchLeverages": false,
+            "fetchLeverageTiers": false,
+            "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
+            "fetchMarginAdjustmentHistory": false,
+            "fetchMarginMode": false,
+            "fetchMarginModes": false,
+            "fetchMarketLeverageTiers": false,
             "fetchMarkets": true,
+            "fetchMarkOHLCV": false,
+            "fetchMarkPrices": false,
+            "fetchMyLiquidations": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": true,
             "fetchOHLCV": true,
+            "fetchOpenInterest": false,
+            "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
             "fetchOpenOrder": false,
             "fetchOpenOrders": true,
             "fetchOrder": true,
@@ -85,6 +124,8 @@ func  (this *alpaca) Describe() interface{}  {
             "fetchPositionsForSymbol": false,
             "fetchPositionsHistory": false,
             "fetchPositionsRisk": false,
+            "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchStatus": false,
             "fetchTicker": true,
             "fetchTickers": true,
@@ -96,9 +137,14 @@ func  (this *alpaca) Describe() interface{}  {
             "fetchTransactions": false,
             "fetchTransfers": false,
             "fetchWithdrawals": true,
+            "reduceMargin": false,
+            "repayCrossMargin": false,
+            "repayIsolatedMargin": false,
             "sandbox": true,
             "setLeverage": false,
+            "setMargin": false,
             "setMarginMode": false,
+            "setPositionMode": false,
             "transfer": false,
             "withdraw": true,
         },
@@ -470,8 +516,8 @@ func  (this *alpaca) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5418 := (<-this.LoadMarkets())
-            PanicOnError(retRes5418)
+            retRes5878 := (<-this.LoadMarkets())
+            PanicOnError(retRes5878)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var loc interface{} = this.SafeString(params, "loc", "us")
@@ -561,8 +607,8 @@ func  (this *alpaca) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6148 := (<-this.LoadMarkets())
-            PanicOnError(retRes6148)
+            retRes6608 := (<-this.LoadMarkets())
+            PanicOnError(retRes6608)
             var market interface{} = this.Market(symbol)
             var id interface{} = GetValue(market, "id")
             var loc interface{} = this.SafeString(params, "loc", "us")
@@ -649,8 +695,8 @@ func  (this *alpaca) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6828 := (<-this.LoadMarkets())
-            PanicOnError(retRes6828)
+            retRes7288 := (<-this.LoadMarkets())
+            PanicOnError(retRes7288)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var loc interface{} = this.SafeString(params, "loc", "us")
@@ -773,8 +819,8 @@ func  (this *alpaca) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7968 := (<-this.LoadMarkets())
-            PanicOnError(retRes7968)
+            retRes8428 := (<-this.LoadMarkets())
+            PanicOnError(retRes8428)
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.FetchTickers([]interface{}{symbol}, params))
@@ -809,8 +855,8 @@ func  (this *alpaca) FetchTickers(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires a symbols argument")))
             }
         
-            retRes8168 := (<-this.LoadMarkets())
-            PanicOnError(retRes8168)
+            retRes8628 := (<-this.LoadMarkets())
+            PanicOnError(retRes8628)
             symbols = this.MarketSymbols(symbols)
             var loc interface{} = this.SafeString(params, "loc", "us")
             var ids interface{} = this.MarketIds(symbols)
@@ -947,15 +993,15 @@ func  (this *alpaca) CreateMarketOrderWithCost(symbol interface{}, side interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9398 := (<-this.LoadMarkets())
-            PanicOnError(retRes9398)
+            retRes9858 := (<-this.LoadMarkets())
+            PanicOnError(retRes9858)
             var req interface{} = map[string]interface{} {
                 "cost": cost,
             }
         
-                retRes94315 :=  (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
-                PanicOnError(retRes94315)
-                ch <- retRes94315
+                retRes98915 :=  (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
+                PanicOnError(retRes98915)
+                ch <- retRes98915
                 return nil
         
             }()
@@ -979,15 +1025,15 @@ func  (this *alpaca) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9578 := (<-this.LoadMarkets())
-            PanicOnError(retRes9578)
+            retRes10038 := (<-this.LoadMarkets())
+            PanicOnError(retRes10038)
             var req interface{} = map[string]interface{} {
                 "cost": cost,
             }
         
-                retRes96115 :=  (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
-                PanicOnError(retRes96115)
-                ch <- retRes96115
+                retRes100715 :=  (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
+                PanicOnError(retRes100715)
+                ch <- retRes100715
                 return nil
         
             }()
@@ -1011,15 +1057,15 @@ func  (this *alpaca) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9758 := (<-this.LoadMarkets())
-            PanicOnError(retRes9758)
+            retRes10218 := (<-this.LoadMarkets())
+            PanicOnError(retRes10218)
             var req interface{} = map[string]interface{} {
                 "cost": cost,
             }
         
-                retRes97915 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-                PanicOnError(retRes97915)
-                ch <- retRes97915
+                retRes102515 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+                PanicOnError(retRes102515)
+                ch <- retRes102515
                 return nil
         
             }()
@@ -1050,8 +1096,8 @@ func  (this *alpaca) CreateOrder(symbol interface{}, typeVar interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9988 := (<-this.LoadMarkets())
-            PanicOnError(retRes9988)
+            retRes10448 := (<-this.LoadMarkets())
+            PanicOnError(retRes10448)
             var market interface{} = this.Market(symbol)
             var id interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {
@@ -1188,8 +1234,8 @@ func  (this *alpaca) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11068 := (<-this.LoadMarkets())
-            PanicOnError(retRes11068)
+            retRes11528 := (<-this.LoadMarkets())
+            PanicOnError(retRes11528)
         
             response:= (<-this.TraderPrivateDeleteV2Orders(params))
             PanicOnError(response)
@@ -1228,8 +1274,8 @@ func  (this *alpaca) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11308 := (<-this.LoadMarkets())
-            PanicOnError(retRes11308)
+            retRes11768 := (<-this.LoadMarkets())
+            PanicOnError(retRes11768)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1271,8 +1317,8 @@ func  (this *alpaca) FetchOrders(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes11538 := (<-this.LoadMarkets())
-            PanicOnError(retRes11538)
+            retRes11998 := (<-this.LoadMarkets())
+            PanicOnError(retRes11998)
             var request interface{} = map[string]interface{} {
                 "status": "all",
             }
@@ -1371,9 +1417,9 @@ func  (this *alpaca) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                 "status": "open",
             }
         
-                retRes123315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes123315)
-                ch <- retRes123315
+                retRes127915 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes127915)
+                ch <- retRes127915
                 return nil
         
             }()
@@ -1408,9 +1454,9 @@ func  (this *alpaca) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
                 "status": "closed",
             }
         
-                retRes125215 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes125215)
-                ch <- retRes125215
+                retRes129815 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes129815)
+                ch <- retRes129815
                 return nil
         
             }()
@@ -1445,8 +1491,8 @@ func  (this *alpaca) EditOrder(id interface{}, symbol interface{}, typeVar inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes12738 := (<-this.LoadMarkets())
-            PanicOnError(retRes12738)
+            retRes13198 := (<-this.LoadMarkets())
+            PanicOnError(retRes13198)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1615,8 +1661,8 @@ func  (this *alpaca) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes14228 := (<-this.LoadMarkets())
-            PanicOnError(retRes14228)
+            retRes14688 := (<-this.LoadMarkets())
+            PanicOnError(retRes14688)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "activity_type": "FILL",
@@ -1746,8 +1792,8 @@ func  (this *alpaca) FetchDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes15368 := (<-this.LoadMarkets())
-            PanicOnError(retRes15368)
+            retRes15828 := (<-this.LoadMarkets())
+            PanicOnError(retRes15828)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -1817,8 +1863,8 @@ func  (this *alpaca) Withdraw(code interface{}, amount interface{}, address inte
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes15888 := (<-this.LoadMarkets())
-            PanicOnError(retRes15888)
+            retRes16348 := (<-this.LoadMarkets())
+            PanicOnError(retRes16348)
             var currency interface{} = this.Currency(code)
             if IsTrue(tag) {
                 address = Add(Add(address, ":"), tag)
@@ -1861,8 +1907,8 @@ func  (this *alpaca) FetchTransactionsHelper(typeVar interface{}, code interface
                 defer close(ch)
                 defer ReturnPanicError(ch)
                 
-            retRes16208 := (<-this.LoadMarkets())
-            PanicOnError(retRes16208)
+            retRes16668 := (<-this.LoadMarkets())
+            PanicOnError(retRes16668)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -1929,9 +1975,9 @@ func  (this *alpaca) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes166815 :=  (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
-                PanicOnError(retRes166815)
-                ch <- retRes166815
+                retRes171415 :=  (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
+                PanicOnError(retRes171415)
+                ch <- retRes171415
                 return nil
         
             }()
@@ -1962,9 +2008,9 @@ func  (this *alpaca) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes168315 :=  (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
-                PanicOnError(retRes168315)
-                ch <- retRes168315
+                retRes172915 :=  (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
+                PanicOnError(retRes172915)
+                ch <- retRes172915
                 return nil
         
             }()
@@ -1995,9 +2041,9 @@ func  (this *alpaca) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes169815 :=  (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
-                PanicOnError(retRes169815)
-                ch <- retRes169815
+                retRes174415 :=  (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
+                PanicOnError(retRes174415)
+                ch <- retRes174415
                 return nil
         
             }()
@@ -2087,8 +2133,8 @@ func  (this *alpaca) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes17798 := (<-this.LoadMarkets())
-            PanicOnError(retRes17798)
+            retRes18258 := (<-this.LoadMarkets())
+            PanicOnError(retRes18258)
         
             response:= (<-this.TraderPrivateGetV2Account(params))
             PanicOnError(response)
