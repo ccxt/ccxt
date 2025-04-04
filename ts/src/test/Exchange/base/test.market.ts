@@ -59,6 +59,10 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         'info': {},
     };
     const emptyAllowedFor = [ 'linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
+    // temporary: only test QUANTO markets where that prop exists (todo: add in type later)
+    if ('quanto' in market) {
+        format['quanto'] = false; // whether the market is QUANTO or not
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
@@ -108,13 +112,21 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert (!market['contract'], '"contract" must be false when neither "future", "swap","option" or "index" is true' + logText);
     }
     const isSwapOrFuture = market['swap'] || market['future'];
+    const isQuanto = exchange.safeBool (market, 'quanto');
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
         // linear & inverse should have different values (true/false)
         // todo: expand logic on other market types
         if (isSwapOrFuture) {
-            assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
+            if (isQuanto !== true) {
+                assert (market['linear'] !== market['inverse'], 'linear and inverse must not be the same' + logText);
+                assert (market['linear'] !== undefined, 'linear must be defined when "contract" is true' + logText);
+                assert (market['inverse'] !== undefined, 'inverse must be defined when "contract" is true' + logText);
+            } else {
+                assert (market['linear'] === false, 'linear must be false when "quanto" is true' + logText);
+                assert (market['inverse'] === false, 'inverse must be false when "quanto" is true' + logText);
+            }
             if (!('contractSize' in skippedProperties)) {
                 // contract size should be defined
                 assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
@@ -130,7 +142,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined) && (market['quanto'] === undefined), 'market linear and inverse (and quanto) must be undefined when "contract" is false' + logText);
         // contract size should be undefined
         if (!('contractSize' in skippedProperties)) {
             assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
