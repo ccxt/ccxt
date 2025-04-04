@@ -6311,7 +6311,7 @@ export default class bybit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositions', symbols as any, undefined, this.safeInteger (params, 'limit'), params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositions', symbols as any, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
         let symbol = undefined;
         if ((symbols !== undefined) && Array.isArray (symbols)) {
