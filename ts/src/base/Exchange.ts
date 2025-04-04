@@ -7364,14 +7364,13 @@ export default class Exchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input, allowTimestamp = true) {
+    removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const key = allowTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
-            const uniqKey = this.safeString (entry, key);
-            if (uniqKey !== undefined && !(uniqKey in uniqueResult)) {
-                uniqueResult[uniqKey] = entry;
+            const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
+                uniqueResult[uniqValue] = entry;
             }
         }
         const values = Object.values (uniqueResult);
