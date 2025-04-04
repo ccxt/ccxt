@@ -812,7 +812,11 @@ export default class bitget extends bitgetRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            return this.removeRepeatedElementsFromArray (result, false);
+        }
+        return result;
     }
 
     /**
@@ -869,10 +873,6 @@ export default class bitget extends bitgetRest {
             stored.append (parsed);
         }
         const messageHash = 'trade:' + symbol;
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            client.resolve (this.removeRepeatedElementsFromArray (stored), messageHash);
-            return;
-        }
         client.resolve (stored, messageHash);
     }
 

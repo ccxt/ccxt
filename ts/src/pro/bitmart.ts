@@ -319,7 +319,11 @@ export default class bitmart extends bitmartRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            return this.removeRepeatedElementsFromArray (result, false);
+        }
+        return result as Trade[];
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
@@ -937,36 +941,21 @@ export default class bitmart extends bitmartRest {
         let symbol = undefined;
         const length = data.length;
         const isSwap = ('group' in message);
-        if (isSwap) {
+        for (let i = 0; i < length; i++) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            for (let i = 0; i < length; i++) {
-                const index = length - i - 1;
-                symbol = this.handleTradeLoop (data[index]);
-            }
-        } else {
             // in spot, chronologically increasing: 1709536771200, 1709536771226,
-            for (let i = 0; i < length; i++) {
-                symbol = this.handleTradeLoop (data[i]);
+            const index = !isSwap ? i : (length - i - 1);
+            const trade = this.parseWsTrade (data[index]);
+            symbol = trade['symbol'];
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            if (this.safeValue (this.trades, symbol) === undefined) {
+                this.trades[symbol] = new ArrayCache (tradesLimit);
             }
+            const stored = this.trades[symbol];
+            stored.append (trade);
         }
         const messageHash = 'trade:' + symbol;
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            client.resolve (this.removeRepeatedElementsFromArray (this.trades[symbol]), messageHash);
-            return;
-        }
         client.resolve (this.trades[symbol], messageHash);
-    }
-
-    handleTradeLoop (entry) {
-        const trade = this.parseWsTrade (entry);
-        const symbol = trade['symbol'];
-        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (this.safeValue (this.trades, symbol) === undefined) {
-            this.trades[symbol] = new ArrayCache (tradesLimit);
-        }
-        const stored = this.trades[symbol];
-        stored.append (trade);
-        return symbol;
     }
 
     parseWsTrade (trade: Dict, market: Market = undefined) {
@@ -1015,17 +1004,24 @@ export default class bitmart extends bitmartRest {
             }
             takerOrMaker = 'taker';
         }
+        const price = this.safeString2 (trade, 'price', 'deal_price');
+        const amount = this.safeString2 (trade, 'size', 'deal_vol');
+        let id = this.safeString (trade, 'trade_id');
+        if (id === undefined) {
+            // to identify the trade because of duplicate filtering
+            id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'trade_id'),
+            'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': this.safeString2 (trade, 'price', 'deal_price'),
-            'amount': this.safeString2 (trade, 'size', 'deal_vol'),
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': undefined,
