@@ -1302,7 +1302,7 @@ export default class binance extends Exchange {
                     'delivery': 'x-xcKtGhcu',
                     'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
-                    'inverse': 'x-xcKtGhcu'
+                    'inverse': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
