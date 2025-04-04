@@ -1318,12 +1318,13 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 'broker': {
-                    'spot': 'x-R4BD3S82',
-                    'margin': 'x-R4BD3S82',
-                    'future': 'x-xcKtGhcu',
+                    'spot': 'x-TKT5PX2F',
+                    'margin': 'x-TKT5PX2F',
+                    'future': 'x-cvBPrNm9',
                     'delivery': 'x-xcKtGhcu',
-                    'swap': 'x-xcKtGhcu',
+                    'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
+                    'inverse': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
@@ -5162,7 +5163,7 @@ class binance(Exchange, ImplicitAPI):
         #             "symbol": "BTCUSDT",
         #             "orderId": 16383176297,
         #             "orderListId": -1,
-        #             "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        #             "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
         #             "transactTime": 1670891847932,
         #             "price": "13500.00000000",
         #             "origQty": "0.00085000",
@@ -5518,7 +5519,7 @@ class binance(Exchange, ImplicitAPI):
         #         "symbol": "BTCUSDT",
         #         "orderId": 16383176297,
         #         "orderListId": -1,
-        #         "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        #         "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
         #         "transactTime": 1670891847932,
         #         "price": "13500.00000000",
         #         "origQty": "0.00085000",
@@ -5581,7 +5582,7 @@ class binance(Exchange, ImplicitAPI):
         #       "symbol": "BTCUSDT",
         #       "orderId": 5403233939,
         #       "orderListId": -1,
-        #       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        #       "clientOrderId": "x-TKT5PX2F5e669e75b6c14f69a2c43e",
         #       "transactTime": 1617151923742,
         #       "price": "0.00000000",
         #       "origQty": "0.00050000",
@@ -5756,7 +5757,7 @@ class binance(Exchange, ImplicitAPI):
         # createOrder, cancelAllOrders, cancelOrder: portfolio margin spot margin
         #
         #     {
-        #         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        #         "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         #         "cummulativeQuoteQty": "0.00000000",
         #         "executedQty": "0.00000000",
         #         "fills": [],
@@ -5777,7 +5778,7 @@ class binance(Exchange, ImplicitAPI):
         #     {
         #         "symbol": "BTCUSDT",
         #         "orderId": 24700763749,
-        #         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        #         "clientOrderId": "x-TKT5PX2F6f724c2a4af6425f98c7b6",
         #         "price": "35000.00000000",
         #         "origQty": "0.00100000",
         #         "executedQty": "0.00000000",
@@ -6316,8 +6317,11 @@ class binance(Exchange, ImplicitAPI):
         clientOrderIdRequest = 'newClientStrategyId' if isPortfolioMarginConditional else 'newClientOrderId'
         if clientOrderId is None:
             broker = self.safe_dict(self.options, 'broker', {})
-            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
-            brokerId = self.safe_string(broker, marketType, defaultId)
+            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-TKT5PX2F'
+            idMarketType = 'spot'
+            if market['contract']:
+                idMarketType = 'swap' if (market['swap'] and market['linear']) else 'inverse'
+            brokerId = self.safe_string(broker, idMarketType, defaultId)
             request[clientOrderIdRequest] = brokerId + self.uuid22()
         else:
             request[clientOrderIdRequest] = clientOrderId
@@ -6836,7 +6840,7 @@ class binance(Exchange, ImplicitAPI):
         #         {
         #             "symbol": "BTCUSDT",
         #             "orderId": 24684460474,
-        #             "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        #             "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         #             "price": "35000.00000000",
         #             "origQty": "0.00100000",
         #             "executedQty": "0.00000000",
@@ -7449,7 +7453,7 @@ class binance(Exchange, ImplicitAPI):
             #    [
             #        {
             #            "symbol": "ADAUSDT",
-            #            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            #            "origClientOrderId": "x-TKT5PX2F662cde7a90114475b86e21",
             #            "orderId": 3935107,
             #            "orderListId": -1,
             #            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
@@ -11324,7 +11328,7 @@ class binance(Exchange, ImplicitAPI):
                 if newClientOrderId is None:
                     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
                     marketType = 'spot' if isSpotOrMargin else 'future'
-                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-R4BD3S82'
+                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-TKT5PX2F'
                     broker = self.safe_dict(self.options, 'broker', {})
                     brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()

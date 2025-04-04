@@ -352,7 +352,6 @@ class Exchange {
         'bitbns',
         'bitcoincom',
         'bitfinex',
-        'bitfinex1',
         'bitflyer',
         'bitget',
         'bithumb',
