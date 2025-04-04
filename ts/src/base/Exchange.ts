@@ -7368,7 +7368,7 @@ export default class Exchange {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const key = allowTimestamp ? this.safeStringN (entry, ['id', 'timestamp', 0]) : this.safeString (entry, 'id');
+            const key = allowTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
             const uniqKey = this.safeString (entry, key);
             if (uniqKey !== undefined && !(uniqKey in uniqueResult)) {
                 uniqueResult[uniqKey] = entry;
