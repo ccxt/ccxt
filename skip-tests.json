@@ -287,7 +287,8 @@
     "bitmex": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "created": "weird int values https://github.com/ccxt/ccxt/actions/runs/14245991901/job/39927051434?pr=25629#step:10:27"
             },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",	
             "watchOHLCV": "same as above, needs key fix",	
