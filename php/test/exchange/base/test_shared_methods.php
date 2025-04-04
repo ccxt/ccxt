@@ -197,7 +197,7 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
     if ($defined_values) {
         // check by code
         $currency_by_code = $exchange->currency($currency_code);
-        assert($currency_by_code['id'] === $currency_id, 'currencyId "' . string_value($currency_id) . '" does not match currency of code: "' . string_value($currency_code) . '"' . $log_text);
+        assert($currency_by_code['id'] === $currency_id, 'currencyId "' . string_value($currency_id) . '" does not match currency id from instance: "' . string_value($currency_by_code['id']) . '"' . $log_text);
         // check by id
         $currency_by_id = $exchange->safe_currency($currency_id);
         assert($currency_by_id['code'] === $currency_code, 'currencyCode ' . string_value($currency_code) . ' does not match currency of id: ' . string_value($currency_id) . $log_text);

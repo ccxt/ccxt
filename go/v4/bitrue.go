@@ -1211,7 +1211,7 @@ func  (this *bitrue) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             //         "time": 1699338305000
             //     }
             //
-            var timestamp interface{} = this.SafeInteger(response, "time")
+            var timestamp interface{} = this.SafeInteger2(response, "time", "lastUpdateId")
             var orderbook interface{} = this.ParseOrderBook(response, symbol, timestamp)
             AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
         
