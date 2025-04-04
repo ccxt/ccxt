@@ -816,7 +816,7 @@ export default class bitget extends bitgetRest {
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
             return this.removeRepeatedElementsFromArray (result, false);
         }
-        return result;
+        return result as Trade[];
     }
 
     /**
