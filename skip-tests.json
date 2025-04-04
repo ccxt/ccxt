@@ -362,6 +362,8 @@
         }
     },
     "onetrading": {
+        "httpsProxy": "http://188.245.226.105:3128",
+        "wsProxy": "http://188.245.226.105:3128",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
