@@ -4403,7 +4403,11 @@ export default class Exchange {
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
                 if (contract && (noSymbols || this.inArray (symbol, symbols))) {
-                    tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+                    const leverageTier = this.parseMarketLeverageTiers (item, market);
+                    const tiersLength = leverageTier.length;
+                    if (Array.isArray (leverageTier) && tiersLength > 0) {
+                        tiers[symbol] = leverageTier;
+                    }
                 }
             }
         } else {
@@ -4415,7 +4419,11 @@ export default class Exchange {
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
                 if (contract && (noSymbols || this.inArray (symbol, symbols))) {
-                    tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+                    const leverageTier = this.parseMarketLeverageTiers (item, market);
+                    const tiersLength = leverageTier.length;
+                    if (Array.isArray (leverageTier) && tiersLength > 0) {
+                        tiers[symbol] = leverageTier;
+                    }
                 }
             }
         }
