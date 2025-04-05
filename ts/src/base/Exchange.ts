@@ -7226,7 +7226,11 @@ export default class Exchange {
             if (currentSince >= current) {
                 break;
             }
-            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            if (i >= maxCalls - 1) {
+                tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params)); // this is the last call
+            } else {
+                tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest + 1, timeframe, params));
+            }
             currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
