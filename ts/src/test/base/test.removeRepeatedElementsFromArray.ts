@@ -45,7 +45,7 @@ function testRemoveRepeatedElementsFromArray () {
         [ 555, 1.0, 1.0, "x3" ], // duplicate timestamp (0 index)
     ];
     const res3 = exchange.removeRepeatedElementsFromArray (array3, true);
-    assert (res3.length === 2, 'filtering by timestamp does not work');
+    assert (res3.length === 2);
     assert (res3[0][3] === "x1");
     assert (res3[1][3] === "x2");
 }
