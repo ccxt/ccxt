@@ -132,16 +132,6 @@
             }
         }
     },
-    "bitbank": {
-    },
-    "bitbay": {
-        "skipMethods": {
-            "loadMarkets": {
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
-            }
-        }
-    },
     "bitbns": {
         "skip": "temp",
         "skipMethods": {
