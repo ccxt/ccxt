@@ -145,7 +145,7 @@ import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
-import { Future } from './ws/Future.js';
+import { Future, FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
@@ -619,7 +619,7 @@ export default class Exchange {
         }
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (...args: any[]) {
         // @ts-expect-error
         return encodeURIComponent (...args)
     }
@@ -713,8 +713,8 @@ export default class Exchange {
         }
     }
 
-    log (... args) {
-        console.log (... args)
+    log (...args: any[]) {
+        console.log (...args)
     }
 
     httpProxyAgentModule:any = undefined;
@@ -800,7 +800,7 @@ export default class Exchange {
         return this.httpAgent;
     }
 
-    getHttpAgentIfNeeded (url) {
+    getHttpAgentIfNeeded (url: string) {
         if (isNode) {
             // only for non-ssl proxy
             if (url.substring(0, 5) === 'ws://') {
@@ -1107,7 +1107,7 @@ export default class Exchange {
         }
     }
 
-    remove0xPrefix (hexData) {
+    remove0xPrefix (hexData: string): string {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
@@ -1115,7 +1115,7 @@ export default class Exchange {
         }
     }
 
-    spawn(method, ...args) {
+    spawn(method: Function, ...args: any[]): FutureInterface {
         const future = Future();
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout(() => {
@@ -1124,9 +1124,9 @@ export default class Exchange {
         return future;
     }
 
-    delay (timeout, method, ... args) {
+    delay (timeout: Num, method: Function, ...args: any[]) {
         setTimeout (() => {
-            this.spawn (method, ... args)
+            this.spawn (method, ...args)
         }, timeout);
     }
 
@@ -2705,7 +2705,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
-    parseToInt (number) {
+    parseToInt (number: any): number {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         const stringifiedNumber = this.numberToString (number);
@@ -2713,7 +2713,7 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
-    parseToNumeric (number) {
+    parseToNumeric (number: any): number {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
