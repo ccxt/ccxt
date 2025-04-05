@@ -7364,7 +7364,7 @@ export default class Exchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input) {
+    removeRepeatedElementsFromArray (input, byTimestamp = true) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
@@ -7373,7 +7373,7 @@ export default class Exchange {
                 if (this.safeString (uniqueResult, id) === undefined) {
                     uniqueResult[id] = entry;
                 }
-            } else {
+            } else if (byTimestamp) {
                 const timestamp = this.safeInteger2 (entry, 'timestamp', 0);
                 if (timestamp !== undefined) {
                     if (this.safeString (uniqueResult, timestamp) === undefined) {
