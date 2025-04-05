@@ -88,8 +88,8 @@ export default class bitopro extends bitoproRest {
         //
         //     {
         //         "event": "ORDER_BOOK",
-        //         "timestamp": 1650121915308,
-        //         "datetime": "2022-04-16T15:11:55.308Z",
+        //         "timestamp": 1650121915309,
+        //         "datetime": "2022-04-16T15:11:55.309Z",
         //         "pair": "BTC_TWD",
         //         "limit": 5,
         //         "scale": 0,
@@ -371,9 +371,8 @@ export default class bitopro extends bitoproRest {
         const messageHash = event + ':' + symbol;
         const result = this.parseTicker (message);
         const timestamp = this.safeInteger (message, 'timestamp');
-        const datetime = this.safeString (message, 'datetime');
         result['timestamp'] = timestamp;
-        result['datetime'] = datetime;
+        result['datetime'] = this.iso8601 (timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }
