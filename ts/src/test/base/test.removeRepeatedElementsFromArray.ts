@@ -3,9 +3,8 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-function removeRepeatedElementsFromArray () {
+function testRemoveRepeatedElementsFromArray () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -49,4 +48,4 @@ function removeRepeatedElementsFromArray () {
     assert (res3[1][3] === "x2");
 }
 
-export default removeRepeatedElementsFromArray;
+export default testRemoveRepeatedElementsFromArray;
