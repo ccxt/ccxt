@@ -734,9 +734,9 @@ export default class bitmex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
         let contractSize = undefined;
-        const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        const isInverse = this.safeBool (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        const isQuanto = this.safeBool (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        const linear = !isInverse && !isQuanto;
         const status = this.safeString (market, 'state');
         const active = status !== 'Unlisted';
         let expiry = undefined;
@@ -759,7 +759,7 @@ export default class bitmex extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
         } else {
-            // for index/exotic markets, default to id
+            // for index or exotic markets, default to id
             symbol = id;
         }
         const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
@@ -785,8 +785,8 @@ export default class bitmex extends Exchange {
             'option': false,
             'active': active,
             'contract': contract,
-            'linear': linear,
-            'inverse': isInverse,
+            'linear': contract ? linear : undefined,
+            'inverse': contract ? isInverse : undefined,
             'quanto': isQuanto,
             'taker': this.safeNumber (market, 'takerFee'),
             'maker': this.safeNumber (market, 'makerFee'),
@@ -977,6 +977,7 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
+        let highestTimestamp = 0;
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
@@ -989,6 +990,16 @@ export default class bitmex extends Exchange {
                 const resultSide = result[side];
                 resultSide.push ([ price, amount ]);
             }
+            // dates are included separately in each entry, so latest is needed
+            const dateString = this.safeString (order, 'timestamp');
+            const timestamp = this.parse8601 (dateString);
+            if (timestamp > highestTimestamp) {
+                highestTimestamp = timestamp;
+            }
+        }
+        if (highestTimestamp !== 0) {
+            result['timestamp'] = highestTimestamp;
+            result['datetime'] = this.iso8601 (highestTimestamp);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
