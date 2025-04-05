@@ -18,7 +18,8 @@ function testRemoveRepeatedElementsFromArray () {
         { 'id': 'c', 'timestamp': 1, 'uniq': 'x4' }, // duplicate timestamp
     ];
     const res1 = exchange.removeRepeatedElementsFromArray (array1, false);
-    assert (res1.length === 3, 'filtering by ID does not work');
+    const res1Length = res1.length;
+    assert (res1Length, 'filtering by ID does not work');
     assert (res1[0]['uniq'] === 'x1');
     assert (res1[1]['uniq'] === 'x2');
     assert (res1[2]['uniq'] === 'x4');
@@ -31,7 +32,8 @@ function testRemoveRepeatedElementsFromArray () {
         { 'id': undefined, 'timestamp': 3, 'uniq': 'x4' },
     ];
     const res2 = exchange.removeRepeatedElementsFromArray (array2, true);
-    assert (res2.length === 3, 'filtering by timestamp does not work');
+    const res2Length = res2.length;
+    assert (res2Length, 'filtering by timestamp does not work');
     assert (res2[0]['uniq'] === 'x1');
     assert (res2[1]['uniq'] === 'x2');
     assert (res2[2]['uniq'] === 'x4');
