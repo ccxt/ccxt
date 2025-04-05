@@ -24,7 +24,7 @@ print('CCXT Version:', ccxt.__version__)
 
 
 async def main():
-    exchange = ccxt.ftx({
+    exchange = ccxt.bybit({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'enableRateLimit': False,  # not recommended
