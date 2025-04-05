@@ -316,7 +316,7 @@ export default class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool (market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
