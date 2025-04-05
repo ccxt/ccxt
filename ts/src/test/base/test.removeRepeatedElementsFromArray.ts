@@ -19,7 +19,7 @@ function testRemoveRepeatedElementsFromArray () {
     ];
     const res1 = exchange.removeRepeatedElementsFromArray (array1, false);
     const res1Length = res1.length;
-    assert (res1Length, 'filtering by ID does not work');
+    assert (res1Length === 3, 'filtering by ID does not work');
     assert (res1[0]['uniq'] === 'x1');
     assert (res1[1]['uniq'] === 'x2');
     assert (res1[2]['uniq'] === 'x4');
@@ -33,7 +33,7 @@ function testRemoveRepeatedElementsFromArray () {
     ];
     const res2 = exchange.removeRepeatedElementsFromArray (array2, true);
     const res2Length = res2.length;
-    assert (res2Length, 'filtering by timestamp does not work');
+    assert (res2Length === 3, 'filtering by timestamp does not work');
     assert (res2[0]['uniq'] === 'x1');
     assert (res2[1]['uniq'] === 'x2');
     assert (res2[2]['uniq'] === 'x4');
