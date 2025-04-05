@@ -236,7 +236,7 @@ export default class Exchange {
     // whether fees should be summed by currency code
     reduceFees: boolean = true
 
-    // do not delete this line, it is needed for users to be able to define their own fetchImplementation
+    // don't delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
     AbortError: any
     FetchError: any
