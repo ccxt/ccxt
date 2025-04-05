@@ -339,6 +339,7 @@ class Exchange {
     public static $exchanges = array(
         'ace',
         'alpaca',
+        'apex',
         'ascendex',
         'bequant',
         'bigone',
@@ -2223,6 +2224,16 @@ class Exchange {
 
     public function binary_length($binary) {
         return strlen($binary);
+    }
+
+    public function get_zk_contract_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support create order in PHP language');
+         return "";
+    }
+
+    public function get_zk_transfer_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+         return "";
     }
 
     // ########################################################################
