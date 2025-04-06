@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\deribit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -1353,11 +1354,11 @@ class deribit extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              *
              * @see https://docs.deribit.com/#public-get_book_summary_by_currency
              *
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->code] *required* the $currency $code to fetch the $tickers for, eg. 'BTC', 'ETH'
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1365,7 +1366,20 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $code = $this->safe_string_2($params, 'code', 'currency');
+            $type = null;
             $params = $this->omit($params, array( 'code' ));
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $market = $this->market($symbols[$i]);
+                    if ($code !== null && $code !== $market['base']) {
+                        throw new BadRequest($this->id . ' fetchTickers the base $currency must be the same for all $symbols, this endpoint only supports one base $currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    }
+                    if ($code === null) {
+                        $code = $market['base'];
+                        $type = $market['type'];
+                    }
+                }
+            }
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch $tickers for');
             }
@@ -1373,6 +1387,19 @@ class deribit extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
+            if ($type !== null) {
+                $requestType = null;
+                if ($type === 'spot') {
+                    $requestType = 'spot';
+                } elseif ($type === 'future' || ($type === 'contract')) {
+                    $requestType = 'future';
+                } elseif ($type === 'option') {
+                    $requestType = 'option';
+                }
+                if ($requestType !== null) {
+                    $request['kind'] = $requestType;
+                }
+            }
             $response = Async\await($this->publicGetGetBookSummaryByCurrency ($this->extend($request, $params)));
             //
             //     {
