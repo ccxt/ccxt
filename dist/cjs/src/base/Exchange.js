@@ -564,7 +564,7 @@ class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -6733,23 +6733,13 @@ class Exchange {
         }
         return result;
     }
-    removeRepeatedElementsFromArray(input) {
+    removeRepeatedElementsFromArray(input, fallbackToTimestamp = true) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString(entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString(uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
-            }
-            else {
-                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString(uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            const uniqValue = fallbackToTimestamp ? this.safeStringN(entry, ['id', 'timestamp', 0]) : this.safeString(entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
+                uniqueResult[uniqValue] = entry;
             }
         }
         const values = Object.values(uniqueResult);
