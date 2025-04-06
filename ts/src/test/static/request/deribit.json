@@ -772,8 +772,7 @@
                 "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
                 "input": [
                     [
-                        "BTC/USDT",
-                        "ETH/USDT"
+                        "BTC/USDT"
                     ],
                     {"code": "BTC"}
                 ]
@@ -784,9 +783,7 @@
                 "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
                 "input": [
                     [
-                        "BTC/USDT:USDT",
-                        "ETH/USDT:USDT"
-                    ],
+                        "BTC/USDT:USDT"                    ],
                     {"code": "BTC"}
                 ]
             }
