@@ -1370,7 +1370,24 @@ public partial class deribit : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object code = this.safeString2(parameters, "code", "currency");
+        object type = null;
         parameters = this.omit(parameters, new List<object>() {"code"});
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, getValue(market, "base")))))
+                {
+                    throw new BadRequest ((string)add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
+                }
+                if (isTrue(isEqual(code, null)))
+                {
+                    code = getValue(market, "base");
+                    type = getValue(market, "type");
+                }
+            }
+        }
         if (isTrue(isEqual(code, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
@@ -1379,6 +1396,24 @@ public partial class deribit : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
+        if (isTrue(!isEqual(type, null)))
+        {
+            object requestType = null;
+            if (isTrue(isEqual(type, "spot")))
+            {
+                requestType = "spot";
+            } else if (isTrue(isTrue(isEqual(type, "future")) || isTrue((isEqual(type, "contract")))))
+            {
+                requestType = "future";
+            } else if (isTrue(isEqual(type, "option")))
+            {
+                requestType = "option";
+            }
+            if (isTrue(!isEqual(requestType, null)))
+            {
+                ((IDictionary<string,object>)request)["kind"] = requestType;
+            }
+        }
         object response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters));
         //
         //     {
