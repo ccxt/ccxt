@@ -7227,7 +7227,7 @@ export default class Exchange {
                 break;
             }
             const checkEntry = await this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params);
-            if (checkEntry.length < maxEntriesPerRequest) {
+            if ((checkEntry.length) === (maxEntriesPerRequest - 1)) {
                 tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest + 1, timeframe, params));
             } else {
                 tasks.push (checkEntry);
