@@ -88,8 +88,8 @@ export default class bitopro extends bitoproRest {
         //
         //     {
         //         "event": "ORDER_BOOK",
-        //         "timestamp": 1650121915309,
-        //         "datetime": "2022-04-16T15:11:55.309Z",
+        //         "timestamp": 1650121915308,
+        //         "datetime": "2022-04-16T15:11:55.308Z",
         //         "pair": "BTC_TWD",
         //         "limit": 5,
         //         "scale": 0,
