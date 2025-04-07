@@ -89,6 +89,22 @@ export default class aftermath extends Exchange {
                         'balance': 1,
                         'myPendingOrders': 1,
                         'positions': 1,
+                        'build/allocate': 1,
+                        'build/cancelOrders': 1,
+                        'build/createAccount': 1,
+                        'build/createOrders': 1,
+                        'build/createSubaccount': 1,
+                        'build/deallocate': 1,
+                        'build/deposit': 1,
+                        'build/withdraw': 1,
+                        'submit/allocate': 1,
+                        'submit/cancelOrders': 1,
+                        'submit/createAccount': 1,
+                        'submit/createOrders': 1,
+                        'submit/createSubaccount': 1,
+                        'submit/deallocate': 1,
+                        'submit/deposit': 1,
+                        'submit/withdraw': 1,
                     },
                 },
             },
@@ -372,7 +388,7 @@ export default class aftermath extends Exchange {
         //     "datetime":"2025-04-07 09:29:28.213 UTC",
         //     "timestamp":1744018168213,
         //     "symbol":"BTC/USD:USDC"
-        // } 
+        // }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
@@ -595,9 +611,9 @@ export default class aftermath extends Exchange {
             'orders': ordersTransformed,
         };
         // Receive transaction data, sign it, and submit for execution
-        const tx = await this.privatePostCreateOrdersRequest (this.extend (txRequest, params));
+        const tx = await this.privatePostBuildCreateOrders (this.extend (txRequest, params));
         const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostCreateOrdersExecute (request);
+        const response = await this.privatePostSubmitCreateOrders (request);
         return this.parseOrders (response);
     }
 
@@ -625,7 +641,7 @@ export default class aftermath extends Exchange {
             'orderIds': ids,
         };
         // Receive transaction data, sign it, and submit for execution
-        const tx = await this.privatePostCancelOrdersRequest (txRequest);
+        const tx = await this.privatePostCancelOrders (txRequest);
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostCancelOrdersExecute (request);
         return this.parseOrders (response);
