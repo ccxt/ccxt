@@ -5984,9 +5984,14 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
         :param str [params.settleCoin]: Settle coin. Supports linear, inverse & option
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchPositions', symbols, None, None, params, 'nextPageCursor', 'cursor', None, 200)
         symbol = None
         if (symbols is not None) and isinstance(symbols, list):
             symbolsLength = len(symbols)
@@ -6017,6 +6022,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 # inverse
                 if symbol is None and baseCoin is None:
                     request['category'] = 'inverse'
+        if self.safe_integer(params, 'limit') is None:
+            request['limit'] = 200  # max limit
         params = self.omit(params, ['type'])
         request['category'] = type
         response = await self.privateGetV5PositionList(self.extend(request, params))

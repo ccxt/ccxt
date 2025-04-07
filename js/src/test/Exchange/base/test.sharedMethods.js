@@ -184,7 +184,7 @@ function assertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry
     if (definedValues) {
         // check by code
         const currencyByCode = exchange.currency(currencyCode);
-        assert(currencyByCode['id'] === currencyId, 'currencyId "' + stringValue(currencyId) + '" does not match currency of code: "' + stringValue(currencyCode) + '"' + logText);
+        assert(currencyByCode['id'] === currencyId, 'currencyId "' + stringValue(currencyId) + '" does not match currency id from instance: "' + stringValue(currencyByCode['id']) + '"' + logText);
         // check by id
         const currencyById = exchange.safeCurrency(currencyId);
         assert(currencyById['code'] === currencyCode, 'currencyCode ' + stringValue(currencyCode) + ' does not match currency of id: ' + stringValue(currencyId) + logText);
