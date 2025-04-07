@@ -667,6 +667,7 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString (params, 'account');
+        params = this.omit (params, 'account');
         const txRequest = {
             "metadata": {
                 'sender': this.walletAddress,
