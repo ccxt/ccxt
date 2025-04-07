@@ -787,7 +787,7 @@ export default class bitmex extends Exchange {
             'contract': contract,
             'linear': contract ? linear : undefined,
             'inverse': contract ? isInverse : undefined,
-            'quanto': isQuanto,
+            'quanto': contract ? isQuanto : undefined,
             'taker': this.safeNumber (market, 'takerFee'),
             'maker': this.safeNumber (market, 'makerFee'),
             'contractSize': contractSize,
