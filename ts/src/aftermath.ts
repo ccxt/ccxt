@@ -471,8 +471,9 @@ export default class aftermath extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const account = this.safeString (params, 'account');
-        const request = { 'account': account };
+        const request = {
+            'account': this.walletAddress,
+        };
         const response = await this.privatePostBalance (this.extend (request, params));
         return this.parseBalance (response);
     }
@@ -493,16 +494,29 @@ export default class aftermath extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const response = await this.privatePostAccounts ({ 'address': this.walletAddress });
+        const request = {
+            'address': this.walletAddress,
+        };
+        const response = await this.privatePostAccounts (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "0x21c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
+        //         "type": "primary",
+        //         "code": "USDC",
+        //         "accountNumber": 14822
+        //     }
+        // ]
+        //
         return this.parseAccounts (response);
     }
 
     parseAccount (account: Dict): Account {
         return {
             'id': this.safeString (account, 'id'),
-            'type': this.safeString (account, 'type', undefined),
-            'code': this.safeString (account, 'code', undefined),
-            'info': this.safeValue (account, 'info'),
+            'type': this.safeString (account, 'type'),
+            'code': this.safeString (account, 'code'),
+            'info': account,
         };
     }
 
