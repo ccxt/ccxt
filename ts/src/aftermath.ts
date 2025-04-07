@@ -421,12 +421,44 @@ export default class aftermath extends Exchange {
         return this.safeTrade (trade);
     }
 
+    /**
+     * @method
+     * @name aftermath#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
-        const request = { 'chId': chId, 'timeframe': timeframe, 'since': since, 'limit': limit };
+        const request = {
+            'chId': chId,
+            'timeframe': timeframe,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicPostOHLCV (this.extend (request, params));
+        //
+        // [
+        //     [
+        //         1743932340000,
+        //         83093.5445,
+        //         83093.5445,
+        //         83093.5445,
+        //         83093.5445,
+        //         0.0
+        //     ]
+        // ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
