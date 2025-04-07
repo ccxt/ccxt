@@ -858,7 +858,7 @@ export default class Exchange {
     fetchPaginatedCallCursor(method: string, symbol?: Str, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
     fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: any, limit?: any, params?: {}, pageKey?: any, maxEntriesPerRequest?: any): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
-    removeRepeatedElementsFromArray(input: any): any;
+    removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;

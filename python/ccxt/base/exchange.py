@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.72'
+__version__ = '4.4.73'
 
 # -----------------------------------------------------------------------------
 
@@ -6471,19 +6471,13 @@ class Exchange(object):
                 return self.sort_by(result, 'id', True)
         return result
 
-    def remove_repeated_elements_from_array(self, input):
+    def remove_repeated_elements_from_array(self, input, fallbackToTimestamp: bool = True):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]
-            id = self.safe_string(entry, 'id')
-            if id is not None:
-                if self.safe_string(uniqueResult, id) is None:
-                    uniqueResult[id] = entry
-            else:
-                timestamp = self.safe_integer_2(entry, 'timestamp', 0)
-                if timestamp is not None:
-                    if self.safe_string(uniqueResult, timestamp) is None:
-                        uniqueResult[timestamp] = entry
+            uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0]) if fallbackToTimestamp else self.safe_string(entry, 'id')
+            if uniqValue is not None and not (uniqValue in uniqueResult):
+                uniqueResult[uniqValue] = entry
         values = list(uniqueResult.values())
         valuesLength = len(values)
         if valuesLength > 0:

@@ -1496,7 +1496,9 @@ class testMainClass {
     }
     async testBinance() {
         const exchange = this.initOfflineExchange('binance');
-        const spotId = 'x-R4BD3S82';
+        const spotId = 'x-TKT5PX2F';
+        const swapId = 'x-cvBPrNm9';
+        const inverseSwapId = 'x-xcKtGhcu';
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1507,7 +1509,6 @@ class testMainClass {
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         const spotIdString = spotId.toString();
         assert(clientOrderId.startsWith(spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
-        const swapId = 'x-xcKtGhcu';
         let swapOrderRequest = undefined;
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -1522,11 +1523,13 @@ class testMainClass {
         catch (e) {
             swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
+        // linear swap
         const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
         const swapIdString = swapId.toString();
         assert(clientOrderIdSwap.startsWith(swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
+        // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert(clientOrderIdInverse.startsWith(swapIdString), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + swapIdString);
+        assert(clientOrderIdInverse.startsWith(inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         let createOrdersRequest = undefined;
         try {
             const orders = [
