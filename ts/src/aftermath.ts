@@ -79,7 +79,7 @@ export default class aftermath extends Exchange {
                     'post': {
                         'ticker': 1,
                         'orderbook': 1,
-                        'tradesrades': 1,
+                        'trades': 1,
                         'OHLCV': 1,
                     },
                 },
@@ -379,12 +379,41 @@ export default class aftermath extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
+    /**
+     * @method
+     * @name aftermath#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
-        const request = { 'chId': chId, 'symbol': symbol };
+        const request = {
+            'chId': chId,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicPostTrades (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "amount": 0.03364,
+        //         "datetime": "2025-04-06 13:46:34.060 UTC",
+        //         "price": 82341.0271,
+        //         "timestamp": 1743947194060,
+        //         "symbol": "BTC/USD:USDC"
+        //     }
+        // ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
