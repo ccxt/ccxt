@@ -82,8 +82,8 @@
                 "input": [
                     "USDT",
                     10,
-                    null,
-                    null,
+                    "swap",
+                    "spot",
                     {
                         "type": "swap",
                         "transferType": "withdraw"
@@ -98,8 +98,8 @@
                 "input": [
                     "USDT",
                     10,
-                    null,
-                    null,
+                    "spot",
+                    "swap",
                     {
                         "type": "swap",
                         "transferType": "deposit"
