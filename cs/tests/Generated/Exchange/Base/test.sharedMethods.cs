@@ -222,7 +222,7 @@ public partial class testMainClass : BaseTest
             {
                 // check by code
                 object currencyByCode = exchange.currency(currencyCode);
-                assert(isEqual(getValue(currencyByCode, "id"), currencyId), add(add(add(add(add("currencyId \"", stringValue(currencyId)), "\" does not match currency of code: \""), stringValue(currencyCode)), "\""), logText));
+                assert(isEqual(getValue(currencyByCode, "id"), currencyId), add(add(add(add(add("currencyId \"", stringValue(currencyId)), "\" does not match currency id from instance: \""), stringValue(getValue(currencyByCode, "id"))), "\""), logText));
                 // check by id
                 object currencyById = exchange.safeCurrency(currencyId);
                 assert(isEqual(getValue(currencyById, "code"), currencyCode), add(add(add(add("currencyCode ", stringValue(currencyCode)), " does not match currency of id: "), stringValue(currencyId)), logText));

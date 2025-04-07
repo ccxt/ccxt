@@ -1244,7 +1244,7 @@ class bitrue extends bitrue$1 {
         //         "time": 1699338305000
         //     }
         //
-        const timestamp = this.safeInteger(response, 'time');
+        const timestamp = this.safeInteger2(response, 'time', 'lastUpdateId');
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         return orderbook;
