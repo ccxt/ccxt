@@ -365,16 +365,23 @@ export default class bitopro extends bitoproRest {
         //     }
         //
         const marketId = this.safeString (message, 'pair');
-        const market = this.safeMarket (marketId, undefined, '_');
+        // market-ids are lowercase in REST API and uppercase in WS API
+        const market = this.safeMarket (marketId.toLowerCase (), undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
-        const result = this.parseTicker (message);
+        const result = this.parseWsTicker (message, market);
         const timestamp = this.safeInteger (message, 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
+    }
+
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const parsed = this.parseTicker (ticker, market);
+        parsed['symbol'] = this.safeString (market, 'symbol', parsed['symbol']);
+        return parsed;
     }
 
     authenticate (url) {
