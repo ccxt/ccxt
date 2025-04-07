@@ -1613,12 +1613,13 @@ class okx extends okx$1 {
         let optionType = undefined;
         if (contract) {
             symbol = symbol + ':' + settle;
-            expiry = this.safeInteger(market, 'expTime');
             if (future) {
+                expiry = this.safeInteger(market, 'expTime');
                 const ymd = this.yymmdd(expiry);
                 symbol = symbol + '-' + ymd;
             }
             else if (option) {
+                expiry = this.safeInteger(market, 'expTime');
                 strikePrice = this.safeString(market, 'stk');
                 optionType = this.safeString(market, 'optType');
                 const ymd = this.yymmdd(expiry);
@@ -1815,40 +1816,24 @@ class okx extends okx$1 {
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
-            let currencyActive = false;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            let maxPrecision = undefined;
-            for (let j = 0; j < chains.length; j++) {
+            let type = 'crypto';
+            const chainsLength = chains.length;
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeBool(chain, 'canDep');
-                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeBool(chain, 'canWd');
-                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeBool(chain, 'canInternal');
-                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString(chain, 'chain');
-                if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
+                const networkId = this.safeString(chain, 'chain'); // USDT-BEP20, USDT-Avalance-C, etc
+                if (networkId !== undefined) {
                     const idParts = networkId.split('-');
                     const parts = this.arraySlice(idParts, 1);
                     const chainPart = parts.join('-');
                     const networkCode = this.networkIdToCode(chainPart, currency['code']);
-                    const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    }
-                    else {
-                        maxPrecision = Precise["default"].stringMin(maxPrecision, precision);
-                    }
                     networks[networkCode] = {
                         'id': networkId,
                         'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
+                        'active': undefined,
+                        'deposit': this.safeBool(chain, 'canDep'),
+                        'withdraw': this.safeBool(chain, 'canWd'),
                         'fee': this.safeNumber(chain, 'fee'),
-                        'precision': this.parseNumber(precision),
+                        'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber(chain, 'minWd'),
@@ -1858,26 +1843,31 @@ class okx extends okx$1 {
                         'info': chain,
                     };
                 }
+                else {
+                    // only happens for FIAT currency
+                    type = 'fiat';
+                }
             }
             const firstChain = this.safeDict(chains, 0, {});
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString(firstChain, 'name'),
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber(maxPrecision),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'type': type,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }

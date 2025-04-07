@@ -1171,7 +1171,7 @@ public partial class bitrue : Exchange
         //         "time": 1699338305000
         //     }
         //
-        object timestamp = this.safeInteger(response, "time");
+        object timestamp = this.safeInteger2(response, "time", "lastUpdateId");
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return orderbook;

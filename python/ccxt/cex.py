@@ -328,6 +328,7 @@ class cex(Exchange, ImplicitAPI):
                 'margin': None,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': None,
                 'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {

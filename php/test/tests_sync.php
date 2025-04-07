@@ -1402,7 +1402,9 @@ class testMainClass {
 
     public function test_binance() {
         $exchange = $this->init_offline_exchange('binance');
-        $spot_id = 'x-R4BD3S82';
+        $spot_id = 'x-TKT5PX2F';
+        $swap_id = 'x-cvBPrNm9';
+        $inverse_swap_id = 'x-xcKtGhcu';
         $spot_order_request = null;
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1412,7 +1414,6 @@ class testMainClass {
         $client_order_id = $spot_order_request['newClientOrderId'];
         $spot_id_string = ((string) $spot_id);
         assert(str_starts_with($client_order_id, $spot_id_string), 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
-        $swap_id = 'x-xcKtGhcu';
         $swap_order_request = null;
         try {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -1425,11 +1426,13 @@ class testMainClass {
         } catch(\Throwable $e) {
             $swap_inverse_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
         }
+        // linear swap
         $client_order_id_swap = $swap_order_request['newClientOrderId'];
         $swap_id_string = ((string) $swap_id);
         assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+        // inverse swap
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-        assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
+        assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
         $create_orders_request = null;
         try {
             $orders = [array(

@@ -2367,6 +2367,7 @@ func  (this *gemini) CreateDepositAddress(code interface{}, optionalArgs ...inte
                 "currency": code,
                 "address": address,
                 "tag": nil,
+                "network": nil,
                 "info": response,
             }
             return nil
@@ -2400,8 +2401,8 @@ func  (this *gemini) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes20128 := (<-this.LoadMarkets())
-            PanicOnError(retRes20128)
+            retRes20138 := (<-this.LoadMarkets())
+            PanicOnError(retRes20138)
             var market interface{} = this.Market(symbol)
             var timeframeId interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
             var request interface{} = map[string]interface{} {

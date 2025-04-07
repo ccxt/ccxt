@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.70'
+__version__ = '4.4.73'
 
 # -----------------------------------------------------------------------------
 
@@ -2921,7 +2921,8 @@ class Exchange(object):
         length = len(keys)
         if length != 0:
             for i in range(0, length):
-                network = networks[keys[i]]
+                key = keys[i]
+                network = networks[key]
                 deposit = self.safe_bool(network, 'deposit')
                 if currencyDeposit is None or deposit:
                     currency['deposit'] = deposit
@@ -2931,6 +2932,12 @@ class Exchange(object):
                 active = self.safe_bool(network, 'active')
                 if currencyActive is None or active:
                     currency['active'] = active
+                # set network 'active' to False if D or W is disabled
+                if self.safe_bool(network, 'active') is None:
+                    if deposit and withdraw:
+                        currency['networks'][key]['active'] = True
+                    elif deposit is not None and withdraw is not None:
+                        currency['networks'][key]['active'] = False
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')
@@ -6464,19 +6471,13 @@ class Exchange(object):
                 return self.sort_by(result, 'id', True)
         return result
 
-    def remove_repeated_elements_from_array(self, input):
+    def remove_repeated_elements_from_array(self, input, fallbackToTimestamp: bool = True):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]
-            id = self.safe_string(entry, 'id')
-            if id is not None:
-                if self.safe_string(uniqueResult, id) is None:
-                    uniqueResult[id] = entry
-            else:
-                timestamp = self.safe_integer_2(entry, 'timestamp', 0)
-                if timestamp is not None:
-                    if self.safe_string(uniqueResult, timestamp) is None:
-                        uniqueResult[timestamp] = entry
+            uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0]) if fallbackToTimestamp else self.safe_string(entry, 'id')
+            if uniqValue is not None and not (uniqValue in uniqueResult):
+                uniqueResult[uniqValue] = entry
         values = list(uniqueResult.values())
         valuesLength = len(values)
         if valuesLength > 0:

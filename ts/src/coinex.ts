@@ -3819,7 +3819,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString2 (params, 'chain', 'network');

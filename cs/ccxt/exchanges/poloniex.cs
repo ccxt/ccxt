@@ -394,6 +394,7 @@ public partial class poloniex : Exchange
                         { "untilDays", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "limit", 100 },
@@ -628,7 +629,7 @@ public partial class poloniex : Exchange
             {
                 throw new NotSupported ((string)add(add(add(add(add(this.id, " "), timeframe), " "), getValue(market, "type")), " fetchOHLCV is not supported")) ;
             }
-            object responseRaw = await ((Task<object>)callDynamically(this, "swapPublicGetV3MarketCandles", new object[] { this.extend(request, parameters) }));
+            object responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, parameters));
             //
             //     {
             //         code: "200",
@@ -737,7 +738,7 @@ public partial class poloniex : Exchange
     {
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "swapPublicGetV3MarketAllInstruments", new object[] { parameters }));
+        object response = await this.swapPublicGetV3MarketAllInstruments(parameters);
         //
         //    {
         //        "code": "200",
@@ -1093,7 +1094,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            object responseRaw = await ((Task<object>)callDynamically(this, "swapPublicGetV3MarketTickers", new object[] { this.extend(request, parameters) }));
+            object responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, parameters));
             //
             //    {
             //        "code": "200",
@@ -1511,7 +1512,7 @@ public partial class poloniex : Exchange
         }
         if (isTrue(getValue(market, "contract")))
         {
-            object response = await ((Task<object>)callDynamically(this, "swapPublicGetV3MarketTrades", new object[] { this.extend(request, parameters) }));
+            object response = await this.swapPublicGetV3MarketTrades(this.extend(request, parameters));
             //
             //     {
             //         code: "200",
@@ -1602,7 +1603,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(isContract))
         {
-            object raw = await ((Task<object>)callDynamically(this, "swapPrivateGetV3TradeOrderTrades", new object[] { this.extend(request, parameters) }));
+            object raw = await this.swapPrivateGetV3TradeOrderTrades(this.extend(request, parameters));
             //
             //    {
             //        "code": "200",
@@ -1924,7 +1925,7 @@ public partial class poloniex : Exchange
         object response = null;
         if (!isTrue(getValue(market, "spot")))
         {
-            object raw = await ((Task<object>)callDynamically(this, "swapPrivateGetV3TradeOrderOpens", new object[] { this.extend(request, parameters) }));
+            object raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters));
             //
             //    {
             //        "code": "200",
@@ -2043,7 +2044,7 @@ public partial class poloniex : Exchange
         var requestparametersVariable = this.handleUntilOption("eTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await ((Task<object>)callDynamically(this, "swapPrivateGetV3TradeOrderHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.swapPrivateGetV3TradeOrderHistory(this.extend(request, parameters));
         //
         //    {
         //        "code": "200",
@@ -2120,7 +2121,7 @@ public partial class poloniex : Exchange
         object response = null;
         if (isTrue(isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"))))
         {
-            object responseInitial = await ((Task<object>)callDynamically(this, "swapPrivatePostV3TradeOrder", new object[] { this.extend(request, parameters) }));
+            object responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, parameters));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
@@ -2323,7 +2324,7 @@ public partial class poloniex : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["ordId"] = id;
-            object raw = await ((Task<object>)callDynamically(this, "swapPrivateDeleteV3TradeOrder", new object[] { this.extend(request, parameters) }));
+            object raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, parameters));
             //
             //    {
             //        "code": "200",
@@ -2396,7 +2397,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isTrue(isEqual(marketType, "swap")) || isTrue(isEqual(marketType, "future"))))
         {
-            object raw = await ((Task<object>)callDynamically(this, "swapPrivateDeleteV3TradeAllOrders", new object[] { this.extend(request, parameters) }));
+            object raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, parameters));
             //
             //    {
             //        "code": "200",
@@ -2631,7 +2632,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(marketType, "spot")))
         {
-            object responseRaw = await ((Task<object>)callDynamically(this, "swapPrivateGetV3AccountBalance", new object[] { parameters }));
+            object responseRaw = await this.swapPrivateGetV3AccountBalance(parameters);
             //
             //    {
             //        "code": "200",
@@ -2761,7 +2762,7 @@ public partial class poloniex : Exchange
         }
         if (isTrue(getValue(market, "contract")))
         {
-            object responseRaw = await ((Task<object>)callDynamically(this, "swapPublicGetV3MarketOrderBook", new object[] { this.extend(request, parameters) }));
+            object responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, parameters));
             //
             //    {
             //       "code": 200,
@@ -3485,7 +3486,7 @@ public partial class poloniex : Exchange
             { "mgnMode", ((string)marginMode).ToUpper() },
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "swapPrivatePostV3PositionLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, parameters));
         return response;
     }
 
@@ -3515,7 +3516,7 @@ public partial class poloniex : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
         }
         ((IDictionary<string,object>)request)["mgnMode"] = ((string)marginMode).ToUpper();
-        object response = await ((Task<object>)callDynamically(this, "swapPrivateGetV3PositionLeverages", new object[] { this.extend(request, parameters) }));
+        object response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters));
         //
         //  for one-way mode:
         //
@@ -3603,7 +3604,7 @@ public partial class poloniex : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "swapPrivateGetV3PositionMode", new object[] { parameters }));
+        object response = await this.swapPrivateGetV3PositionMode(parameters);
         //
         //    {
         //        "code": "200",
@@ -3639,7 +3640,7 @@ public partial class poloniex : Exchange
         object request = new Dictionary<string, object>() {
             { "posMode", mode },
         };
-        object response = await ((Task<object>)callDynamically(this, "swapPrivatePostV3PositionMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.swapPrivatePostV3PositionMode(this.extend(request, parameters));
         //
         //    {
         //        "code": "200",
@@ -3665,7 +3666,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "swapPrivateGetV3TradePositionOpens", new object[] { parameters }));
+        object response = await this.swapPrivateGetV3TradePositionOpens(parameters);
         //
         //    {
         //        "code": "200",
@@ -3794,7 +3795,7 @@ public partial class poloniex : Exchange
         {
             ((IDictionary<string,object>)request)["posMode"] = "BOTH";
         }
-        object response = await ((Task<object>)callDynamically(this, "swapPrivatePostV3TradePositionMargin", new object[] { this.extend(request, parameters) }));
+        object response = await this.swapPrivatePostV3TradePositionMargin(this.extend(request, parameters));
         //
         // {
         //     "code": 200,

@@ -753,7 +753,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit $address
@@ -826,6 +826,7 @@ class coinbase extends Exchange {
                 'currency' => $code,
                 'tag' => $tag,
                 'address' => $address,
+                'network' => null,
                 'info' => $response,
             );
         }) ();
@@ -2431,7 +2432,7 @@ class coinbase extends Exchange {
             //             "ending_before":null,
             //             "starting_after":null,
             //             "previous_ending_before":null,
-            //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+            //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
             //             "limit":100,
             //             "order":"desc",
             //             "previous_uri":null,

@@ -560,7 +560,7 @@ func  (this *woofipro) ParseMarket(market interface{}) interface{}  {
         "active": nil,
         "contract": true,
         "linear": true,
-        "inverse": nil,
+        "inverse": false,
         "contractSize": this.ParseNumber("1"),
         "expiry": nil,
         "expiryDatetime": nil,

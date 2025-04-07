@@ -3803,7 +3803,7 @@ class coinex extends Exchange {
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
          *

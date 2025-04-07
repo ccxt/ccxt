@@ -1891,6 +1891,7 @@ class coinbaseexchange extends coinbaseexchange$1 {
         return {
             'currency': code,
             'address': this.checkAddress(address),
+            'network': undefined,
             'tag': tag,
             'info': response,
         };

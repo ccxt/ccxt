@@ -941,15 +941,12 @@ class bitmart extends \ccxt\async\bitmart {
         //        "data":array(
         //           {
         //              "trade_id":6798697637,
-        //              "contract_id":1,
         //              "symbol":"BTCUSDT",
         //              "deal_price":"39735.8",
         //              "deal_vol":"2",
-        //              "type":0,
         //              "way":1,
-        //              "create_time":1701618503,
-        //              "create_time_mill":1701618503517,
-        //              "created_at":"2023-12-03T15:48:23.517518538Z"
+        //              "created_at":"2023-12-03T15:48:23.517518538Z",
+        //              "m" => true,
         //           }
         //        )
         //    }
@@ -989,6 +986,7 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null) {
+        //
         // spot
         //     {
         //         "ms_t" => 1740320841473,
@@ -1020,6 +1018,19 @@ class bitmart extends \ccxt\async\bitmart {
         } else {
             $datetime = $this->iso8601($timestamp);
         }
+        $takerOrMaker = null; // true for public trades
+        $side = $this->safe_string($trade, 'side');
+        $buyerMaker = $this->safe_bool($trade, 'm');
+        if ($buyerMaker !== null) {
+            if ($side === null) {
+                if ($buyerMaker) {
+                    $side = 'sell';
+                } else {
+                    $side = 'buy';
+                }
+            }
+            $takerOrMaker = 'taker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'trade_id'),
@@ -1028,11 +1039,11 @@ class bitmart extends \ccxt\async\bitmart {
             'datetime' => $datetime,
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $this->safe_string($trade, 'side'),
+            'side' => $side,
             'price' => $this->safe_string_2($trade, 'price', 'deal_price'),
             'amount' => $this->safe_string_2($trade, 'size', 'deal_vol'),
             'cost' => null,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'fee' => null,
         ), $market);
     }

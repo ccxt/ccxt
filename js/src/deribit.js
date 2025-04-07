@@ -1151,6 +1151,7 @@ export default class deribit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

@@ -152,10 +152,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs }  from './types.js';
-// export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
-// import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs }  from './types.js';
+// export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
+// import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -246,7 +246,7 @@ export default class Exchange {
 
     timeout: Int      = 10000 // milliseconds
     verbose: boolean  = false
-    twofa             = undefined // two-factor authentication (2FA)
+    twofa             = undefined // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
@@ -833,7 +833,7 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -1487,7 +1487,7 @@ export default class Exchange {
               guardian: '0',
             }),
         });
-        
+
         const address = Starknet.hash.calculateContractAddressFromHash(
             publicKey,
             accountProxyClassHash,
@@ -2617,7 +2617,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddressResponse> {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
@@ -2953,7 +2953,8 @@ export default class Exchange {
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
-                const network = networks[keys[i]];
+                const key = keys[i];
+                const network = networks[key];
                 const deposit = this.safeBool (network, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
@@ -2965,6 +2966,14 @@ export default class Exchange {
                 const active = this.safeBool (network, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
+                }
+                // set network 'active' to false if D or W is disabled
+                if (this.safeBool (network, 'active') === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    } else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
@@ -6381,7 +6390,7 @@ export default class Exchange {
         return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
@@ -7355,22 +7364,13 @@ export default class Exchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input) {
+    removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString (entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString (uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
-            } else {
-                const timestamp = this.safeInteger2 (entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString (uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
+                uniqueResult[uniqValue] = entry;
             }
         }
         const values = Object.values (uniqueResult);

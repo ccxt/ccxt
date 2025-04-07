@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.70';
+$version = '4.4.73';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.70';
+    const VERSION = '4.4.73';
 
     public $browser;
     public $marketsLoading = null;
@@ -1696,7 +1696,8 @@ class Exchange extends \ccxt\Exchange {
         $length = count($keys);
         if ($length !== 0) {
             for ($i = 0; $i < $length; $i++) {
-                $network = $networks[$keys[$i]];
+                $key = $keys[$i];
+                $network = $networks[$key];
                 $deposit = $this->safe_bool($network, 'deposit');
                 if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
@@ -1708,6 +1709,14 @@ class Exchange extends \ccxt\Exchange {
                 $active = $this->safe_bool($network, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
+                }
+                // set $network 'active' to false if D or W is disabled
+                if ($this->safe_bool($network, 'active') === null) {
+                    if ($deposit && $withdraw) {
+                        $currency['networks'][$key]['active'] = true;
+                    } elseif ($deposit !== null && $withdraw !== null) {
+                        $currency['networks'][$key]['active'] = false;
+                    }
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
@@ -6193,22 +6202,13 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function remove_repeated_elements_from_array($input) {
+    public function remove_repeated_elements_from_array($input, bool $fallbackToTimestamp = true) {
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
-            $id = $this->safe_string($entry, 'id');
-            if ($id !== null) {
-                if ($this->safe_string($uniqueResult, $id) === null) {
-                    $uniqueResult[$id] = $entry;
-                }
-            } else {
-                $timestamp = $this->safe_integer_2($entry, 'timestamp', 0);
-                if ($timestamp !== null) {
-                    if ($this->safe_string($uniqueResult, $timestamp) === null) {
-                        $uniqueResult[$timestamp] = $entry;
-                    }
-                }
+            $uniqValue = $fallbackToTimestamp ? $this->safe_string_n($entry, array( 'id', 'timestamp', 0 )) : $this->safe_string($entry, 'id');
+            if ($uniqValue !== null && !(is_array($uniqueResult) && array_key_exists($uniqValue, $uniqueResult))) {
+                $uniqueResult[$uniqValue] = $entry;
             }
         }
         $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
