@@ -683,6 +683,25 @@ export default class aftermath extends Exchange {
         return this.parseOrders (response);
     }
 
+    async createSubaccount (params = {}): Promise<Order[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const account = this.safeString2 (params, 'account', 'primary');
+        params = this.omit (params, ['account', 'primary']);
+        const txRequest = {
+            "metadata": {
+                'sender': this.walletAddress,
+            },
+            'primary': account,
+        };
+        const tx = await this.privatePostBuildCreateSubaccount (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitCreateAccount (request);
+        //
+        //
+        return this.parseOrders (response);
+    }
+
     /**
      * @method
      * @name aftermath#signTxEd25519
