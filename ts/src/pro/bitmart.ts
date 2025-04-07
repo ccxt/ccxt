@@ -313,16 +313,17 @@ export default class bitmart extends bitmartRest {
         let marketType = undefined;
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
-        let trades = await this.subscribeMultiple (channelName, marketType, symbols, params);
+        const trades = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            trades = this.removeRepeatedElementsFromArray (trades, false);
-        }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            const filtered = this.removeRepeatedElementsFromArray (trades, false);
+            return filtered as Trade[];
+        }
         return result as Trade[];
     }
 
