@@ -627,11 +627,10 @@ export default class aftermath extends Exchange {
             const order = this.clone (orders[i]);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const chId = this.safeString (market, 'id');
             const price = this.safeString (order, 'price');
             const amount = this.safeString (order, 'amount');
             delete order['symbol'];
-            order['chId'] = chId;
+            order['chId'] = market['id'];
             if (price !== undefined) {
                 order['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
@@ -666,20 +665,21 @@ export default class aftermath extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        // Create transaction request
-        const account = this.safeValue (params, 'account');
         const market = this.market (symbol);
-        const chId = this.safeString (market, 'id');
+        const account = this.safeString (params, 'account');
         const txRequest = {
-            'sender': this.walletAddress,
-            'subaccount': account['id'],
-            'chId': chId,
+            "metadata": {
+                'sender': this.walletAddress,
+            },
+            'subaccount': account,
+            'chId': market['id'],
             'orderIds': ids,
         };
-        // Receive transaction data, sign it, and submit for execution
-        const tx = await this.privatePostCancelOrders (txRequest);
+        const tx = await this.privatePostBuildCancelOrders (txRequest);
         const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostCancelOrdersExecute (request);
+        const response = await this.privatePostSubmitCancelOrders (request);
+        //
+        //
         return this.parseOrders (response);
     }
 
