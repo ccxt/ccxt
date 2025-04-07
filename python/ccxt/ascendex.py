@@ -556,7 +556,7 @@ class ascendex(Exchange, ImplicitAPI):
         ids = list(dataById.keys())
         result: dict = {}
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             currency = dataById[id]
             code = self.safe_currency_code(id)
             scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
@@ -1959,7 +1959,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "avgPx": "0",         # Average filled price of the order
+        #                 "avgPx": "0",        # Average filled price of the order
         #                 "cumFee": "0",       # cumulative fee paid for self order
         #                 "cumFilledQty": "0",  # cumulative filled quantity
         #                 "errorCode": "",     # error code; could be empty

@@ -639,7 +639,7 @@ func  (this *defx) ParseMarket(market interface{}) interface{}  {
         "active": IsEqual(this.SafeString(market, "status", ""), "active"),
         "contract": true,
         "linear": true,
-        "inverse": nil,
+        "inverse": false,
         "taker": this.SafeNumber(fees, "taker"),
         "maker": this.SafeNumber(fees, "maker"),
         "contractSize": this.ParseNumber("1"),
@@ -2610,6 +2610,6 @@ func  (this *defx) SetSandboxMode(enable interface{})  {
 
 func (this *defx) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

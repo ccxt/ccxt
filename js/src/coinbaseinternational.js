@@ -804,6 +804,7 @@ export default class coinbaseinternational extends Exchange {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }

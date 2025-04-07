@@ -407,6 +407,22 @@ func (this *whitebit) V4PublicGetFee (args ...interface{}) <-chan interface{} {
    return ch
 }
 
+func (this *whitebit) V4PublicGetOrderbookDepthMarket (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PublicGetOrderbookDepthMarket", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *whitebit) V4PublicGetOrderbookMarket (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -535,6 +551,22 @@ func (this *whitebit) V4PublicGetPlatformStatus (args ...interface{}) <-chan int
    return ch
 }
 
+func (this *whitebit) V4PublicGetMiningPool (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PublicGetMiningPool", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *whitebit) V4PrivatePostCollateralAccountBalance (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -626,6 +658,22 @@ func (this *whitebit) V4PrivatePostCollateralAccountSummary (args ...interface{}
            }
        }()
        ch <- (<-this.callEndpoint ("v4PrivatePostCollateralAccountSummary", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostCollateralAccountFundingHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostCollateralAccountFundingHistory", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -1047,6 +1095,22 @@ func (this *whitebit) V4PrivatePostOrderCollateralTriggerMarket (args ...interfa
    return ch
 }
 
+func (this *whitebit) V4PrivatePostOrderCollateralBulk (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostOrderCollateralBulk", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *whitebit) V4PrivatePostOrderNew (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1218,6 +1282,22 @@ func (this *whitebit) V4PrivatePostOrderModify (args ...interface{}) <-chan inte
            }
        }()
        ch <- (<-this.callEndpoint ("v4PrivatePostOrderModify", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostOrderConditionalCancel (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostOrderConditionalCancel", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -1506,6 +1586,182 @@ func (this *whitebit) V4PrivatePostSubAccountTransferHistory (args ...interface{
            }
        }()
        ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountTransferHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyCreate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyCreate", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyEdit (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyEdit", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyDelete (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyDelete", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyList (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyList", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyReset (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyReset", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyIpAddressList (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyIpAddressList", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyIpAddressCreate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyIpAddressCreate", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostSubAccountApiKeyIpAddressDelete (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostSubAccountApiKeyIpAddressDelete", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostMiningRewards (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostMiningRewards", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostMarketFee (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostMarketFee", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *whitebit) V4PrivatePostConditionalOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v4PrivatePostConditionalOrders", parameters))
        PanicOnError(ch)
    }()
    return ch

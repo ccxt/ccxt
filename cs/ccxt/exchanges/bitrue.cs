@@ -28,6 +28,7 @@ public partial class bitrue : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
@@ -1170,7 +1171,7 @@ public partial class bitrue : Exchange
         //         "time": 1699338305000
         //     }
         //
-        object timestamp = this.safeInteger(response, "time");
+        object timestamp = this.safeInteger2(response, "time", "lastUpdateId");
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return orderbook;
@@ -1627,7 +1628,7 @@ public partial class bitrue : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object market = this.market(this.safeValue(ticker, "symbol"));
+            object market = this.safeMarket(this.safeString(ticker, "symbol"));
             ((IDictionary<string,object>)tickers)[(string)getValue(market, "id")] = ticker;
         }
         return this.parseTickers(tickers, symbols);

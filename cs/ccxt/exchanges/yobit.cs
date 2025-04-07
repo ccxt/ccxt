@@ -1338,6 +1338,7 @@ public partial class yobit : Exchange
             { "currency", code },
             { "address", address },
             { "tag", null },
+            { "network", null },
             { "info", getValue(response, "info") },
         };
     }

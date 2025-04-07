@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.66'
+__version__ = '4.4.72'
 
 # ----------------------------------------------------------------------------
 
@@ -22,7 +22,6 @@ from ccxt.pro.binanceusdm import binanceusdm                              # noqa
 from ccxt.pro.bingx import bingx                                          # noqa: F401
 from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
-from ccxt.pro.bitfinex1 import bitfinex1                                  # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
@@ -78,7 +77,6 @@ from ccxt.pro.p2b import p2b                                              # noqa
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
-from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.vertex import vertex                                        # noqa: F401
@@ -98,7 +96,6 @@ exchanges = [
     'bingx',
     'bitcoincom',
     'bitfinex',
-    'bitfinex1',
     'bitget',
     'bithumb',
     'bitmart',
@@ -154,7 +151,6 @@ exchanges = [
     'paradex',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'upbit',
     'vertex',

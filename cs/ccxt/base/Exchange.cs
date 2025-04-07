@@ -28,6 +28,11 @@ public partial class Exchange
         this.initStream();
 
         this.afterConstruct();
+
+        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
+        {
+            this.setSandboxMode(true);
+        }
     }
 
     private void initStream()
@@ -789,7 +794,8 @@ public partial class Exchange
         return Task.Delay(Convert.ToInt32(ms));
     }
 
-    public void initThrottler() {
+    public void initThrottler()
+    {
         this.throttler = new Throttler(this.tokenBucket);
     }
 

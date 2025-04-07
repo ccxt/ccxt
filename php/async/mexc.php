@@ -2291,8 +2291,10 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2313,8 +2315,10 @@ class mexc extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', 0, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -4849,7 +4853,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address

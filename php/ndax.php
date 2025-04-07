@@ -2149,7 +2149,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address

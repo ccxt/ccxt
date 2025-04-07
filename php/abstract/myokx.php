@@ -322,8 +322,14 @@ abstract class myokx extends \ccxt\okx {
     public function private_get_trade_one_click_repay_currency_list($params = array()) {
         return $this->request('trade/one-click-repay-currency-list', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_trade_one_click_repay_currency_list_v2($params = array()) {
+        return $this->request('trade/one-click-repay-currency-list-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_trade_one_click_repay_history($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_trade_one_click_repay_history_v2($params = array()) {
+        return $this->request('trade/one-click-repay-history-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_trade_account_rate_limit($params = array()) {
         return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -750,6 +756,9 @@ abstract class myokx extends \ccxt\okx {
     }
     public function private_post_trade_one_click_repay($params = array()) {
         return $this->request('trade/one-click-repay', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_post_trade_one_click_repay_v2($params = array()) {
+        return $this->request('trade/one-click-repay-v2', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function private_post_trade_mass_cancel($params = array()) {
         return $this->request('trade/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -1330,8 +1339,14 @@ abstract class myokx extends \ccxt\okx {
     public function privateGetTradeOneClickRepayCurrencyList($params = array()) {
         return $this->request('trade/one-click-repay-currency-list', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetTradeOneClickRepayCurrencyListV2($params = array()) {
+        return $this->request('trade/one-click-repay-currency-list-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetTradeOneClickRepayHistory($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetTradeOneClickRepayHistoryV2($params = array()) {
+        return $this->request('trade/one-click-repay-history-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetTradeAccountRateLimit($params = array()) {
         return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1758,6 +1773,9 @@ abstract class myokx extends \ccxt\okx {
     }
     public function privatePostTradeOneClickRepay($params = array()) {
         return $this->request('trade/one-click-repay', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privatePostTradeOneClickRepayV2($params = array()) {
+        return $this->request('trade/one-click-repay-v2', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function privatePostTradeMassCancel($params = array()) {
         return $this->request('trade/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 4));

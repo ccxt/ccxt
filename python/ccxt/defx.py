@@ -613,7 +613,7 @@ class defx(Exchange, ImplicitAPI):
             'active': self.safe_string(market, 'status', '') == 'active',
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'taker': self.safe_number(fees, 'taker'),
             'maker': self.safe_number(fees, 'maker'),
             'contractSize': self.parse_number('1'),

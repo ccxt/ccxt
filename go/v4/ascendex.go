@@ -550,7 +550,7 @@ func  (this *ascendex) FetchCurrencies(optionalArgs ...interface{}) <- chan inte
             var ids interface{} = ObjectKeys(dataById)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                var id interface{} = GetValue(ids, i)
+                var id interface{} = this.SafeString(ids, i)
                 var currency interface{} = GetValue(dataById, id)
                 var code interface{} = this.SafeCurrencyCode(id)
                 var scale interface{} = this.SafeString2(currency, "precisionScale", "nativeScale")
@@ -2292,7 +2292,7 @@ func  (this *ascendex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             //         "code": 0,
             //         "data": [
             //             {
-            //                 "avgPx": "0",         // Average filled price of the order
+            //                 "avgPx": "0",        // Average filled price of the order
             //                 "cumFee": "0",       // cumulative fee paid for this order
             //                 "cumFilledQty": "0", // cumulative filled quantity
             //                 "errorCode": "",     // error code; could be empty
@@ -4290,6 +4290,6 @@ func  (this *ascendex) HandleErrors(httpCode interface{}, reason interface{}, ur
 
 func (this *ascendex) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

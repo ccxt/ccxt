@@ -1037,8 +1037,8 @@ func IsObject(v interface{}) bool {
 	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
-	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
-		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
+		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
 		return true
 	default:
 		return false
@@ -1246,7 +1246,7 @@ func ObjectKeys(v interface{}) []string {
 			keys = append(keys, key)
 		}
 		return keys
-	}
+	} 
 	return nil
 	// val := reflect.ValueOf(v)
 	// if val.Kind() != reflect.Map {

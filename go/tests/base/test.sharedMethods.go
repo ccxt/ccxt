@@ -191,7 +191,7 @@ import "github.com/ccxt/ccxt/go/v4"
         if IsTrue(definedValues) {
             // check by code
             var currencyByCode interface{} = exchange.Currency(currencyCode)
-            Assert(IsEqual(GetValue(currencyByCode, "id"), currencyId), Add(Add(Add(Add(Add("currencyId \"", StringValue(currencyId)), "\" does not match currency of code: \""), StringValue(currencyCode)), "\""), logText))
+            Assert(IsEqual(GetValue(currencyByCode, "id"), currencyId), Add(Add(Add(Add(Add("currencyId \"", StringValue(currencyId)), "\" does not match currency id from instance: \""), StringValue(GetValue(currencyByCode, "id"))), "\""), logText))
             // check by id
             var currencyById interface{} = exchange.SafeCurrency(currencyId)
             Assert(IsEqual(GetValue(currencyById, "code"), currencyCode), Add(Add(Add(Add("currencyCode ", StringValue(currencyCode)), " does not match currency of id: "), StringValue(currencyId)), logText))

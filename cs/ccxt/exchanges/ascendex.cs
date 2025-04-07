@@ -541,7 +541,7 @@ public partial class ascendex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
+            object id = this.safeString(ids, i);
             object currency = getValue(dataById, id);
             object code = this.safeCurrencyCode(id);
             object scale = this.safeString2(currency, "precisionScale", "nativeScale");
@@ -2153,7 +2153,7 @@ public partial class ascendex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty

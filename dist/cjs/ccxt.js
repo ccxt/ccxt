@@ -27,7 +27,6 @@ var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
-var bitfinex1 = require('./src/bitfinex1.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
@@ -108,7 +107,6 @@ var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
-var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
@@ -133,7 +131,6 @@ var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
 var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
-var bitfinex1$1 = require('./src/pro/bitfinex1.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
@@ -189,7 +186,6 @@ var p2b$1 = require('./src/pro/p2b.js');
 var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
-var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
@@ -200,7 +196,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.66';
+const version = '4.4.72';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -218,7 +214,6 @@ const exchanges = {
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
-    'bitfinex1': bitfinex1,
     'bitflyer': bitflyer,
     'bitget': bitget,
     'bithumb': bithumb,
@@ -299,7 +294,6 @@ const exchanges = {
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
-    'poloniexfutures': poloniexfutures,
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
@@ -326,7 +320,6 @@ const pro = {
     'bingx': bingx$1,
     'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
-    'bitfinex1': bitfinex1$1,
     'bitget': bitget$1,
     'bithumb': bithumb$1,
     'bitmart': bitmart$1,
@@ -382,7 +375,6 @@ const pro = {
     'paradex': paradex$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
-    'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
@@ -456,7 +448,6 @@ exports.bitbank = bitbank;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
-exports.bitfinex1 = bitfinex1;
 exports.bitflyer = bitflyer;
 exports.bitget = bitget;
 exports.bithumb = bithumb;
@@ -537,7 +528,6 @@ exports.paradex = paradex;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;
-exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;

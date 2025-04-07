@@ -544,7 +544,7 @@ class ascendex extends Exchange {
         $ids = is_array($dataById) ? array_keys($dataById) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+            $id = $this->safe_string($ids, $i);
             $currency = $dataById[$id];
             $code = $this->safe_currency_code($id);
             $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
@@ -2025,7 +2025,7 @@ class ascendex extends Exchange {
         //         "code" => 0,
         //         "data" => array(
         //             array(
-        //                 "avgPx" => "0",         // Average filled price of the $order
+        //                 "avgPx" => "0",        // Average filled price of the $order
         //                 "cumFee" => "0",       // cumulative fee paid for this $order
         //                 "cumFilledQty" => "0", // cumulative filled quantity
         //                 "errorCode" => "",     // error code; could be empty

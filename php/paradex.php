@@ -69,10 +69,10 @@ class paradex extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => false,
-                'fetchLeverage' => false,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
-                'fetchMarginMode' => null,
+                'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -106,8 +106,8 @@ class paradex extends Exchange {
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
                 'sandbox' => true,
-                'setLeverage' => false,
-                'setMarginMode' => false,
+                'setLeverage' => true,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
@@ -149,12 +149,23 @@ class paradex extends Exchange {
                         'system/state' => 1,
                         'system/time' => 1,
                         'trades' => 1,
+                        'vaults' => 1,
+                        'vaults/balance' => 1,
+                        'vaults/config' => 1,
+                        'vaults/history' => 1,
+                        'vaults/positions' => 1,
+                        'vaults/summary' => 1,
+                        'vaults/transfers' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'account' => 1,
+                        'account/info' => 1,
+                        'account/history' => 1,
+                        'account/margin' => 1,
                         'account/profile' => 1,
+                        'account/subaccounts' => 1,
                         'balance' => 1,
                         'fills' => 1,
                         'funding/payments' => 1,
@@ -167,20 +178,34 @@ class paradex extends Exchange {
                         'orders/by_client_id/{client_id}' => 1,
                         'orders/{order_id}' => 1,
                         'points_data/{market}/{program}' => 1,
+                        'referrals/qr-code' => 1,
                         'referrals/summary' => 1,
                         'transfers' => 1,
+                        'algo/orders' => 1,
+                        'algo/orders-history' => 1,
+                        'algo/orders/{algo_id}' => 1,
+                        'vaults/account-summary' => 1,
                     ),
                     'post' => array(
+                        'account/margin/{market}' => 1,
+                        'account/profile/max_slippage' => 1,
                         'account/profile/referral_code' => 1,
                         'account/profile/username' => 1,
                         'auth' => 1,
                         'onboarding' => 1,
                         'orders' => 1,
+                        'orders/batch' => 1,
+                        'algo/orders' => 1,
+                        'vaults' => 1,
+                    ),
+                    'put' => array(
+                        'orders/{order_id}' => 1,
                     ),
                     'delete' => array(
                         'orders' => 1,
                         'orders/by_client_id/{client_id}' => 1,
                         'orders/{order_id}' => 1,
+                        'algo/orders/{algo_id}' => 1,
                     ),
                 ),
             ),
@@ -465,6 +490,57 @@ class paradex extends Exchange {
         //         "max_tob_spread" => "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":array(
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        ),
+        //        "mmf":array(
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     ),
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":array(
+        //     )
+        //  }
+        //
+        $assetKind = $this->safe_string($market, 'asset_kind');
+        $isOption = ($assetKind === 'PERP_OPTION');
+        $type = ($isOption) ? 'option' : 'swap';
+        $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quote_currency');
         $baseId = $this->safe_string($market, 'base_currency');
@@ -474,6 +550,14 @@ class paradex extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $expiry = $this->safe_integer($market, 'expiry_at');
+        $optionType = $this->safe_string($market, 'option_type');
+        $strikePrice = $this->safe_string($market, 'strike_price');
+        if ($isOption) {
+            $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
+            $symbol = $symbol . '-' . $strikePrice . '-' . $optionTypeSuffix;
+        } else {
+            $expiry = null;
+        }
         $takerFee = $this->parse_number('0.0003');
         $makerFee = $this->parse_number('-0.00005');
         return $this->safe_market_structure(array(
@@ -485,23 +569,23 @@ class paradex extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
-            'type' => 'swap',
+            'type' => $type,
             'spot' => false,
             'margin' => null,
-            'swap' => true,
+            'swap' => $isSwap,
             'future' => false,
-            'option' => false,
+            'option' => $isOption,
             'active' => $this->safe_bool($market, 'enableTrading'),
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $takerFee,
             'maker' => $makerFee,
             'contractSize' => $this->parse_number('1'),
-            'expiry' => ($expiry === 0) ? null : $expiry,
+            'expiry' => $expiry,
             'expiryDatetime' => ($expiry === 0) ? null : $this->iso8601($expiry),
-            'strike' => null,
-            'optionType' => null,
+            'strike' => $this->parse_number($strikePrice),
+            'optionType' => $this->safe_string_lower($market, 'option_type'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'order_size_increment'),
                 'price' => $this->safe_number($market, 'price_tick_size'),
@@ -2154,6 +2238,156 @@ class paradex extends Exchange {
             'FAILED' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+        /**
+         * fetches the margin mode of a specific $symbol
+         *
+         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         *
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         */
+        $this->authenticate_rest();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetAccountMargin ($this->extend($request, $params));
+        //
+        // {
+        //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs" => array(
+        //         {
+        //             "market" => "SOL-USD-PERP",
+        //             "leverage" => 50,
+        //             "margin_type" => "CROSS"
+        //         }
+        //     )
+        // }
+        //
+        $configs = $this->safe_list($response, 'configs');
+        return $this->parse_margin_mode($this->safe_dict($configs, 0), $market);
+    }
+
+    public function parse_margin_mode(array $rawMarginMode, $market = null): array {
+        $marketId = $this->safe_string($rawMarginMode, 'market');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
+        return array(
+            'info' => $rawMarginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginMode,
+        );
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->leverage] the rate of $leverage
+         * @return {array} response from the exchange
+         */
+        $this->check_required_argument('setMarginMode', $symbol, 'symbol');
+        $this->authenticate_rest();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $leverage = null;
+        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
+        $request = array(
+            'market' => $market['id'],
+            'leverage' => $leverage,
+            'margin_type' => $this->encode_margin_mode($marginMode),
+        );
+        return $this->privatePostAccountMarginMarket ($this->extend($request, $params));
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): array {
+        /**
+         * fetch the set leverage for a $market
+         *
+         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
+        $this->authenticate_rest();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetAccountMargin ($this->extend($request, $params));
+        //
+        // {
+        //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs" => array(
+        //         {
+        //             "market" => "SOL-USD-PERP",
+        //             "leverage" => 50,
+        //             "margin_type" => "CROSS"
+        //         }
+        //     )
+        // }
+        //
+        $configs = $this->safe_list($response, 'configs');
+        return $this->parse_leverage($this->safe_dict($configs, 0), $market);
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $marketId = $this->safe_string($leverage, 'market');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = $this->safe_string_lower($leverage, 'margin_type');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $this->safe_integer($leverage, 'leverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'leverage'),
+        );
+    }
+
+    public function encode_margin_mode($mode) {
+        $modes = array(
+            'cross' => 'CROSS',
+            'isolated' => 'ISOLATED',
+        );
+        return $this->safe_string($modes, $mode, $mode);
+    }
+
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} [$symbol] unified $market $symbol (is mandatory for swap markets)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated'
+         * @return {array} response from the exchange
+         */
+        $this->check_required_argument('setLeverage', $symbol, 'symbol');
+        $this->authenticate_rest();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
+        $request = array(
+            'market' => $market['id'],
+            'leverage' => $leverage,
+            'margin_type' => $this->encode_margin_mode($marginMode),
+        );
+        return $this->privatePostAccountMarginMarket ($this->extend($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

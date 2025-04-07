@@ -245,6 +245,8 @@ class bybit extends Exchange {
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
+                        // earn
+                        'v5/earn/product' => 5,
                     ),
                 ),
                 'private' => array(
@@ -403,6 +405,9 @@ class bybit extends Exchange {
                         'v5/broker/earnings-info' => 5,
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
+                        // earn
+                        'v5/earn/order' => 5,
+                        'v5/earn/position' => 5,
                     ),
                     'post' => array(
                         // spot
@@ -538,6 +543,8 @@ class bybit extends Exchange {
                         'v5/broker/award/info' => 5,
                         'v5/broker/award/distribute-award' => 5,
                         'v5/broker/award/distribution-record' => 5,
+                        // earn
+                        'v5/earn/place-order' => 5,
                     ),
                 ),
             ),
@@ -2522,7 +2529,7 @@ class bybit extends Exchange {
         return $this->parse_tickers($tickerList, $parsedSymbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -3820,7 +3827,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -3839,7 +3846,7 @@ class bybit extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()): array {
         /**
          * create a $market sell order by providing the $symbol and $cost
          *
@@ -3863,7 +3870,7 @@ class bybit extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade $order
          *
@@ -4158,7 +4165,7 @@ class bybit extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array ()): array {
         /**
          * create a list of trade $orders
          *
@@ -4323,7 +4330,7 @@ class bybit extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
         /**
          * edit a trade order
          *
@@ -4375,7 +4382,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function edit_orders(array $orders, $params = array ()) {
+    public function edit_orders(array $orders, $params = array ()): array {
         /**
          * edit a list of trade $orders
          *
@@ -4495,7 +4502,7 @@ class bybit extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * cancels an open order
          *
@@ -4532,7 +4539,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple orders
          *
@@ -4821,7 +4828,7 @@ class bybit extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function fetch_order_classic(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_classic(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * fetches information on an order made by the user *classic accounts only*
          *
@@ -5086,7 +5093,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * fetches information on a closed order made by the user
          *
@@ -5119,7 +5126,7 @@ class bybit extends Exchange {
         return $this->safe_value($result, 0);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * fetches information on an open order made by the user
          *
@@ -5286,7 +5293,7 @@ class bybit extends Exchange {
         return $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -5417,7 +5424,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -5441,7 +5448,7 @@ class bybit extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -6202,7 +6209,7 @@ class bybit extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()): array {
         /**
          * fetch data on a single open contract trade $position
          *
@@ -6275,7 +6282,7 @@ class bybit extends Exchange {
         return $position;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *
@@ -6287,9 +6294,15 @@ class bybit extends Exchange {
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
          * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchPositions', $symbols, null, null, $params, 'nextPageCursor', 'cursor', null, 200);
+        }
         $symbol = null;
         if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             $symbolsLength = count($symbols);
@@ -6326,6 +6339,9 @@ class bybit extends Exchange {
                     $request['category'] = 'inverse';
                 }
             }
+        }
+        if ($this->safe_integer($params, 'limit') === null) {
+            $request['limit'] = 200; // max limit
         }
         $params = $this->omit($params, array( 'type' ));
         $request['category'] = $type;
@@ -6378,7 +6394,7 @@ class bybit extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // linear swap
         //
@@ -7390,7 +7406,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null): array {
         //
         // borrowCrossMargin
         //
@@ -7641,7 +7657,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null): mixed {
         //
         //    {
         //        "name" => "BTC",
@@ -8110,7 +8126,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * retrieves the users liquidated positions
          *
@@ -8194,7 +8210,7 @@ class bybit extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null): Liquidation {
         //
         //     {
         //         "symbol" => "ETHPERP",
@@ -8370,7 +8386,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -8417,7 +8433,7 @@ class bybit extends Exchange {
         return $this->parse_incomes($fundings, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income($income, ?array $market = null): array {
         //
         // {
         //     "symbol" => "XMRUSDT",
@@ -9308,7 +9324,7 @@ class bybit extends Exchange {
             } else {
                 $feedback = $this->id . ' ' . $body;
             }
-            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal')) {
+            if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal') > -1) {
                 $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
             }
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

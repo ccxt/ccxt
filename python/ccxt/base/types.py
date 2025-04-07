@@ -596,3 +596,30 @@ class Message:
         self.payload = payload
         self.error = error
         self.metadata = Metadata(stream, topic, index)
+class ConstructorArgs(TypedDict, total=False):
+    apiKey: str
+    secret: str
+    passphrase: str
+    password: str
+    privateKey: str
+    walletAddress: str
+    uid: str
+    verbose: bool
+    testnet: bool
+    sandbox: bool  # redudant but kept for backwards compatibility
+    options: Dict[str, Any]
+    enableRateLimit: bool
+    httpsProxy: str
+    socksProxy: str
+    wssProxy: str
+    proxy: str
+    rateLimit: Num
+    commonCurrencies: Dict[str, Any]
+    userAgent: str
+    userAgents: Dict[str, Any]
+    timeout: Num
+    markets: Dict[str, Any]
+    currencies: Dict[str, Any]
+    hostname: str
+    urls: Dict[str, Any]
+    headers: Dict[str, Any]

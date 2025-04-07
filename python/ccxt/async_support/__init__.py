@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.66'
+__version__ = '4.4.72'
 
 # -----------------------------------------------------------------------------
 
@@ -78,7 +78,6 @@ from ccxt.async_support.bitbank import bitbank                                  
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
-from ccxt.async_support.bitfinex1 import bitfinex1                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
@@ -159,7 +158,6 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
-from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -191,7 +189,6 @@ exchanges = [
     'bitbns',
     'bitcoincom',
     'bitfinex',
-    'bitfinex1',
     'bitflyer',
     'bitget',
     'bithumb',
@@ -272,7 +269,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'timex',
     'tokocrypto',

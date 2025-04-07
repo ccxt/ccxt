@@ -70,10 +70,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bitfinexItf := &bitfinex{}
         bitfinexItf.Init(exchangeArgs)
         return bitfinexItf, true
-    case "bitfinex1":
-        bitfinex1Itf := &bitfinex1{}
-        bitfinex1Itf.Init(exchangeArgs)
-        return bitfinex1Itf, true
     case "bitflyer":
         bitflyerItf := &bitflyer{}
         bitflyerItf.Init(exchangeArgs)
@@ -394,10 +390,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         poloniexItf := &poloniex{}
         poloniexItf.Init(exchangeArgs)
         return poloniexItf, true
-    case "poloniexfutures":
-        poloniexfuturesItf := &poloniexfutures{}
-        poloniexfuturesItf.Init(exchangeArgs)
-        return poloniexfuturesItf, true
     case "probit":
         probitItf := &probit{}
         probitItf.Init(exchangeArgs)

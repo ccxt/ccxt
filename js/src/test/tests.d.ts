@@ -93,5 +93,7 @@ declare class testMainClass {
     testHashkey(): Promise<boolean>;
     testCoincatch(): Promise<boolean>;
     testDefx(): Promise<boolean>;
+    testCryptomus(): Promise<boolean>;
+    testDerive(): Promise<boolean>;
 }
 export default testMainClass;

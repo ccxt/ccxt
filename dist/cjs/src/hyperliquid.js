@@ -840,7 +840,7 @@ class hyperliquid extends hyperliquid$1 {
             'info': response,
             'USDC': {
                 'total': this.safeNumber(data, 'accountValue'),
-                'free': this.safeNumber(response, 'withdrawable'),
+                'used': this.safeNumber(data, 'totalMarginUsed'),
             },
         };
         const timestamp = this.safeInteger(response, 'time');
@@ -1810,12 +1810,13 @@ class hyperliquid extends hyperliquid$1 {
             const isTrigger = (stopLossPrice || takeProfitPrice);
             const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
             orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
-            let px = price.toString();
+            let px = this.numberToString(price);
             if (isMarket) {
-                px = (isBuy) ? Precise["default"].stringMul(price.toString(), Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price.toString(), Precise["default"].stringSub('1', slippage));
+                px = (isBuy) ? Precise["default"].stringMul(px, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(px, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px);
             }
             else {
-                px = this.priceToPrecision(symbol, price.toString());
+                px = this.priceToPrecision(symbol, px);
             }
             const sz = this.amountToPrecision(symbol, amount);
             const orderType = {};
@@ -1960,6 +1961,46 @@ class hyperliquid extends hyperliquid$1 {
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
         return this.parseOrders(statuses);
+    }
+    /**
+     * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    async createVault(name, description, initialUsd, params = {}) {
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(initialUsd), '1000000'));
+        const action = {
+            'type': 'createVault',
+            'name': name,
+            'description': description,
+            'initialUsd': usd,
+            'nonce': nonce,
+        };
+        const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "createVault",
+        //         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        //     }
+        // }
+        //
+        return response;
     }
     /**
      * @method
@@ -2327,6 +2368,11 @@ class hyperliquid extends hyperliquid$1 {
         }
         const totalAmount = this.safeString2(entry, 'origSz', 'totalSz');
         const remaining = this.safeString(entry, 'sz');
+        const tif = this.safeStringUpper(entry, 'tif');
+        let postOnly = undefined;
+        if (tif !== undefined) {
+            postOnly = (tif === 'ALO');
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(entry, 'oid'),
@@ -2337,8 +2383,8 @@ class hyperliquid extends hyperliquid$1 {
             'lastUpdateTimestamp': this.safeInteger(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType(this.safeStringLower(entry, 'orderType')),
-            'timeInForce': this.safeStringUpper(entry, 'tif'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString(entry, 'limitPx'),
@@ -2460,6 +2506,11 @@ class hyperliquid extends hyperliquid$1 {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         const fee = this.safeString(trade, 'fee');
+        let takerOrMaker = undefined;
+        const crossed = this.safeBool(trade, 'crossed');
+        if (crossed !== undefined) {
+            takerOrMaker = crossed ? 'taker' : 'maker';
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -2469,7 +2520,7 @@ class hyperliquid extends hyperliquid$1 {
             'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -3043,7 +3094,7 @@ class hyperliquid extends hyperliquid$1 {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeInteger(delta, 'usdc'),
+            'amount': this.safeNumber(delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString(transaction, 'status'),
             'updated': undefined,

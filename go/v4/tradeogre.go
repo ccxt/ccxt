@@ -71,7 +71,7 @@ func  (this *tradeogre) Describe() interface{}  {
             "fetchMarkets": true,
             "fetchMarkOHLCV": false,
             "fetchMyTrades": false,
-            "fetchOHLCV": false,
+            "fetchOHLCV": true,
             "fetchOpenInterest": false,
             "fetchOpenInterestHistory": false,
             "fetchOpenOrders": true,
@@ -89,7 +89,7 @@ func  (this *tradeogre) Describe() interface{}  {
             "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
             "fetchTicker": true,
-            "fetchTickers": false,
+            "fetchTickers": true,
             "fetchTrades": true,
             "fetchTradingLimits": false,
             "fetchTransactionFee": false,
@@ -131,11 +131,12 @@ func  (this *tradeogre) Describe() interface{}  {
                     "orders/{market}": 1,
                     "ticker/{market}": 1,
                     "history/{market}": 1,
+                    "chart/{interval}/{market}/{timestamp}": 1,
+                    "chart/{interval}/{market}": 1,
                 },
             },
             "private": map[string]interface{} {
                 "get": map[string]interface{} {
-                    "account/balance": 1,
                     "account/balances": 1,
                     "account/order/{uuid}": 1,
                 },
@@ -145,6 +146,7 @@ func  (this *tradeogre) Describe() interface{}  {
                     "order/cancel": 1,
                     "orders": 1,
                     "account/orders": 1,
+                    "account/balance": 1,
                 },
             },
         },
@@ -157,6 +159,14 @@ func  (this *tradeogre) Describe() interface{}  {
                 "Insufficient funds": InsufficientFunds,
                 "Order not found": BadRequest,
             },
+        },
+        "timeframes": map[string]interface{} {
+            "1m": "1m",
+            "15m": "15m",
+            "1h": "1h",
+            "4h": "4h",
+            "1d": "1d",
+            "1w": "1w",
         },
         "options": map[string]interface{} {},
         "features": map[string]interface{} {
@@ -333,8 +343,8 @@ func  (this *tradeogre) FetchTicker(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3198 := (<-this.LoadMarkets())
-            PanicOnError(retRes3198)
+            retRes3298 := (<-this.LoadMarkets())
+            PanicOnError(retRes3298)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -361,18 +371,92 @@ func  (this *tradeogre) FetchTicker(symbol interface{}, optionalArgs ...interfac
             }()
             return ch
         }
+/**
+ * @method
+ * @name tradeogre#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func  (this *tradeogre) FetchTickers(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]interface{} {})
+            _ = params
+        
+            retRes3598 := (<-this.LoadMarkets())
+            PanicOnError(retRes3598)
+            symbols = this.MarketSymbols(symbols)
+            var request interface{} = map[string]interface{} {}
+        
+            response:= (<-this.PublicGetMarkets(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //     [
+            //         {
+            //             "AAVE-USDT": {
+            //                 "initialprice": "177.20325711",
+            //                 "price": "177.20325711",
+            //                 "high": "177.20325711",
+            //                 "low": "177.20325711",
+            //                 "volume": "0.00000000",
+            //                 "bid": "160.72768581",
+            //                 "ask": "348.99999999",
+            //                 "basename": "Aave"
+            //             }
+            //         },
+            //         ...
+            //     ]
+            //
+            var result interface{} = map[string]interface{} {}
+            for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+                var entry interface{} = GetValue(response, i)
+                var marketIdArray interface{} = ObjectKeys(entry)
+                var marketId interface{} = this.SafeString(marketIdArray, 0)
+                var market interface{} = this.SafeMarket(marketId)
+                var data interface{} = GetValue(entry, marketId)
+                var ticker interface{} = this.ParseTicker(data, market)
+                var symbol interface{} = GetValue(ticker, "symbol")
+                AddElementToObject(result, symbol, ticker)
+            }
+        
+            ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *tradeogre) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
     //
-    //  {
-    //       "success":true,
-    //       "initialprice":"0.02502002",
-    //       "price":"0.02500000",
-    //       "high":"0.03102001",
-    //       "low":"0.02500000",
-    //       "volume":"0.15549958",
-    //       "bid":"0.02420000",
-    //       "ask":"0.02625000"
-    //   }
+    //  fetchTicker:
+    //     {
+    //         "success":true,
+    //         "initialprice":"0.02502002",
+    //         "price":"0.02500000",
+    //         "high":"0.03102001",
+    //         "low":"0.02500000",
+    //         "volume":"0.15549958",
+    //         "bid":"0.02420000",
+    //         "ask":"0.02625000"
+    //     }
+    //
+    //  fetchTickers:
+    //     {
+    //         "initialprice": "177.20325711",
+    //         "price": "177.20325711",
+    //         "high": "177.20325711",
+    //         "low": "177.20325711",
+    //         "volume": "0.00000000",
+    //         "bid": "160.72768581",
+    //         "ask": "348.99999999",
+    //         "basename": "Aave"
+    //     },
+    //     ...
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -387,17 +471,97 @@ func  (this *tradeogre) ParseTicker(ticker interface{}, optionalArgs ...interfac
         "ask": this.SafeString(ticker, "ask"),
         "askVolume": nil,
         "vwap": nil,
-        "open": this.SafeString(ticker, "open"),
-        "close": nil,
+        "open": this.SafeString(ticker, "initialprice"),
+        "close": this.SafeString(ticker, "price"),
         "last": nil,
         "previousClose": nil,
         "change": nil,
         "percentage": nil,
         "average": nil,
-        "baseVolume": this.SafeString(ticker, "volume"),
-        "quoteVolume": nil,
+        "baseVolume": nil,
+        "quoteVolume": this.SafeString(ticker, "volume"),
         "info": ticker,
     }, market)
+}
+/**
+ * @method
+ * @name tradeogre#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp of the latest candle in ms
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func  (this *tradeogre) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    timeframe := GetArg(optionalArgs, 0, "1m")
+            _ = timeframe
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]interface{} {})
+            _ = params
+        
+            retRes4588 := (<-this.LoadMarkets())
+            PanicOnError(retRes4588)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "market": GetValue(market, "id"),
+                "interval": this.SafeString(this.Timeframes, timeframe, timeframe),
+            }
+            var response interface{} = nil
+            var until interface{} = this.SafeInteger(params, "until")
+            if IsTrue(!IsEqual(until, nil)) {
+                params = this.Omit(params, "until")
+                AddElementToObject(request, "timestamp", this.ParseToInt(Divide(until, 1000)))
+                
+        response = (<-this.PublicGetChartIntervalMarketTimestamp(this.Extend(request, params)))
+                PanicOnError(response)
+            } else {
+                
+        response = (<-this.PublicGetChartIntervalMarket(this.Extend(request, params)))
+                PanicOnError(response)
+            }
+        
+                //
+            //     [
+            //         [
+            //             1729130040,
+            //             67581.47235999,
+            //             67581.47235999,
+            //             67338.01,
+            //             67338.01,
+            //             6.72168016
+            //         ],
+            //     ]
+            //
+        ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *tradeogre) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     [
+    //         1729130040,
+    //         67581.47235999,
+    //         67581.47235999,
+    //         67338.01,
+    //         67338.01,
+    //         6.72168016
+    //     ]
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    return []interface{}{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 }
 /**
  * @method
@@ -418,8 +582,8 @@ func  (this *tradeogre) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3878 := (<-this.LoadMarkets())
-            PanicOnError(retRes3878)
+            retRes5198 := (<-this.LoadMarkets())
+            PanicOnError(retRes5198)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -491,8 +655,8 @@ func  (this *tradeogre) FetchTrades(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes4378 := (<-this.LoadMarkets())
-            PanicOnError(retRes4378)
+            retRes5698 := (<-this.LoadMarkets())
+            PanicOnError(retRes5698)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -543,6 +707,7 @@ func  (this *tradeogre) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @name tradeogre#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.currency] currency to fetch the balance for
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interface{} {
@@ -553,11 +718,31 @@ func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes4848 := (<-this.LoadMarkets())
-            PanicOnError(retRes4848)
+            retRes6178 := (<-this.LoadMarkets())
+            PanicOnError(retRes6178)
+            var response interface{} = nil
+            var currency interface{} = this.SafeString(params, "currency")
+            if IsTrue(!IsEqual(currency, nil)) {
+                
+        response = (<-this.PrivatePostAccountBalance(params))
+                PanicOnError(response)
+                var singleCurrencyresult interface{} = map[string]interface{} {
+                    "info": response,
+                }
+                var code interface{} = this.SafeCurrencyCode(currency)
+                var account interface{} = map[string]interface{} {
+                    "total": this.SafeNumber(response, "balance"),
+                    "free": this.SafeNumber(response, "available"),
+                }
+                AddElementToObject(singleCurrencyresult, code, account)
         
-            response:= (<-this.PrivateGetAccountBalances(params))
-            PanicOnError(response)
+                ch <- this.SafeBalance(singleCurrencyresult)
+                return nil
+            } else {
+                
+        response = (<-this.PrivateGetAccountBalances(params))
+                PanicOnError(response)
+            }
             var result interface{} = this.SafeDict(response, "balances", map[string]interface{} {})
         
             ch <- this.ParseBalance(result)
@@ -610,8 +795,8 @@ func  (this *tradeogre) CreateOrder(symbol interface{}, typeVar interface{}, sid
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5268 := (<-this.LoadMarkets())
-            PanicOnError(retRes5268)
+            retRes6758 := (<-this.LoadMarkets())
+            PanicOnError(retRes6758)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(typeVar, "market")) {
                 panic(BadRequest(Add(this.Id, " createOrder does not support market orders")))
@@ -660,8 +845,8 @@ func  (this *tradeogre) CancelOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5588 := (<-this.LoadMarkets())
-            PanicOnError(retRes5588)
+            retRes7078 := (<-this.LoadMarkets())
+            PanicOnError(retRes7078)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -693,8 +878,8 @@ func  (this *tradeogre) CancelAllOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5758 := (<-this.LoadMarkets())
-            PanicOnError(retRes5758)
+            retRes7248 := (<-this.LoadMarkets())
+            PanicOnError(retRes7248)
         
             response:= (<-this.CancelOrder("all", symbol, params))
             PanicOnError(response)
@@ -730,8 +915,8 @@ func  (this *tradeogre) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes5948 := (<-this.LoadMarkets())
-            PanicOnError(retRes5948)
+            retRes7438 := (<-this.LoadMarkets())
+            PanicOnError(retRes7438)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -770,8 +955,8 @@ func  (this *tradeogre) FetchOrder(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6188 := (<-this.LoadMarkets())
-            PanicOnError(retRes6188)
+            retRes7678 := (<-this.LoadMarkets())
+            PanicOnError(retRes7678)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -816,11 +1001,11 @@ func  (this *tradeogre) ParseOrder(order interface{}, optionalArgs ...interface{
         "side": this.SafeString(order, "type"),
         "price": this.SafeString(order, "price"),
         "triggerPrice": nil,
-        "amount": this.SafeString(order, "quantity"),
+        "amount": nil,
         "cost": nil,
         "average": nil,
         "filled": this.SafeString(order, "fulfilled"),
-        "remaining": nil,
+        "remaining": this.SafeString(order, "quantity"),
         "status": nil,
         "fee": map[string]interface{} {
             "currency": nil,
@@ -892,6 +1077,6 @@ func  (this *tradeogre) HandleErrors(code interface{}, reason interface{}, url i
 
 func (this *tradeogre) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

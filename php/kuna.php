@@ -1617,7 +1617,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
          *
