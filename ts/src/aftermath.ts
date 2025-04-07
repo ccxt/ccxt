@@ -75,7 +75,6 @@ export default class aftermath extends Exchange {
                     'get': {
                         'markets': 1,
                         'currencies': 1,
-                        'health': 1,
                     },
                     'post': {
                         'ticker': 1,
@@ -310,6 +309,31 @@ export default class aftermath extends Exchange {
             'chId': market['id'],
         };
         const response = await this.publicPostTicker (this.extend (request, params));
+        //
+        // {
+        //     "ask": 0.1,
+        //     "askVolume": 0.1,
+        //     "average": 0.1,
+        //     "baseVolume": 0.1,
+        //     "bid": 0.1,
+        //     "bidVolume": 0.1,
+        //     "change": 0.1,
+        //     "close": 0.1,
+        //     "datetime": "string",
+        //     "high": 0.1,
+        //     "indexPrice": 0.1,
+        //     "last": 0.1,
+        //     "low": 0.1,
+        //     "markPrice": 0.1,
+        //     "open": 0.1,
+        //     "percentage": 0.1,
+        //     "previousClose": 0.1,
+        //     "quoteVolume": 0.1,
+        //     "symbol": "string",
+        //     "timestamp": null,
+        //     "vwap": 0.1
+        // }
+        //
         return this.parseTicker (response);
     }
 
@@ -321,12 +345,36 @@ export default class aftermath extends Exchange {
         return parsed;
     }
 
+    /**
+     * @method
+     * @name aftermath#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const chId = this.safeString (market, 'id');
-        const request = { 'chId': chId, 'symbol': symbol };
-        const response = await this.publicPostOrderBook (this.extend (request, params));
+        const request = {
+            'chId': chId,
+        };
+        const response = await this.publicPostOrderbook (this.extend (request, params));
+        //
+        // {
+        //     "asks":[
+        //         [76228.1534,11.58777]
+        //     ],
+        //     "bids":[
+        //         [76213.4842,11.96145],
+        //     ],
+        //     "datetime":"2025-04-07 09:29:28.213 UTC",
+        //     "timestamp":1744018168213,
+        //     "symbol":"BTC/USD:USDC"
+        // } 
+        //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
