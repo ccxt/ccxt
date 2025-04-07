@@ -806,16 +806,16 @@ export default class bitget extends bitgetRest {
             topics.push (args);
             messageHashes.push ('trade:' + symbol);
         }
-        const trades = await this.watchPublicMultiple (messageHashes, topics, params);
+        let trades = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            return this.removeRepeatedElementsFromArray (result, false);
+            trades = this.removeRepeatedElementsFromArray (trades, false);
         }
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
         return result as Trade[];
     }
 
