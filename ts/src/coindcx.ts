@@ -1452,19 +1452,19 @@ export default class coindcx extends Exchange {
             if (type === undefined) {
                 throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for spot markets without margin (market and limit types are supported only)');
             }
-            return this.createSpotOrder (symbol, type, side, amount, price, params);
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (marketType === 'margin') {
             type = this.encodeMarginOrderType (type);
             if (type === undefined) {
                 throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for spot margin markets (market, limit, stop_limit, take_profit and take_profit_limit types are supported only)');
             }
-            return this.createMarginOrder (symbol, type, side, amount, price, params);
+            return await this.createMarginOrder (symbol, type, side, amount, price, params);
         } else if (marketType === 'swap') {
             type = this.encodeContractOrderType (type);
             if (type === undefined) {
                 throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for contract markets (market, limit, stop_limit, stop_market, take_profit_limit and take_profit_market types are supported only)');
             }
-            return this.createContractOrder (symbol, type, side, amount, price, params);
+            return await this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
             throw new NotSupported (this.id + ' createOrder() does not supports ' + marketType + ' markets');
         }
