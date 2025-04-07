@@ -825,7 +825,7 @@
             {
                 "description": "Swap fetchPositions",
                 "method": "fetchPositions",
-                "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
+                "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear&limit=200",
                 "input": []
             }
         ],
