@@ -87,7 +87,6 @@ export default class aftermath extends Exchange {
                     'post': {
                         'accounts': 1,
                         'balance': 1,
-                        'pendingOrders': 1,
                         'myPendingOrders': 1,
                         'positions': 1,
                     },
@@ -529,26 +528,39 @@ export default class aftermath extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {Account} [params.account] account to query orders for, required
+     * @param {Account} [params.accountNumber] account number to query orders for, required
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const account = this.safeValue (params, 'account');
-        const accountInfo = this.safeValue (account, 'info');
-        const accountId = this.safeString (accountInfo, 'accountId');
+        const accountNumber = this.safeNumber (params, 'accountNumber');
         const request = {
             'chId': this.safeString (market, 'id'),
-            'accountId': accountId,
+            'accountNumber': accountNumber,
         };
-        if (since !== undefined) {
-            throw new NotSupported (this.id + ' fetchOpenOrders(since) is not supported yet');
-        }
-        if (limit !== undefined) {
-            throw new NotSupported (this.id + ' fetchOpenOrders(limit) is not supported yet');
-        }
-        const response = await this.privatePostPendingOrders (request);
+        params = this.omit (params, 'accountNumber');
+        const response = await this.privatePostMyPendingOrders (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "340282366919093789037556908196463492660",
+        //         "datetime": "2025-04-07 14:10:49.472 UTC",
+        //         "timestamp": 1744035049472,
+        //         "status": "open",
+        //         "symbol": "BTC/USD:USDC",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": 10000.0,
+        //         "amount": 0.0001,
+        //         "filled": 0.0,
+        //         "remaining": 0.0001,
+        //         "cost": 0.0,
+        //         "trades": [],
+        //         "fee": {}
+        //     }
+        // ]
+        //
         return this.parseOrders (response);
     }
 
