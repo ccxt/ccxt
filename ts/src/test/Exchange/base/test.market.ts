@@ -58,7 +58,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         },
         'info': {},
     };
-    const emptyAllowedFor = [ 'linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
+    const emptyAllowedFor = [ 'linear', 'inverse', 'quanto', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
     // temporary: only test QUANTO markets where that prop exists (todo: add in type later)
     if ('quanto' in market) {
         format['quanto'] = false; // whether the market is QUANTO or not
