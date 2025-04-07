@@ -486,17 +486,46 @@ export default class aftermath extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        const account = this.safeString (params, 'account');
         const request = {
-            'account': this.walletAddress,
+            'account': account,
         };
+        params = this.omit (params, 'account');
         const response = await this.privatePostBalance (this.extend (request, params));
+        //
+        // {
+        //     "timestamp": 1744045700352,
+        //     "balances": {
+        //         "USDC": {
+        //             "free": 7.726913939320065,
+        //             "used": 22.273086060679937,
+        //             "total": 30.0
+        //         }
+        //     }
+        // }
+        //
         return this.parseBalance (response);
     }
 
     parseBalance (response): Balances {
-        const parsed = this.safeBalance (response);
-        parsed['timestamp'] = this.safeInteger (response, 'timestamp');
-        return parsed;
+        const result: Dict = {
+            'info': response,
+        };
+        const balances = this.safeDict (response, 'balances', []);
+        const currencies = Object.keys (balances);
+        for (let i = 0; i < currencies.length; i++) {
+            const code = currencies[i];
+            const balance = balances[code];
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'used');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        const timestamp = this.safeInteger (response, 'timestamp');
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
     }
 
     /**
