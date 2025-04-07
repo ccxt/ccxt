@@ -67,7 +67,6 @@ import bithumb from  './src/bithumb.js'
 import bitmart from  './src/bitmart.js'
 import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
-import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
@@ -173,7 +172,6 @@ import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
-import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
@@ -253,7 +251,6 @@ const exchanges = {
     'bitmart':                bitmart,
     'bitmex':                 bitmex,
     'bitopro':                bitopro,
-    'bitpanda':               bitpanda,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
@@ -359,7 +356,6 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
-    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bitvavo':                bitvavoPro,
@@ -580,7 +576,6 @@ export {
     bitmart,
     bitmex,
     bitopro,
-    bitpanda,
     bitrue,
     bitso,
     bitstamp,
