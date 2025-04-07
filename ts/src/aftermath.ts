@@ -616,30 +616,37 @@ export default class aftermath extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {Account} [params.account] account to use, required
+     * @param {Account} [params.account] account id to use, required
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        // Create transaction request
-        const ordersTransformed = [];
+        const ordersRequest = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.clone (orders[i]);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
             const chId = this.safeString (market, 'id');
+            const price = this.safeString (order, 'price');
+            const amount = this.safeString (order, 'amount');
             delete order['symbol'];
             order['chId'] = chId;
-            ordersTransformed.push (order);
+            if (price !== undefined) {
+                order['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
+            }
+            order['amount'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            ordersRequest.push (order);
         }
-        const account = this.safeValue (params, 'account');
+        const account = this.safeString (params, 'account');
+        params = this.omit (params, 'account');
         const txRequest = {
-            'sender': this.walletAddress,
-            'subaccount': account['id'],
-            'orders': ordersTransformed,
+            "metadata": {
+                'sender': this.walletAddress,
+            },
+            'subaccount': account,
+            'orders': ordersRequest,
         };
-        // Receive transaction data, sign it, and submit for execution
         const tx = await this.privatePostBuildCreateOrders (this.extend (txRequest, params));
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitCreateOrders (request);
