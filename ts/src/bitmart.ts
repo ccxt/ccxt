@@ -1200,7 +1200,7 @@ export default class bitmart extends Exchange {
         //     {
         //         "message": "OK",
         //         "code": 1000,
-        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         //         "data": {
         //             "currencies": [
         //                 {

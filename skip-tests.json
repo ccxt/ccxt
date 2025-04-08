@@ -222,30 +222,17 @@
     "bitmart": {
         "skipMethods": {
             "loadMarkets": {
-                "expiry":"expiry is expected to be > 0",
-                "settle": "not defined when contract",
-                "settleId": "not defined when contract",
                 "currencyIdAndCode": "broken currencies",
                 "taker": "missing",
                 "maker": "missing"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided",
-                "networks": "missing"
+                "precision":"not provided"
             },
             "ticker": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609",
-                "vwap": "incorrect",
                 "quoteVolume": "incorrect"
-            },
-            "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
-            },
-            "ohlcv": {
-                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
