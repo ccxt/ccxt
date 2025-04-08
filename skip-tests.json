@@ -79,18 +79,13 @@
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
-            },
-            "watchOrderBook": "out of order update"
+            }
         }
     },
     "binanceusdm": {
         "httpsProxy": "http://188.245.226.105:3128",
         "wsProxy": "http://188.245.226.105:3128",
         "skipMethods": {
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            },
-            "fetchPositions": "currently returns a lot of default/non open positions",
             "fetchLedger": {
                 "account": "empty",
                 "status": "not provided",
@@ -100,13 +95,10 @@
                 "code": "not provided",
                 "referenceId": "not provided"
             },
-            "fetchBalance": "tmp skip",
             "watchOrderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463",
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
             },
             "watchOrderBookForSymbols": {
-                "spread": "same",
                 "timestamp": "same"
             }
         }
