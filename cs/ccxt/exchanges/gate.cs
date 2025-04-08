@@ -1428,6 +1428,12 @@ public partial class gate : Exchange
         object takerPercent = this.safeString(market, "taker_fee_rate");
         object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
         object isLinear = isEqual(quote, settle);
+        object contractSize = this.safeString(market, "quanto_multiplier");
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if (isTrue(isEqual(contractSize, "0")))
+        {
+            contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1449,7 +1455,7 @@ public partial class gate : Exchange
             { "inverse", !isTrue(isLinear) },
             { "taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")) },
             { "maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")) },
-            { "contractSize", this.safeNumber(market, "quanto_multiplier") },
+            { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
             { "strike", null },
