@@ -155,7 +155,9 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
-            assert (exchange.iso8601 (dtParsed) === exchange.iso8601 (entry['timestamp']), 'datetime is not iso8601 of timestamp' + logText);
+            const dtParsedString = exchange.iso8601 (dtParsed);
+            const dtEntryString = exchange.iso8601 (entry['timestamp']);
+            assert (dtParsedString === dtEntryString, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
         }
     }
 }
