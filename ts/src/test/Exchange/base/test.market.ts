@@ -97,6 +97,12 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
 
+    // check taker/maker
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
+    testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'taker', '100');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
+    testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'maker', '100');
+
     // validate type
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option', 'index', 'other' ];
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
@@ -125,13 +131,14 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     }
 
     // margin check (todo: add margin as mandatory, instead of undefined)
-    if (market['spot']) {
+    if (spot) {
         // for spot market, 'margin' can be either true/false or undefined
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ true, false, undefined ]);
     } else {
         // otherwise, it must be false or undefined
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
+
     // check mutually exclusive fields
     if (spot) {
         assert (!contract && linear === undefined && inverse === undefined && !option && !swap && !future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
@@ -139,83 +146,70 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         // if not spot, any of the below should be true
         assert (contract && (future || swap || option || isIndex), 'for non-spot markets, any of (future/swap/option/index) should be set' + logText);
     }
-    // typical values
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
-    testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
 
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
-    if (market['contract']) {
-        // linear & inverse should have different values (true/false)
-        // todo: expand logic on other market types
-        if (isSwapOrFuture) {
-            if (isQuanto === true) {
-                assert (market['linear'] === false, 'linear must be false when "quanto" is true' + logText);
-                assert (market['inverse'] === false, 'inverse must be false when "quanto" is true' + logText);
-            } else {
-                // if false or undefined
-                assert (market['linear'] !== market['inverse'], 'linear and inverse must not be the same' + logText);
-                assert (market['linear'] !== undefined, 'linear must be defined when "contract" is true' + logText);
-                assert (market['inverse'] !== undefined, 'inverse must be defined when "contract" is true' + logText);
-            }
-            if (!('contractSize' in skippedProperties)) {
-                // contract size should be defined
-                assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
-                // contract size should be above zero
-                assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
-            }
-            if (!('settle' in skippedProperties)) {
-                // settle should be defined
-                assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
-            }
+    if (contract) {
+        if (isQuanto) {
+            assert (linear === false, 'linear must be false when "quanto" is true' + logText);
+            assert (inverse === false, 'inverse must be false when "quanto" is true' + logText);
+        } else {
+            // if false or undefined
+            assert (inverse !== undefined, 'inverse must be defined when "contract" is true' + logText);
+            assert (linear !== undefined, 'linear must be defined when "contract" is true' + logText);
+            assert (linear !== inverse, 'linear and inverse must not be the same' + logText);
         }
-        // spot should be false
-        assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
+        // contract size should be defined
+        assert ((!('contractSize' in skippedProperties) || contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
+        // contract size should be above zero
+        assert (!('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        // settle should be defined
+        assert (!('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined) && (exchange.safeBool (market, 'quanto') === undefined), 'market linear and inverse (and quanto) must be undefined when "contract" is false' + logText);
+        assert (linear === undefined && inverse === undefined && quanto === undefined, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + logText);
         // contract size should be undefined
-        if (!('contractSize' in skippedProperties)) {
-            assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
-        }
+        assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
         // settle should be undefined
         assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is false' + logText);
-        // spot should be true
-        assert (market['spot'], '"spot" must be true when "contract" is false' + logText);
     }
-    // option fields
-    if (market['option']) {
-        // if option, then strike and optionType should be defined
-        assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
-        assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
-    } else {
-        // if not option, then strike and optionType should be undefined
-        assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
-        assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
-    }
+
     // future, swap and option should be mutually exclusive
     if (market['future']) {
-        assert (!market['swap'] && !market['option'], 'market swap and option must be false when "future" is true' + logText);
+        assert (!market['swap'] && !market['option'] && !isIndex, 'market swap and option must be false when "future" is true' + logText);
     } else if (market['swap']) {
         assert (!market['future'] && !market['option'], 'market future and option must be false when "swap" is true' + logText);
     } else if (market['option']) {
         assert (!market['future'] && !market['swap'], 'market future and swap must be false when "option" is true' + logText);
     }
-    // expiry field
-    if (market['future'] || market['option']) {
+
+    // check specific fields for options & futures
+    if (option || future) {
         // future or option markets need 'expiry' and 'expiryDatetime'
         assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
         assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
         // expiry datetime should be correct
         const isoString = exchange.iso8601 (market['expiry']);
         assert (market['expiryDatetime'] === isoString, 'expiryDatetime ("' + market['expiryDatetime'] + '") must be equal to expiry in iso8601 format "' + isoString + '"' + logText);
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
+        if (option) {
+            // strike should be defined
+            assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
+            // optionType should be defined
+            assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
+        } else {
+            // if not option, then strike and optionType should be undefined
+            assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
+            assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
+        }
     } else {
-        // otherwise, they need to be undefined
+        // otherwise, expiry needs to be undefined
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
+
+
     // check precisions
     if (!('precision' in skippedProperties)) {
         const precisionKeys = Object.keys (market['precision']);
