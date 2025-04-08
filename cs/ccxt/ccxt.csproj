@@ -34,6 +34,13 @@
     <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="static/**/*.cs">
+      <NoWarn>CS3021</NoWarn>
+      <NoWarn>CS8765</NoWarn>
+    </Compile>
+  </ItemGroup>
 <ItemGroup>
   <None Update="static/StarkSharp/StarkSharp.Signer/StarkCurveSigner\pedersen_params.json">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
