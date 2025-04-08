@@ -6366,7 +6366,7 @@ class gate(Exchange, ImplicitAPI):
                     queryString = self.urlencode(query)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
-                        queryString = queryString.replace('%2', ',')
+                        queryString = queryString.replace('%2C', ',')
                     url += '?' + queryString
                 if method == 'PATCH':
                     body = self.json(query)
