@@ -7388,7 +7388,7 @@ export default class Exchange {
             let id = this.safeString (entry, 'id');
             if (id === undefined) {
                 const price = this.safeString (entry, 'price');
-                const amount = this.safeString (entry, 'size');
+                const amount = this.safeString (entry, 'amount');
                 const timestamp = this.safeString (entry, 'timestamp');
                 const side = this.safeString (entry, 'side');
                 // unique trade identifier
