@@ -4040,10 +4040,12 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeInteger (transaction, 'apply_time');
         let currencyId = this.safeString (transaction, 'currency');
         let networkId: Str = undefined;
-        if (currencyId.indexOf ('NFT') < 0) {
-            const parts = currencyId.split ('-');
-            currencyId = this.safeString (parts, 0);
-            networkId = this.safeString (parts, 1);
+        if (currencyId !== undefined) {
+            if (currencyId.indexOf ('NFT') < 0) {
+                const parts = currencyId.split ('-');
+                currencyId = this.safeString (parts, 0);
+                networkId = this.safeString (parts, 1);
+            }
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
