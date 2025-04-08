@@ -87,6 +87,13 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         // otherwise, it must be false or undefined
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
+    if (!('contractSize' in skippedProperties)) {
+        if (!market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert (market['contractSize'] !== undefined, '"contractSize" must be defined when "spot" is false' + logText);
+        }
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
+    }
     // typical values
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
@@ -100,20 +107,24 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     } else {
         assert (!market['contract'], '"contract" must be false when neither "future", "swap","option" or "index" is true' + logText);
     }
-    const isSwapFutureOption = market['swap'] || market['future'] || market['option'];
+    const isSwapOrFuture = market['swap'] || market['future'];
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
         // linear & inverse should have different values (true/false)
         // todo: expand logic on other market types
-        if (isSwapFutureOption) {
+        if (isSwapOrFuture) {
             assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
-            // contract size should be defined
-            assert (('contractSize' in skippedProperties) || (contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
-            // contract size should be above zero
-            assert (('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
-            // settle should be defined
-            assert (('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+            if (!('contractSize' in skippedProperties)) {
+                // contract size should be defined
+                assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
+                // contract size should be above zero
+                assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+            }
+            if (!('settle' in skippedProperties)) {
+                // settle should be defined
+                assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+            }
         }
         // spot should be false
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
