@@ -739,6 +739,38 @@ export default class aftermath extends Exchange {
 
     /**
      * @method
+     * @name aftermath#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {Account} [params.account] account id to use, required
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const account = this.safeString2 (params, 'account', 'accountId');
+        params = this.omit (params, ['account', 'accountId']);
+        const txRequest = {
+            'accountId': account,
+            'chId': market['id'],
+            'amount': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+            "metadata": {
+                'sender': this.walletAddress,
+            },
+        };
+        const tx = await this.privatePostBuildDeallocate (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitDeallocate (request);
+        //
+        //
+        return response as MarginModification;
+    }
+
+    /**
+     * @method
      * @name aftermath#signTxEd25519
      * @description Helper to sign some transaction bytes and return a generic transaction execution request.
      * @param {object} [tx] transaction bytes and the signing digest for them
