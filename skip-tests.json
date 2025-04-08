@@ -28,6 +28,12 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "watchOrderBook": {
+                "bid": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
+            },
+            "watchOrderBookForSymbols": {
+                "bid": "same"
             }
         }
     },
