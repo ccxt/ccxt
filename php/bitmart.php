@@ -4028,10 +4028,12 @@ class bitmart extends Exchange {
         $timestamp = $this->safe_integer($transaction, 'apply_time');
         $currencyId = $this->safe_string($transaction, 'currency');
         $networkId = null;
-        if (mb_strpos($currencyId, 'NFT') === false) {
-            $parts = explode('-', $currencyId);
-            $currencyId = $this->safe_string($parts, 0);
-            $networkId = $this->safe_string($parts, 1);
+        if ($currencyId !== null) {
+            if (mb_strpos($currencyId, 'NFT') === false) {
+                $parts = explode('-', $currencyId);
+                $currencyId = $this->safe_string($parts, 0);
+                $networkId = $this->safe_string($parts, 1);
+            }
         }
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
