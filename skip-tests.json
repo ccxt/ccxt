@@ -154,9 +154,6 @@
             }
         }
     },
-    "bitcoincom": {
-        "skipWs": true
-    },
     "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
