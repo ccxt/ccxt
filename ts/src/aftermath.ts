@@ -1,8 +1,7 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { NotSupported } from './base/errors.js';
 
 export default class aftermath extends Exchange {
     describe () {
@@ -22,6 +21,7 @@ export default class aftermath extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -47,6 +47,7 @@ export default class aftermath extends Exchange {
                 'fetchTradingLimits': 'emulated',
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -701,7 +702,39 @@ export default class aftermath extends Exchange {
         const response = await this.privatePostSubmitCreateAccount (request);
         //
         //
-        return this.parseOrders (response);
+        return response;
+    }
+
+    /**
+     * @method
+     * @name aftermath#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {Account} [params.account] account id to use, required
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const account = this.safeString2 (params, 'account', 'accountId');
+        params = this.omit (params, ['account', 'accountId']);
+        const txRequest = {
+            'accountId': account,
+            'chId': market['id'],
+            'amount': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+            "metadata": {
+                'sender': this.walletAddress,
+            },
+        };
+        const tx = await this.privatePostBuildAllocate (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitAllocate (request);
+        //
+        //
+        return response as MarginModification;
     }
 
     /**
