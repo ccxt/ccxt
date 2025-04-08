@@ -1229,7 +1229,6 @@ public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args)
 public class  Bitmart: bitmart { public Bitmart(object args = null) : base(args) { } }
 public class  Bitmex: bitmex { public Bitmex(object args = null) : base(args) { } }
 public class  Bitopro: bitopro { public Bitopro(object args = null) : base(args) { } }
-public class  Bitpanda: bitpanda { public Bitpanda(object args = null) : base(args) { } }
 public class  Bitrue: bitrue { public Bitrue(object args = null) : base(args) { } }
 public class  Bitso: bitso { public Bitso(object args = null) : base(args) { } }
 public class  Bitstamp: bitstamp { public Bitstamp(object args = null) : base(args) { } }
