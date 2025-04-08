@@ -358,7 +358,6 @@ class Exchange {
         'bitmart',
         'bitmex',
         'bitopro',
-        'bitpanda',
         'bitrue',
         'bitso',
         'bitstamp',
