@@ -370,9 +370,3 @@ dotnet_diagnostic.IDE0002.severity = suggestion
 
 # IDE0005: Remove unnecessary imports
 dotnet_diagnostic.IDE0005.severity = suggestion
-
-
-# Suppress for 'static' directory
-[static/**.cs]
-dotnet_diagnostic.CS3021.severity = silent
-dotnet_diagnostic.CS8765.severity = silent
