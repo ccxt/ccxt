@@ -4170,11 +4170,14 @@ public partial class bitmart : Exchange
         object timestamp = this.safeInteger(transaction, "apply_time");
         object currencyId = this.safeString(transaction, "currency");
         object networkId = null;
-        if (isTrue(isLessThan(getIndexOf(currencyId, "NFT"), 0)))
+        if (isTrue(!isEqual(currencyId, null)))
         {
-            object parts = ((string)currencyId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            currencyId = this.safeString(parts, 0);
-            networkId = this.safeString(parts, 1);
+            if (isTrue(isLessThan(getIndexOf(currencyId, "NFT"), 0)))
+            {
+                object parts = ((string)currencyId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                currencyId = this.safeString(parts, 0);
+                networkId = this.safeString(parts, 1);
+            }
         }
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
