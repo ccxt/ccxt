@@ -237,6 +237,7 @@ export default class aftermath extends Exchange {
             'quoteId': this.safeString (market, 'quoteId'),
             'settleId': this.safeString (market, 'settleId'),
             'type': this.safeString (market, 'type'),
+            'subType': this.safeString (market, 'subType'),
             'spot': this.safeBool (market, 'spot'),
             'margin': this.safeBool (market, 'margin'),
             'swap': this.safeBool (market, 'swap'),
