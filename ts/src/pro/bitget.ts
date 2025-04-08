@@ -814,7 +814,7 @@ export default class bitget extends bitgetRest {
         }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            let filtered = this.removeRepeatedElementsFromArray (result, false);
+            let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
         }

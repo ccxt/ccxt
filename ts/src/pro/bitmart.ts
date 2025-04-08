@@ -321,7 +321,7 @@ export default class bitmart extends bitmartRest {
         }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
-            let filtered = this.removeRepeatedElementsFromArray (result, false);
+            let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
         }
@@ -1016,24 +1016,17 @@ export default class bitmart extends bitmartRest {
             }
             takerOrMaker = 'taker';
         }
-        const price = this.safeString2 (trade, 'price', 'deal_price');
-        const amount = this.safeString2 (trade, 'size', 'deal_vol');
-        let id = this.safeString (trade, 'trade_id');
-        if (id === undefined) {
-            // to identify the trade because of duplicate filtering
-            id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
-        }
         return this.safeTrade ({
             'info': trade,
-            'id': id,
+            'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': this.safeString2 (trade, 'price', 'deal_price'),
+            'amount': this.safeString2 (trade, 'size', 'deal_vol'),
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': undefined,
