@@ -642,7 +642,7 @@ export default class aftermath extends Exchange {
         const account = this.safeString (params, 'account');
         params = this.omit (params, 'account');
         const txRequest = {
-            "metadata": {
+            'metadata': {
                 'sender': this.walletAddress,
             },
             'subaccount': account,
@@ -671,7 +671,7 @@ export default class aftermath extends Exchange {
         const account = this.safeString (params, 'account');
         params = this.omit (params, 'account');
         const txRequest = {
-            "metadata": {
+            'metadata': {
                 'sender': this.walletAddress,
             },
             'subaccount': account,
@@ -690,9 +690,9 @@ export default class aftermath extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const account = this.safeString2 (params, 'account', 'primary');
-        params = this.omit (params, ['account', 'primary']);
+        params = this.omit (params, [ 'account', 'primary' ]);
         const txRequest = {
-            "metadata": {
+            'metadata': {
                 'sender': this.walletAddress,
             },
             'primary': account,
@@ -720,12 +720,12 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString2 (params, 'account', 'accountId');
-        params = this.omit (params, ['account', 'accountId']);
+        params = this.omit (params, [ 'account', 'accountId' ]);
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
             'amount': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-            "metadata": {
+            'metadata': {
                 'sender': this.walletAddress,
             },
         };
@@ -752,12 +752,12 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString2 (params, 'account', 'accountId');
-        params = this.omit (params, ['account', 'accountId']);
+        params = this.omit (params, [ 'account', 'accountId' ]);
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
             'amount': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-            "metadata": {
+            'metadata': {
                 'sender': this.walletAddress,
             },
         };
