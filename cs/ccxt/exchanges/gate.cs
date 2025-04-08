@@ -7274,7 +7274,7 @@ public partial class gate : Exchange
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "currencies="), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "%2C"), 0))))
                     {
-                        queryString = ((string)queryString).Replace((string)"%2", (string)",");
+                        queryString = ((string)queryString).Replace((string)"%2C", (string)",");
                     }
                     url = add(url, add("?", queryString));
                 }
