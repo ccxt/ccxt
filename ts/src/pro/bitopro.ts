@@ -370,8 +370,8 @@ export default class bitopro extends bitoproRest {
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
-        const result = this.parseWsTicker (message, market);
-        parsed['symbol'] = this.safeString (market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+        const result = this.parseTicker (message, market);
+        result['symbol'] = this.safeString (market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger (message, 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
