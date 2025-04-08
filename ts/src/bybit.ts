@@ -2476,6 +2476,7 @@ export default class bybit extends Exchange {
                     if (code === undefined) {
                         code = market['base'];
                     }
+                    params = this.omit (params, [ 'code', 'currency' ]);
                 }
                 parsedSymbols.push (market['symbol']);
             }
