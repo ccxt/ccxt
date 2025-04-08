@@ -1221,7 +1221,6 @@ public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
 public class  Bit2c: bit2c { public Bit2c(object args = null) : base(args) { } }
 public class  Bitbank: bitbank { public Bitbank(object args = null) : base(args) { } }
 public class  Bitbns: bitbns { public Bitbns(object args = null) : base(args) { } }
-public class  Bitcoincom: bitcoincom { public Bitcoincom(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
 public class  Bitflyer: bitflyer { public Bitflyer(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
