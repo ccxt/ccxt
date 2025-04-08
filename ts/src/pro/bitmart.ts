@@ -946,7 +946,7 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < length; i++) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
             // in spot, chronologically increasing: 1709536771200, 1709536771226,
-            const index = !isSwap ? i : (length - i - 1);
+            const index = isSwap ? (length - i - 1) : i;
             const trade = this.parseWsTrade (data[index]);
             symbol = trade['symbol'];
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
