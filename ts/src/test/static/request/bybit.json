@@ -1191,7 +1191,29 @@
                     "subType": "inverse"
                   }
                 ]
-             }
+            },
+            {
+                "description": "Fetch tickers of multiple spot symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=spot",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers of multiple linear swap symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
         ],
         "fetchOHLCV": [
             {
