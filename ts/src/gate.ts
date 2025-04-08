@@ -6728,7 +6728,7 @@ export default class gate extends Exchange {
                     queryString = this.urlencode (query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf ('currencies=') >= 0 && queryString.indexOf ('%2C') >= 0) {
-                        queryString = queryString.replaceAll ('%2', ',');
+                        queryString = queryString.replaceAll ('%2C', ',');
                     }
                     url += '?' + queryString;
                 }
