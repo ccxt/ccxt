@@ -6714,7 +6714,7 @@ class gate extends Exchange {
                     $queryString = $this->urlencode($query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
-                        $queryString = str_replace('%2', ',', $queryString);
+                        $queryString = str_replace('%2C', ',', $queryString);
                     }
                     $url .= '?' . $queryString;
                 }
