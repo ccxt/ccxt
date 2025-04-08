@@ -327,18 +327,19 @@
         }
     },
     "onetrading": {
-        "skip": "Api changed, as mentioned https://github.com/ccxt/ccxt/pull/21991",
-        "skipWs": true,
+        "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
+        "skipWs": "same",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
             "orderBook":{
-                "compareToNextItem": "messed bids sequence"
+                "compareToNextItem": "messed bids sequence",
+                "timestamp": "not provided"
             },
-            "fetchTrades": {
-                "emptyResponse": "sometimes response is empty"
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
