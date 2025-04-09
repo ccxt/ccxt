@@ -3,6 +3,26 @@
     "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch potition history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.coindcx.com/exchange/v1/margin/fetch_orders",
+                "input": [],
+                "output": "{\"timestamp\":1744189746777}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch potition",
+                "method": "fetchPosition",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/positions",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"pairs\":\"B-ETH_USDT\",\"timestamp\":1744189508172}"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel all orders",
@@ -109,6 +129,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "Swap limit buy with stopPrice",
+                "method": "createOrder",
+                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/orders/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.02,
+                    1200,
+                    {
+                        "stopPrice": 900
+                    }
+                ],
+                "output": "{\"order\":{\"pair\":\"B-ETH_USDT\",\"order_type\":\"limit_order\",\"side\":\"buy\",\"total_quantity\":\"0.02\",\"price\":\"1200\",\"stopPrice\":900},\"timestamp\":1744189165645}"
+            },
             {
                 "description": "Limit spot buy order",
                 "method": "createOrder",
