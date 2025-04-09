@@ -11,6 +11,8 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
     publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerAll (params?: {}): Promise<implicitReturnType>;
+    publicGetProducts (params?: {}): Promise<implicitReturnType>;
     publicGetTransactions (params?: {}): Promise<implicitReturnType>;
     publicGetTradingPairs (params?: {}): Promise<implicitReturnType>;
     privatePostBalances (params?: {}): Promise<implicitReturnType>;
@@ -55,6 +57,16 @@ interface Exchange {
     privatePostUnconfirmedEthereumDeposits (params?: {}): Promise<implicitReturnType>;
     privatePostUnconfirmedLitecoinDeposits (params?: {}): Promise<implicitReturnType>;
     privatePostUnconfirmedRippleDeposits (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelAllOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawVirtualCurrency (params?: {}): Promise<implicitReturnType>;
+    privatePostVirtualCurrencyDepositAddresses (params?: {}): Promise<implicitReturnType>;
+    privatePostUnconfirmedVirtualCurrencyDeposits (params?: {}): Promise<implicitReturnType>;
+    privatePostAdaWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostAdaDepositAddresses (params?: {}): Promise<implicitReturnType>;
+    privatePostUnconfirmedAdaDeposits (params?: {}): Promise<implicitReturnType>;
+    privatePostSolWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostSolDepositAddresses (params?: {}): Promise<implicitReturnType>;
+    privatePostUnconfirmedSolDeposits (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

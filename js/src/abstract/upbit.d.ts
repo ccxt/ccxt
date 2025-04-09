@@ -8,6 +8,7 @@ interface Exchange {
     publicGetCandlesMinutes1(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes3(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes5(params?: {}): Promise<implicitReturnType>;
+    publicGetCandlesMinutes10(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes15(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes30(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes60(params?: {}): Promise<implicitReturnType>;
@@ -22,6 +23,9 @@ interface Exchange {
     privateGetOrdersChance(params?: {}): Promise<implicitReturnType>;
     privateGetOrder(params?: {}): Promise<implicitReturnType>;
     privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersClosed(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOpen(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersUuids(params?: {}): Promise<implicitReturnType>;
     privateGetWithdraws(params?: {}): Promise<implicitReturnType>;
     privateGetWithdraw(params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawsChance(params?: {}): Promise<implicitReturnType>;

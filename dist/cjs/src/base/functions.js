@@ -13,10 +13,11 @@ var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
 exports.isWebWorker = platform.isWebWorker;
@@ -117,6 +118,7 @@ exports.isJsonEncodedObject = encode.isJsonEncodedObject;
 exports.json = encode.json;
 exports.numberToBE = encode.numberToBE;
 exports.numberToLE = encode.numberToLE;
+exports.packb = encode.packb;
 exports.rawencode = encode.rawencode;
 exports.stringToBase64 = encode.stringToBase64;
 exports.stringToBinary = encode.stringToBinary;
@@ -124,6 +126,7 @@ exports.urlencode = encode.urlencode;
 exports.urlencodeBase64 = encode.urlencodeBase64;
 exports.urlencodeNested = encode.urlencodeNested;
 exports.urlencodeWithArrayRepeat = encode.urlencodeWithArrayRepeat;
+exports.axolotl = crypto.axolotl;
 exports.crc32 = crypto.crc32;
 exports.ecdsa = crypto.ecdsa;
 exports.eddsa = crypto.eddsa;
@@ -153,4 +156,5 @@ exports.extractParams = misc.extractParams;
 exports.implodeParams = misc.implodeParams;
 exports.parseTimeframe = misc.parseTimeframe;
 exports.roundTimeframe = misc.roundTimeframe;
+exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;
