@@ -1079,6 +1079,60 @@
                 "output": null
             },
             {
+                "description": "Fetch option tickers with the code parameter set to BTC",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&code=BTC",
+                "input": [
+                  null,
+                  {
+                    "type": "option",
+                    "code": "BTC"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch option tickers with the code parameter set to SOL",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL&code=SOL",
+                "input": [
+                  null,
+                  {
+                    "type": "option",
+                    "code": "SOL"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch tickers for a BTC option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                  [
+                    "BTC/USDT:USDT-250530-70000-C"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers for an ETH option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=ETH",
+                "input": [
+                  [
+                    "ETH/USDT:USDT-250530-1700-P"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers for a SOL option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL",
+                "input": [
+                  [
+                    "SOL/USDT:USDT-250530-90-P"
+                  ]
+                ]
+            },
+            {
                 "description": "Conflicting id with type in params",
                 "method": "fetchTickers",
                 "url": "https://api-testnet.bybit.com/v5/market/tickers?category=spot",
@@ -1137,7 +1191,29 @@
                     "subType": "inverse"
                   }
                 ]
-             }
+            },
+            {
+                "description": "Fetch tickers of multiple spot symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=spot",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers of multiple linear swap symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
         ],
         "fetchOHLCV": [
             {
