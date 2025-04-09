@@ -582,8 +582,10 @@ export default class coinlist extends Exchange {
         const created = this.safeString (market, 'list_time');
         let settledId = undefined;
         let settled = undefined;
+        let linear = undefined;
         let symbol = base + '/' + quote;
         if (isSwap) {
+            linear = true;
             settledId = quoteId;
             settled = quote;
             symbol = symbol + ':' + quote;
@@ -606,7 +608,7 @@ export default class coinlist extends Exchange {
             'option': false,
             'active': true,
             'contract': isSwap,
-            'linear': undefined,
+            'linear': linear,
             'inverse': undefined,
             'contractSize': undefined,
             'expiry': undefined,
