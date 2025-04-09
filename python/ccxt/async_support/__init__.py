@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.72'
+__version__ = '4.4.73'
 
 # -----------------------------------------------------------------------------
 
@@ -76,7 +76,6 @@ from ccxt.async_support.bingx import bingx                                      
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
-from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
@@ -84,7 +83,6 @@ from ccxt.async_support.bithumb import bithumb                                  
 from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
 from ccxt.async_support.bitmex import bitmex                                    # noqa: F401
 from ccxt.async_support.bitopro import bitopro                                  # noqa: F401
-from ccxt.async_support.bitpanda import bitpanda                                # noqa: F401
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                                # noqa: F401
@@ -187,7 +185,6 @@ exchanges = [
     'bit2c',
     'bitbank',
     'bitbns',
-    'bitcoincom',
     'bitfinex',
     'bitflyer',
     'bitget',
@@ -195,7 +192,6 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitopro',
-    'bitpanda',
     'bitrue',
     'bitso',
     'bitstamp',

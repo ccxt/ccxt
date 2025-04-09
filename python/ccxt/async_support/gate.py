@@ -1485,6 +1485,10 @@ class gate(Exchange, ImplicitAPI):
         takerPercent = self.safe_string(market, 'taker_fee_rate')
         makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
         isLinear = quote == settle
+        contractSize = self.safe_string(market, 'quanto_multiplier')
+        # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if contractSize == '0':
+            contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         return {
             'id': id,
             'symbol': symbol,
@@ -1506,7 +1510,7 @@ class gate(Exchange, ImplicitAPI):
             'inverse': not isLinear,
             'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
             'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
-            'contractSize': self.safe_number(market, 'quanto_multiplier'),
+            'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': None,
@@ -6366,7 +6370,7 @@ class gate(Exchange, ImplicitAPI):
                     queryString = self.urlencode(query)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
-                        queryString = queryString.replace('%2', ',')
+                        queryString = queryString.replace('%2C', ',')
                     url += '?' + queryString
                 if method == 'PATCH':
                     body = self.json(query)

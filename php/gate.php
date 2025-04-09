@@ -1487,6 +1487,11 @@ class gate extends Exchange {
         $takerPercent = $this->safe_string($market, 'taker_fee_rate');
         $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
         $isLinear = $quote === $settle;
+        $contractSize = $this->safe_string($market, 'quanto_multiplier');
+        // exception only for one $market => https://api.gateio.ws/api/v4/futures/btc/contracts
+        if ($contractSize === '0') {
+            $contractSize = '1'; // 1 USD in WEB => https://i.imgur.com/MBBUI04.png
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1508,7 +1513,7 @@ class gate extends Exchange {
             'inverse' => !$isLinear,
             'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
             'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
-            'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
+            'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
@@ -6714,7 +6719,7 @@ class gate extends Exchange {
                     $queryString = $this->urlencode($query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
-                        $queryString = str_replace('%2', ',', $queryString);
+                        $queryString = str_replace('%2C', ',', $queryString);
                     }
                     $url .= '?' . $queryString;
                 }

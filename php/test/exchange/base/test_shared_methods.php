@@ -116,7 +116,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
 }
 
 
-function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp', $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
     if ($skip_value !== null) {
@@ -130,6 +130,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         assert(!($entry[$key_name_or_index] === null), 'timestamp index ' . string_value($key_name_or_index) . ' is undefined' . $log_text);
     }
     $ts = $entry[$key_name_or_index];
+    assert($ts !== null || $allow_null, 'timestamp is null' . $log_text);
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
         assert(is_int($ts), 'timestamp should be an integer' . $log_text);
@@ -145,7 +146,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
 }
 
 
-function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp', $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
     if ($skip_value !== null) {
@@ -158,23 +159,27 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
         assert((is_array($entry) && array_key_exists('datetime', $entry)), '"datetime" key is missing from structure' . $log_text);
         $dt = $entry['datetime'];
+        assert($dt !== null || $allow_null, 'timestamp is null' . $log_text);
         if ($dt !== null) {
             assert(is_string($dt), '"datetime" key does not have a string value' . $log_text);
             // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
-            assert($exchange->iso8601($dt_parsed) === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
+            $dt_parsed_string = $exchange->iso8601($dt_parsed);
+            $dt_entry_string = $exchange->iso8601($entry['timestamp']);
+            assert($dt_parsed_string === $dt_entry_string, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
         }
     }
 }
 
 
-function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
+function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null, $allow_null = true) {
     if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
+    assert($actual_code !== null || $allow_null, 'currency code is null' . $log_text);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
         assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code ("' . $actual_code . '") should be present in exchange.currencies' . $log_text);
@@ -185,7 +190,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
 }
 
 
-function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code) {
+function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code, $allow_null = true) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
@@ -194,6 +199,7 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
     $undefined_values = $currency_id === null && $currency_code === null;
     $defined_values = $currency_id !== null && $currency_code !== null;
     assert($undefined_values || $defined_values, 'currencyId and currencyCode should be either both defined or both undefined' . $log_text);
+    assert($defined_values || $allow_null, 'currency code and id is not defined' . $log_text);
     if ($defined_values) {
         // check by code
         $currency_by_code = $exchange->currency($currency_code);
@@ -205,7 +211,7 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
 }
 
 
-function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $expected_symbol = null) {
+function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $expected_symbol = null, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
@@ -217,6 +223,8 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
     if ($expected_symbol !== null) {
         assert($actual_symbol === $expected_symbol, 'symbol in response ("' . string_value($actual_symbol) . '") should be equal to expected symbol ("' . string_value($expected_symbol) . '")' . $log_text);
     }
+    $defined_values = $actual_symbol !== null && $expected_symbol !== null;
+    assert($defined_values || $allow_null, 'symbols are not defined' . $log_text);
 }
 
 
@@ -226,84 +234,91 @@ function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symb
 }
 
 
-function assert_greater($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_greater($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null) {
         assert(Precise::string_gt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be > ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_ge($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be >= ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_less($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_less($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_lt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be < ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_le($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be <= ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null) {
         assert(!Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected not to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, $expected_array) {
+function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, $expected_array, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_value($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     // todo: remove undefined check
     if ($value !== null) {
         $stingified_array_value = $exchange->json($expected_array); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
@@ -312,7 +327,7 @@ function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, 
 }
 
 
-function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key) {
+function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key, $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
     if (is_int($key)) {
@@ -324,6 +339,7 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
         assert(is_array($entry) && array_key_exists($key, $entry), 'fee key "' . $key . '" was expected to be present in entry' . $log_text);
     }
     $fee_object = $exchange->safe_value($entry, $key);
+    assert($fee_object !== null || $allow_null, 'fee object is null' . $log_text);
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
         assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain "cost" key' . $log_text);
@@ -353,13 +369,14 @@ function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $as
 }
 
 
-function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
+function assert_integer($exchange, $skipped_properties, $method, $entry, $key, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     if ($entry !== null) {
         $value = $exchange->safe_value($entry, $key);
+        assert($value !== null || $allow_null, 'value is null' . $log_text);
         if ($value !== null) {
             $is_integer = is_int($value);
             assert($is_integer, '"' . string_value($key) . '" key (value "' . string_value($value) . '") is not an integer' . $log_text);
@@ -376,7 +393,7 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
-        $decimal_numbers = ['2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
+        $decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
         for ($i = 0; $i < count($decimal_numbers); $i++) {
             $num = $decimal_numbers[$i];
             $num_str = $num;

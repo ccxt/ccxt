@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.72'
+__version__ = '4.4.73'
 
 # ----------------------------------------------------------------------------
 
@@ -20,14 +20,12 @@ from ccxt.pro.binancecoinm import binancecoinm                            # noqa
 from ccxt.pro.binanceus import binanceus                                  # noqa: F401
 from ccxt.pro.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.pro.bingx import bingx                                          # noqa: F401
-from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
-from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
@@ -94,14 +92,12 @@ exchanges = [
     'binanceus',
     'binanceusdm',
     'bingx',
-    'bitcoincom',
     'bitfinex',
     'bitget',
     'bithumb',
     'bitmart',
     'bitmex',
     'bitopro',
-    'bitpanda',
     'bitrue',
     'bitstamp',
     'bitvavo',

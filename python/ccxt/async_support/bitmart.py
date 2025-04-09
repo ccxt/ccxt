@@ -1205,7 +1205,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     {
         #         "message": "OK",
         #         "code": 1000,
-        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
+        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         #         "data": {
         #             "currencies": [
         #                 {
@@ -3847,10 +3847,11 @@ class bitmart(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         networkId: Str = None
-        if currencyId.find('NFT') < 0:
-            parts = currencyId.split('-')
-            currencyId = self.safe_string(parts, 0)
-            networkId = self.safe_string(parts, 1)
+        if currencyId is not None:
+            if currencyId.find('NFT') < 0:
+                parts = currencyId.split('-')
+                currencyId = self.safe_string(parts, 0)
+                networkId = self.safe_string(parts, 1)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number(transaction, 'fee')
