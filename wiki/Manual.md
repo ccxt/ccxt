@@ -1010,46 +1010,26 @@ Examples:
 
   In this example the **amount** of any order placed on the market **must satisfy both conditions**:
 
-  - The *amount value* must be >= 0.05:
+  - The *amount value* should be >= 0.05:
     ```diff
     + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
     - bad: 0.04, 0.049, 0.0499
     ```
-  - *Precision of the amount* can be up to 4 decimal digits (0.0001):
+  - *Precision of the amount* should be up to 4 digits after dot (0.0001):
     ```diff
     + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
     - bad: 0.05001, 0.05000, 0.06001
     ```
 
-2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 0.00001)`
+2. `(market['precision']['amount'] == -1)`
 
-  In this example the **price** of any order placed on the market **must satisfy both conditions**:
-
-  - The *price value* must be >= 0.019:
+    A negative *precision* might only theoretically happen if exchange's `precisionMode` is `SIGNIFICANT_DIGIT` or `DECIMAL_PRECISION`. It means that the amount should be an integer multiple of 10 (to the absolute power specified):
     ```diff
-    + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
-    - bad: 0.016, ..., 0.01699
-    ```
-  - *Precision of price* can be up to 5 decimal digits (0.00001):
-    ```diff
-    + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
-    - bad: 0.017000, 0.017001, ...
-    ```
-
-3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == 10)`
-
-  In this example **both conditions must be satisfied**:
-
-  - The *amount value* must be greater than or equal to 50:
-    ```diff
-    + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
-    - bad: 1, 2, 3, ..., 9
-    ```
-  - A negative *amount precision* (in case of `SIGNIFICANT_DIGITS` or `DECIMAL_PRECISION`) means that the amount should be an integer multiple of 10:
-    ```diff
-    + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
+    + good: 10, 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
     - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
     ```
+    In case of `-2` the acceptable values would be multiple of `100` (e.g. 100, 200, ... ), and so on.
+
 
 #### Precision Mode
 
@@ -1089,7 +1069,7 @@ The decimal precision counting mode is available in the `exchange.precisionMode`
 
 Supported padding modes are:
 
-- `NO_PADDING` – default for most cases
+- `NO_PADDING` – default for most cases
 - `PAD_WITH_ZERO` – appends zero characters up to precision
 
 #### Formatting To Precision
@@ -1385,7 +1365,7 @@ Historically various symbolic names have been used to designate same trading pai
 - `BCHSV → BSV`: This is a common substitution mapping for the Bitcoin Cash SV fork (some exchanges call it `BSV`, others call it `BCHSV`, we use the former).
 - `DSH → DASH`: Try not to confuse symbols and currencies. The `DSH` (Dashcoin) is not the same as `DASH` (Dash). Some exchanges have `DASH` labelled inconsistently as `DSH`, the ccxt library does a correction for that as well (`DSH → DASH`), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that `DASH/BTC` is not the same as `DSH/BTC`.
 - `XRB` → `NANO`: `NANO` is the newer code for RaiBlocks, thus, CCXT unified API uses will replace the older `XRB` with `NANO` where needed. https://hackernoon.com/nano-rebrand-announcement-9101528a7b76
-- `USD` → `USDT`: Some exchanges, like Bitfinex, HitBTC and a few other name the currency as `USD` in their listings, but those markets are actually trading `USDT`. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually `USDT` and is not `USD` – the CCXT library will perform `USD` → `USDT` conversion. Note, however, that some exchanges  have both `USD` and `USDT` symbols, for example, Kraken has a `USDT/USD` trading pair.
+- `USD` → `USDT`: Some exchanges, like Bitfinex, HitBTC and a few other name the currency as `USD` in their listings, but those markets are actually trading `USDT`. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually `USDT` and is not `USD` – the CCXT library will perform `USD` → `USDT` conversion. Note, however, that some exchanges  have both `USD` and `USDT` symbols, for example, Kraken has a `USDT/USD` trading pair.
 
 #### Notes On Naming Consistency
 
@@ -1403,7 +1383,7 @@ Sometimes the user may notice exotic symbol names with mixed-case words and spac
 
 - First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
 - When we identify each particular cryptocurrency standing behind the currency code, we look them up on [CoinMarketCap](https://coinmarketcap.com).
-- The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either `Holo` or `Hydro Protocol`. In this case `Holo` retains the code `HOT`, and `Hydro Protocol` will have its name as its code, literally, `Hydro Protocol`. So, there may be trading pairs with symbols like `HOT/USD` (for `Holo`) and `Hydro Protocol/USD` – those are two different markets.
+- The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either `Holo` or `Hydro Protocol`. In this case `Holo` retains the code `HOT`, and `Hydro Protocol` will have its name as its code, literally, `Hydro Protocol`. So, there may be trading pairs with symbols like `HOT/USD` (for `Holo`) and `Hydro Protocol/USD` – those are two different markets.
 - If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
 - When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via `.commonCurrencies`. **Note, it should be defined before '.loadMarkets()' happens!**
 - Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
@@ -1442,7 +1422,7 @@ We currently load spot markets with the unified `BASE/QUOTE` symbol schema into 
 
 CCXT supports the following types of derivative contracts:
 
-- `future` – for expiring futures contracts that have a delivery/settlement date [](https://en.wikipedia.org/wiki/Futures_contract)
+- `future` – for expiring futures contracts that have a delivery/settlement date [](https://en.wikipedia.org/wiki/Futures_contract)
 - `swap` – for perpetual swap futures that don't have a delivery date [](https://en.wikipedia.org/wiki/Perpetual_futures)
 - `option` – for option contracts (https://en.wikipedia.org/wiki/Option_contract)
 
@@ -2671,7 +2651,7 @@ if ($exchange->has['fetchOHLCV']) {
 
 To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchOHLCV']` is true as well.
 
-The returned list of candles may have one or more missing periods, if the exchange did not have any trades for the specified timerange and symbol. To a user that would appear as gaps in a continuous list of candles. That is considered normal. If the exchange did not have any candles at that time, the CCXT library will show the results as returned from the exchange itself.
+The returned list of candles may have one or more missing periods, if the exchange did not have any trades for the specified timerange and symbol. To a user that would appear as gaps in a continuous list of candles. That is considered normal. If the exchange did not have any candles at that time, the CCXT library will show the results as returned from the exchange itself.
 
 **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
 
@@ -2950,7 +2930,7 @@ The `fetchStatus()` method will return a status structure like shown below:
 
 The possible values in the `status` field are:
 
-- `'ok'` means the exchange API is fully operational
+- `'ok'` means the exchange API is fully operational
 - `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
@@ -4118,15 +4098,15 @@ The exchanges' order management APIs differ by design. The user has to understan
 
 - `fetchCanceledOrders()`- fetches a list of canceled orders
 - `fetchClosedOrder()`- fetches a single closed order by order id
-- `fetchClosedOrders()` – fetches a list of closed (or canceled) orders.
+- `fetchClosedOrders()` – fetches a list of closed (or canceled) orders.
 - `fetchMyTrades()` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
 - `fetchOpenOrder()`- fetches a single open order by order id
-- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchOpenOrders()` – fetches a list of open orders.
 - `fetchOrder()` – fetches a single order (open or closed) by order `id`.
-- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
-- `createOrder()` – used for placing orders
-- `createOrders()` – used for placing multiple orders within the same request
-- `cancelOrder()` – used for canceling a single order
+- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
+- `createOrder()` – used for placing orders
+- `createOrders()` – used for placing multiple orders within the same request
+- `cancelOrder()` – used for canceling a single order
 - `cancelOrders()` - used for canceling multiple orders
 - `cancelAllOrders()` - used for canceling all orders
 - `cancelAllOrdersAfter()` - used for canceling all orders after the given timeout
@@ -4135,7 +4115,7 @@ The majority of the exchanges will have a way of fetching currently-open orders.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the `exchange.has['fetchClosedOrders']` or the `exchange.has['fetchOrders']`. If the underlying exchange does not provide the order history, then `fetchClosedOrders()` and `fetchOrders()` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using `fetchOpenOrders()` and `fetchOrder()` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
-If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](#how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](#how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
 
 In general, the underlying exchanges will usually provide one or more of the following types of historical data:
 
@@ -4145,7 +4125,7 @@ In general, the underlying exchanges will usually provide one or more of the fol
 
 Any of the above three methods may be missing, but the exchanges APIs will usually provide at least one of the three methods.
 
-If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
+If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
 
 **Please, note, that a certain method may be missing either because the exchange does not have a corresponding API endpoint, or because CCXT has not implemented it yet (the library is also a work in progress). In the latter case, the missing method will be added as soon as possible.**
 
@@ -4302,13 +4282,13 @@ Possible values for the`timeInForce` field:
 
 There are different types of orders that a user can send to the exchange, regular orders eventually land in the orderbook of a corresponding symbol, others orders may be more advanced. Here is a list outlining various types of orders:
 
-- [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
+- [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
 - [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
   - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
 - [Trigger Orders](#conditional-orders) aka *conditional orders* – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
 - [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price reaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
 - [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
-- [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
+- [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
 - [Trailing Orders](#trailing-orders) – an order that is automatically adjusted relative to an open position, `trailingAmount` can be set to trail a specified quote amount behind the open position or `trailingPercent` can be set to trail a specified percent behind the open position, when the market price of the position is equal to the trailing order this results in entering a new position or exiting a position depending on if the trailing order has the `reduceOnly` parameter set to true or not.
 
 Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
@@ -7216,3 +7196,4 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Some exchanges are not available in certain countries, using a [proxy](#proxy) might be the solution in such cases.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
+
