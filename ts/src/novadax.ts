@@ -16,7 +16,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class novadax extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'novadax',
             'name': 'NovaDAX',
@@ -211,6 +211,85 @@ export default class novadax extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true, // todo
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined, // todo: add implementation
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo max 3000
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 
@@ -222,7 +301,7 @@ export default class novadax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetCommonTimestamp (params);
         //
         //     {
@@ -772,8 +851,8 @@ export default class novadax extends Exchange {
             // "stopPrice": this.priceToPrecision (symbol, stopPrice),
             // "accountId": "...", // subaccount id, optional
         };
-        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
             }
@@ -785,7 +864,7 @@ export default class novadax extends Exchange {
             }
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString (params, 'operator', defaultOperator);
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
@@ -1121,7 +1200,6 @@ export default class novadax extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1135,8 +1213,7 @@ export default class novadax extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber (order, 'stopPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class coinspot(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -144,6 +144,54 @@ class coinspot(Exchange, ImplicitAPI):
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': None,  # todo implement
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
         })
 
@@ -270,7 +318,7 @@ class coinspot(Exchange, ImplicitAPI):
         response = await self.publicGetLatest(params)
         id = market['id']
         id = id.lower()
-        prices = self.safe_value(response, 'prices')
+        prices = self.safe_dict(response, 'prices', {})
         #
         #     {
         #         "status":"ok",
@@ -301,22 +349,22 @@ class coinspot(Exchange, ImplicitAPI):
         #
         #    {
         #        "status": "ok",
-        #        "prices": {
-        #        "btc": {
-        #        "bid": "25050",
-        #        "ask": "25370",
-        #        "last": "25234"
-        #        },
-        #        "ltc": {
-        #        "bid": "79.39192993",
-        #        "ask": "87.98",
-        #        "last": "87.95"
+        #        "prices":   {
+        #            "btc":   {
+        #                "bid": "25050",
+        #                "ask": "25370",
+        #                "last": "25234"
+        #            },
+        #            "ltc":   {
+        #                "bid": "79.39192993",
+        #                "ask": "87.98",
+        #                "last": "87.95"
+        #            }
         #        }
-        #      }
         #    }
         #
         result: dict = {}
-        prices = self.safe_value(response, 'prices')
+        prices = self.safe_dict(response, 'prices', {})
         ids = list(prices.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -377,35 +425,35 @@ class coinspot(Exchange, ImplicitAPI):
             request['startdate'] = self.yyyymmdd(since)
         response = await self.privatePostRoMyTransactions(self.extend(request, params))
         #  {
-        #   "status": "ok",
-        #   "buyorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "ALGO/AUD",
-        #       "amount": 386.95197925,
-        #       "created": "2022-10-20T09:56:44.502Z",
-        #       "audfeeExGst": 1.80018002,
-        #       "audGst": 0.180018,
-        #       "audtotal": 200
-        #     },
-        #   ],
-        #   "sellorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "SOLO/ALGO",
-        #       "amount": 154.52345614,
-        #       "total": 115.78858204658796,
-        #       "created": "2022-04-16T09:36:43.698Z",
-        #       "audfeeExGst": 1.08995731,
-        #       "audGst": 0.10899573,
-        #       "audtotal": 118.7
-        #     },
-        #   ]
+        #      "status": "ok",
+        #      "buyorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "ALGO/AUD",
+        #              "amount": 386.95197925,
+        #              "created": "2022-10-20T09:56:44.502Z",
+        #              "audfeeExGst": 1.80018002,
+        #              "audGst": 0.180018,
+        #              "audtotal": 200
+        #          },
+        #      ],
+        #      "sellorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "SOLO/ALGO",
+        #              "amount": 154.52345614,
+        #              "total": 115.78858204658796,
+        #              "created": "2022-04-16T09:36:43.698Z",
+        #              "audfeeExGst": 1.08995731,
+        #              "audGst": 0.10899573,
+        #              "audtotal": 118.7
+        #          },
+        #      ]
         # }
-        buyTrades = self.safe_value(response, 'buyorders', [])
+        buyTrades = self.safe_list(response, 'buyorders', [])
         for i in range(0, len(buyTrades)):
             buyTrades[i]['side'] = 'buy'
-        sellTrades = self.safe_value(response, 'sellorders', [])
+        sellTrades = self.safe_list(response, 'sellorders', [])
         for i in range(0, len(sellTrades)):
             sellTrades[i]['side'] = 'sell'
         trades = self.array_concat(buyTrades, sellTrades)

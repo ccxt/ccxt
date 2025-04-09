@@ -34,6 +34,7 @@ public partial class gate : ccxt.gate
                 { "fetchOpenOrdersWs", true },
                 { "fetchClosedOrdersWs", true },
                 { "watchOrderBook", true },
+                { "watchBidsAsks", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
@@ -209,7 +210,7 @@ public partial class gate : ccxt.gate
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_cancel_cp");
         var channelparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
@@ -220,7 +221,7 @@ public partial class gate : ccxt.gate
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         await this.authenticate(url, messageType);
@@ -237,7 +238,7 @@ public partial class gate : ccxt.gate
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
@@ -245,12 +246,12 @@ public partial class gate : ccxt.gate
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValueN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        object trigger = this.safeValueN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object messageType = this.getTypeByMarket(market);
@@ -300,7 +301,7 @@ public partial class gate : ccxt.gate
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol, *required for spot and margin*
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order being fetched is a trigger order
+     * @param {bool} [params.trigger] True if the order being fetched is a trigger order
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
@@ -1376,7 +1377,11 @@ public partial class gate : ccxt.gate
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
-            callDynamically(cache, "append", new object[] {position});
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         // don't remove the future from the .futures cache
         var future = getValue(client.futures, messageHash);
@@ -1807,6 +1812,27 @@ public partial class gate : ccxt.gate
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         object data = this.safeDict(message, "data");
         object errs = this.safeDict(data, "errs");
@@ -1829,6 +1855,23 @@ public partial class gate : ccxt.gate
                 if (isTrue(isTrue((!isEqual(messageHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash)))))
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                }
+                // remove subscriptions for watchSymbols
+                object channel = this.safeString(message, "channel");
+                if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((isGreaterThan(getIndexOf(channel, "."), 0)))))
+                {
+                    object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                    object payload = this.safeList(message, "payload", new List<object>() {});
+                    for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
+                    {
+                        object marketType = ((bool) isTrue(isEqual(getValue(parsedChannel, 0), "futures"))) ? "swap" : getValue(parsedChannel, 0);
+                        object symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
+                        object messageHashSymbol = add(add(getValue(parsedChannel, 1), ":"), symbol);
+                        if (isTrue(isTrue((!isEqual(messageHashSymbol, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHashSymbol)))))
+                        {
+                            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHashSymbol);
+                        }
+                    }
                 }
             }
             if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))
@@ -2284,6 +2327,12 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
+        if (isTrue(isTrue((isEqual(channel, "spot.order_place"))) || isTrue((isEqual(channel, "futures.order_place")))))
+        {
+            ((IDictionary<string,object>)payload)["req_header"] = new Dictionary<string, object>() {
+                { "X-Gate-Channel-Id", "ccxt" },
+            };
+        }
         object request = new Dictionary<string, object>() {
             { "id", requestId },
             { "time", time },

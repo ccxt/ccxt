@@ -10,12 +10,12 @@ use ccxt\async\abstract\bitvavo as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitvavo extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
@@ -196,6 +196,75 @@ class bitvavo extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '101' => '\\ccxt\\ExchangeError', // Unknown error. Operation may or may not have succeeded.
@@ -300,7 +369,7 @@ class bitvavo extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1157,7 +1226,7 @@ class bitvavo extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1166,7 +1235,7 @@ class bitvavo extends Exchange {
              * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
-             * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+             * @param {float} [$params->stopPrice] Alias for triggerPrice
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
              * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
@@ -1506,6 +1575,9 @@ class bitvavo extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+             *
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1660,7 +1732,6 @@ class bitvavo extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1674,8 +1745,7 @@ class bitvavo extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -1711,7 +1781,7 @@ class bitvavo extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+             * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
              *
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol

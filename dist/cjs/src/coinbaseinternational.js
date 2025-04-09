@@ -18,7 +18,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100,
             'version': 'v1',
@@ -253,6 +253,75 @@ class coinbaseinternational extends coinbaseinternational$1 {
                     'polygon': 'MATIC',
                     'solana': 'SOL',
                     'bitcoin': 'BTC',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                            'GTC': true, // has 30 days max
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });
@@ -732,6 +801,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }
@@ -750,7 +820,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const currency = this.currency(code);
         const networks = this.safeDict(currency, 'networks');
         if (networks !== undefined) {
-            return;
+            return false;
         }
         const request = {
             'asset': currency['id'],
@@ -775,6 +845,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //    ]
         //
         currency['networks'] = this.parseNetworks(rawNetworks);
+        return true;
     }
     parseNetworks(networks, params = {}) {
         const result = {};
@@ -1616,7 +1687,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
      * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {bool} [params.postOnly] true or false
@@ -1629,7 +1700,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         let typeId = type.toUpperCase();
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const clientOrderIdprefix = this.safeString(this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid();
         clientOrderId = clientOrderId.slice(0, 17);
@@ -1639,19 +1710,19 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'instrument': market['id'],
             'size': this.amountToPrecision(market['symbol'], amount),
         };
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (type === 'limit') {
                 typeId = 'STOP_LIMIT';
             }
             else {
                 typeId = 'STOP';
             }
-            request['stop_price'] = stopPrice;
+            request['stop_price'] = triggerPrice;
         }
         request['type'] = typeId;
         if (type === 'limit') {
             if (price === undefined) {
-                throw new errors.InvalidOrder(this.id + 'createOrder() requires a price parameter for a limit order types');
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
         }
@@ -1665,7 +1736,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
-                throw new errors.InvalidOrder(this.id + 'createOrder() market orders must have tif set to "IOC"');
+                throw new errors.InvalidOrder(this.id + ' createOrder() market orders must have tif set to "IOC"');
             }
             tif = 'IOC';
         }
@@ -1749,7 +1820,6 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'stop_price'),
             'triggerPrice': this.safeString(order, 'stop_price'),
             'amount': this.safeString(order, 'size'),
             'filled': this.safeString(order, 'exec_qty'),
@@ -1891,9 +1961,9 @@ class coinbaseinternational extends coinbaseinternational$1 {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const stopPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
-        if (stopPrice !== undefined) {
-            request['stop_price'] = stopPrice;
+        const triggerPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = triggerPrice;
         }
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {

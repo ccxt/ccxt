@@ -11,7 +11,7 @@ public partial class cex : Exchange
             { "id", "cex" },
             { "name", "CEX.IO" },
             { "countries", new List<object>() {"GB", "EU", "CY", "RU"} },
-            { "rateLimit", 1667 },
+            { "rateLimit", 300 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -23,6 +23,9 @@ public partial class cex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrder", true },
@@ -98,6 +101,65 @@ public partial class cex : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", null },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {} },
@@ -109,6 +171,7 @@ public partial class cex : Exchange
                     { "Insufficient funds", typeof(InsufficientFunds) },
                     { "Get deposit address for main account is not allowed", typeof(PermissionDenied) },
                     { "Market Trigger orders are not allowed", typeof(BadRequest) },
+                    { "key not passed or incorrect", typeof(AuthenticationError) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -249,6 +312,7 @@ public partial class cex : Exchange
                 { "margin", null },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
+                { "active", null },
                 { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
                 { "precision", currencyPrecision },
                 { "limits", new Dictionary<string, object>() {
@@ -906,7 +970,7 @@ public partial class cex : Exchange
             object code = this.safeCurrencyCode(key);
             object account = new Dictionary<string, object>() {
                 { "used", this.safeString(balance, "balanceOnHold") },
-                { "free", this.safeString(balance, "balance") },
+                { "total", this.safeString(balance, "balance") },
             };
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
@@ -1003,7 +1067,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1086,10 +1150,16 @@ public partial class cex : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "PENDING_NEW", "open" },
+            { "NEW", "open" },
+            { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
+            { "EXPIRED", "expired" },
+            { "REJECTED", "rejected" },
+            { "PENDING_CANCEL", "canceling" },
             { "CANCELLED", "canceled" },
         };
-        return this.safeString(statuses, status, null);
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1143,7 +1213,7 @@ public partial class cex : Exchange
             object currencyId = this.safeString(order, "feeCurrency");
             object feeCode = this.safeCurrencyCode(currencyId);
             ((IDictionary<string,object>)fee)["currency"] = feeCode;
-            ((IDictionary<string,object>)fee)["fee"] = feeAmount;
+            ((IDictionary<string,object>)fee)["cost"] = feeAmount;
         }
         object timestamp = this.safeInteger(order, "serverCreateTimestamp");
         object requestedBase = this.safeNumber(order, "requestedAmountCcy1");
@@ -1163,7 +1233,7 @@ public partial class cex : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", this.safeNumber(order, "stopPrice") },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "amount", requestedBase },
             { "cost", executedQuote },
             { "average", this.safeNumber(order, "averagePrice") },
@@ -1188,6 +1258,7 @@ public partial class cex : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1358,7 +1429,7 @@ public partial class cex : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

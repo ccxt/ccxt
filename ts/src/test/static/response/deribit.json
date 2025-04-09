@@ -2,6 +2,1982 @@
     "exchange": "deribit",
     "skipKeys": [],
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "summaries": [
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "BTC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "ETH",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "42.217",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USDC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "42.217",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "42.217",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "42.217",
+                                "equity": "42.217"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USDT",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.42569894",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "B7pxwerTJP37M2jkLUHwcbimDUzZtDcbA97UpVCet86D",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "SOL",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.99968284",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.42569894",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.42569894",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.42569894",
+                                "equity": "0.42569894"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "EURR",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "XRP",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "MATIC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "STETH",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USYC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "PAXG",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "ETHW",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            }
+                        ],
+                        "change_margin_model_api_limit": {
+                            "rate": "5",
+                            "timeframe": "86400000"
+                        }
+                    },
+                    "usIn": "1733139329300877",
+                    "usOut": "1733139329315992",
+                    "usDiff": "15115",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "summaries": [
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "BTC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "ETH",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "42.217",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USDC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "42.217",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "42.217",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "42.217",
+                                "equity": "42.217"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USDT",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.42569894",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "B7pxwerTJP37M2jkLUHwcbimDUzZtDcbA97UpVCet86D",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "SOL",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.99968284",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.42569894",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.42569894",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.42569894",
+                                "equity": "0.42569894"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "EURR",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "XRP",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "MATIC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "STETH",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "USYC",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "deposit_address": "0xe8b8b17f8cbaa35b8dba1362c57cdeaf200c04ef",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "PAXG",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            },
+                            {
+                                "options_pl": "0.0",
+                                "options_session_upl": "0.0",
+                                "futures_pl": "0.0",
+                                "options_theta": "0.0",
+                                "available_withdrawal_funds": "0.0",
+                                "total_pl": "0.0",
+                                "limits": {
+                                    "non_matching_engine": {
+                                        "burst": "100",
+                                        "rate": "20"
+                                    },
+                                    "limits_per_currency": false,
+                                    "matching_engine": {
+                                        "trading": {
+                                            "total": {
+                                                "burst": "20",
+                                                "rate": "5"
+                                            }
+                                        },
+                                        "spot": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        },
+                                        "maximum_quotes": {
+                                            "burst": "500",
+                                            "rate": "500"
+                                        },
+                                        "maximum_mass_quotes": {
+                                            "burst": "10",
+                                            "rate": "10"
+                                        },
+                                        "guaranteed_mass_quotes": {
+                                            "burst": "2",
+                                            "rate": "2"
+                                        },
+                                        "cancel_all": {
+                                            "burst": "20",
+                                            "rate": "5"
+                                        }
+                                    }
+                                },
+                                "delta_total": "0.0",
+                                "options_session_rpl": "0.0",
+                                "delta_total_map": {},
+                                "session_upl": "0.0",
+                                "margin_model": "segregated_sm",
+                                "projected_maintenance_margin": "0.0",
+                                "currency": "ETHW",
+                                "spot_reserve": "0.0",
+                                "locked_balance": "0.0",
+                                "futures_session_rpl": "0.0",
+                                "cross_collateral_enabled": false,
+                                "options_theta_map": {},
+                                "fee_balance": "0.0",
+                                "futures_session_upl": "0.0",
+                                "options_gamma_map": {},
+                                "portfolio_margining_enabled": false,
+                                "balance": "0.0",
+                                "options_vega": "0.0",
+                                "options_delta": "0.0",
+                                "projected_initial_margin": "0.0",
+                                "session_rpl": "0.0",
+                                "projected_delta_total": "0.0",
+                                "options_value": "0.0",
+                                "options_vega_map": {},
+                                "estimated_liquidation_ratio": "0.0",
+                                "maintenance_margin": "0.0",
+                                "initial_margin": "0.0",
+                                "estimated_liquidation_ratio_map": {},
+                                "available_funds": "0.0",
+                                "additional_reserve": "0.0",
+                                "options_gamma": "0.0",
+                                "margin_balance": "0.0",
+                                "equity": "0.0"
+                            }
+                        ],
+                        "change_margin_model_api_limit": {
+                            "rate": "5",
+                            "timeframe": "86400000"
+                        }
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDC": {
+                        "free": 42.217,
+                        "used": 0,
+                        "total": 42.217
+                    },
+                    "USDT": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SOL": {
+                        "free": 0.42569894,
+                        "used": 0,
+                        "total": 0.42569894
+                    },
+                    "EURR": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "XRP": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "MATIC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "STETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USYC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "PAXG": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETHW": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "BTC": 0,
+                        "ETH": 0,
+                        "USDC": 42.217,
+                        "USDT": 0,
+                        "SOL": 0.42569894,
+                        "EURR": 0,
+                        "XRP": 0,
+                        "MATIC": 0,
+                        "STETH": 0,
+                        "USYC": 0,
+                        "PAXG": 0,
+                        "ETHW": 0
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "ETH": 0,
+                        "USDC": 0,
+                        "USDT": 0,
+                        "SOL": 0,
+                        "EURR": 0,
+                        "XRP": 0,
+                        "MATIC": 0,
+                        "STETH": 0,
+                        "USYC": 0,
+                        "PAXG": 0,
+                        "ETHW": 0
+                    },
+                    "total": {
+                        "BTC": 0,
+                        "ETH": 0,
+                        "USDC": 42.217,
+                        "USDT": 0,
+                        "SOL": 0.42569894,
+                        "EURR": 0,
+                        "XRP": 0,
+                        "MATIC": 0,
+                        "STETH": 0,
+                        "USYC": 0,
+                        "PAXG": 0,
+                        "ETHW": 0
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

@@ -72,7 +72,7 @@ export default class kucoin extends kucoinRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
-     * @name kucoin#watchTrades
+     * @name kucoin#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
      * @param {string[]} symbols
@@ -178,7 +178,7 @@ export default class kucoin extends kucoinRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] trigger orders are watched if true
+     * @param {boolean} [params.trigger] trigger orders are watched if true
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

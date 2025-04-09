@@ -120,7 +120,7 @@ export default class coinmetro extends Exchange {
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -166,7 +166,7 @@ export default class coinmetro extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
-     * @name coinmetro#cancelOrder
+     * @name coinmetro#closePosition
      * @description closes an open position
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
      * @param {string} symbol not used by coinmetro closePosition ()

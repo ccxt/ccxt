@@ -11,12 +11,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class poloniexfutures extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'poloniexfutures',
             'name' => 'Poloniex Futures',
@@ -34,6 +34,8 @@ class poloniexfutures extends Exchange {
                 'future' => false,
                 'option' => null,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -178,6 +180,84 @@ class poloniexfutures extends Exchange {
                             'level3/snapshot' => 'v2',
                         ),
                     ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo implementation
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => true, // deprecated?
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => true, // deprecated?
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => 7,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 200, // todo implement
+                    ),
+                ),
+                'spot' => null,
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'exceptions' => array(
@@ -719,7 +799,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the poloniexfutures server
@@ -865,13 +945,13 @@ class poloniexfutures extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->leverage] Leverage size of the order
-             * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
              * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
              * @param {string} [$params->postOnly] Post only flag, invalid when $timeInForce is IOC or FOK
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
-             * @param {string} [$params->stop] 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires $stopPrice
+             * @param {string} [$params->stop] 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires stopPrice
              * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to TP
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -894,12 +974,12 @@ class poloniexfutures extends Exchange {
                 'size' => $preciseAmount,
                 'leverage' => 1,
             );
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice) {
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
                 $stopPriceType = $this->safe_string($params, 'stopPriceType', 'TP');
                 $request['stopPriceType'] = $stopPriceType;
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             if ($type === 'limit') {
@@ -955,7 +1035,7 @@ class poloniexfutures extends Exchange {
                 'trades' => null,
                 'timeInForce' => null,
                 'postOnly' => null,
-                'stopPrice' => null,
+                'triggerPrice' => null,
                 'info' => $response,
             ), $market);
         }) ();
@@ -1242,7 +1322,7 @@ class poloniexfutures extends Exchange {
              * cancel all open orders
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
+             * @param {array} [$params->trigger] When true, all the $trigger orders will be cancelled
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -1250,10 +1330,10 @@ class poloniexfutures extends Exchange {
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
             }
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privateDeleteStopOrders ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
@@ -1294,7 +1374,7 @@ class poloniexfutures extends Exchange {
                     'trades' => null,
                     'timeInForce' => null,
                     'postOnly' => null,
-                    'stopPrice' => null,
+                    'triggerPrice' => null,
                     'info' => $response,
                 ));
             }
@@ -1308,31 +1388,31 @@ class poloniexfutures extends Exchange {
              * fetches a list of $orders placed on the exchange
              *
              * @see https://api-docs.poloniex.com/futures/api/orders#get-$order-listdeprecated
-             * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-$stop-$order-list
+             * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-$order-list
              *
-             * @param {string} $status 'active' or 'closed', only 'active' is valid for $stop $orders
+             * @param {string} $status 'active' or 'closed', only 'active' is valid for stop $orders
              * @param {string} $symbol unified $symbol for the $market to retrieve $orders from
              * @param {int} [$since] timestamp in ms of the earliest $order to retrieve
              * @param {int} [$limit] The maximum number of $orders to retrieve
              * @param {array} [$params] exchange specific parameters
-             * @param {bool} [$params->stop] set to true to retrieve untriggered $stop $orders
+             * @param {bool} [$params->stop] set to true to retrieve untriggered stop $orders
              * @param {int} [$params->until] End time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit or $market
              * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
              */
             Async\await($this->load_markets());
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'trigger', 'stop', 'until' ));
             if ($status === 'closed') {
                 $status = 'done';
             }
             $request = array();
-            if (!$stop) {
+            if (!$trigger) {
                 $request['status'] = ($status === 'open') ? 'active' : 'done';
             } elseif ($status !== 'open') {
-                throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
+                throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered stop orders');
             }
             $market = null;
             if ($symbol !== null) {
@@ -1346,7 +1426,7 @@ class poloniexfutures extends Exchange {
                 $request['endAt'] = $until;
             }
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privateGetStopOrders ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
@@ -1455,7 +1535,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1641,7 +1721,7 @@ class poloniexfutures extends Exchange {
             'side' => $this->safe_string($order, 'side'),
             'amount' => $this->safe_string($order, 'size'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'cost' => $this->safe_string($order, 'dealValue'),
             'filled' => $filled,
             'remaining' => null,

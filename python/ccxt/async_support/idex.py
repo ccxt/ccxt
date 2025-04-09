@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -19,7 +19,6 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
@@ -27,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class idex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(idex, self).describe(), {
             'id': 'idex',
             'name': 'IDEX',
@@ -177,6 +176,81 @@ class idex(Exchange, ImplicitAPI):
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo: revise
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': True,  # todo implementation
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 1000000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 1000000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -206,10 +280,8 @@ class idex(Exchange, ImplicitAPI):
         # {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes"}
         #
         market = self.market(symbol)
-        info = self.safe_value(market, 'info', {})
-        quoteAssetPrecision = self.safe_integer(info, 'quoteAssetPrecision')
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
-        return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
+        return self.decimal_to_precision(price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -316,6 +388,8 @@ class idex(Exchange, ImplicitAPI):
                 'precision': {
                     'amount': basePrecision,
                     'price': self.safe_number(entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -1099,7 +1173,6 @@ class idex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1164,11 +1237,12 @@ class idex(Exchange, ImplicitAPI):
             'takeProfit': 5,
             'takeProfitLimit': 6,
         }
-        stopPriceString = None
-        if (type == 'stopLossLimit') or (type == 'takeProfitLimit') or ('stopPrice' in params):
-            if not ('stopPrice' in params):
-                raise BadRequest(self.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders')
-            stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
+        triggerPrice = self.safe_string(params, 'triggerPrice', 'stopPrice')
+        triggerPriceString = None
+        if (type == 'stopLossLimit') or (type == 'takeProfitLimit'):
+            if triggerPrice is None:
+                raise BadRequest(self.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders')
+            triggerPriceString = self.price_to_precision(symbol, triggerPrice)
         limitTypeEnums: dict = {
             'limit': 1,
             'limitMaker': 2,
@@ -1246,7 +1320,7 @@ class idex(Exchange, ImplicitAPI):
             encodedPrice = self.encode(priceString)
             byteArray.append(encodedPrice)
         if type in stopLossTypeEnums:
-            encodedPrice = self.encode(stopPriceString or priceString)
+            encodedPrice = self.encode(triggerPriceString or priceString)
             byteArray.append(encodedPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1276,7 +1350,7 @@ class idex(Exchange, ImplicitAPI):
         if limitOrder:
             request['parameters']['price'] = priceString
         if type in stopLossTypeEnums:
-            request['parameters']['stopPrice'] = stopPriceString or priceString
+            request['parameters']['stopPrice'] = triggerPriceString or priceString
         if amountEnum == 0:
             request['parameters']['quantity'] = amountString
         else:
@@ -1516,7 +1590,7 @@ class idex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1702,7 +1776,7 @@ class idex(Exchange, ImplicitAPI):
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
 
-    async def fetch_deposit_address(self, code: Str = None, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: Str, params={}) -> DepositAddress:
         """
         fetch the Polygon address of the wallet
 

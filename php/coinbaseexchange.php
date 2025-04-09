@@ -10,7 +10,7 @@ use ccxt\abstract\coinbaseexchange as Exchange;
 
 class coinbaseexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseexchange',
             'name' => 'Coinbase Exchange',
@@ -29,6 +29,7 @@ class coinbaseexchange extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -113,7 +114,8 @@ class coinbaseexchange extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines', // experimental
+                        'products/spark-lines', // experimental,
+                        'products/volume-summary',
                     ),
                 ),
                 'private' => array(
@@ -208,6 +210,87 @@ class coinbaseexchange extends Exchange {
                         'EUR' => 0.15,
                         'USD' => 10,
                     ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo => implement
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'exceptions' => array(
@@ -993,7 +1076,7 @@ class coinbaseexchange extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1069,7 +1152,7 @@ class coinbaseexchange extends Exchange {
         $side = $this->safe_string($order, 'side');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $postOnly = $this->safe_value($order, 'post_only');
-        $stopPrice = $this->safe_number($order, 'stop_price');
+        $triggerPrice = $this->safe_number($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         return $this->safe_order(array(
             'id' => $id,
@@ -1085,8 +1168,7 @@ class coinbaseexchange extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1265,9 +1347,9 @@ class coinbaseexchange extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
         }
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-        if ($stopPrice !== null) {
-            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
@@ -1512,7 +1594,7 @@ class coinbaseexchange extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if ($code === null) {
@@ -1790,7 +1872,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit $address
          *
@@ -1823,6 +1905,7 @@ class coinbaseexchange extends Exchange {
         return array(
             'currency' => $code,
             'address' => $this->check_address($address),
+            'network' => null,
             'tag' => $tag,
             'info' => $response,
         );

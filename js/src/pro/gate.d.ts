@@ -64,7 +64,7 @@ export default class gate extends gateRest {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -93,7 +93,7 @@ export default class gate extends gateRest {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol, *required for spot and margin*
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order being fetched is a trigger order
+     * @param {bool} [params.trigger] True if the order being fetched is a trigger order
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future

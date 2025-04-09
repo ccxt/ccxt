@@ -10,12 +10,12 @@ use ccxt\async\abstract\coinone as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -192,6 +192,65 @@ class coinone extends Exchange {
                     'maker' => 0.002,
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo implement
+                        'daysBack' => 100000, // todo implement
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => null, // todo implement
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '104' => '\\ccxt\\OrderNotFound',
@@ -237,7 +296,7 @@ class coinone extends Exchange {
             //     }
             //
             $result = array();
-            $currencies = $this->safe_value($response, 'currencies', array());
+            $currencies = $this->safe_list($response, 'currencies', array());
             for ($i = 0; $i < count($currencies); $i++) {
                 $entry = $currencies[$i];
                 $id = $this->safe_string($entry, 'symbol');
@@ -321,7 +380,7 @@ class coinone extends Exchange {
             //         )
             //     }
             //
-            $tickers = $this->safe_value($response, 'tickers', array());
+            $tickers = $this->safe_list($response, 'tickers', array());
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
                 $entry = $this->safe_value($tickers, $i);
@@ -588,7 +647,7 @@ class coinone extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'tickers', array());
+            $data = $this->safe_list($response, 'tickers', array());
             $ticker = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($ticker, $market);
         }) ();
@@ -623,8 +682,8 @@ class coinone extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
-        $asks = $this->safe_value($ticker, 'best_asks');
-        $bids = $this->safe_value($ticker, 'best_bids');
+        $asks = $this->safe_list($ticker, 'best_asks', array());
+        $bids = $this->safe_list($ticker, 'best_bids', array());
         $baseId = $this->safe_string($ticker, 'target_currency');
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
@@ -679,7 +738,7 @@ class coinone extends Exchange {
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $market = $this->safe_market(null, $market);
-        $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
+        $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
             $side = $isSellerMaker ? 'sell' : 'buy';
@@ -960,7 +1019,6 @@ class coinone extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'averageExecutedPrice'),
@@ -1123,7 +1181,7 @@ class coinone extends Exchange {
             //         }
             //     }
             //
-            $walletAddress = $this->safe_value($response, 'walletAddress', array());
+            $walletAddress = $this->safe_dict($response, 'walletAddress', array());
             $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
             $result = array();
             for ($i = 0; $i < count($keys); $i++) {

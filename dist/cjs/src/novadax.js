@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
@@ -206,6 +206,85 @@ class novadax extends novadax$1 {
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo max 3000
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });
@@ -756,8 +835,8 @@ class novadax extends novadax$1 {
             // "stopPrice": this.priceToPrecision (symbol, stopPrice),
             // "accountId": "...", // subaccount id, optional
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
             }
@@ -771,7 +850,7 @@ class novadax extends novadax$1 {
             }
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString(params, 'operator', defaultOperator);
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
@@ -1104,7 +1183,6 @@ class novadax extends novadax$1 {
         }
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_');
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'id': id,
             'clientOrderId': undefined,
@@ -1118,8 +1196,7 @@ class novadax extends novadax$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,

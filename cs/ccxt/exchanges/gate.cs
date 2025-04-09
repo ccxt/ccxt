@@ -16,7 +16,7 @@ public partial class gate : Exchange
             { "certified", true },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85" },
                 { "doc", "https://www.gate.io/docs/developers/apiv4/en/" },
                 { "www", "https://gate.io/" },
                 { "api", new Dictionary<string, object>() {
@@ -214,6 +214,7 @@ public partial class gate : Exchange
                             { "{settle}/contract_stats", 1 },
                             { "{settle}/index_constituents/{index}", 1 },
                             { "{settle}/liq_orders", 1 },
+                            { "{settle}/risk_limit_tiers", 1 },
                         } },
                     } },
                     { "delivery", new Dictionary<string, object>() {
@@ -254,6 +255,7 @@ public partial class gate : Exchange
                     { "withdrawals", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
                             { "withdrawals", 20 },
+                            { "push", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "withdrawals/{withdrawal_id}", 1 },
@@ -265,6 +267,7 @@ public partial class gate : Exchange
                             { "withdrawals", 1 },
                             { "deposits", 1 },
                             { "sub_account_transfers", 1 },
+                            { "order_status", 1 },
                             { "withdraw_status", 1 },
                             { "sub_account_balances", 2.5 },
                             { "sub_account_margin_balances", 2.5 },
@@ -275,6 +278,7 @@ public partial class gate : Exchange
                             { "total_balance", 2.5 },
                             { "small_balance", 1 },
                             { "small_balance_history", 1 },
+                            { "push", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "transfers", 2.5 },
@@ -317,11 +321,14 @@ public partial class gate : Exchange
                             { "risk_units", divide(20, 15) },
                             { "unified_mode", divide(20, 15) },
                             { "loan_margin_tiers", divide(20, 15) },
+                            { "leverage/user_currency_config", divide(20, 15) },
+                            { "leverage/user_currency_setting", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
                             { "portfolio_calculator", divide(20, 15) },
+                            { "leverage/user_currency_setting", divide(20, 15) },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "unified_mode", divide(20, 15) },
@@ -500,9 +507,13 @@ public partial class gate : Exchange
                             { "orders", divide(20, 15) },
                             { "orders/{order_id}", divide(20, 15) },
                             { "my_trades", divide(20, 15) },
+                            { "mmp", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "orders", divide(20, 15) },
+                            { "countdown_cancel_all", divide(20, 15) },
+                            { "mmp", divide(20, 15) },
+                            { "mmp/reset", divide(20, 15) },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", divide(20, 15) },
@@ -546,6 +557,7 @@ public partial class gate : Exchange
                             { "multi_collateral/currencies", divide(20, 15) },
                             { "multi_collateral/ltv", divide(20, 15) },
                             { "multi_collateral/fixed_rate", divide(20, 15) },
+                            { "multi_collateral/current_rate", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "collateral/orders", divide(20, 15) },
@@ -559,8 +571,10 @@ public partial class gate : Exchange
                     { "account", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "detail", divide(20, 15) },
+                            { "rate_limit", divide(20, 15) },
                             { "stp_groups", divide(20, 15) },
                             { "stp_groups/{stp_id}/users", divide(20, 15) },
+                            { "stp_groups/debit_fee", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "stp_groups", divide(20, 15) },
@@ -623,6 +637,8 @@ public partial class gate : Exchange
                 { "X-Gate-Channel-Id", "ccxt" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "sandboxMode", false },
                 { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
@@ -630,23 +646,59 @@ public partial class gate : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
-                    { "LINEA", "LINEAETH" },
-                    { "KON", "KONET" },
-                    { "AVAXC", "AVAX_C" },
-                    { "BEP20", "BSC" },
-                    { "EOS", "EOS" },
-                    { "ERC20", "ETH" },
-                    { "GATECHAIN", "GTEVM" },
-                    { "HRC20", "HT" },
-                    { "KUSAMA", "KSMSM" },
-                    { "NEAR", "NEAR" },
-                    { "OKC", "OKT" },
-                    { "OPTIMISM", "OPETH" },
-                    { "POLKADOT", "DOTSM" },
-                    { "TRC20", "TRX" },
-                    { "LUNA", "LUNC" },
-                    { "BASE", "BASEEVM" },
+                    { "BTC", "BTC" },
                     { "BRC20", "BTCBRC" },
+                    { "ETH", "ETH" },
+                    { "ERC20", "ETH" },
+                    { "TRX", "TRX" },
+                    { "TRC20", "TRX" },
+                    { "HECO", "HT" },
+                    { "HRC20", "HT" },
+                    { "BSC", "BSC" },
+                    { "BEP20", "BSC" },
+                    { "SOL", "SOL" },
+                    { "POLYGON", "POL" },
+                    { "MATIC", "POL" },
+                    { "OP", "OPETH" },
+                    { "OPTIMISM", "OPETH" },
+                    { "ADA", "ADA" },
+                    { "AVAXC", "AVAX_C" },
+                    { "NEAR", "NEAR" },
+                    { "ARBONE", "ARBEVM" },
+                    { "BASE", "BASEEVM" },
+                    { "SUI", "SUI" },
+                    { "CRONOS", "CRO" },
+                    { "CRO", "CRO" },
+                    { "APT", "APT" },
+                    { "SCROLL", "SCROLLETH" },
+                    { "TAIKO", "TAIKOETH" },
+                    { "HYPE", "HYPE" },
+                    { "ALGO", "ALGO" },
+                    { "LINEA", "LINEAETH" },
+                    { "BLAST", "BLASTETH" },
+                    { "XLM", "XLM" },
+                    { "RSK", "RBTC" },
+                    { "TON", "TON" },
+                    { "MNT", "MNT" },
+                    { "CELO", "CELO" },
+                    { "HBAR", "HBAR" },
+                    { "ZKSERA", "ZKSERA" },
+                    { "KLAY", "KLAY" },
+                    { "EOS", "EOS" },
+                    { "ACA", "ACA" },
+                    { "XTZ", "XTZ" },
+                    { "EGLD", "EGLD" },
+                    { "GLMR", "GLMR" },
+                    { "AURORA", "AURORAEVM" },
+                    { "KON", "KONET" },
+                    { "GATECHAIN", "GTEVM" },
+                    { "KUSAMA", "KSMSM" },
+                    { "OKC", "OKT" },
+                    { "POLKADOT", "DOTSM" },
+                    { "LUNA", "LUNC" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "OPETH", "OP" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },
@@ -677,6 +729,118 @@ public partial class gate : Exchange
                 { "future", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt"} },
+                    } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "iceberg", true },
+                        { "selfTradePrevention", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 40 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 30 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                        { "untilDays", 30 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "spot" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                        { "limit", 1000 },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1999 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
                     } },
                 } },
             } },
@@ -817,13 +981,13 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#isUnifiedEnabled
+     * @name gate#loadUnifiedStatus
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    public async virtual Task loadUnifiedStatus(object parameters = null)
+    public async virtual Task<object> loadUnifiedStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
@@ -853,6 +1017,7 @@ public partial class gate : Exchange
                 ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
             }
         }
+        return getValue(this.options, "unifiedAccount");
     }
 
     public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
@@ -975,6 +1140,10 @@ public partial class gate : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
@@ -1259,6 +1428,12 @@ public partial class gate : Exchange
         object takerPercent = this.safeString(market, "taker_fee_rate");
         object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
         object isLinear = isEqual(quote, settle);
+        object contractSize = this.safeString(market, "quanto_multiplier");
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if (isTrue(isEqual(contractSize, "0")))
+        {
+            contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1280,7 +1455,7 @@ public partial class gate : Exchange
             { "inverse", !isTrue(isLinear) },
             { "taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")) },
             { "maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")) },
-            { "contractSize", this.safeNumber(market, "quanto_multiplier") },
+            { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
             { "strike", null },
@@ -1509,7 +1684,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual object spotOrderPrepareRequest(object market = null, object stop = null, object parameters = null)
+    public virtual object spotOrderPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -1517,24 +1692,24 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
-        stop ??= false;
+        trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(stop, parameters);
+        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             if (isTrue(isEqual(market, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-stop orders")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             ((IDictionary<string,object>)request)["account"] = marginMode;
-            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
         }
         return new List<object>() {request, query};
     }
@@ -1547,7 +1722,7 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
@@ -1563,7 +1738,7 @@ public partial class gate : Exchange
         {
             if (isTrue(trigger))
             {
-                // gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
             } else
             {
@@ -1573,14 +1748,14 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object getMarginMode(object stop, object parameters)
+    public virtual object getMarginMode(object trigger, object parameters)
     {
         /**
          * @ignore
          * @method
          * @name gate#getMarginMode
          * @description Gets the margin type for this api call
-         * @param {bool} stop True if for a stop order
+         * @param {bool} trigger True if for a trigger order
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
@@ -1597,16 +1772,16 @@ public partial class gate : Exchange
         {
             marginMode = "spot";
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
-                // gate spot stop orders use the term normal instead of spot
+                // gate spot trigger orders use the term normal instead of spot
                 marginMode = "normal";
             }
             if (isTrue(isEqual(marginMode, "cross_margin")))
             {
-                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support stop orders for cross margin")) ;
+                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
         object isUnifiedAccount = false;
@@ -1651,107 +1826,87 @@ public partial class gate : Exchange
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
-        //    {
-        //        "currency": "BCN",
-        //        "delisted": false,
-        //        "withdraw_disabled": true,
-        //        "withdraw_delayed": false,
-        //        "deposit_disabled": true,
-        //        "trade_disabled": false
-        //    }
+        //  [
+        //   {
+        //       "currency": "USDT_ETH",
+        //       "name": "Tether",
+        //       "delisted": false,
+        //       "withdraw_disabled": false,
+        //       "withdraw_delayed": false,
+        //       "deposit_disabled": false,
+        //       "trade_disabled": true,
+        //       "chain": "ETH"
+        //    },
+        //  ]
         //
-        //    {
-        //        "currency":"USDT_ETH",
-        //        "delisted":false,
-        //        "withdraw_disabled":false,
-        //        "withdraw_delayed":false,
-        //        "deposit_disabled":false,
-        //        "trade_disabled":false,
-        //        "chain":"ETH"
-        //    }
-        //
+        object indexedCurrencies = this.indexBy(response, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             object currencyId = this.safeString(entry, "currency");
-            object currencyIdLower = this.safeStringLower(entry, "currency");
             object parts = ((string)currencyId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object currency = getValue(parts, 0);
-            object code = this.safeCurrencyCode(currency);
-            object networkId = this.safeString(entry, "chain");
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
+            object partFirst = this.safeString(parts, 0);
+            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
+            object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
+            object withdrawEnabled = !isTrue(this.safeBool(entry, "withdraw_disabled"));
+            object depositEnabled = !isTrue(this.safeBool(entry, "deposit_disabled"));
+            object tradeDisabled = !isTrue(this.safeBool(entry, "trade_disabled"));
+            object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
+            object code = this.safeCurrencyCode(currencyName);
+            // check leveraged tokens (e.g. BTC3S, ETH5L)
+            object isLeveragedToken = false;
+            if (isTrue(isTrue(isTrue(isTrue(((string)currencyId).EndsWith(((string)"3S"))) || isTrue(((string)currencyId).EndsWith(((string)"3L")))) || isTrue(((string)currencyId).EndsWith(((string)"5S")))) || isTrue(((string)currencyId).EndsWith(((string)"5L")))))
             {
-                networkCode = this.networkIdToCode(networkId, code);
+                object realCurrencyId = slice(currencyId, 0, -2);
+                if (isTrue(inOp(indexedCurrencies, realCurrencyId)))
+                {
+                    isLeveragedToken = true;
+                }
             }
-            object delisted = this.safeValue(entry, "delisted");
-            object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
-            object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
-            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
-            object withdrawEnabled = !isTrue(withdrawDisabled);
-            object depositEnabled = !isTrue(depositDisabled);
-            object tradeEnabled = !isTrue(tradeDisabled);
-            object listed = !isTrue(delisted);
-            object active = isTrue(isTrue(isTrue(listed) && isTrue(tradeEnabled)) && isTrue(withdrawEnabled)) && isTrue(depositEnabled);
-            if (isTrue(isEqual(this.safeValue(result, code), null)))
+            object type = ((bool) isTrue(isLeveragedToken)) ? "leveraged" : "crypto";
+            // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
+            object networkId = this.safeString(entry, "chain", currencyId);
+            object networkCode = this.networkIdToCode(networkId, code);
+            object networkEntry = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "active", !isTrue(tradeDisabled) },
+                { "deposit", depositEnabled },
+                { "withdraw", withdrawEnabled },
+                { "fee", null },
+                { "precision", precision },
+            };
+            // check if first entry for the specific currency
+            if (!isTrue((inOp(result, code))))
             {
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", ((string)code).ToLower() },
+                    { "id", currencyName },
+                    { "lowerCaseId", ((string)currencyName).ToLower() },
                     { "code", code },
-                    { "info", null },
-                    { "name", null },
-                    { "active", active },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "fee", null },
-                    { "fees", new List<object>() {} },
-                    { "precision", this.parseNumber("1e-4") },
+                    { "type", type },
+                    { "precision", precision },
                     { "limits", this.limits },
                     { "networks", new Dictionary<string, object>() {} },
+                    { "info", new List<object>() {} },
                 };
             }
-            object depositAvailable = this.safeValue(getValue(result, code), "deposit");
-            depositAvailable = ((bool) isTrue((depositEnabled))) ? depositEnabled : depositAvailable;
-            object withdrawAvailable = this.safeValue(getValue(result, code), "withdraw");
-            withdrawAvailable = ((bool) isTrue((withdrawEnabled))) ? withdrawEnabled : withdrawAvailable;
-            object networks = this.safeValue(getValue(result, code), "networks", new Dictionary<string, object>() {});
-            if (isTrue(!isEqual(networkCode, null)))
-            {
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", entry },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "currencyId", currencyId },
-                    { "lowerCaseCurrencyId", currencyIdLower },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "active", active },
-                    { "fee", null },
-                    { "precision", this.parseNumber("1e-4") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
-            object info = this.safeValue(getValue(result, code), "info", new List<object>() {});
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = networkEntry;
+            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
             ((IList<object>)info).Add(entry);
             ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-            ((IDictionary<string,object>)getValue(result, code))["active"] = isTrue(depositAvailable) && isTrue(withdrawAvailable);
-            ((IDictionary<string,object>)getValue(result, code))["deposit"] = depositAvailable;
-            ((IDictionary<string,object>)getValue(result, code))["withdraw"] = withdrawAvailable;
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
         return result;
     }
@@ -1839,7 +1994,13 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        var requestqueryVariable = this.prepareRequest(null, "swap", parameters);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            market = this.market(firstSymbol);
+        }
+        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
         object response = await this.publicFuturesGetSettleContracts(this.extend(request, query));
@@ -1887,8 +2048,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        object result = this.parseFundingRates(response);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2024,6 +2184,32 @@ public partial class gate : Exchange
 
     /**
      * @method
+     * @name gate#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
+        object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
+        object currencyId = this.safeString(response, "currency");
+        currency = this.safeCurrency(currencyId, currency);
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        });
+        return this.indexBy(parsed, "network");
+    }
+
+    /**
+     * @method
      * @name gate#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2036,81 +2222,34 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object rawNetwork = this.safeStringUpper(parameters, "network");
-        parameters = this.omit(parameters, "network");
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object selectedNetworkId = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        return getValue(chainsIndexedById, selectedNetworkId);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
         //
-        //    {
-        //        "currency": "XRP",
-        //        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        //        "multichain_addresses": [
-        //            {
-        //                "chain": "XRP",
-        //                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        //                "payment_id": "391331007",
-        //                "payment_name": "Tag",
-        //                "obtain_failed": 0
-        //            }
-        //        ]
-        //    }
+        //     {
+        //         chain: "BTC",
+        //         address: "1Nxu.......Ys",
+        //         payment_id: "",
+        //         payment_name: "",
+        //         obtain_failed: "0",
+        //     }
         //
-        object currencyId = this.safeString(response, "currency");
-        code = this.safeCurrencyCode(currencyId);
-        object networkId = this.networkCodeToId(rawNetwork, code);
-        object network = null;
-        object tag = null;
-        object address = null;
-        if (isTrue(!isEqual(networkId, null)))
-        {
-            object addresses = this.safeValue(response, "multichain_addresses");
-            for (object i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
-            {
-                object entry = getValue(addresses, i);
-                object entryNetwork = this.safeString(entry, "chain");
-                if (isTrue(isEqual(networkId, entryNetwork)))
-                {
-                    object obtainFailed = this.safeInteger(entry, "obtain_failed");
-                    if (isTrue(obtainFailed))
-                    {
-                        break;
-                    }
-                    address = this.safeString(entry, "address");
-                    tag = this.safeString(entry, "payment_id");
-                    network = this.networkIdToCode(networkId, code);
-                    break;
-                }
-            }
-        } else
-        {
-            object addressField = this.safeString(response, "address");
-            if (isTrue(!isEqual(addressField, null)))
-            {
-                if (isTrue(isGreaterThanOrEqual(getIndexOf(addressField, "New address is being generated for you, please wait"), 0)))
-                {
-                    throw new BadResponse ((string)add(add(this.id, " "), "New address is being generated for you, please wait a few seconds and try again to get the address.")) ;
-                }
-                if (isTrue(isGreaterThanOrEqual(getIndexOf(addressField, " "), 0)))
-                {
-                    object splitted = ((string)addressField).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-                    address = getValue(splitted, 0);
-                    tag = getValue(splitted, 1);
-                } else
-                {
-                    address = addressField;
-                }
-            }
-        }
+        object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", network },
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "payment_id") },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain")) },
         };
     }
 
@@ -2363,7 +2502,8 @@ public partial class gate : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)chainKey] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
                         { "percentage", false },
@@ -3243,7 +3383,6 @@ public partial class gate : Exchange
         object response = null;
         if (isTrue(getValue(market, "contract")))
         {
-            maxLimit = 1999;
             object isMark = (isEqual(price, "mark"));
             object isIndex = (isEqual(price, "index"));
             if (isTrue(isTrue(isMark) || isTrue(isIndex)))
@@ -3629,7 +3768,7 @@ public partial class gate : Exchange
         {
             if (isTrue(!isEqual(market, null)))
             {
-                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
             }
             var marginModeparametersVariable = this.getMarginMode(false, parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -3737,6 +3876,7 @@ public partial class gate : Exchange
         //
         // public
         //
+        //  spot:
         //     {
         //         "id": "1334253759",
         //         "create_time": "1626342738",
@@ -3746,6 +3886,18 @@ public partial class gate : Exchange
         //         "amount": "0.0022",
         //         "price": "32452.16"
         //     }
+        //
+        //  swap:
+        //
+        //    {
+        //        "id": "442288327",
+        //        "contract": "BTC_USDT",
+        //        "create_time": "1739814676.707",
+        //        "create_time_ms": "1739814676.707",
+        //        "size": "-105",
+        //        "price": "95594.8"
+        //    }
+        //
         //
         // public ws
         //
@@ -3823,8 +3975,17 @@ public partial class gate : Exchange
         //     }
         //
         object id = this.safeString2(trade, "id", "trade_id");
-        object timestamp = this.safeTimestamp2(trade, "time", "create_time");
-        timestamp = this.safeInteger(trade, "create_time_ms", timestamp);
+        object timestamp = null;
+        object msString = this.safeString(trade, "create_time_ms");
+        if (isTrue(!isEqual(msString, null)))
+        {
+            msString = Precise.stringMul(msString, "1000");
+            msString = slice(msString, 0, 13);
+            timestamp = this.parseToInt(msString);
+        } else
+        {
+            timestamp = this.safeTimestamp2(trade, "time", "create_time");
+        }
         object marketId = this.safeString2(trade, "currency_pair", "contract");
         object marketType = ((bool) isTrue((inOp(trade, "contract")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);
@@ -4012,16 +4173,13 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["memo"] = tag;
         }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
-        if (isTrue(!isEqual(network, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = network;
-            parameters = this.omit(parameters, "network");
-        } else
-        {
-            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id"); // todo: currencies have network-junctions
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode);
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //
@@ -4200,7 +4358,7 @@ public partial class gate : Exchange
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -4230,8 +4388,8 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "margin"))))
@@ -4416,7 +4574,7 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
         if (isTrue(isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
@@ -4474,7 +4632,7 @@ public partial class gate : Exchange
             }
         }
         object request = null;
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {
             if (isTrue(contract))
@@ -5124,7 +5282,6 @@ public partial class gate : Exchange
             { "reduceOnly", this.safeValue(order, "is_reduce_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "average", average },
             { "amount", Precise.stringAbs(amount) },
@@ -5142,7 +5299,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         object orderId = id;
@@ -5159,7 +5316,7 @@ public partial class gate : Exchange
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
         object contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
-        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
+        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         ((IDictionary<string,object>)request)["order_id"] = ((object)orderId).ToString();
@@ -5192,14 +5349,14 @@ public partial class gate : Exchange
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         object type = this.safeString(result, 0);
-        object stop = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5208,7 +5365,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5217,7 +5374,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5244,7 +5401,7 @@ public partial class gate : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
@@ -5272,7 +5429,7 @@ public partial class gate : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
@@ -5515,7 +5672,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        // spot stop
+        // spot trigger
         //
         //    [
         //        {
@@ -5614,7 +5771,7 @@ public partial class gate : Exchange
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -5624,19 +5781,19 @@ public partial class gate : Exchange
         await this.loadMarkets();
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         ((IDictionary<string,object>)request)["order_id"] = id;
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5645,7 +5802,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5654,7 +5811,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5875,18 +6032,18 @@ public partial class gate : Exchange
         await this.loadMarkets();
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrders(this.extend(request, requestParams));
             } else
@@ -5895,7 +6052,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5904,7 +6061,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -6815,7 +6972,7 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowIsolatedMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
      * @param {string} symbol unified market symbol, required for isolated margin
@@ -7046,6 +7203,11 @@ public partial class gate : Exchange
         };
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -7115,6 +7277,11 @@ public partial class gate : Exchange
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
                 {
                     queryString = this.urlencode(query);
+                    // https://github.com/ccxt/ccxt/issues/25570
+                    if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "currencies="), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "%2C"), 0))))
+                    {
+                        queryString = ((string)queryString).Replace((string)"%2C", (string)",");
+                    }
                     url = add(url, add("?", queryString));
                 }
                 if (isTrue(isEqual(method, "PATCH")))
@@ -7134,7 +7301,8 @@ public partial class gate : Exchange
             }
             object bodyPayload = ((bool) isTrue((isEqual(body, null)))) ? "" : body;
             object bodySignature = this.hash(this.encode(bodyPayload), sha512);
-            object timestamp = this.seconds();
+            object nonce = this.nonce();
+            object timestamp = this.parseToInt(divide(nonce, 1000));
             object timestampString = ((object)timestamp).ToString();
             object signaturePath = add(add("/api/", this.version), entirePath);
             object payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, queryString, bodySignature, timestampString};
@@ -7325,7 +7493,7 @@ public partial class gate : Exchange
         //        ...
         //    ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -7577,7 +7745,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

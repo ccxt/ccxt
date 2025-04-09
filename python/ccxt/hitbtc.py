@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class hitbtc(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -44,7 +44,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': False,
-                'option': None,
+                'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -76,6 +76,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -88,12 +89,16 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
@@ -102,12 +107,14 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': True,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'sandbox': True,
@@ -300,6 +307,109 @@ class hitbtc(Exchange, ImplicitAPI):
                             [self.parse_number('50000'), self.parse_number('0.0003')],
                             [self.parse_number('100000'), self.parse_number('0.0002')],
                         ],
+                    },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': True,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': False,
+                        'marketType': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                        'marketType': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                        'marketType': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                        'marketType': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
                     },
                 },
             },
@@ -916,7 +1026,7 @@ class hitbtc(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -1304,7 +1414,7 @@ class hitbtc(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
-        takerOrMaker = None
+        takerOrMaker: str
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
         else:
@@ -1524,7 +1634,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -2254,7 +2364,7 @@ class hitbtc(Exchange, ImplicitAPI):
             elif type == 'market':
                 request['type'] = 'stopMarket'
         elif (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
-            raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            raise ExchangeError(self.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders')
         params = self.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly'])
         if marketType == 'swap':
             # set default margin mode to cross
@@ -2363,7 +2473,6 @@ class hitbtc(Exchange, ImplicitAPI):
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
-        stopPrice = self.safe_string(order, 'stop_price')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2387,8 +2496,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'average': average,
             'trades': rawTrades,
             'fee': None,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'takeProfitPrice': None,
             'stopLossPrice': None,
         }, market)
@@ -2954,13 +3062,56 @@ class hitbtc(Exchange, ImplicitAPI):
         datetime = self.safe_string(interest, 'timestamp')
         value = self.safe_number(interest, 'open_interest')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_symbol(None, market),
             'openInterestAmount': None,
             'openInterestValue': value,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'info': interest,
         }, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://api.hitbtc.com/#futures-info
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        symbols = self.market_symbols(symbols)
+        marketIds = None
+        if symbols is not None:
+            marketIds = self.market_ids(symbols)
+            request['symbols'] = ','.join(marketIds)
+        response = self.publicGetPublicFuturesInfo(self.extend(request, params))
+        #
+        #     {
+        #         "BTCUSDT_PERP": {
+        #             "contract_type": "perpetual",
+        #             "mark_price": "97291.83",
+        #             "index_price": "97298.61",
+        #             "funding_rate": "-0.000183473092423284",
+        #             "open_interest": "94.1503",
+        #             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        #             "indicative_funding_rate": "-0.00027495203277752",
+        #             "premium_index": "-0.000789474900583786",
+        #             "avg_premium_index": "-0.000683473092423284",
+        #             "interest_rate": "0.0001",
+        #             "timestamp": "2024-12-20T04:57:33.693Z"
+        #         }
+        #     }
+        #
+        results = []
+        markets = list(response.keys())
+        for i in range(0, len(markets)):
+            marketId = markets[i]
+            marketInner = self.safe_market(marketId)
+            results.append(self.parse_open_interest(response[marketId], marketInner))
+        return self.filter_by_array(results, 'symbol', symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """

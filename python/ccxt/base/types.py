@@ -278,7 +278,7 @@ class Ticker(TypedDict):
 
 Tickers = Dict[str, Ticker]
 
-
+OrderBooks = Dict[str, OrderBook]
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -496,6 +496,15 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
     interval: Str
 
+class OpenInterest(TypedDict):
+    symbol: Str
+    openInterestAmount: Num
+    openInterestValue: Num
+    baseVolume: Num
+    quoteVolume: Num
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
 
 class LeverageTier:
     tier: Num
@@ -556,6 +565,7 @@ class BorrowInterest:
 
 
 FundingRates = Dict[Str, FundingRate]
+OpenInterests = Dict[Str, OpenInterest]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
@@ -565,3 +575,31 @@ LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+class ConstructorArgs(TypedDict, total=False):
+    apiKey: str
+    secret: str
+    passphrase: str
+    password: str
+    privateKey: str
+    walletAddress: str
+    uid: str
+    verbose: bool
+    testnet: bool
+    sandbox: bool  # redudant but kept for backwards compatibility
+    options: Dict[str, Any]
+    enableRateLimit: bool
+    httpsProxy: str
+    socksProxy: str
+    wssProxy: str
+    proxy: str
+    rateLimit: Num
+    commonCurrencies: Dict[str, Any]
+    userAgent: str
+    userAgents: Dict[str, Any]
+    timeout: Num
+    markets: Dict[str, Any]
+    currencies: Dict[str, Any]
+    hostname: str
+    urls: Dict[str, Any]
+    headers: Dict[str, Any]

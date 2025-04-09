@@ -517,6 +517,7 @@ public partial class kucoin : Exchange
                     { "400008", typeof(NotSupported) },
                     { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
+                    { "400330", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
@@ -531,6 +532,8 @@ public partial class kucoin : Exchange
                     { "400303", typeof(PermissionDenied) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "260220", typeof(InvalidAddress) },
+                    { "600100", typeof(InsufficientFunds) },
+                    { "600101", typeof(InvalidOrder) },
                     { "900014", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -569,6 +572,8 @@ public partial class kucoin : Exchange
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 1 },
@@ -816,6 +821,7 @@ public partial class kucoin : Exchange
                     { "TRUE", "true" },
                     { "CS", "cs" },
                     { "ORAI", "orai" },
+                    { "BASE", "base" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
@@ -823,12 +829,84 @@ public partial class kucoin : Exchange
                     { "spot", "TRADE" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 7 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
         });
     }
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     /**
@@ -996,7 +1074,7 @@ public partial class kucoin : Exchange
                 { "type", "spot" },
                 { "spot", true },
                 { "margin", isMarginable },
-                { "marginMode", new Dictionary<string, object>() {
+                { "marginModes", new Dictionary<string, object>() {
                     { "cross", hasCrossMargin },
                     { "isolated", hasIsolatedMargin },
                 } },
@@ -1040,6 +1118,10 @@ public partial class kucoin : Exchange
                 { "info", market },
             });
         }
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         return result;
     }
 
@@ -1049,8 +1131,9 @@ public partial class kucoin : Exchange
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
-    public async virtual Task loadMigrationStatus(object force = null)
+    public async virtual Task<object> loadMigrationStatus(object force = null)
     {
         force ??= false;
         if (isTrue(isTrue(!isTrue((inOp(this.options, "hf"))) || isTrue((isEqual(getValue(this.options, "hf"), null)))) || isTrue(force)))
@@ -1058,6 +1141,7 @@ public partial class kucoin : Exchange
             object result = await this.privateGetHfAccountsOpened();
             ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
         }
+        return true;
     }
 
     public virtual object handleHfAndParams(object parameters = null)
@@ -1091,8 +1175,7 @@ public partial class kucoin : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object>() {};
-        ((IList<object>)promises).Add(this.publicGetCurrencies(parameters));
+        object response = await this.publicGetCurrencies(parameters);
         //
         //    {
         //        "code":"200000",
@@ -1118,54 +1201,19 @@ public partial class kucoin : Exchange
         //                    "isDepositEnabled":false,
         //                    "confirms":12,
         //                    "preConfirms":12,
+        //                    "withdrawPrecision": 8,
+        //                    "maxWithdraw": null,
+        //                    "maxDeposit": null,
+        //                    "needTag": false,
         //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         //                    "depositFeeRate": "0.001", // present for some currencies/networks
         //                 }
         //              ]
         //           },
-        //    }
-        //
-        ((IList<object>)promises).Add(this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetCurrencyCurrencyChainInfo", true));
-        //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": [
-        //            {
-        //                "status": "enabled",
-        //                "currency": "BTC",
-        //                "isChainEnabled": "true",
-        //                "chain": "btc",
-        //                "chainName": "BTC",
-        //                "chainFullName": "Bitcoin",
-        //                "walletPrecision": "8",
-        //                "isDepositEnabled": "true",
-        //                "depositMinSize": "0.00005",
-        //                "confirmationCount": "2",
-        //                "isWithdrawEnabled": "true",
-        //                "withdrawMinSize": "0.001",
-        //                "withdrawMinFee": "0.0005",
-        //                "withdrawFeeRate": "0",
-        //                "depositDisabledTip": "Wallet Maintenance",
-        //                "preDepositTipEnabled": "true",
-        //                "preDepositTip": "Do not transfer from ETH network directly",
-        //                "withdrawDisabledTip": "",
-        //                "preWithdrawTipEnabled": "false",
-        //                "preWithdrawTip": "",
-        //                "orgAddress": "",
-        //                "userAddressName": "Memo",
-        //            },
         //        ]
         //    }
         //
-        object responses = await promiseAll(promises);
-        object currenciesResponse = this.safeDict(responses, 0, new Dictionary<string, object>() {});
-        object currenciesData = this.safeList(currenciesResponse, "data", new List<object>() {});
-        object additionalResponse = this.safeDict(responses, 1, new Dictionary<string, object>() {});
-        object additionalData = this.safeList(additionalResponse, "data", new List<object>() {});
-        object additionalDataGrouped = this.groupBy(additionalData, "currency");
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
@@ -1173,19 +1221,14 @@ public partial class kucoin : Exchange
             object id = this.safeString(entry, "currency");
             object name = this.safeString(entry, "fullName");
             object code = this.safeCurrencyCode(id);
-            object isWithdrawEnabled = null;
-            object isDepositEnabled = null;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(entry, "chains", new List<object>() {});
-            object extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, new List<object>() {}), "chain");
             object rawPrecision = this.safeString(entry, "precision");
             object precision = this.parseNumber(this.parsePrecision(rawPrecision));
             object chainsLength = getArrayLength(chains);
             if (!isTrue(chainsLength))
             {
-                // https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = false;
-                isDepositEnabled = false;
+                continue;
             }
             for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
@@ -1193,22 +1236,7 @@ public partial class kucoin : Exchange
                 object chainId = this.safeString(chain, "chainId");
                 object networkCode = this.networkIdToCode(chainId, code);
                 object chainWithdrawEnabled = this.safeBool(chain, "isWithdrawEnabled", false);
-                if (isTrue(isEqual(isWithdrawEnabled, null)))
-                {
-                    isWithdrawEnabled = chainWithdrawEnabled;
-                } else
-                {
-                    isWithdrawEnabled = isTrue(isWithdrawEnabled) || isTrue(chainWithdrawEnabled);
-                }
                 object chainDepositEnabled = this.safeBool(chain, "isDepositEnabled", false);
-                if (isTrue(isEqual(isDepositEnabled, null)))
-                {
-                    isDepositEnabled = chainDepositEnabled;
-                } else
-                {
-                    isDepositEnabled = isTrue(isDepositEnabled) || isTrue(chainDepositEnabled);
-                }
-                object chainExtraData = this.safeDict(extraChainsData, chainId, new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", chainId },
@@ -1218,35 +1246,35 @@ public partial class kucoin : Exchange
                     { "fee", this.safeNumber(chain, "withdrawalMinFee") },
                     { "deposit", chainDepositEnabled },
                     { "withdraw", chainWithdrawEnabled },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainExtraData, "walletPrecision"))) },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(chain, "withdrawalMinSize") },
-                            { "max", null },
+                            { "max", this.safeNumber(chain, "maxWithdraw") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
                             { "min", this.safeNumber(chain, "depositMinSize") },
-                            { "max", null },
+                            { "max", this.safeNumber(chain, "maxDeposit") },
                         } },
                     } },
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
             object isFiat = isTrue((isEqual(rawPrecision, "2"))) && isTrue((isEqual(chainsLength, 0)));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "precision", precision },
                 { "info", entry },
-                { "active", (isTrue(isDepositEnabled) || isTrue(isWithdrawEnabled)) },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
-                { "fee", null },
-                { "limits", this.limits },
                 { "networks", networks },
-            };
+                { "deposit", null },
+                { "withdraw", null },
+                { "active", null },
+                { "fee", null },
+                { "limits", null },
+            });
         }
         return result;
     }
@@ -1408,6 +1436,39 @@ public partial class kucoin : Exchange
         //        "chain": "ERC20"
         //    }
         //
+        if (isTrue(inOp(fee, "chains")))
+        {
+            // if data obtained through `currencies` endpoint
+            object resultNew = new Dictionary<string, object>() {
+                { "info", fee },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", false },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "networks", new Dictionary<string, object>() {} },
+            };
+            object chains = this.safeList(fee, "chains", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
+            {
+                object chain = getValue(chains, i);
+                object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
+                ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(chain, "withdrawMinFee") },
+                        { "percentage", false },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
+            return resultNew;
+        }
         object minWithdrawFee = this.safeNumber(fee, "withdrawMinFee");
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -2065,7 +2126,7 @@ public partial class kucoin : Exchange
      * market orders --------------------------------------------------
      * @param {string} [params.funds] // Amount of quote currency to use
      * stop orders ----------------------------------------------------
-     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
+     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
      * margin orders --------------------------------------------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
@@ -2157,8 +2218,10 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2466,7 +2529,7 @@ public partial class kucoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancelling a stop order
+     * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns Response from the exchange
@@ -2477,7 +2540,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2500,7 +2563,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2518,7 +2581,7 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2560,7 +2623,7 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *invalid for isolated margin* true if cancelling all stop orders
+     * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
      * @param {bool} [params.hf] false, // true for hf order
@@ -2571,7 +2634,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object stop = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool(parameters, "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2587,13 +2650,13 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(marginMode, null)))
         {
             ((IDictionary<string,object>)request)["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
-            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(stop)))
+            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(trigger)))
             {
                 throw new BadRequest ((string)add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrderCancel(this.extend(request, query));
         } else if (isTrue(hf))
@@ -2629,9 +2692,9 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2641,7 +2704,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object lowercaseStatus = ((string)status).ToLower();
         object until = this.safeInteger(parameters, "until");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2684,7 +2747,7 @@ public partial class kucoin : Exchange
         }
         ((IDictionary<string,object>)request)["tradeType"] = this.safeString(getValue(this.options, "marginModes"), marginMode, "TRADE");
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrder(this.extend(request, query));
         } else if (isTrue(hf))
@@ -2769,7 +2832,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2802,12 +2865,12 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @param {bool} [params.stop] true if fetching stop orders
+     * @param {bool} [params.trigger] true if fetching trigger orders
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2838,9 +2901,9 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
      * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
      * @param {string} id Order id
-     * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+     * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.stop] true if fetching a stop order
+     * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2851,7 +2914,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2874,7 +2937,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 if (isTrue(!isEqual(symbol, null)))
                 {
@@ -2898,7 +2961,7 @@ public partial class kucoin : Exchange
                 throw new InvalidOrder ((string)add(this.id, " fetchOrder() requires an order id")) ;
             }
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateGetStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(hf))
@@ -3045,7 +3108,7 @@ public partial class kucoin : Exchange
         object feeCurrencyId = this.safeString(order, "feeCurrency");
         object cancelExist = this.safeBool(order, "cancelExist", false);
         object responseStop = this.safeString(order, "stop");
-        object stop = !isEqual(responseStop, null);
+        object trigger = !isEqual(responseStop, null);
         object stopTriggered = this.safeBool(order, "stopTriggered", false);
         object isActive = this.safeBool2(order, "isActive", "active");
         object responseStatus = this.safeString(order, "status");
@@ -3060,7 +3123,7 @@ public partial class kucoin : Exchange
                 status = "closed";
             }
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(responseStatus, "NEW")))
             {
@@ -3078,7 +3141,6 @@ public partial class kucoin : Exchange
         {
             status = "rejected";
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
@@ -3090,8 +3152,7 @@ public partial class kucoin : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "cost", this.safeString(order, "dealFunds") },
             { "filled", this.safeString(order, "dealSize") },
             { "remaining", null },
@@ -3172,10 +3233,6 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
-        }
         object method = getValue(this.options, "fetchMyTradesMethod");
         object parseResponseData = false;
         object response = null;
@@ -3184,6 +3241,16 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(hf))
         {
+            // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
+            if (isTrue(!isEqual(since, null)))
+            {
+                // only returns trades up to one week after the since param
+                ((IDictionary<string,object>)request)["startAt"] = since;
+            }
             response = await this.privateGetHfFills(this.extend(request, parameters));
         } else if (isTrue(isEqual(method, "private_get_fills")))
         {
@@ -4084,7 +4151,11 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        object returnType = ((bool) isTrue(isolated)) ? result : this.safeBalance(result);
+        object returnType = result;
+        if (!isTrue(isolated))
+        {
+            returnType = this.safeBalance(result);
+        }
         return returnType;
     }
 
@@ -4394,7 +4465,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4890,7 +4961,8 @@ public partial class kucoin : Exchange
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
                 object borrowRateStructure = this.parseBorrowRate(item);
-                ((IList<object>)getValue(borrowRateHistories, code)).Add(borrowRateStructure);
+                object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
+                ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
         object keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);

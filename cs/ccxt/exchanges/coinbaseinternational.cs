@@ -11,7 +11,7 @@ public partial class coinbaseinternational : Exchange
             { "id", "coinbaseinternational" },
             { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v1" },
@@ -188,6 +188,75 @@ public partial class coinbaseinternational : Exchange
                     { "polygon", "MATIC" },
                     { "solana", "SOL" },
                     { "bitcoin", "BTC" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                            { "GTC", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", 10000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 300 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -741,6 +810,7 @@ public partial class coinbaseinternational : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
@@ -760,14 +830,14 @@ public partial class coinbaseinternational : Exchange
         return getValue(networksArray, 0);
     }
 
-    public async virtual Task loadCurrencyNetworks(object code, object parameters = null)
+    public async virtual Task<object> loadCurrencyNetworks(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.currency(code);
         object networks = this.safeDict(currency, "networks");
         if (isTrue(!isEqual(networks, null)))
         {
-            return;
+            return false;
         }
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -792,6 +862,7 @@ public partial class coinbaseinternational : Exchange
         //    ]
         //
         ((IDictionary<string,object>)currency)["networks"] = this.parseNetworks(rawNetworks);
+        return true;
     }
 
     public virtual object parseNetworks(object networks, object parameters = null)
@@ -1720,7 +1791,7 @@ public partial class coinbaseinternational : Exchange
      * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {bool} [params.postOnly] true or false
@@ -1735,7 +1806,7 @@ public partial class coinbaseinternational : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object typeId = ((string)type).ToUpper();
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
@@ -1745,7 +1816,7 @@ public partial class coinbaseinternational : Exchange
             { "instrument", getValue(market, "id") },
             { "size", this.amountToPrecision(getValue(market, "symbol"), amount) },
         };
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(type, "limit")))
             {
@@ -1754,14 +1825,14 @@ public partial class coinbaseinternational : Exchange
             {
                 typeId = "STOP";
             }
-            ((IDictionary<string,object>)request)["stop_price"] = stopPrice;
+            ((IDictionary<string,object>)request)["stop_price"] = triggerPrice;
         }
         ((IDictionary<string,object>)request)["type"] = typeId;
         if (isTrue(isEqual(type, "limit")))
         {
             if (isTrue(isEqual(price, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() requires a price parameter for a limit order types")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -1780,7 +1851,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isTrue(!isEqual(tif, null)) && isTrue(!isEqual(tif, "IOC"))))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() market orders must have tif set to \"IOC\"")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
             tif = "IOC";
         } else
@@ -1868,7 +1939,6 @@ public partial class coinbaseinternational : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stop_price") },
             { "triggerPrice", this.safeString(order, "stop_price") },
             { "amount", this.safeString(order, "size") },
             { "filled", this.safeString(order, "exec_qty") },
@@ -2035,10 +2105,10 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = stopPrice;
+            ((IDictionary<string,object>)request)["stop_price"] = triggerPrice;
         }
         object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))

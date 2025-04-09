@@ -10,12 +10,12 @@ use ccxt\async\abstract\coinspot as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinspot extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -142,6 +142,54 @@ class coinspot extends Exchange {
             ),
             'options' => array(
                 'fetchBalance' => 'private_post_my_balances',
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => null, // todo implement
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
         ));
@@ -283,7 +331,7 @@ class coinspot extends Exchange {
             $response = Async\await($this->publicGetLatest ($params));
             $id = $market['id'];
             $id = strtolower($id);
-            $prices = $this->safe_value($response, 'prices');
+            $prices = $this->safe_dict($response, 'prices', array());
             //
             //     {
             //         "status":"ok",
@@ -317,22 +365,22 @@ class coinspot extends Exchange {
             //
             //    {
             //        "status" => "ok",
-            //        "prices" => {
-            //        "btc" => array(
-            //        "bid" => "25050",
-            //        "ask" => "25370",
-            //        "last" => "25234"
-            //        ),
-            //        "ltc" => {
-            //        "bid" => "79.39192993",
-            //        "ask" => "87.98",
-            //        "last" => "87.95"
+            //        "prices" =>   {
+            //            "btc" =>   array(
+            //                "bid" => "25050",
+            //                "ask" => "25370",
+            //                "last" => "25234"
+            //            ),
+            //            "ltc" =>   {
+            //                "bid" => "79.39192993",
+            //                "ask" => "87.98",
+            //                "last" => "87.95"
+            //            }
             //        }
-            //      }
             //    }
             //
             $result = array();
-            $prices = $this->safe_value($response, 'prices');
+            $prices = $this->safe_dict($response, 'prices', array());
             $ids = is_array($prices) ? array_keys($prices) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
@@ -403,36 +451,36 @@ class coinspot extends Exchange {
             }
             $response = Async\await($this->privatePostRoMyTransactions ($this->extend($request, $params)));
             //  {
-            //   "status" => "ok",
-            //   "buyorders" => array(
-            //     array(
-            //       "otc" => false,
-            //       "market" => "ALGO/AUD",
-            //       "amount" => 386.95197925,
-            //       "created" => "2022-10-20T09:56:44.502Z",
-            //       "audfeeExGst" => 1.80018002,
-            //       "audGst" => 0.180018,
-            //       "audtotal" => 200
-            //     ),
-            //   ),
-            //   "sellorders" => array(
-            //     array(
-            //       "otc" => false,
-            //       "market" => "SOLO/ALGO",
-            //       "amount" => 154.52345614,
-            //       "total" => 115.78858204658796,
-            //       "created" => "2022-04-16T09:36:43.698Z",
-            //       "audfeeExGst" => 1.08995731,
-            //       "audGst" => 0.10899573,
-            //       "audtotal" => 118.7
-            //     ),
-            //   )
+            //      "status" => "ok",
+            //      "buyorders" => array(
+            //          array(
+            //              "otc" => false,
+            //              "market" => "ALGO/AUD",
+            //              "amount" => 386.95197925,
+            //              "created" => "2022-10-20T09:56:44.502Z",
+            //              "audfeeExGst" => 1.80018002,
+            //              "audGst" => 0.180018,
+            //              "audtotal" => 200
+            //          ),
+            //      ),
+            //      "sellorders" => array(
+            //          array(
+            //              "otc" => false,
+            //              "market" => "SOLO/ALGO",
+            //              "amount" => 154.52345614,
+            //              "total" => 115.78858204658796,
+            //              "created" => "2022-04-16T09:36:43.698Z",
+            //              "audfeeExGst" => 1.08995731,
+            //              "audGst" => 0.10899573,
+            //              "audtotal" => 118.7
+            //          ),
+            //      )
             // }
-            $buyTrades = $this->safe_value($response, 'buyorders', array());
+            $buyTrades = $this->safe_list($response, 'buyorders', array());
             for ($i = 0; $i < count($buyTrades); $i++) {
                 $buyTrades[$i]['side'] = 'buy';
             }
-            $sellTrades = $this->safe_value($response, 'sellorders', array());
+            $sellTrades = $this->safe_list($response, 'sellorders', array());
             for ($i = 0; $i < count($sellTrades); $i++) {
                 $sellTrades[$i]['side'] = 'sell';
             }

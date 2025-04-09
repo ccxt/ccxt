@@ -5,7 +5,7 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
-import add_static_result from '../../utils/update-static-request-response.js'
+import { add_static_result } from '../../utils/update-static-tests-data.js'
 
 const fsPromises = fs.promises;
 ansi.nice
@@ -183,7 +183,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
         'input': args,
-        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
+        'httpResponse': exchange.parseJson (exchange.last_http_response),
         'parsedResponse': result
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')

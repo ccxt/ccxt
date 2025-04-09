@@ -39,6 +39,7 @@ export default class bitrue extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -442,7 +443,96 @@ export default class bitrue extends Exchange {
                 'MIM': 'MIM Swarm',
             },
             'precisionMode': TICK_SIZE,
-            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                    'fetchClosedOrders': undefined,
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'System is under maintenance.': OnMaintenance,
@@ -514,6 +604,7 @@ export default class bitrue extends Exchange {
                     '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': InsufficientFunds,
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -1156,7 +1247,7 @@ export default class bitrue extends Exchange {
         //         "time": 1699338305000
         //     }
         //
-        const timestamp = this.safeInteger(response, 'time');
+        const timestamp = this.safeInteger2(response, 'time', 'lastUpdateId');
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         return orderbook;
@@ -1312,14 +1403,14 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-     * @see https://www.bitrue.com/api-docs#kline-candlestick-data
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1356,8 +1447,10 @@ export default class bitrue extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            if (since !== undefined) {
-                request['fromIdx'] = since;
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['fromIdx'] = until;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
             data = this.safeList(response, 'data', []);
@@ -1586,7 +1679,7 @@ export default class bitrue extends Exchange {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.market(this.safeValue(ticker, 'symbol'));
+            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);
@@ -1836,8 +1929,7 @@ export default class bitrue extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        const triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice')));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1851,8 +1943,7 @@ export default class bitrue extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1887,9 +1978,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#createOrder
      * @description create a trade order
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1990,10 +2080,10 @@ export default class bitrue extends Exchange {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice !== undefined) {
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder(this.extend(request, params));
             data = response;
@@ -2028,9 +2118,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-     * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2126,7 +2215,7 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2184,9 +2273,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-     * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -2388,9 +2476,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-     * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3090,7 +3177,7 @@ export default class bitrue extends Exchange {
         const version = this.safeString(api, 1);
         const access = this.safeString(api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0)) {
             url = this.urls['api'][type];
         }
         else {
@@ -3101,7 +3188,7 @@ export default class bitrue extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,

@@ -642,6 +642,45 @@ public struct OrderBook
     }
 }
 
+public struct OrderBooks
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OrderBook> orderbooks;
+
+    public OrderBooks(object tickers2)
+    {
+        var orderbooks = (Dictionary<string, object>)tickers2;
+
+        info = Helper.GetInfo(orderbooks);
+        this.orderbooks = new Dictionary<string, OrderBook>();
+        foreach (var ticker in orderbooks)
+        {
+            if (ticker.Key != "info")
+                this.orderbooks.Add(ticker.Key, new OrderBook(ticker.Value));
+        }
+    }
+
+    // Indexer
+    public OrderBook this[string key]
+    {
+        get
+        {
+            if (orderbooks.ContainsKey(key))
+            {
+                return orderbooks[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OrderBooks.");
+            }
+        }
+        set
+        {
+            orderbooks[key] = value;
+        }
+    }
+}
+
 public struct OHLCV
 {
     public Int64? timestamp;
@@ -778,23 +817,6 @@ public struct WithdrawlResponse
         var withdrawlResponse = (Dictionary<string, object>)withdrawlResponse2;
         info = (Dictionary<string, object>)withdrawlResponse["info"];
         id = Exchange.SafeString(withdrawlResponse, "id");
-    }
-}
-
-public struct DepositAddressResponse
-{
-    public string? address;
-    public string? tag;
-    public string? status;
-    public Dictionary<string, object>? info;
-
-    public DepositAddressResponse(object depositAddressResponse2)
-    {
-        var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
-        address = Exchange.SafeString(depositAddressResponse, "address");
-        tag = Exchange.SafeString(depositAddressResponse, "tag");
-        status = Exchange.SafeString(depositAddressResponse, "status");
-        info = Helper.GetInfo(depositAddressResponse);
     }
 }
 
@@ -1008,6 +1030,45 @@ public struct Liquidation
     }
 }
 
+public struct OpenInterests
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OpenInterest> openInterests;
+
+    public OpenInterests(object fr2)
+    {
+        var rates = (Dictionary<string, object>)fr2;
+
+        info = Helper.GetInfo(rates);
+        this.openInterests = new Dictionary<string, OpenInterest>();
+        foreach (var rate in rates)
+        {
+            if (rate.Key != "info")
+                this.openInterests.Add(rate.Key, new OpenInterest(rate.Value));
+        }
+    }
+
+    // Indexer
+    public OpenInterest this[string key]
+    {
+        get
+        {
+            if (openInterests.ContainsKey(key))
+            {
+                return openInterests[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OpenInterests.");
+            }
+        }
+        set
+        {
+            openInterests[key] = value;
+        }
+    }
+}
+
 public struct FundingRate
 {
     public string? symbol;
@@ -1051,23 +1112,23 @@ public struct FundingRate
 public struct FundingRates
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, Ticker> fundingRates;
+    public Dictionary<string, FundingRate> fundingRates;
 
     public FundingRates(object fr2)
     {
         var rates = (Dictionary<string, object>)fr2;
 
         info = Helper.GetInfo(rates);
-        this.fundingRates = new Dictionary<string, Ticker>();
+        this.fundingRates = new Dictionary<string, FundingRate>();
         foreach (var rate in rates)
         {
             if (rate.Key != "info")
-                this.fundingRates.Add(rate.Key, new Ticker(rate.Value));
+                this.fundingRates.Add(rate.Key, new FundingRate(rate.Value));
         }
     }
 
     // Indexer
-    public Ticker this[string key]
+    public FundingRate this[string key]
     {
         get
         {

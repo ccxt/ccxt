@@ -10,7 +10,7 @@ use ccxt\abstract\krakenfutures as Exchange;
 
 class krakenfutures extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'krakenfutures',
             'name' => 'Kraken Futures',
@@ -32,6 +32,12 @@ class krakenfutures extends Exchange {
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
@@ -197,7 +203,7 @@ class krakenfutures extends Exchange {
                     'invalidAmount' => '\\ccxt\\BadRequest',
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
-                    'Unavailable' => '\\ccxt\\InsufficientFunds',              // Insufficient funds in Futures account [withdraw]
+                    'Unavailable' => '\\ccxt\\ExchangeNotAvailable',              // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit' => '\\ccxt\\BadRequest',
                     'Json Parse Error' => '\\ccxt\\ExchangeError',
                     'nonceBelowThreshold' => '\\ccxt\\InvalidNonce',
@@ -253,6 +259,86 @@ class krakenfutures extends Exchange {
                 ),
                 'fetchTrades' => array(
                     'method' => 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 100,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => null,
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
                 ),
             ),
             'timeframes' => array(
@@ -1032,7 +1118,7 @@ class krakenfutures extends Exchange {
         /**
          * Create an order on the exchange
          *
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
          *
          * @param {string} $symbol unified $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -1093,7 +1179,7 @@ class krakenfutures extends Exchange {
         /**
          * create a list of trade $orders
          *
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1467,13 +1553,13 @@ class krakenfutures extends Exchange {
     }
 
     public function parse_order_type($orderType) {
-        $map = array(
+        $typesMap = array(
             'lmt' => 'limit',
             'mkt' => 'market',
             'post' => 'limit',
             'ioc' => 'market',
         );
-        return $this->safe_string($map, $orderType, $orderType);
+        return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
     public function verify_order_action_success($status, $method, $omit = []) {
@@ -1887,7 +1973,6 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
-            'stopPrice' => $this->safe_string($details, 'triggerPrice'),
             'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
             'amount' => $amount,
             'cost' => $cost,
@@ -1919,6 +2004,7 @@ class krakenfutures extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        // todo => lastFillTime => $this->iso8601(end)
         $response = $this->privateGetFills ($params);
         //
         //    {
@@ -2509,21 +2595,24 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tiers = array();
+        if ($marginLevels === null) {
+            return $tiers;
+        }
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
             $initialMargin = $this->safe_string($tier, 'initialMargin');
-            $notionalFloor = $this->safe_number($tier, 'contracts');
+            $minNotional = $this->safe_number($tier, 'numNonContractUnits');
             if ($i !== 0) {
                 $tiersLength = count($tiers);
                 $previousTier = $tiers[$tiersLength - 1];
-                $previousTier['notionalCap'] = $notionalFloor;
+                $previousTier['maxNotional'] = $minNotional;
             }
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
-                'notionalFloor' => $notionalFloor,
-                'notionalCap' => null,
+                'minNotional' => $minNotional,
+                'maxNotional' => null,
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMargin)),
                 'info' => $tier,

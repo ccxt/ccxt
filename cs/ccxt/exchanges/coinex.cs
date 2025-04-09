@@ -38,6 +38,7 @@ public partial class coinex : Exchange
                 { "createOrders", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLossOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
@@ -449,7 +450,7 @@ public partial class coinex : Exchange
                     { "ERC20", "ERC20" },
                     { "BRC20", "BRC20" },
                     { "SOL", "SOL" },
-                    { "TON", "SOL" },
+                    { "TON", "TON" },
                     { "BSV", "BSV" },
                     { "AVAXC", "AVA_C" },
                     { "AVAXX", "AVA" },
@@ -479,6 +480,96 @@ public partial class coinex : Exchange
                     { "SEI", "SEI" },
                     { "XRP", "XRP" },
                     { "XMR", "XMR" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "spot" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -1949,7 +2040,6 @@ public partial class coinex : Exchange
             { "reduceOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "trigger_price") },
             { "triggerPrice", this.safeString(order, "trigger_price") },
             { "takeProfitPrice", this.safeNumber(order, "take_profit_price") },
             { "stopLossPrice", this.safeNumber(order, "stop_loss_price") },
@@ -1997,7 +2087,7 @@ public partial class coinex : Exchange
         object market = this.market(symbol);
         object swap = getValue(market, "swap");
         object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
-        object stopPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object option = this.safeString(parameters, "option");
@@ -2067,9 +2157,9 @@ public partial class coinex : Exchange
             } else
             {
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-                if (isTrue(!isEqual(stopPrice, null)))
+                if (isTrue(!isEqual(triggerPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopPrice);
+                    ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
                     ((IDictionary<string,object>)request)["trigger_price_type"] = this.safeString(parameters, "stop_type", "latest_price");
                 }
             }
@@ -2115,9 +2205,9 @@ public partial class coinex : Exchange
             {
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             }
-            if (isTrue(!isEqual(stopPrice, null)))
+            if (isTrue(!isEqual(triggerPrice, null)))
             {
-                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "timeInForce", "postOnly", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
@@ -2350,7 +2440,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         object requestIds = new List<object>() {};
@@ -2358,7 +2448,7 @@ public partial class coinex : Exchange
         {
             ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["stop_ids"] = requestIds;
         } else
@@ -2367,7 +2457,7 @@ public partial class coinex : Exchange
         }
         if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, parameters));
             } else
@@ -2377,7 +2467,7 @@ public partial class coinex : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, parameters));
             } else
@@ -2709,7 +2799,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
@@ -2723,7 +2813,7 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             if (isTrue(isClosed))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, parameters));
                 } else
@@ -2732,7 +2822,7 @@ public partial class coinex : Exchange
                 }
             } else if (isTrue(isOpen))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, parameters));
                 } else
@@ -2755,7 +2845,7 @@ public partial class coinex : Exchange
             }
             if (isTrue(isClosed))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, parameters));
                 } else
@@ -2764,7 +2854,7 @@ public partial class coinex : Exchange
                 }
             } else if (isTrue(isEqual(status, "pending")))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, parameters));
                 } else
@@ -2934,7 +3024,7 @@ public partial class coinex : Exchange
             { "currency", this.safeCurrencyCode(null, currency) },
             { "network", null },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "memo", tag) },
         };
     }
 
@@ -3814,8 +3904,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -3840,15 +3929,15 @@ public partial class coinex : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(tag))
-        {
-            address = add(add(address, ":"), tag);
-        }
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
             { "to_address", address },
-            { "amount", this.numberToString(amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["memo"] = tag;
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
@@ -3899,6 +3988,7 @@ public partial class coinex : Exchange
             { "not_pass", "failed" },
             { "cancel", "canceled" },
             { "finish", "ok" },
+            { "finished", "ok" },
             { "fail", "failed" },
         };
         return this.safeString(statuses, status, status);

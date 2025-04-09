@@ -10,7 +10,7 @@ use ccxt\abstract\hitbtc as Exchange;
 
 class hitbtc extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc',
             'name' => 'HitBTC',
@@ -26,7 +26,7 @@ class hitbtc extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => false,
-                'option' => null,
+                'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -58,6 +58,7 @@ class hitbtc extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -70,12 +71,16 @@ class hitbtc extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
@@ -84,12 +89,14 @@ class hitbtc extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'sandbox' => true,
@@ -282,6 +289,109 @@ class hitbtc extends Exchange {
                             array( $this->parse_number('50000'), $this->parse_number('0.0003') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0002') ),
                         ),
+                    ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => true,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
                     ),
                 ),
             ),
@@ -910,7 +1020,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
          *
@@ -1325,7 +1435,6 @@ class hitbtc extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_value($trade, 'taker');
-        $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
         } else {
@@ -1559,7 +1668,7 @@ class hitbtc extends Exchange {
         return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *
@@ -2355,7 +2464,7 @@ class hitbtc extends Exchange {
                 $request['type'] = 'stopMarket';
             }
         } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
-            throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ExchangeError($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
         }
         $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
         if ($marketType === 'swap') {
@@ -2470,7 +2579,6 @@ class hitbtc extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_value($order, 'trades');
-        $stopPrice = $this->safe_string($order, 'stop_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2494,8 +2602,7 @@ class hitbtc extends Exchange {
             'average' => $average,
             'trades' => $rawTrades,
             'fee' => null,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
         ), $market);
@@ -3100,13 +3207,59 @@ class hitbtc extends Exchange {
         $datetime = $this->safe_string($interest, 'timestamp');
         $value = $this->safe_number($interest, 'open_interest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://api.hitbtc.com/#futures-info
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $symbols = $this->market_symbols($symbols);
+        $marketIds = null;
+        if ($symbols !== null) {
+            $marketIds = $this->market_ids($symbols);
+            $request['symbols'] = implode(',', $marketIds);
+        }
+        $response = $this->publicGetPublicFuturesInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "BTCUSDT_PERP" => {
+        //             "contract_type" => "perpetual",
+        //             "mark_price" => "97291.83",
+        //             "index_price" => "97298.61",
+        //             "funding_rate" => "-0.000183473092423284",
+        //             "open_interest" => "94.1503",
+        //             "next_funding_time" => "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate" => "-0.00027495203277752",
+        //             "premium_index" => "-0.000789474900583786",
+        //             "avg_premium_index" => "-0.000683473092423284",
+        //             "interest_rate" => "0.0001",
+        //             "timestamp" => "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        $results = array();
+        $markets = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $marketId = $markets[$i];
+            $marketInner = $this->safe_market($marketId);
+            $results[] = $this->parse_open_interest($response[$marketId], $marketInner);
+        }
+        return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

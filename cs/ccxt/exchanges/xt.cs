@@ -103,7 +103,7 @@ public partial class xt : Exchange
                 { "repayMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "signIn", false },
                 { "transfer", true },
@@ -128,16 +128,16 @@ public partial class xt : Exchange
                     { "spot", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "currencies", 1 },
-                            { "depth", 0.05 },
-                            { "kline", 0.1 },
+                            { "depth", 10 },
+                            { "kline", 1 },
                             { "symbol", 1 },
                             { "ticker", 1 },
                             { "ticker/book", 1 },
                             { "ticker/price", 1 },
                             { "ticker/24h", 1 },
                             { "time", 1 },
-                            { "trade/history", 0.1 },
-                            { "trade/recent", 0.1 },
+                            { "trade/history", 1 },
+                            { "trade/recent", 1 },
                             { "wallet/support/currency", 1 },
                         } },
                     } },
@@ -207,7 +207,7 @@ public partial class xt : Exchange
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 0.2 },
-                            { "withdraw", 1 },
+                            { "withdraw", 10 },
                             { "balance/transfer", 1 },
                             { "balance/account/transfer", 1 },
                             { "ws-token", 1 },
@@ -258,6 +258,7 @@ public partial class xt : Exchange
                             { "future/user/v1/position/margin", 1 },
                             { "future/user/v1/user/collection/add", 1 },
                             { "future/user/v1/user/collection/cancel", 1 },
+                            { "future/user/v1/position/change-type", 1 },
                         } },
                     } },
                     { "inverse", new Dictionary<string, object>() {
@@ -451,10 +452,12 @@ public partial class xt : Exchange
                     { "TRANSFER_012", typeof(PermissionDenied) },
                     { "symbol_not_support_trading_via_api", typeof(BadSymbol) },
                     { "open_order_min_nominal_value_limit", typeof(InvalidOrder) },
+                    { "insufficient_balance", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "The symbol does not support trading via API", typeof(BadSymbol) },
                     { "Exceeds the minimum notional value of a single order", typeof(InvalidOrder) },
+                    { "insufficient balance", typeof(InsufficientFunds) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -606,6 +609,122 @@ public partial class xt : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "recvWindow", "5000" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "marketType", true },
+                        { "subType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "subType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "subType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "subType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "subType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
             } },
         });
     }
@@ -1248,6 +1367,8 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1255,6 +1376,14 @@ public partial class xt : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1267,6 +1396,15 @@ public partial class xt : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["limit"] = 1000;
+        }
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = null;
         if (isTrue(getValue(market, "linear")))
@@ -2354,7 +2492,8 @@ public partial class xt : Exchange
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -2554,7 +2693,7 @@ public partial class xt : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -2577,9 +2716,9 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue(parameters, "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
@@ -2589,7 +2728,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             parameters = this.omit(parameters, "stop");
             if (isTrue(isEqual(subType, "inverse")))
@@ -2751,7 +2890,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2782,10 +2921,10 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters));
@@ -2944,11 +3083,11 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue(parameters, "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         if (isTrue(isEqual(status, "open")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
             } else if (isTrue(!isEqual(subType, null)))
@@ -2957,7 +3096,7 @@ public partial class xt : Exchange
             }
         } else if (isTrue(isEqual(status, "closed")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "TRIGGERED";
             } else
@@ -2966,7 +3105,7 @@ public partial class xt : Exchange
             }
         } else if (isTrue(isEqual(status, "canceled")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "USER_REVOCATION";
             } else
@@ -2977,7 +3116,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["state"] = status;
         }
-        if (isTrue(isTrue(isTrue(isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)) || isTrue((!isEqual(subType, null)))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)) || isTrue((!isEqual(subType, null)))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
         {
             if (isTrue(!isEqual(since, null)))
             {
@@ -2988,7 +3127,7 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             parameters = this.omit(parameters, "stop");
             if (isTrue(isEqual(subType, "inverse")))
@@ -3237,7 +3376,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3259,7 +3398,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3281,7 +3420,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3302,7 +3441,7 @@ public partial class xt : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3325,9 +3464,9 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
@@ -3337,9 +3476,9 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, parameters));
@@ -3403,7 +3542,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3427,11 +3566,11 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, parameters));
@@ -3675,7 +3814,7 @@ public partial class xt : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower2(order, "side", "orderSide") },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", this.safeNumber(order, "stopPrice") },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "stopLoss", this.safeNumber(order, "triggerStopPrice") },
             { "takeProfit", this.safeNumber(order, "triggerProfitPrice") },
             { "amount", amount },
@@ -4667,6 +4806,10 @@ public partial class xt : Exchange
         object symbol = this.safeSymbol(marketId, market, "_", "swap");
         object timestamp = this.safeInteger(contract, "nextCollectionTime");
         object interval = this.safeString(contract, "collectionInternal");
+        if (isTrue(!isEqual(interval, null)))
+        {
+            interval = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -4685,7 +4828,7 @@ public partial class xt : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", add(interval, "h") },
+            { "interval", interval },
         };
     }
 
@@ -5037,6 +5180,67 @@ public partial class xt : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(getValue(market, "spot")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+        }
+        marginMode = ((string)marginMode).ToLower();
+        if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
+        {
+            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        if (isTrue(isEqual(marginMode, "cross")))
+        {
+            marginMode = "CROSSED";
+        } else
+        {
+            marginMode = "ISOLATED";
+        }
+        object posSide = this.safeStringUpper(parameters, "positionSide");
+        if (isTrue(isEqual(posSide, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "positionType", marginMode },
+            { "positionSide", posSide },
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response;  // unify return type
+    }
+
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
         //
@@ -5087,6 +5291,9 @@ public partial class xt : Exchange
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         object status = this.safeStringUpper2(response, "msgInfo", "mc");
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "SUCCESS"))))

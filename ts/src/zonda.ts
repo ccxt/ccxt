@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class zonda extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'zonda',
             'name': 'Zonda',
@@ -291,6 +291,62 @@ export default class zonda extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true, // todo remove
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -447,6 +503,7 @@ export default class zonda extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
+        // todo pair
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
         const items = this.safeList (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
@@ -498,7 +555,6 @@ export default class zonda extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeString (order, 'rate'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -859,7 +915,7 @@ export default class zonda extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const balanceCurrencies = [];
@@ -1391,6 +1447,7 @@ export default class zonda extends Exchange {
      * @method
      * @name zonda#createOrder
      * @description create a trade order
+     * @see https://docs.zondacrypto.exchange/reference/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1428,7 +1485,7 @@ export default class zonda extends Exchange {
         let response = undefined;
         if (isStopOrder) {
             if (!isStopLossPrice) {
-                throw new ExchangeError (this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
+                throw new ExchangeError (this.id + ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders');
             }
             request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
             response = await this.v1_01PrivatePostTradingStopOfferSymbol (this.extend (request, params));

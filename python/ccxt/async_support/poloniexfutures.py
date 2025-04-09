@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class poloniexfutures(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'id': 'poloniexfutures',
             'name': 'Poloniex Futures',
@@ -42,6 +42,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'future': False,
                 'option': None,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -186,6 +188,84 @@ class poloniexfutures(Exchange, ImplicitAPI):
                             'level3/snapshot': 'v2',
                         },
                     },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo implementation
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': True,  # deprecated?
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': True,  # deprecated?
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': 7,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 200,  # todo implement
+                    },
+                },
+                'spot': None,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -696,7 +776,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the poloniexfutures server
 
@@ -827,7 +907,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.leverage]: Leverage size of the order
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
@@ -855,12 +935,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'size': preciseAmount,
             'leverage': 1,
         }
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice:
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
             request['stopPriceType'] = stopPriceType
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if type == 'limit':
             if price is None:
@@ -909,7 +989,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'trades': None,
             'timeInForce': None,
             'postOnly': None,
-            'stopPrice': None,
+            'triggerPrice': None,
             'info': response,
         }, market)
 
@@ -1178,17 +1258,17 @@ class poloniexfutures(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :param dict [params.trigger]: When True, all the trigger orders will be cancelled
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.privateDeleteStopOrders(self.extend(request, params))
         else:
             response = await self.privateDeleteOrders(self.extend(request, params))
@@ -1228,7 +1308,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'trades': None,
                 'timeInForce': None,
                 'postOnly': None,
-                'stopPrice': None,
+                'triggerPrice': None,
                 'info': response,
             }))
         return result
@@ -1252,13 +1332,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
         request: dict = {}
-        if not stop:
+        if not trigger:
             request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
@@ -1271,7 +1351,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         if until is not None:
             request['endAt'] = until
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetStopOrders(self.extend(request, params))
         else:
             response = await self.privateGetOrders(self.extend(request, params))
@@ -1369,7 +1449,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -1547,7 +1627,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'side'),
             'amount': self.safe_string(order, 'size'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'stopPrice'),
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'cost': self.safe_string(order, 'dealValue'),
             'filled': filled,
             'remaining': None,

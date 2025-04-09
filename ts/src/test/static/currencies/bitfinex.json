@@ -1,101 +1,485 @@
 {
     "BTC": {
-        "id": "BTC",
+        "id": "fBTC",
+        "uppercaseId": "BTC",
         "code": "BTC",
+        "info": [
+            "BTC",
+            [
+                "BTC",
+                "Bitcoin"
+            ],
+            [],
+            [
+                "BTC",
+                [
+                    0,
+                    0.0004
+                ]
+            ],
+            []
+        ],
+        "type": "other",
+        "name": "Bitcoin",
+        "active": true,
+        "fee": 0.0004,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.0004
+            }
+        },
+        "networks": {
+            "BTC": {
+                "info": "BITCOIN",
+                "id": "bitcoin",
+                "network": "BITCOIN",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "USDT": {
-        "id": "UST",
+        "id": "fUST",
+        "uppercaseId": "UST",
         "code": "USDT",
+        "info": [
+            "UST",
+            [
+                "UST",
+                "Tether USDt"
+            ],
+            [],
+            [],
+            []
+        ],
+        "type": "other",
+        "name": "Tether USDt",
+        "active": true,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
+            "amount": {
+                "min": 1e-8
+            },
             "withdraw": {}
+        },
+        "networks": {
+            "OMNI": {
+                "info": "TETHERUSO",
+                "id": "tetheruso",
+                "network": "TETHERUSO",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "ERC20": {
+                "info": "TETHERUSE",
+                "id": "tetheruse",
+                "network": "TETHERUSE",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TRC20": {
+                "info": "TETHERUSX",
+                "id": "tetherusx",
+                "network": "TETHERUSX",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "LIQUID": {
+                "info": "TETHERUSL",
+                "id": "tetherusl",
+                "network": "TETHERUSL",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "EOS": {
+                "info": "TETHERUSS",
+                "id": "tetheruss",
+                "network": "TETHERUSS",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "ALGO": {
+                "info": "TETHERUSDTALG",
+                "id": "tetherusdtalg",
+                "network": "TETHERUSDTALG",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "BCH": {
+                "info": "TETHERUSDTBCH",
+                "id": "tetherusdtbch",
+                "network": "TETHERUSDTBCH",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "SOL": {
+                "info": "TETHERUSDTSOL",
+                "id": "tetherusdtsol",
+                "network": "TETHERUSDTSOL",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "AVAX": {
+                "info": "TETHERUSDTAVAX",
+                "id": "tetherusdtavax",
+                "network": "TETHERUSDTAVAX",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "KSM": {
+                "info": "TETHERUSDTKSM",
+                "id": "tetherusdtksm",
+                "network": "TETHERUSDTKSM",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTXTZ": {
+                "info": "TETHERUSDTXTZ",
+                "id": "tetherusdtxtz",
+                "network": "TETHERUSDTXTZ",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTNEAR": {
+                "info": "TETHERUSDTNEAR",
+                "id": "tetherusdtnear",
+                "network": "TETHERUSDTNEAR",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTDOT": {
+                "info": "TETHERUSDTDOT",
+                "id": "tetherusdtdot",
+                "network": "TETHERUSDTDOT",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTPLY": {
+                "info": "TETHERUSDTPLY",
+                "id": "tetherusdtply",
+                "network": "TETHERUSDTPLY",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTKAVA": {
+                "info": "TETHERUSDTKAVA",
+                "id": "tetherusdtkava",
+                "network": "TETHERUSDTKAVA",
+                "limits": {
+                    "withdraw": {}
+                }
+            },
+            "TETHERUSDTZK": {
+                "info": "TETHERUSDTZK",
+                "id": "tetherusdtzk",
+                "network": "TETHERUSDTZK",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "EUR": {
-        "id": "EUR",
+        "id": "fEUR",
+        "uppercaseId": "EUR",
         "code": "EUR",
+        "info": [
+            "EUR",
+            [
+                "EUR",
+                "Euro"
+            ],
+            [],
+            [],
+            []
+        ],
+        "type": "other",
+        "name": "Euro",
+        "active": true,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
+            "amount": {
+                "min": 1e-8
+            },
             "withdraw": {}
-        }
+        },
+        "networks": {}
     },
     "USD": {
-        "id": "USD",
+        "id": "fUSD",
+        "uppercaseId": "USD",
         "code": "USD",
-        "precision": 5,
-        "fees": {},
-        "networks": {},
+        "info": [
+            "USD",
+            [
+                "USD",
+                "US Dollar"
+            ],
+            [],
+            [],
+            []
+        ],
+        "type": "other",
+        "name": "US Dollar",
+        "active": true,
+        "precision": 8,
         "limits": {
-            "deposit": {},
+            "amount": {
+                "min": 1e-8
+            },
             "withdraw": {}
+        },
+        "networks": {
+            "WIRE": {
+                "info": "WIRE",
+                "id": "wire",
+                "network": "WIRE",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "LTC": {
-        "id": "LTC",
+        "id": "fLTC",
+        "uppercaseId": "LTC",
         "code": "LTC",
+        "info": [
+            "LTC",
+            [
+                "LTC",
+                "Litecoin"
+            ],
+            [],
+            [
+                "LTC",
+                [
+                    0,
+                    0.001
+                ]
+            ],
+            []
+        ],
+        "type": "other",
+        "name": "Litecoin",
+        "active": true,
+        "fee": 0.001,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.001
+            }
+        },
+        "networks": {
+            "LTC": {
+                "info": "LITECOIN",
+                "id": "litecoin",
+                "network": "LITECOIN",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "ETH": {
-        "id": "ETH",
+        "id": "fETH",
+        "uppercaseId": "ETH",
         "code": "ETH",
+        "info": [
+            "ETH",
+            [
+                "ETH",
+                "Ethereum"
+            ],
+            [],
+            [
+                "ETH",
+                [
+                    0,
+                    0.001
+                ]
+            ],
+            []
+        ],
+        "type": "other",
+        "name": "Ethereum",
+        "active": true,
+        "fee": 0.001,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.001
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "info": "ETHEREUM",
+                "id": "ethereum",
+                "network": "ETHEREUM",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "ADA": {
-        "id": "ADA",
+        "id": "fADA",
+        "uppercaseId": "ADA",
         "code": "ADA",
+        "info": [
+            "ADA",
+            [
+                "ADA",
+                "Cardano ADA"
+            ],
+            [],
+            [
+                "ADA",
+                [
+                    0,
+                    0.3
+                ]
+            ],
+            []
+        ],
+        "type": "other",
+        "name": "Cardano ADA",
+        "active": true,
+        "fee": 0.3,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.3
+            }
+        },
+        "networks": {
+            "ADA": {
+                "info": "ADA",
+                "id": "ada",
+                "network": "ADA",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "XRP": {
-        "id": "XRP",
+        "id": "fXRP",
+        "uppercaseId": "XRP",
         "code": "XRP",
+        "info": [
+            "XRP",
+            [
+                "XRP",
+                "Ripple"
+            ],
+            [],
+            [
+                "XRP",
+                [
+                    0,
+                    0.1
+                ]
+            ],
+            []
+        ],
+        "type": "other",
+        "name": "Ripple",
+        "active": true,
+        "fee": 0.1,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.1
+            }
+        },
+        "networks": {
+            "RIPPLE": {
+                "info": "RIPPLE",
+                "id": "ripple",
+                "network": "RIPPLE",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     },
     "USDC": {
-        "id": "UDC",
+        "id": "fUDC",
+        "uppercaseId": "UDC",
         "code": "USDC",
+        "info": [
+            "UDC",
+            [
+                "UDC",
+                "USDc"
+            ],
+            [
+                "UDC",
+                "ETH"
+            ],
+            [
+                "UDC",
+                [
+                    0,
+                    2.0389
+                ]
+            ],
+            []
+        ],
+        "type": "crypto",
+        "name": "USDc",
+        "active": true,
+        "fee": 2.0389,
         "precision": 8,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 2.0389
+            }
+        },
+        "networks": {
+            "UDC": {
+                "info": "UDC",
+                "id": "udc",
+                "network": "UDC",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
         }
     }
 }

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class blockchaincom(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'id': 'blockchaincom',
             'secret': None,
@@ -217,6 +217,74 @@ class blockchaincom(Exchange, ImplicitAPI):
                     # 'MOBILECOIN': 'MOB',
                     # 'KIN': 'KIN',
                     # 'DIGITALGOLD': 'DGLD',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': True,  # todo implementation
+                        },
+                        'hedged': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo implementation
+                        'untilDays': 100000,  # todo implementation
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'symbolRequired': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo implement
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': None,  # todo webapi
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -567,12 +635,12 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderQty': self.amount_to_precision(symbol, amount),
             'clOrdId': clientOrderId,
         }
-        stopPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
-        params = self.omit(params, ['stopPx', 'stopPrice'])
+        triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
+        params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order')
-        if stopPrice is not None:
+            if triggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order')
+        if triggerPrice is not None:
             if uppercaseOrderType == 'MARKET':
                 request['ordType'] = 'STOP'
             elif uppercaseOrderType == 'LIMIT':
@@ -586,7 +654,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         if priceRequired:
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceRequired:
-            request['stopPx'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPx'] = self.price_to_precision(symbol, triggerPrice)
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 

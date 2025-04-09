@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class deribit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
@@ -50,6 +50,7 @@ class deribit(Exchange, ImplicitAPI):
                 'cancelOrders': False,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -220,6 +221,7 @@ class deribit(Exchange, ImplicitAPI):
                         'enable_api_key': 1,
                         'get_access_log': 1,
                         'get_account_summary': 1,
+                        'get_account_summaries': 1,
                         'get_affiliate_program_info': 1,
                         'get_email_language': 1,
                         'get_new_announcements': 1,
@@ -287,6 +289,92 @@ class deribit(Exchange, ImplicitAPI):
                         'submit_transfer_to_subaccount': 1,
                         'submit_transfer_to_user': 1,
                         'withdraw': 1,
+                    },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': True,  # todo
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': True,  # todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,  # todo
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,  # todo
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,  # todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
                     },
                 },
             },
@@ -411,9 +499,6 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchBalance': {
                     'code': 'BTC',
                 },
-                'fetchPositions': {
-                    'code': 'BTC',
-                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount',  # or 'privateGetSubmitTransferToUser'
                 },
@@ -501,7 +586,7 @@ class deribit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -677,7 +762,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account, currency: Currency = None):
+    def parse_account(self, account):
         #
         #      {
         #          "username": "someusername_1",
@@ -696,7 +781,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': account,
             'id': self.safe_string(account, 'id'),
             'type': self.safe_string(account, 'type'),
-            'code': self.safe_currency_code(None, currency),
+            'code': None,
         }
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -931,13 +1016,20 @@ class deribit(Exchange, ImplicitAPI):
         result: dict = {
             'info': balance,
         }
-        currencyId = self.safe_string(balance, 'currency')
-        currencyCode = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(balance, 'available_funds')
-        account['used'] = self.safe_string(balance, 'maintenance_margin')
-        account['total'] = self.safe_string(balance, 'equity')
-        result[currencyCode] = account
+        summaries = []
+        if 'summaries' in balance:
+            summaries = self.safe_list(balance, 'summaries')
+        else:
+            summaries = [balance]
+        for i in range(0, len(summaries)):
+            data = summaries[i]
+            currencyId = self.safe_string(data, 'currency')
+            currencyCode = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(data, 'available_funds')
+            account['used'] = self.safe_string(data, 'maintenance_margin')
+            account['total'] = self.safe_string(data, 'equity')
+            result[currencyCode] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -945,17 +1037,24 @@ class deribit(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://docs.deribit.com/#private-get_account_summary
+        https://docs.deribit.com/#private-get_account_summaries
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        code = self.code_from_options('fetchBalance', params)
-        currency = self.currency(code)
+        code = self.safe_string(params, 'code')
+        params = self.omit(params, 'code')
         request: dict = {
-            'currency': currency['id'],
         }
-        response = self.privateGetGetAccountSummary(self.extend(request, params))
+        if code is not None:
+            request['currency'] = self.currency_id(code)
+        response = None
+        if code is None:
+            response = self.privateGetGetAccountSummaries(params)
+        else:
+            response = self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -998,10 +1097,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_balance(result)
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -1036,6 +1135,7 @@ class deribit(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 
@@ -1221,13 +1321,32 @@ class deribit(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         code = self.safe_string_2(params, 'code', 'currency')
+        type = None
         params = self.omit(params, ['code'])
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
+                if code is not None and code != market['base']:
+                    raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
+                if code is None:
+                    code = market['base']
+                    type = market['type']
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request: dict = {
             'currency': currency['id'],
         }
+        if type is not None:
+            requestType = None
+            if type == 'spot':
+                requestType = 'spot'
+            elif type == 'future' or (type == 'contract'):
+                requestType = 'future'
+            elif type == 'option':
+                requestType = 'option'
+            if requestType is not None:
+                request['kind'] = requestType
         response = self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
         #
         #     {
@@ -1752,7 +1871,6 @@ class deribit(Exchange, ImplicitAPI):
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
         return self.safe_order({
             'info': order,
@@ -1767,8 +1885,7 @@ class deribit(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_value(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -2564,32 +2681,18 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currency]: currency code filter for positions
         :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+        :param int [params.subaccount_id]: the user id for the subaccount
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
-        kind = self.safe_string(params, 'kind')
-        code = None
-        if symbols is None:
-            code = self.code_from_options('fetchPositions', params)
-        elif isinstance(symbols, str):
-            code = symbols
-            symbols = None  # fix https://github.com/ccxt/ccxt/issues/13961
-        else:
-            if isinstance(symbols, list):
-                length = len(symbols)
-                if length != 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                market = self.market(symbols[0])
-                settle = market['settle']
-                code = settle if (settle is not None) else market['base']
-                kind = market['info']['kind']
-        currency = self.currency(code)
-        request: dict = {
-            'currency': currency['id'],
-        }
-        if kind is not None:
-            request['kind'] = kind
+        code = self.safe_string(params, 'currency')
+        request: dict = {}
+        if code is not None:
+            params = self.omit(params, 'currency')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
         response = self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
@@ -2968,7 +3071,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :param int [params.until]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
@@ -2976,17 +3079,32 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
+        eachItemDuration = '1h'
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720)
+            # fix for: https://github.com/ccxt/ccxt/issues/25040
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
+        duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
+        else:
+            time = since + month
         request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         }
+        until = self.safe_integer_2(params, 'until', 'end_timestamp')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_timestamp'] = until
+        else:
+            request['end_timestamp'] = time
+        if 'isDeribitPaginationCall' in params:
+            params = self.omit(params, 'isDeribitPaginationCall')
+            maxUntil = self.sum(since, limit * duration)
+            request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = self.publicGetGetFundingRateHistory(self.extend(request, params))
         #
         #    {

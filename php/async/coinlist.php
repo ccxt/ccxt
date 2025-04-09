@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinlist extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinlist',
             'name' => 'Coinlist',
@@ -209,6 +209,88 @@ class coinlist extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'fees' => array(
                 'trading' => array(
                     'feeSide' => 'get',
@@ -315,7 +397,7 @@ class coinlist extends Exchange {
         return 1;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1599,7 +1681,7 @@ class coinlist extends Exchange {
                     $request['type'] = 'stop_limit';
                 }
             } elseif (($type === 'stop_market') || ($type === 'stop_limit') || ($type === 'take_market') || ($type === 'take_limit')) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
             }
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
             if ($clientOrderId !== null) {
@@ -1748,7 +1830,7 @@ class coinlist extends Exchange {
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stop_price');
+        $triggerPrice = $this->safe_string($order, 'stop_price');
         $average = $this->safe_string($order, 'average_fill_price'); // from documentation
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'size_filled');
@@ -1774,8 +1856,7 @@ class coinlist extends Exchange {
             'timeInForce' => 'GTC',
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => $amount,
             'cost' => null,
@@ -2184,7 +2265,7 @@ class coinlist extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
              */
             $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
             if ($traderId === null) {

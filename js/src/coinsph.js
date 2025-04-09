@@ -297,6 +297,76 @@ export default class coinsph extends Exchange {
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -547,7 +617,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue(response, 'symbols');
+        const markets = this.safeList(response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -556,7 +626,7 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
+            const limits = this.indexBy(this.safeList(market, 'filters', []), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue(limits, 'NOTIONAL', {});
@@ -639,7 +709,7 @@ export default class coinsph extends Exchange {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTickers', {});
+        const options = this.safeDict(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let tickers = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -671,7 +741,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTicker', {});
+        const options = this.safeDict(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let ticker = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -810,33 +880,42 @@ export default class coinsph extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe);
+        const until = this.safeInteger(params, 'until');
         const request = {
             'symbol': market['id'],
             'interval': interval,
         };
+        if (limit === undefined) {
+            limit = 1000;
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-            request['limit'] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe(timeframe) * 1000;
-                request['endTime'] = this.sum(since, duration * (limit - 1));
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             else {
-                request['endTime'] = this.milliseconds();
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const endTimeByLimit = this.sum(since, duration * (limit - 1));
+                const now = this.milliseconds();
+                request['endTime'] = Math.min(endTimeByLimit, now);
             }
         }
-        else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+        else if (until !== undefined) {
+            request['endTime'] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['startTime'] = until - (duration * (limit - 1));
         }
+        request['limit'] = limit;
+        params = this.omit(params, 'until');
         const response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, params));
         //
         //     [
@@ -1017,7 +1096,7 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeValue2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
@@ -1082,7 +1161,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1176,11 +1255,11 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1248,7 +1327,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1418,9 +1497,9 @@ export default class coinsph extends Exchange {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
         const trades = this.safeValue(order, 'fills', undefined);
-        let stopPrice = this.safeString(order, 'stopPrice');
-        if (Precise.stringEq(stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString(order, 'stopPrice');
+        if (Precise.stringEq(triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder({
             'id': id,
@@ -1434,8 +1513,7 @@ export default class coinsph extends Exchange {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString(order, 'origQty'),
             'cost': this.safeString(order, 'cummulativeQuoteQty'),
@@ -1529,7 +1607,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue(response, 0, {});
+        const tradingFee = this.safeDict(response, 0, {});
         return this.parseTradingFee(tradingFee, market);
     }
     /**

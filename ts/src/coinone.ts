@@ -15,7 +15,7 @@ import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, Or
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -192,6 +192,65 @@ export default class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo implement
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
+                    'fetchOHLCV': undefined, // todo implement
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': OrderNotFound,
@@ -236,7 +295,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const currencies = this.safeValue (response, 'currencies', []);
+        const currencies = this.safeList (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString (entry, 'symbol');
@@ -318,7 +377,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'tickers', []);
+        const tickers = this.safeList (response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
@@ -577,7 +636,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -611,8 +670,8 @@ export default class coinone extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
-        const asks = this.safeValue (ticker, 'best_asks');
-        const bids = this.safeValue (ticker, 'best_bids');
+        const asks = this.safeList (ticker, 'best_asks', []);
+        const bids = this.safeList (ticker, 'best_bids', []);
         const baseId = this.safeString (ticker, 'target_currency');
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -667,7 +726,7 @@ export default class coinone extends Exchange {
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
-        const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
+        const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
@@ -944,7 +1003,6 @@ export default class coinone extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'averageExecutedPrice'),
@@ -1108,7 +1166,7 @@ export default class coinone extends Exchange {
         //         }
         //     }
         //
-        const walletAddress = this.safeValue (response, 'walletAddress', {});
+        const walletAddress = this.safeDict (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {

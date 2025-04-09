@@ -12,7 +12,7 @@ import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class gate extends gateRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -38,6 +38,7 @@ export default class gate extends gateRest {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -206,14 +207,14 @@ export default class gate extends gateRest {
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket (market);
         let channel = messageType + '.order_cancel_cp';
         [ channel, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'channel', channel);
         const url = this.getUrlByMarket (market);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
         await this.authenticate (url, messageType);
         const rawOrders = await this.requestPrivate (url, this.extend (request, requestParams), channel);
         return this.parseOrders (rawOrders, market);
@@ -228,16 +229,16 @@ export default class gate extends gateRest {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValueN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
+        const trigger = this.safeValueN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
         params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_cancel';
         const url = this.getUrlByMarket (market);
@@ -283,7 +284,7 @@ export default class gate extends gateRest {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol, *required for spot and margin*
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order being fetched is a trigger order
+     * @param {bool} [params.trigger] True if the order being fetched is a trigger order
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
@@ -1223,7 +1224,10 @@ export default class gate extends gateRest {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append (position);
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1616,6 +1620,27 @@ export default class gate extends gateRest {
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         const data = this.safeDict (message, 'data');
         const errs = this.safeDict (data, 'errs');
@@ -1634,6 +1659,20 @@ export default class gate extends gateRest {
                 client.reject (e, messageHash);
                 if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
                     delete client.subscriptions[messageHash];
+                }
+                // remove subscriptions for watchSymbols
+                const channel = this.safeString (message, 'channel');
+                if ((channel !== undefined) && (channel.indexOf ('.') > 0)) {
+                    const parsedChannel = channel.split ('.');
+                    const payload = this.safeList (message, 'payload', []);
+                    for (let i = 0; i < payload.length; i++) {
+                        const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
+                        const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
+                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
+                            delete client.subscriptions[messageHashSymbol];
+                        }
+                    }
                 }
             }
             if ((id !== undefined) && (id in client.subscriptions)) {
@@ -2032,6 +2071,11 @@ export default class gate extends gateRest {
             'signature': signature,
             'req_param': reqParams,
         };
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
+            payload['req_header'] = {
+                'X-Gate-Channel-Id': 'ccxt',
+            };
+        }
         const request: Dict = {
             'id': requestId,
             'time': time,

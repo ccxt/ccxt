@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class okcoin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',
             'name': 'OKCoin',
@@ -37,6 +37,12 @@ export default class okcoin extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -199,6 +205,87 @@ export default class okcoin extends Exchange {
                         // sub-account
                         'asset/subaccount/transfer': 10,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true, // todo
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': true, // todo revise trigger
+                        'takeProfitPrice': true, // todo revise trigger
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true, // todo
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined, // todo
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true, // todo
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90, // todo
+                        'daysBackCanceled': 1 / 12, // todo: possible more with history endpoint
+                        'untilDays': 90, // todo
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -609,15 +696,23 @@ export default class okcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPublicTime (params);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601 (this.safeString (response, 'iso'));
+        const data = this.safeList (response, 'data');
+        const timestamp = this.safeDict (data, 0);
+        return this.safeInteger (timestamp, 'ts');
     }
 
     /**
@@ -1508,7 +1603,7 @@ export default class okcoin extends Exchange {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN (stopLoss, [ 'triggerPrice', 'stopPrice', 'slTriggerPx' ]);
                 if (stopLossTriggerPrice === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                 }
                 request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
@@ -1520,7 +1615,7 @@ export default class okcoin extends Exchange {
                         throw new InvalidOrder (this.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"');
                     } else if (stopLossLimitOrderType) {
                         if (stopLossLimitPrice === undefined) {
-                            throw new InvalidOrder (this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new InvalidOrder (this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order');
                         } else {
                             request['slOrdPx'] = this.priceToPrecision (symbol, stopLossLimitPrice);
                         }
@@ -1621,7 +1716,7 @@ export default class okcoin extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancel trigger or conditional orders
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
      * @param {bool} [params.advanced] True if canceling advanced orders only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1630,9 +1725,9 @@ export default class okcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const advanced = this.safeValue (params, 'advanced');
-        if (stop || advanced) {
+        if (trigger || advanced) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
         }
@@ -1688,7 +1783,7 @@ export default class okcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const advanced = this.safeValue (params, 'advanced');
         params = this.omit (params, [ 'stop', 'trigger', 'advanced' ]);
         const market = this.market (symbol);
@@ -1706,7 +1801,7 @@ export default class okcoin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop || advanced) {
+                if (trigger || advanced) {
                     request.push ({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1727,7 +1822,7 @@ export default class okcoin extends Exchange {
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privatePostTradeCancelAlgos (request);
         } else if (advanced) {
             response = await this.privatePostTradeCancelAdvanceAlgos (request);
@@ -1926,7 +2021,6 @@ export default class okcoin extends Exchange {
         }
         const stopLossPrice = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
-        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'moveTriggerPx' ]);
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
         let reduceOnly = false;
         if (reduceOnly !== undefined) {
@@ -1948,8 +2042,7 @@ export default class okcoin extends Exchange {
             'price': price,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumberN (order, [ 'triggerPx', 'moveTriggerPx' ]),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1985,8 +2078,8 @@ export default class okcoin extends Exchange {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
+        if (trigger) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
             } else {
@@ -2001,7 +2094,7 @@ export default class okcoin extends Exchange {
         }
         const query = this.omit (params, [ 'clientOrderId', 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrder (this.extend (request, query));
@@ -2021,7 +2114,7 @@ export default class okcoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2044,13 +2137,13 @@ export default class okcoin extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, params));
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, params));
@@ -2070,7 +2163,7 @@ export default class okcoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2085,13 +2178,13 @@ export default class okcoin extends Exchange {
             request['instId'] = market['id'];
         }
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, params));
         } else {
             let method = undefined;
@@ -2858,7 +2951,7 @@ export default class okcoin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

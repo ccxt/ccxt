@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
@@ -342,6 +342,84 @@ class wavesexchange extends wavesexchange$1 {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': true, // todo
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {
@@ -688,6 +766,7 @@ class wavesexchange extends wavesexchange$1 {
         if (hexSecretKeyBytes.length !== 64) {
             throw new errors.AuthenticationError(this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -956,6 +1035,7 @@ class wavesexchange extends wavesexchange$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -967,22 +1047,35 @@ class wavesexchange extends wavesexchange$1 {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger(this.options, 'allowedCandles', 1440);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = until !== undefined;
         if (limit === undefined) {
             limit = allowedCandles;
         }
         limit = Math.min(allowedCandles, limit);
         const duration = this.parseTimeframe(timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = this.parseToInt(this.milliseconds() / duration) * duration;
+            const now = this.milliseconds();
+            const timeEnd = untilIsDefined ? until : now;
+            const durationRoundedTimestamp = this.parseToInt(timeEnd / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
         }
         else {
             request['timeStart'] = since.toString();
-            const timeEnd = this.sum(since, duration * limit);
-            request['timeEnd'] = timeEnd.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
+            else {
+                const timeEnd = this.sum(since, duration * limit);
+                request['timeEnd'] = timeEnd.toString();
+            }
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetCandlesBaseIdQuoteId(this.extend(request, params));
         //
         //     {
@@ -1292,7 +1385,7 @@ class wavesexchange extends wavesexchange$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a stop order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1304,8 +1397,8 @@ class wavesexchange extends wavesexchange$1 {
         const amountAsset = this.getAssetId(market['baseId']);
         const priceAsset = this.getAssetId(market['quoteId']);
         const isMarketOrder = (type === 'market');
-        const stopPrice = this.safeFloat2(params, 'triggerPrice', 'stopPrice');
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeFloat2(params, 'triggerPrice', 'stopPrice');
+        const isStopOrder = (triggerPrice !== undefined);
         if ((isMarketOrder) && (price === undefined)) {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
@@ -1412,7 +1505,7 @@ class wavesexchange extends wavesexchange$1 {
                 'c': {
                     't': 'sp',
                     'v': {
-                        'p': this.toRealSymbolPrice(symbol, stopPrice),
+                        'p': this.toRealSymbolPrice(symbol, triggerPrice),
                     },
                 },
             };
@@ -1810,7 +1903,6 @@ class wavesexchange extends wavesexchange$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,

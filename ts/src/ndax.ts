@@ -15,7 +15,7 @@ import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',
@@ -259,6 +259,81 @@ export default class ndax extends Exchange {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                            // bid & ask
+                        },
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -354,7 +429,7 @@ export default class ndax extends Exchange {
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
@@ -587,7 +662,8 @@ export default class ndax extends Exchange {
             const bidask = this.parseBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
             const side = levelSide ? asksKey : bidsKey;
-            result[side].push (bidask);
+            const resultSide = result[side];
+            resultSide.push (bidask);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -1100,8 +1176,11 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
-        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
+        let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        if (accountId === undefined) {
+            accountId = parseInt (this.accounts[0]['id']);
+        }
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
             'omsId': omsId,
@@ -1227,7 +1306,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1365,7 +1444,7 @@ export default class ndax extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'Side'),
             'price': this.safeString (order, 'Price'),
-            'stopPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
             'cost': this.safeString (order, 'GrossValueExecuted'),
             'amount': this.safeString (order, 'OrigQuantity'),
             'filled': this.safeString (order, 'QuantityExecuted'),
@@ -1388,6 +1467,7 @@ export default class ndax extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1633,6 +1713,7 @@ export default class ndax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2085,7 +2166,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const request: Dict = {
             'GenerateNewKey': true,
         };

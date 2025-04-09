@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -18,7 +18,7 @@ class cex extends cex$1 {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 1667,
+            'rateLimit': 300,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -30,6 +30,9 @@ class cex extends cex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -108,6 +111,65 @@ class cex extends cex$1 {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {},
@@ -118,7 +180,8 @@ class cex extends cex$1 {
                     'check failed': errors.BadRequest,
                     'Insufficient funds': errors.InsufficientFunds,
                     'Get deposit address for main account is not allowed': errors.PermissionDenied,
-                    'Market Trigger orders are not allowed': errors.BadRequest, // for some reason, triggerPrice does not work for market orders
+                    'Market Trigger orders are not allowed': errors.BadRequest,
+                    'key not passed or incorrect': errors.AuthenticationError,
                 },
             },
             'timeframes': {
@@ -257,6 +320,7 @@ class cex extends cex$1 {
                 'margin': undefined,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': undefined,
                 'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {
@@ -849,7 +913,7 @@ class cex extends cex$1 {
             const code = this.safeCurrencyCode(key);
             const account = {
                 'used': this.safeString(balance, 'balanceOnHold'),
-                'free': this.safeString(balance, 'balance'),
+                'total': this.safeString(balance, 'balance'),
             };
             result[code] = account;
         }
@@ -936,7 +1000,7 @@ class cex extends cex$1 {
         //            },
         //            ...
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     /**
@@ -1005,10 +1069,16 @@ class cex extends cex$1 {
     }
     parseOrderStatus(status) {
         const statuses = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1058,7 +1128,7 @@ class cex extends cex$1 {
             const currencyId = this.safeString(order, 'feeCurrency');
             const feeCode = this.safeCurrencyCode(currencyId);
             fee['currency'] = feeCode;
-            fee['fee'] = feeAmount;
+            fee['cost'] = feeAmount;
         }
         const timestamp = this.safeInteger(order, 'serverCreateTimestamp');
         const requestedBase = this.safeNumber(order, 'requestedAmountCcy1');
@@ -1078,7 +1148,7 @@ class cex extends cex$1 {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': this.safeNumber(order, 'averagePrice'),
@@ -1102,6 +1172,7 @@ class cex extends cex$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1251,7 +1322,7 @@ class cex extends cex$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

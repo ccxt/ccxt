@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
@@ -120,14 +120,9 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.network] unified network code to identify the blockchain network
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        tag: string;
-        address: string;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     findDefaultNetwork(networks: any): any;
-    loadCurrencyNetworks(code: any, params?: {}): Promise<void>;
+    loadCurrencyNetworks(code: any, params?: {}): Promise<boolean>;
     parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;
@@ -311,7 +306,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {bool} [params.postOnly] true or false

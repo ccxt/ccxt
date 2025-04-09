@@ -10,12 +10,12 @@ use ccxt\async\abstract\btcmarkets as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class btcmarkets extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcmarkets',
             'name' => 'BTC Markets',
@@ -37,6 +37,7 @@ class btcmarkets extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createTriggerOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -152,6 +153,84 @@ class btcmarkets extends Exchange {
                 '1m' => '1m',
                 '1h' => '1h',
                 '1d' => '1d',
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo => check
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => true, // todo => check
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -326,7 +405,7 @@ class btcmarkets extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $cryptoPaymentDetail = $this->safe_value($transaction, 'paymentDetail', array());
+        $cryptoPaymentDetail = $this->safe_dict($transaction, 'paymentDetail', array());
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
         $tag = null;
@@ -414,7 +493,7 @@ class btcmarkets extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
+        $fees = $this->safe_value($this->safe_dict($this->options, 'fees', array()), $quote, $this->fees);
         $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
         $minAmount = $this->safe_number($market, 'minOrderAmount');
         $maxAmount = $this->safe_number($market, 'maxOrderAmount');
@@ -476,7 +555,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -841,6 +920,7 @@ class btcmarkets extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1086,8 +1166,7 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
-        $postOnly = $this->safe_value($order, 'postOnly');
+        $postOnly = $this->safe_bool($order, 'postOnly');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1101,8 +1180,7 @@ class btcmarkets extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'cost' => null,
             'amount' => $amount,
             'filled' => null,

@@ -32,15 +32,17 @@ public partial class bitrue : ccxt.bitrue
             } },
             { "api", new Dictionary<string, object>() {
                 { "open", new Dictionary<string, object>() {
-                    { "private", new Dictionary<string, object>() {
-                        { "post", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey", 1 },
-                        } },
-                        { "put", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey/{listenKey}", 1 },
-                        } },
-                        { "delete", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                    { "v1", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "post", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey", 1 },
+                            } },
+                            { "put", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                            } },
+                            { "delete", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -456,7 +458,7 @@ public partial class bitrue : ccxt.bitrue
         object listenKey = this.safeValue(this.options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
         {
-            object response = await this.openPrivatePostPoseidonApiV1ListenKey(parameters);
+            object response = await this.openV1PrivatePostPoseidonApiV1ListenKey(parameters);
             //
             //     {
             //         "msg": "succ",
@@ -485,7 +487,7 @@ public partial class bitrue : ccxt.bitrue
         };
         try
         {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
+            await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
         } catch(Exception error)
         {
             ((IDictionary<string,object>)this.options)["listenKey"] = null;

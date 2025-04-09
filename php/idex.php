@@ -10,7 +10,7 @@ use ccxt\abstract\idex as Exchange;
 
 class idex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'idex',
             'name' => 'IDEX',
@@ -160,6 +160,81 @@ class idex extends Exchange {
                 'defaultSelfTradePrevention' => 'cn',
                 'network' => 'MATIC',
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo => revise
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => true, // todo implementation
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 1000000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 1000000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
@@ -190,10 +265,8 @@ class idex extends Exchange {
         // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes")
         //
         $market = $this->market($symbol);
-        $info = $this->safe_value($market, 'info', array());
-        $quoteAssetPrecision = $this->safe_integer($info, 'quoteAssetPrecision');
         $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
-        return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return $this->decimal_to_precision($price, TRUNCATE, $market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
     }
 
     public function fetch_markets($params = array ()): array {
@@ -302,6 +375,8 @@ class idex extends Exchange {
                 'precision' => array(
                     'amount' => $basePrecision,
                     'price' => $this->safe_number($entry, 'tickSize'),
+                    'base' => $basePrecision,
+                    'quote' => $quotePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1130,7 +1205,6 @@ class idex extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1197,12 +1271,13 @@ class idex extends Exchange {
             'takeProfit' => 5,
             'takeProfitLimit' => 6,
         );
-        $stopPriceString = null;
-        if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
-            if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
-                throw new BadRequest($this->id . ' createOrder() stopPrice is a required parameter for ' . $type . 'orders');
+        $triggerPrice = $this->safe_string($params, 'triggerPrice', 'stopPrice');
+        $triggerPriceString = null;
+        if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit')) {
+            if ($triggerPrice === null) {
+                throw new BadRequest($this->id . ' createOrder() $triggerPrice is a required parameter for ' . $type . 'orders');
             }
-            $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
+            $triggerPriceString = $this->price_to_precision($symbol, $triggerPrice);
         }
         $limitTypeEnums = array(
             'limit' => 1,
@@ -1287,7 +1362,7 @@ class idex extends Exchange {
             $byteArray[] = $encodedPrice;
         }
         if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
-            $encodedPrice = $this->encode($stopPriceString || $priceString);
+            $encodedPrice = $this->encode($triggerPriceString || $priceString);
             $byteArray[] = $encodedPrice;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -1321,7 +1396,7 @@ class idex extends Exchange {
             $request['parameters']['price'] = $priceString;
         }
         if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
-            $request['parameters']['stopPrice'] = $stopPriceString || $priceString;
+            $request['parameters']['stopPrice'] = $triggerPriceString || $priceString;
         }
         if ($amountEnum === 0) {
             $request['parameters']['quantity'] = $amountString;
@@ -1577,7 +1652,7 @@ class idex extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -1776,7 +1851,7 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
-    public function fetch_deposit_address(?string $code = null, $params = array ()): array {
+    public function fetch_deposit_address(?string $code, $params = array ()): array {
         /**
          * fetch the Polygon address of the wallet
          *

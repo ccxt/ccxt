@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bit2c
@@ -54,24 +54,35 @@ class bit2c extends bit2c$1 {
                 'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterests': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsForSymbol': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
+                'setMargin': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'ws': false,
@@ -169,6 +180,65 @@ class bit2c extends bit2c$1 {
             },
             'options': {
                 'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': 30,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
@@ -576,7 +646,7 @@ class bit2c extends bit2c$1 {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status = undefined;
+        let status;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -637,7 +707,6 @@ class bit2c extends bit2c$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'filled': undefined,
@@ -758,13 +827,13 @@ class bit2c extends bit2c$1 {
         //         "isMaker": True,
         //     }
         //
-        let timestamp = undefined;
-        let id = undefined;
+        let timestamp;
+        let id;
         let price = undefined;
         let amount = undefined;
         let orderId = undefined;
         let fee = undefined;
-        let side = undefined;
+        let side;
         let makerOrTaker = undefined;
         const reference = this.safeString(trade, 'reference');
         if (reference !== undefined) {
@@ -780,11 +849,11 @@ class bit2c extends bit2c$1 {
             const isMaker = this.safeValue(trade, 'isMaker');
             makerOrTaker = isMaker ? 'maker' : 'taker';
             orderId = isMaker ? reference_parts[2] : reference_parts[1];
-            side = this.safeInteger(trade, 'action');
-            if (side === 0) {
+            const action = this.safeInteger(trade, 'action');
+            if (action === 0) {
                 side = 'buy';
             }
-            else if (side === 1) {
+            else {
                 side = 'sell';
             }
             const feeCost = this.safeString(trade, 'feeAmount');

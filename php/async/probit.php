@@ -14,12 +14,12 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class probit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'probit',
             'name' => 'ProBit',
@@ -94,7 +94,7 @@ class probit extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'sandbox' => true,
+                'sandbox' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -174,6 +174,77 @@ class probit extends Exchange {
                     'percentage' => true,
                     'maker' => $this->parse_number('0.002'),
                     'taker' => $this->parse_number('0.002'),
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        // todo
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 90,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 4000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'exceptions' => array(
@@ -282,6 +353,8 @@ class probit extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $closed = $this->safe_bool($market, 'closed', false);
+        $showInUI = $this->safe_bool($market, 'show_in_ui', true);
+        $active = !$closed && $showInUI;
         $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
@@ -301,7 +374,7 @@ class probit extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => !$closed,
+            'active' => $active,
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -903,7 +976,7 @@ class probit extends Exchange {
         ), $market);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -969,6 +1042,7 @@ class probit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] timestamp in ms of the earliest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -984,19 +1058,20 @@ class probit extends Exchange {
                 'limit' => $requestLimit, // max 1000
             );
             $now = $this->milliseconds();
-            $duration = $this->parse_timeframe($timeframe);
+            $until = $this->safe_integer($params, 'until');
+            $durationMilliseconds = $this->parse_timeframe($timeframe) * 1000;
             $startTime = $since;
-            $endTime = $now;
+            $endTime = ($until !== null) ? $until - $durationMilliseconds : $now;
             if ($since === null) {
                 if ($limit === null) {
                     $limit = $requestLimit;
                 }
-                $startTime = $now - $limit * $duration * 1000;
+                $startLimit = $limit - 1;
+                $startTime = $endTime - $startLimit * $durationMilliseconds;
             } else {
-                if ($limit === null) {
-                    $endTime = $now;
-                } else {
-                    $endTime = $this->sum($since, $this->sum($limit, 1) * $duration * 1000);
+                if ($limit !== null) {
+                    $endByLimit = $this->sum($since, $limit * $durationMilliseconds);
+                    $endTime = min ($endTime, $endByLimit);
                 }
             }
             $startTimeNormalized = $this->normalize_ohlcv_timestamp($startTime, $timeframe);
@@ -1210,7 +1285,6 @@ class probit extends Exchange {
             'side' => $side,
             'status' => $status,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,

@@ -39,6 +39,10 @@ public partial class bitget : ccxt.bitget
                         { "public", "wss://ws.bitget.com/v2/ws/public" },
                         { "private", "wss://ws.bitget.com/v2/ws/private" },
                     } },
+                    { "demo", new Dictionary<string, object>() {
+                        { "public", "wss://wspap.bitget.com/v2/ws/public" },
+                        { "private", "wss://wspap.bitget.com/v2/ws/private" },
+                    } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -1121,17 +1125,13 @@ public partial class bitget : ccxt.bitget
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(this.positions, instType))))
+        object action = this.safeString(message, "action");
+        if (isTrue(!isTrue((inOp(this.positions, instType))) || isTrue((isEqual(action, "snapshot")))))
         {
             ((IDictionary<string,object>)this.positions)[(string)instType] = new ArrayCacheBySymbolBySide();
         }
         object cache = getValue(this.positions, instType);
         object rawPositions = this.safeValue(message, "data", new List<object>() {});
-        object dataLength = getArrayLength(rawPositions);
-        if (isTrue(isEqual(dataLength, 0)))
-        {
-            return;
-        }
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -1241,7 +1241,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
+     * @param {boolean} [params.trigger] *contract only* set to true for watching trigger orders
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
@@ -1302,7 +1302,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue((!isEqual(symbol, null)))))
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbol);
         }
@@ -1975,6 +1975,15 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
@@ -1987,6 +1996,15 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
             { "args", new List<object>() {args} },
@@ -1999,6 +2017,16 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object argsArrayFirst = this.safeDict(argsArray, 0, new Dictionary<string, object>() {});
+            object instType = this.safeString(argsArrayFirst, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", argsArray },
@@ -2011,7 +2039,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = this.safeString(parameters, "url");
         var client = this.client(url);
         object messageHash = "authenticated";
         var future = client.future(messageHash);
@@ -2040,8 +2068,19 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object messageHash, object subscriptionHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "private");
+            }
+        }
+        await this.authenticate(new Dictionary<string, object>() {
+            { "url", url },
+        });
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
@@ -2253,7 +2292,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "orderbook "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -2283,7 +2322,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "trades "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
@@ -2313,7 +2352,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
-        var error = new UnsubscribeError(add(add(this.id, "ticker "), symbol));
+        var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }

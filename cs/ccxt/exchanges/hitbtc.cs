@@ -19,7 +19,7 @@ public partial class hitbtc : Exchange
                 { "margin", true },
                 { "swap", true },
                 { "future", false },
-                { "option", null },
+                { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
@@ -51,6 +51,7 @@ public partial class hitbtc : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -63,12 +64,16 @@ public partial class hitbtc : Exchange
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
@@ -77,12 +82,14 @@ public partial class hitbtc : Exchange
                 { "fetchPosition", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", true },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "sandbox", true },
@@ -247,6 +254,109 @@ public partial class hitbtc : Exchange
                     { "tiers", new Dictionary<string, object>() {
                         { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0")}, new List<object> {this.parseNumber("50000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("100000"), this.parseNumber("-0.0001")}} },
                         { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0002")}} },
+                    } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
                     } },
                 } },
             } },
@@ -2393,7 +2503,7 @@ public partial class hitbtc : Exchange
             }
         } else if (isTrue(isTrue(isTrue(isTrue((isEqual(type, "stopLimit"))) || isTrue((isEqual(type, "stopMarket")))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((isEqual(type, "takeProfitMarket")))))
         {
-            throw new ExchangeError ((string)add(this.id, " createOrder() requires a stopPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ExchangeError ((string)add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"});
         if (isTrue(isEqual(marketType, "swap")))
@@ -2513,7 +2623,6 @@ public partial class hitbtc : Exchange
         object postOnly = this.safeValue(order, "post_only");
         object timeInForce = this.safeString(order, "time_in_force");
         object rawTrades = this.safeValue(order, "trades");
-        object stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2537,8 +2646,7 @@ public partial class hitbtc : Exchange
             { "average", average },
             { "trades", rawTrades },
             { "fee", null },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "stop_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
         }, market);
@@ -3173,13 +3281,63 @@ public partial class hitbtc : Exchange
         object datetime = this.safeString(interest, "timestamp");
         object value = this.safeNumber(interest, "open_interest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(null, market) },
             { "openInterestAmount", null },
             { "openInterestValue", value },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "info", interest },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        symbols = this.marketSymbols(symbols);
+        object marketIds = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+        }
+        object response = await this.publicGetPublicFuturesInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        object results = new List<object>() {};
+        object markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(markets, i);
+            object marketInner = this.safeMarket(marketId);
+            ((IList<object>)results).Add(this.parseOpenInterest(getValue(response, marketId), marketInner));
+        }
+        return this.filterByArray(results, "symbol", symbols);
     }
 
     /**

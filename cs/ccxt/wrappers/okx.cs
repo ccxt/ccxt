@@ -235,6 +235,12 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
@@ -506,6 +512,12 @@ public partial class okx
     /// <term>params.hedged</term>
     /// <description>
     /// bool : *swap and future only* true for hedged mode, false for one way mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', the default is 'cross'
     /// </description>
     /// </item>
     /// </list>
@@ -803,7 +815,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -868,7 +880,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -1117,7 +1129,7 @@ public partial class okx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1376,6 +1388,33 @@ public partial class okx
         return new Position(res);
     }
     /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-account-get-positions"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : MARGIN, SWAP, FUTURES, OPTION
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
     /// fetch all open positions for specific symbol
     /// </summary>
     /// <remarks>
@@ -1396,11 +1435,6 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
-    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
     public async Task<List<Position>> FetchPositionsForSymbol(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsForSymbol(symbol, parameters);
@@ -1560,7 +1594,7 @@ public partial class okx
     /// <item>
     /// <term>params.posSide</term>
     /// <description>
-    /// string : 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+    /// string : 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
     /// </description>
     /// </item>
     /// </list>

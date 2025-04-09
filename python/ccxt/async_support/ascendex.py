@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class ascendex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(ascendex, self).describe(), {
             'id': 'ascendex',
             'name': 'AscendEX',
@@ -68,6 +68,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': True,
@@ -77,10 +78,13 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMySettlementHistory': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
@@ -89,6 +93,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -100,6 +105,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -295,7 +301,6 @@ class ascendex(Exchange, ImplicitAPI):
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
                     # 'TRC': 'TRC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -305,6 +310,104 @@ class ascendex(Exchange, ImplicitAPI):
                     'LTC': 'Litecoin',
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo with triggerprice
+                        'takeProfitPrice': False,  # todo with triggerprice
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo: implementation
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': False,
+                                'index': False,
+                            },
+                            'price': False,
+                        },
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -460,7 +563,7 @@ class ascendex(Exchange, ImplicitAPI):
         ids = list(dataById.keys())
         result: dict = {}
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             currency = dataById[id]
             code = self.safe_currency_code(id)
             scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
@@ -687,7 +790,7 @@ class ascendex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the ascendex server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1093,6 +1196,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1106,15 +1210,28 @@ class ascendex(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         defaultLimit = self.safe_integer(options, 'limit', 500)
+        until = self.safe_integer(params, 'until')
         if since is not None:
             request['from'] = since
             if limit is None:
                 limit = defaultLimit
             else:
                 limit = min(limit, defaultLimit)
-            request['to'] = self.sum(since, limit * duration * 1000, 1)
+            toWithLimit = self.sum(since, limit * duration * 1000, 1)
+            if until is not None:
+                request['to'] = min(toWithLimit, until + 1)
+            else:
+                request['to'] = toWithLimit
+        elif until is not None:
+            request['to'] = until + 1
+            if limit is None:
+                limit = defaultLimit
+            else:
+                limit = min(limit, defaultLimit)
+            request['from'] = until - (limit * duration * 1000)
         elif limit is not None:
             request['n'] = limit  # max 500
+        params = self.omit(params, 'until')
         response = await self.v1PublicGetBarhist(self.extend(request, params))
         #
         #     {
@@ -1360,7 +1477,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        stopPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         reduceOnly = None
         execInst = self.safe_string(order, 'execInst')
         if execInst == 'reduceOnly':
@@ -1382,8 +1499,7 @@ class ascendex(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1454,7 +1570,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -1485,7 +1601,7 @@ class ascendex(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         if timeInForce == 'IOC':
@@ -1494,8 +1610,8 @@ class ascendex(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FOK'
         if postOnly:
             request['postOnly'] = True
-        if stopPrice is not None:
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 request['orderType'] = 'stop_limit'
             elif isMarketOrder:
@@ -1529,7 +1645,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered(perpetual swap markets only)
@@ -1623,7 +1739,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1850,7 +1966,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "avgPx": "0",         # Average filled price of the order
+        #                 "avgPx": "0",        # Average filled price of the order
         #                 "cumFee": "0",       # cumulative fee paid for self order
         #                 "cumFilledQty": "0",  # cumulative filled quantity
         #                 "errorCode": "",     # error code; could be empty
@@ -2716,8 +2832,7 @@ class ascendex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         contracts = self.safe_list(data, 'contracts', [])
-        result = self.parse_funding_rates(contracts)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(contracts, symbols)
 
     async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()

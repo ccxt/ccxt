@@ -10,6 +10,7 @@ public partial class bitmart
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-system-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class bitmart
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-system-service-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -44,20 +46,21 @@ public partial class bitmart
         var res = await this.fetchStatus(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchContractMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchContractMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// retrieves data on all markets for bitmart
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -85,6 +88,12 @@ public partial class bitmart
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the network code of the currency
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
@@ -97,11 +106,18 @@ public partial class bitmart
     /// fetch the fee for deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the network code of the currency
     /// </description>
     /// </item>
     /// </list>
@@ -159,7 +175,6 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-depth-v3"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-market-depth"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -269,7 +284,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -349,11 +364,10 @@ public partial class bitmart
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-account-balance"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -373,6 +387,7 @@ public partial class bitmart
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -413,11 +428,11 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#place-margin-order"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -548,10 +563,10 @@ public partial class bitmart
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -656,8 +671,8 @@ public partial class bitmart
     /// create a spot order request
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#place-spot-order"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#place-margin-order"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -690,12 +705,11 @@ public partial class bitmart
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -710,7 +724,13 @@ public partial class bitmart
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : *swap only* whether the order is a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
     /// <description>
     /// boolean : *swap only* whether the order is a stop order
     /// </description>
@@ -738,18 +758,16 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-orders"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -784,8 +802,8 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -862,7 +880,6 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -944,7 +961,6 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1003,11 +1019,18 @@ public partial class bitmart
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the network name for this withdrawal
     /// </description>
     /// </item>
     /// </list>
@@ -1029,6 +1052,7 @@ public partial class bitmart
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1048,6 +1072,7 @@ public partial class bitmart
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1081,6 +1106,7 @@ public partial class bitmart
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1100,6 +1126,7 @@ public partial class bitmart
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1174,7 +1201,6 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#transfer-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1195,7 +1221,7 @@ public partial class bitmart
     /// fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1241,7 +1267,7 @@ public partial class bitmart
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1295,7 +1321,6 @@ public partial class bitmart
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1339,11 +1364,44 @@ public partial class bitmart
         return new FundingRate(res);
     }
     /// <summary>
+    /// fetches historical funding rate prices
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of funding rate structures to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
+    }
+    /// <summary>
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1363,8 +1421,7 @@ public partial class bitmart
     /// fetch all open contract positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1384,7 +1441,7 @@ public partial class bitmart
     /// retrieves the users liquidated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1427,6 +1484,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1491,5 +1549,110 @@ public partial class bitmart
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest ledger entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of ledger entries to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest ledger entry
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLedger(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+    }
+    public Dictionary<string, object> FetchTransactionsRequest(Int64? flowType2 = 0, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var flowType = flowType2 == 0 ? null : (object)flowType2;
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = this.fetchTransactionsRequest(flowType, symbol, since, limit, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the history of funding payments paid and received on this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the starting timestamp in milliseconds
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the number of entries to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch funding history for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
 }

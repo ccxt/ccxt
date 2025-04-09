@@ -270,6 +270,76 @@ public partial class coinsph : Exchange
                     { "ARB", "ARBITRUM" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "-1000", typeof(BadRequest) },
@@ -536,7 +606,7 @@ public partial class coinsph : Exchange
         //         ]
         //     }
         //
-        object markets = this.safeValue(response, "symbols");
+        object markets = this.safeList(response, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -546,7 +616,7 @@ public partial class coinsph : Exchange
             object quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object limits = this.indexBy(this.safeValue(market, "filters"), "filterType");
+            object limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
@@ -634,7 +704,7 @@ public partial class coinsph : Exchange
             ((IDictionary<string,object>)request)["symbols"] = ids;
         }
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTickers", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object tickers = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -670,7 +740,7 @@ public partial class coinsph : Exchange
             { "symbol", getValue(market, "id") },
         };
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTicker", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTicker", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object ticker = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -817,6 +887,7 @@ public partial class coinsph : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -826,30 +897,38 @@ public partial class coinsph : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe);
+        object until = this.safeInteger(parameters, "until");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", interval },
         };
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 1000;
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-            ((IDictionary<string,object>)request)["limit"] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(!isEqual(until, null)))
             {
-                object duration = multiply(this.parseTimeframe(timeframe), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                ((IDictionary<string,object>)request)["endTime"] = until;
             } else
             {
-                ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
+                object duration = multiply(this.parseTimeframe(timeframe), 1000);
+                object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                object now = this.milliseconds();
+                ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
             }
-        } else
+        } else if (isTrue(!isEqual(until, null)))
         {
-            if (isTrue(!isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["limit"] = limit;
-            }
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            object duration = multiply(this.parseTimeframe(timeframe), 1000);
+            ((IDictionary<string,object>)request)["startTime"] = subtract(until, (multiply(duration, (subtract(limit, 1)))));
         }
+        ((IDictionary<string,object>)request)["limit"] = limit;
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters));
         //
         //     [
@@ -1042,7 +1121,7 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeValue2(trade, "isBuyer", "isBuyerMaker", null);
+        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
         object side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1115,7 +1194,7 @@ public partial class coinsph : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "balances", new List<object>() {});
+        object balances = this.safeList(response, "balances", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -1221,12 +1300,12 @@ public partial class coinsph : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue(isEqual(orderType, "STOP_LOSS")) || isTrue(isEqual(orderType, "STOP_LOSS_LIMIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT_LIMIT"))))
         {
-            object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(isEqual(stopPrice, null)))
+            object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(isEqual(triggerPrice, null)))
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         ((IDictionary<string,object>)request)["newOrderRespType"] = newOrderRespType;
         parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1300,7 +1379,7 @@ public partial class coinsph : Exchange
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1489,10 +1568,10 @@ public partial class coinsph : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills", null);
-        object stopPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(stopPrice, "0")))
+        object triggerPrice = this.safeString(order, "stopPrice");
+        if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
-            stopPrice = null;
+            triggerPrice = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1506,8 +1585,7 @@ public partial class coinsph : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", null },
             { "amount", this.safeString(order, "origQty") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },
@@ -1616,7 +1694,7 @@ public partial class coinsph : Exchange
         //       }
         //     ]
         //
-        object tradingFee = this.safeValue(response, 0, new Dictionary<string, object>() {});
+        object tradingFee = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseTradingFee(tradingFee, market);
     }
 

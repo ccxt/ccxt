@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/idex.js';
-import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -18,7 +18,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class idex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'idex',
             'name': 'IDEX',
@@ -168,6 +168,81 @@ export default class idex extends Exchange {
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo: revise
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': true, // todo implementation
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 1000000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 1000000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -198,10 +273,8 @@ export default class idex extends Exchange {
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         const market = this.market (symbol);
-        const info = this.safeValue (market, 'info', {});
-        const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
-        return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return this.decimalToPrecision (price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
     }
 
     /**
@@ -310,6 +383,8 @@ export default class idex extends Exchange {
                 'precision': {
                     'amount': basePrecision,
                     'price': this.safeNumber (entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -1138,7 +1213,6 @@ export default class idex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1205,12 +1279,13 @@ export default class idex extends Exchange {
             'takeProfit': 5,
             'takeProfitLimit': 6,
         };
-        let stopPriceString = undefined;
-        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
-            if (!('stopPrice' in params)) {
-                throw new BadRequest (this.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders');
+        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        let triggerPriceString = undefined;
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
+            if (triggerPrice === undefined) {
+                throw new BadRequest (this.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders');
             }
-            stopPriceString = this.priceToPrecision (symbol, params['stopPrice']);
+            triggerPriceString = this.priceToPrecision (symbol, triggerPrice);
         }
         const limitTypeEnums: Dict = {
             'limit': 1,
@@ -1295,7 +1370,7 @@ export default class idex extends Exchange {
             byteArray.push (encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.encode (stopPriceString || priceString);
+            const encodedPrice = this.encode (triggerPriceString || priceString);
             byteArray.push (encodedPrice);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1329,7 +1404,7 @@ export default class idex extends Exchange {
             request['parameters']['price'] = priceString;
         }
         if (type in stopLossTypeEnums) {
-            request['parameters']['stopPrice'] = stopPriceString || priceString;
+            request['parameters']['stopPrice'] = triggerPriceString || priceString;
         }
         if (amountEnum === 0) {
             request['parameters']['quantity'] = amountString;
@@ -1593,7 +1668,7 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //    { serverTime: "1655258263236" }
@@ -1793,7 +1868,7 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async fetchDepositAddress (code: Str = undefined, params = {}): Promise<DepositAddress> {
+    async fetchDepositAddress (code: Str, params = {}): Promise<DepositAddress> {
         const request: Dict = {};
         request['nonce'] = this.uuidv1 ();
         const response = await this.privateGetWallets (this.extend (request, params));

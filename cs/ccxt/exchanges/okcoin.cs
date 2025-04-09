@@ -26,6 +26,12 @@ public partial class okcoin : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createPostOnlyOrder", true },
+                { "createReduceOnlyOrder", true },
+                { "createStopLimitOrder", true },
+                { "createStopMarketOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -177,6 +183,87 @@ public partial class okcoin : Exchange
                         { "fiat/cancel-withdrawal", divide(5, 3) },
                         { "asset/subaccount/transfer", 10 },
                     } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", false },
+                            { "index", false },
+                        } },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", false },
+                                { "index", false },
+                            } },
+                            { "price", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 90 },
+                        { "untilDays", 90 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 90 },
+                        { "daysBackCanceled", divide(1, 12) },
+                        { "untilDays", 90 },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -582,12 +669,20 @@ public partial class okcoin : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPublicTime(parameters);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601(this.safeString(response, "iso"));
+        object data = this.safeList(response, "data");
+        object timestamp = this.safeDict(data, 0);
+        return this.safeInteger(timestamp, "ts");
     }
 
     /**
@@ -1550,7 +1645,7 @@ public partial class okcoin : Exchange
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
                 if (isTrue(isEqual(stopLossTriggerPrice, null)))
                 {
-                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
+                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                 }
                 ((IDictionary<string,object>)request)["slTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
@@ -1566,7 +1661,7 @@ public partial class okcoin : Exchange
                     {
                         if (isTrue(isEqual(stopLossLimitPrice, null)))
                         {
-                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
+                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] for a stop loss limit order")) ;
                         } else
                         {
                             ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
@@ -1693,7 +1788,7 @@ public partial class okcoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancel trigger or conditional orders
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
      * @param {bool} [params.advanced] True if canceling advanced orders only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1705,9 +1800,9 @@ public partial class okcoin : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
-        if (isTrue(isTrue(stop) || isTrue(advanced)))
+        if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             return this.safeValue(orderInner, 0);
@@ -1770,7 +1865,7 @@ public partial class okcoin : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "advanced"});
         object market = this.market(symbol);
@@ -1792,7 +1887,7 @@ public partial class okcoin : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(isTrue(stop) || isTrue(advanced)))
+                if (isTrue(isTrue(trigger) || isTrue(advanced)))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
@@ -1817,7 +1912,7 @@ public partial class okcoin : Exchange
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privatePostTradeCancelAlgos(request);
         } else if (isTrue(advanced))
@@ -2028,7 +2123,6 @@ public partial class okcoin : Exchange
         }
         object stopLossPrice = this.safeNumber2(order, "slTriggerPx", "slOrdPx");
         object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
-        object stopPrice = this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"});
         object reduceOnlyRaw = this.safeString(order, "reduceOnly");
         object reduceOnly = false;
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -2051,8 +2145,7 @@ public partial class okcoin : Exchange
             { "price", price },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"}) },
             { "average", average },
             { "cost", cost },
             { "amount", amount },
@@ -2089,8 +2182,8 @@ public partial class okcoin : Exchange
             { "instId", getValue(market, "id") },
         };
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        if (isTrue(trigger))
         {
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -2111,7 +2204,7 @@ public partial class okcoin : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         } else
@@ -2133,7 +2226,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2153,14 +2246,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, parameters));
         } else
@@ -2182,7 +2275,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2200,14 +2293,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, parameters));
         } else
@@ -3012,7 +3105,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

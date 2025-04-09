@@ -28,6 +28,7 @@ public partial class btcmarkets : Exchange
                 { "createDepositAddress", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
+                { "createTriggerOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
@@ -100,6 +101,84 @@ public partial class btcmarkets : Exchange
                 { "1m", "1m" },
                 { "1h", "1h" },
                 { "1d", "1d" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", true },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -280,7 +359,7 @@ public partial class btcmarkets : Exchange
         {
             type = "withdrawal";
         }
-        object cryptoPaymentDetail = this.safeValue(transaction, "paymentDetail", new Dictionary<string, object>() {});
+        object cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new Dictionary<string, object>() {});
         object txid = this.safeString(cryptoPaymentDetail, "txId");
         object address = this.safeString(cryptoPaymentDetail, "address");
         object tag = null;
@@ -372,7 +451,7 @@ public partial class btcmarkets : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object fees = this.safeValue(this.safeValue(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
+        object fees = this.safeValue(this.safeDict(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
         object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         object minAmount = this.safeNumber(market, "minOrderAmount");
         object maxAmount = this.safeNumber(market, "maxOrderAmount");
@@ -798,6 +877,7 @@ public partial class btcmarkets : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1056,8 +1136,7 @@ public partial class btcmarkets : Exchange
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
-        object stopPrice = this.safeNumber(order, "triggerPrice");
-        object postOnly = this.safeValue(order, "postOnly");
+        object postOnly = this.safeBool(order, "postOnly");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1071,8 +1150,7 @@ public partial class btcmarkets : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "cost", null },
             { "amount", amount },
             { "filled", null },

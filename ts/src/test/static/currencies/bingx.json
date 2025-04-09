@@ -10,9 +10,15 @@
                     "isDefault": true,
                     "minConfirm": "2",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00035",
-                    "withdrawMax": "1.37911",
-                    "withdrawMin": "0.0005"
+                    "depositEnable": true,
+                    "withdrawFee": "0.000052",
+                    "withdrawMax": "51.34604",
+                    "withdrawMin": "0.000058",
+                    "depositMin": "0.0002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "BTC",
@@ -20,16 +26,24 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00003",
-                    "withdrawMax": "1.37911",
-                    "withdrawMin": "0.00003000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0000045",
+                    "withdrawMax": "51.34604",
+                    "withdrawMin": "0.000052",
+                    "depositMin": "0.0002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "BTC",
         "id": "BTC",
+        "precision": null,
         "name": "BTC",
         "active": true,
+        "deposit": true,
         "withdraw": true,
         "networks": {
             "BTC": {
@@ -39,19 +53,27 @@
                     "isDefault": true,
                     "minConfirm": "2",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00035",
-                    "withdrawMax": "1.37911",
-                    "withdrawMin": "0.0005"
+                    "depositEnable": true,
+                    "withdrawFee": "0.000052",
+                    "withdrawMax": "51.34604",
+                    "withdrawMin": "0.000058",
+                    "depositMin": "0.0002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BTC",
                 "network": "BTC",
-                "fee": 0.00035,
+                "fee": 0.000052,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.0005,
-                        "max": 1.37911
+                    "withdraw": {
+                        "min": 0.000058,
+                        "max": 51.34604
                     }
                 }
             },
@@ -62,28 +84,36 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00003",
-                    "withdrawMax": "1.37911",
-                    "withdrawMin": "0.00003000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0000045",
+                    "withdrawMax": "51.34604",
+                    "withdrawMin": "0.000052",
+                    "depositMin": "0.0002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 0.00035,
+                "fee": 0.0000045,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.00003000000000000001,
-                        "max": 1.37911
+                    "withdraw": {
+                        "min": 0.000052,
+                        "max": 51.34604
                     }
                 }
             }
         },
-        "fee": 0.00035,
+        "fee": 0.0000045,
         "limits": {
-            "amounts": {
-                "min": 0.0005,
-                "max": 1.37911
+            "withdraw": {
+                "min": 0.000058,
+                "max": 51.34604
             }
         }
     },
@@ -98,9 +128,15 @@
                     "isDefault": false,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "25"
+                    "depositEnable": true,
+                    "withdrawFee": "7",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "5.5",
+                    "depositMin": "1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
@@ -108,9 +144,15 @@
                     "isDefault": false,
                     "minConfirm": "2",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "8"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "8",
+                    "depositMin": "1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
@@ -118,9 +160,15 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "10"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "3",
+                    "depositMin": "0.8",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
@@ -128,19 +176,31 @@
                     "isDefault": false,
                     "minConfirm": "50",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.00000000000000000001"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.00000000000000000001",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
                     "network": "POLYGON",
                     "isDefault": false,
-                    "minConfirm": "256",
+                    "minConfirm": "64",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.8",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "10"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
@@ -148,25 +208,56 @@
                     "isDefault": false,
                     "minConfirm": "30",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.00000000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.5",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDT",
                     "network": "OPTIMISM",
                     "isDefault": false,
                     "minConfirm": "50",
-                    "withdrawEnable": true,
+                    "withdrawEnable": false,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.1"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.1",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDT",
+                    "network": "TON",
+                    "isDefault": false,
+                    "minConfirm": "25",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.15",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "USDT",
         "id": "USDT",
+        "precision": null,
         "name": "USDT",
+        "active": true,
+        "deposit": true,
         "withdraw": true,
         "networks": {
             "ERC20": {
@@ -176,17 +267,27 @@
                     "isDefault": false,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "25"
+                    "depositEnable": true,
+                    "withdrawFee": "7",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "5.5",
+                    "depositMin": "1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ERC20",
                 "network": "ERC20",
+                "fee": 7,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
-                        "min": 25,
-                        "max": 50000
+                    "withdraw": {
+                        "min": 5.5,
+                        "max": 4999953.19
                     }
                 }
             },
@@ -197,17 +298,27 @@
                     "isDefault": false,
                     "minConfirm": "2",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "8"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "8",
+                    "depositMin": "1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "needTagOrMemo": "false"
                 },
                 "id": "TRC20",
                 "network": "TRC20",
+                "fee": 1,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 8,
-                        "max": 50000
+                        "max": 4999953.19
                     }
                 }
             },
@@ -218,17 +329,27 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "10"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "3",
+                    "depositMin": "0.8",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
+                "fee": 0,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50000
+                    "withdraw": {
+                        "min": 3,
+                        "max": 4999953.19
                     }
                 }
             },
@@ -239,59 +360,89 @@
                     "isDefault": false,
                     "minConfirm": "50",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.00000000000000000001"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.00000000000000000001",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "needTagOrMemo": "false"
                 },
                 "id": "SOL",
                 "network": "SOL",
+                "fee": 1,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 1,
-                        "max": 50000
+                        "max": 4999953.19
                     }
                 }
             },
-            "POLYGON": {
+            "MATIC": {
                 "info": {
                     "name": "USDT",
                     "network": "POLYGON",
                     "isDefault": false,
-                    "minConfirm": "256",
+                    "minConfirm": "64",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.8",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "10"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                    "needTagOrMemo": "false"
                 },
                 "id": "POLYGON",
-                "network": "POLYGON",
+                "network": "MATIC",
+                "fee": 0.8,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 10,
-                        "max": 50000
+                        "max": 4999953.19
                     }
                 }
             },
-            "ARBITRUM": {
+            "ARB": {
                 "info": {
                     "name": "USDT",
                     "network": "ARBITRUM",
                     "isDefault": false,
                     "minConfirm": "30",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.00000000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.5",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ARBITRUM",
-                "network": "ARBITRUM",
+                "network": "ARB",
+                "fee": 0.5,
+                "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
-                        "min": 1,
-                        "max": 50000
+                    "withdraw": {
+                        "min": 0.5,
+                        "max": 4999953.19
                     }
                 }
             },
@@ -301,22 +452,64 @@
                     "network": "OPTIMISM",
                     "isDefault": false,
                     "minConfirm": "50",
-                    "withdrawEnable": true,
+                    "withdrawEnable": false,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50000",
-                    "withdrawMin": "1.1"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.1",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                    "needTagOrMemo": "false"
                 },
                 "id": "OPTIMISM",
                 "network": "OPTIMISM",
-                "withdraw": true,
+                "fee": 1,
+                "active": true,
+                "deposit": true,
+                "withdraw": false,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 1.1,
-                        "max": 50000
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "TON": {
+                "info": {
+                    "name": "USDT",
+                    "network": "TON",
+                    "isDefault": false,
+                    "minConfirm": "25",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.15",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "needTagOrMemo": "false"
+                },
+                "id": "TON",
+                "network": "TON",
+                "fee": 0.15,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
                     }
                 }
             }
         },
+        "fee": 0.15,
         "limits": {}
     },
     "LTC": {
@@ -330,16 +523,40 @@
                     "isDefault": true,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0027",
-                    "withdrawMax": "707.3136",
-                    "withdrawMin": "0.00270000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0055",
+                    "withdrawMax": "45371.626",
+                    "withdrawMin": "0.045251",
+                    "depositMin": "0.01",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x4338665cbb7b2485a8855a139b75d5e34ab0db94",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "LTC",
+                    "network": "LTC",
+                    "isDefault": false,
+                    "minConfirm": "5",
+                    "withdrawEnable": false,
+                    "depositEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "45371.626",
+                    "withdrawMin": "0.046126",
+                    "depositMin": "0.001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "LTC",
         "id": "LTC",
+        "precision": null,
         "name": "LTC",
         "active": true,
+        "deposit": true,
         "withdraw": true,
         "networks": {
             "BEP20": {
@@ -349,28 +566,67 @@
                     "isDefault": true,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0027",
-                    "withdrawMax": "707.3136",
-                    "withdrawMin": "0.00270000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0055",
+                    "withdrawMax": "45371.626",
+                    "withdrawMin": "0.045251",
+                    "depositMin": "0.01",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x4338665cbb7b2485a8855a139b75d5e34ab0db94",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 0.0027,
+                "fee": 0.0055,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.0027,
-                        "max": 707.3136
+                    "withdraw": {
+                        "min": 0.045251,
+                        "max": 45371.626
+                    }
+                }
+            },
+            "LTC": {
+                "info": {
+                    "name": "LTC",
+                    "network": "LTC",
+                    "isDefault": false,
+                    "minConfirm": "5",
+                    "withdrawEnable": false,
+                    "depositEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "45371.626",
+                    "withdrawMin": "0.046126",
+                    "depositMin": "0.001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
+                },
+                "id": "LTC",
+                "network": "LTC",
+                "fee": 0.0001,
+                "active": true,
+                "deposit": true,
+                "withdraw": false,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.046126,
+                        "max": 45371.626
                     }
                 }
             }
         },
-        "fee": 0.0027,
+        "fee": 0.0001,
         "limits": {
-            "amounts": {
-                "min": 0.0027,
-                "max": 707.3136
+            "withdraw": {
+                "min": 0.045251,
+                "max": 45371.626
             }
         }
     },
@@ -385,9 +641,15 @@
                     "isDefault": true,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0015",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.02"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0014",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.0014",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
@@ -395,9 +657,15 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00100000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.00012",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.001678",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
@@ -405,9 +673,15 @@
                     "isDefault": false,
                     "minConfirm": "30",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.00010000000000000001",
+                    "depositMin": "0.001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
@@ -415,9 +689,15 @@
                     "isDefault": false,
                     "minConfirm": "50",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.00010000000000000001",
+                    "depositMin": "0.0009",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
@@ -425,19 +705,31 @@
                     "isDefault": false,
                     "minConfirm": "32",
                     "withdrawEnable": false,
-                    "withdrawFee": "0.0003",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00030000000000000001"
+                    "depositEnable": false,
+                    "withdrawFee": "0.00004",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.001678",
+                    "depositMin": "0.015",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
                     "network": "LINEA",
                     "isDefault": false,
                     "minConfirm": "12",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.002"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.00014",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000837",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
@@ -445,26 +737,72 @@
                     "isDefault": false,
                     "minConfirm": "32",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0002",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00020000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.00003",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000837",
+                    "depositMin": "0.01",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ETH",
                     "network": "STARKNET",
                     "isDefault": false,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.00009",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000959",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "ETH",
+                    "network": "BLAST",
+                    "isDefault": false,
+                    "minConfirm": "200",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.000047",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000052",
+                    "depositMin": "0.0001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "ETH",
+                    "network": "MTL",
+                    "isDefault": false,
+                    "minConfirm": "25",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.000882",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000981",
+                    "depositMin": "0.002421",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "ETH",
         "id": "ETH",
+        "precision": null,
         "name": "ETH",
         "active": true,
+        "deposit": true,
         "withdraw": true,
         "networks": {
             "ERC20": {
@@ -474,19 +812,27 @@
                     "isDefault": true,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0015",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.02"
+                    "depositEnable": true,
+                    "withdrawFee": "0.0014",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.0014",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "8",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ERC20",
                 "network": "ERC20",
-                "fee": 0.0015,
+                "fee": 0.0014,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.02,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.0014,
+                        "max": 1682.2115
                     }
                 }
             },
@@ -497,42 +843,58 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00100000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.00012",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.001678",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 0.0015,
+                "fee": 0.00012,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.001,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.001678,
+                        "max": 1682.2115
                     }
                 }
             },
-            "ARBITRUM": {
+            "ARB": {
                 "info": {
                     "name": "ETH",
                     "network": "ARBITRUM",
                     "isDefault": false,
                     "minConfirm": "30",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.00010000000000000001",
+                    "depositMin": "0.001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ARBITRUM",
-                "network": "ARBITRUM",
-                "fee": 0.0015,
+                "network": "ARB",
+                "fee": 0.0001,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 0.0001,
-                        "max": 24.614536
+                        "max": 1682.2115
                     }
                 }
             },
@@ -543,19 +905,27 @@
                     "isDefault": false,
                     "minConfirm": "50",
                     "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.00010000000000000001",
+                    "depositMin": "0.0009",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "OPTIMISM",
                 "network": "OPTIMISM",
-                "fee": 0.0015,
+                "fee": 0.0001,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
                         "min": 0.0001,
-                        "max": 24.614536
+                        "max": 1682.2115
                     }
                 }
             },
@@ -566,19 +936,27 @@
                     "isDefault": false,
                     "minConfirm": "32",
                     "withdrawEnable": false,
-                    "withdrawFee": "0.0003",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00030000000000000001"
+                    "depositEnable": false,
+                    "withdrawFee": "0.00004",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.001678",
+                    "depositMin": "0.015",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ZKSYNCERA",
                 "network": "ZKSYNCERA",
-                "fee": 0.0015,
-                "active": true,
+                "fee": 0.00004,
+                "active": false,
+                "deposit": false,
                 "withdraw": false,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.00030000000000000003,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.001678,
+                        "max": 1682.2115
                     }
                 }
             },
@@ -588,20 +966,28 @@
                     "network": "LINEA",
                     "isDefault": false,
                     "minConfirm": "12",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.002"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.00014",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000837",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "LINEA",
                 "network": "LINEA",
-                "fee": 0.0015,
-                "active": true,
-                "withdraw": true,
+                "fee": 0.00014,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.002,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.000837,
+                        "max": 1682.2115
                     }
                 }
             },
@@ -612,19 +998,27 @@
                     "isDefault": false,
                     "minConfirm": "32",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0002",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00020000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0.00003",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000837",
+                    "depositMin": "0.01",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BASE",
                 "network": "BASE",
-                "fee": 0.0015,
+                "fee": 0.00003,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.0002,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.000837,
+                        "max": 1682.2115
                     }
                 }
             },
@@ -634,29 +1028,99 @@
                     "network": "STARKNET",
                     "isDefault": false,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.0001",
-                    "withdrawMax": "24.614536",
-                    "withdrawMin": "0.00010000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.00009",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000959",
+                    "depositMin": "0.002",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    "needTagOrMemo": "false"
                 },
                 "id": "STARKNET",
                 "network": "STARKNET",
-                "fee": 0.0015,
-                "active": true,
-                "withdraw": true,
+                "fee": 0.00009,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.0001,
-                        "max": 24.614536
+                    "withdraw": {
+                        "min": 0.000959,
+                        "max": 1682.2115
+                    }
+                }
+            },
+            "BLAST": {
+                "info": {
+                    "name": "ETH",
+                    "network": "BLAST",
+                    "isDefault": false,
+                    "minConfirm": "200",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.000047",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000052",
+                    "depositMin": "0.0001",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
+                },
+                "id": "BLAST",
+                "network": "BLAST",
+                "fee": 0.000047,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.000052,
+                        "max": 1682.2115
+                    }
+                }
+            },
+            "MTL": {
+                "info": {
+                    "name": "ETH",
+                    "network": "MTL",
+                    "isDefault": false,
+                    "minConfirm": "25",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.000882",
+                    "withdrawMax": "1682.2115",
+                    "withdrawMin": "0.000981",
+                    "depositMin": "0.002421",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
+                },
+                "id": "MTL",
+                "network": "MTL",
+                "fee": 0.000882,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.000981,
+                        "max": 1682.2115
                     }
                 }
             }
         },
-        "fee": 0.0015,
+        "fee": 0.000882,
         "limits": {
-            "amounts": {
-                "min": 0.02,
-                "max": 24.614536
+            "withdraw": {
+                "min": 0.0014,
+                "max": 1682.2115
             }
         }
     },
@@ -670,28 +1134,42 @@
                     "network": "BEP20",
                     "isDefault": true,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.54",
-                    "withdrawMax": "140409.99",
-                    "withdrawMin": "0.54000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.73",
+                    "withdrawMax": "6189592.95",
+                    "withdrawMin": "6.210579",
+                    "depositMin": "10",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "ADA",
                     "network": "ADA",
                     "isDefault": false,
                     "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "140409.99",
-                    "withdrawMin": "0.80000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.602",
+                    "withdrawMax": "6189592.95",
+                    "withdrawMin": "6.210579",
+                    "depositMin": "2",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "ADA",
         "id": "ADA",
+        "precision": null,
         "name": "ADA",
-        "active": true,
-        "withdraw": true,
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
         "networks": {
             "BEP20": {
                 "info": {
@@ -699,20 +1177,28 @@
                     "network": "BEP20",
                     "isDefault": true,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.54",
-                    "withdrawMax": "140409.99",
-                    "withdrawMin": "0.54000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.73",
+                    "withdrawMax": "6189592.95",
+                    "withdrawMin": "6.210579",
+                    "depositMin": "10",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 0.54,
-                "active": true,
-                "withdraw": true,
+                "fee": 0.73,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.54,
-                        "max": 140409.99
+                    "withdraw": {
+                        "min": 6.210579,
+                        "max": 6189592.95
                     }
                 }
             },
@@ -722,29 +1208,37 @@
                     "network": "ADA",
                     "isDefault": false,
                     "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "140409.99",
-                    "withdrawMin": "0.80000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.602",
+                    "withdrawMax": "6189592.95",
+                    "withdrawMin": "6.210579",
+                    "depositMin": "2",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ADA",
                 "network": "ADA",
-                "fee": 0.54,
-                "active": true,
-                "withdraw": true,
+                "fee": 0.602,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
-                        "min": 0.8,
-                        "max": 140409.99
+                    "withdraw": {
+                        "min": 6.210579,
+                        "max": 6189592.95
                     }
                 }
             }
         },
-        "fee": 0.54,
+        "fee": 0.602,
         "limits": {
-            "amounts": {
-                "min": 0.54,
-                "max": 140409.99
+            "withdraw": {
+                "min": 6.210579,
+                "max": 6189592.95
             }
         }
     },
@@ -759,26 +1253,40 @@
                     "isDefault": true,
                     "minConfirm": "5",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "76828.51",
-                    "withdrawMin": "0.20000000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "1935191",
+                    "withdrawMin": "10.2",
+                    "depositMin": "0.1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "",
+                    "needTagOrMemo": "true"
                 },
                 {
                     "name": "XRP",
                     "network": "BEP20",
                     "isDefault": false,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.29",
-                    "withdrawMax": "76828.51",
-                    "withdrawMin": "0.29000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.23",
+                    "withdrawMax": "1935191",
+                    "withdrawMin": "1.936414",
+                    "depositMin": "0.1",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "XRP",
         "id": "XRP",
+        "precision": null,
         "name": "XRP",
         "active": true,
+        "deposit": true,
         "withdraw": true,
         "networks": {
             "XRP": {
@@ -788,19 +1296,27 @@
                     "isDefault": true,
                     "minConfirm": "5",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "76828.51",
-                    "withdrawMin": "0.20000000000000000001"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "1935191",
+                    "withdrawMin": "10.2",
+                    "depositMin": "0.1",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "",
+                    "needTagOrMemo": "true"
                 },
                 "id": "XRP",
                 "network": "XRP",
-                "fee": 0.2,
+                "fee": 0,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
-                        "min": 0.2,
-                        "max": 76828.51
+                    "withdraw": {
+                        "min": 10.2,
+                        "max": 1935191
                     }
                 }
             },
@@ -810,29 +1326,37 @@
                     "network": "BEP20",
                     "isDefault": false,
                     "minConfirm": "15",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.29",
-                    "withdrawMax": "76828.51",
-                    "withdrawMin": "0.29000000000000000001"
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.23",
+                    "withdrawMax": "1935191",
+                    "withdrawMin": "1.936414",
+                    "depositMin": "0.1",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 0.2,
-                "active": true,
-                "withdraw": true,
+                "fee": 0.23,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 0.29,
-                        "max": 76828.51
+                    "withdraw": {
+                        "min": 1.936414,
+                        "max": 1935191
                     }
                 }
             }
         },
-        "fee": 0.2,
+        "fee": 0.23,
         "limits": {
-            "amounts": {
-                "min": 0.2,
-                "max": 76828.51
+            "withdraw": {
+                "min": 10.2,
+                "max": 1935191
             }
         }
     },
@@ -847,19 +1371,15 @@
                     "isDefault": true,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "30"
-                },
-                {
-                    "name": "USDC",
-                    "network": "TRC20",
-                    "isDefault": false,
-                    "minConfirm": "2",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "1"
+                    "depositEnable": true,
+                    "withdrawFee": "6.972368",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "7.669605",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDC",
@@ -867,87 +1387,185 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Arbitrum One (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Arbitrum One (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Optimism (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "50",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Optimism (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "50",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.3",
+                    "depositMin": "1",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "needTagOrMemo": "false"
                 },
                 {
                     "name": "USDC",
                     "network": "SOL",
                     "isDefault": false,
                     "minConfirm": "50",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "1.00000000000000000001"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Polygon (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "256",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "0.80000000000000000001"
-                },
-                {
-                    "name": "USDC",
-                    "network": "Polygon (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "256",
                     "withdrawEnable": false,
+                    "depositEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.00000000000000000001",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Polygon(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "64",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.5",
+                    "depositMin": "10",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "1",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8-OFFLINE",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Optimism(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.3",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "ArbitrumOne(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.3",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "POLYGON",
+                    "isDefault": false,
+                    "minConfirm": "64",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "10",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "BASE",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
                     "withdrawFee": "0.1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+                    "needTagOrMemo": "false"
+                },
+                {
+                    "name": "USDC",
+                    "network": "AVAX-C",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.11",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+                    "needTagOrMemo": "false"
                 }
             ]
         },
         "code": "USDC",
         "id": "USDC",
+        "precision": null,
         "name": "USDC",
         "active": true,
-        "withdraw": false,
+        "deposit": true,
+        "withdraw": true,
         "networks": {
             "ERC20": {
                 "info": {
@@ -956,42 +1574,27 @@
                     "isDefault": true,
                     "minConfirm": "12",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "30"
+                    "depositEnable": true,
+                    "withdrawFee": "6.972368",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "7.669605",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "needTagOrMemo": "false"
                 },
                 "id": "ERC20",
                 "network": "ERC20",
-                "fee": 6,
+                "fee": 6.972368,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
-                        "min": 30,
-                        "max": 50015
-                    }
-                }
-            },
-            "TRC20": {
-                "info": {
-                    "name": "USDC",
-                    "network": "TRC20",
-                    "isDefault": false,
-                    "minConfirm": "2",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "1"
-                },
-                "id": "TRC20",
-                "network": "TRC20",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 1,
-                        "max": 50015
+                    "withdraw": {
+                        "min": 7.669605,
+                        "max": 4999953.19
                     }
                 }
             },
@@ -1002,111 +1605,27 @@
                     "isDefault": false,
                     "minConfirm": "15",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
+                    "depositEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.3",
+                    "depositMin": "1",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "18",
+                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "needTagOrMemo": "false"
                 },
                 "id": "BEP20",
                 "network": "BEP20",
-                "fee": 6,
+                "fee": 0,
                 "active": true,
+                "deposit": true,
                 "withdraw": true,
+                "precision": 8,
                 "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50015
-                    }
-                }
-            },
-            "Arbitrum One (Bridged)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Arbitrum One (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                "id": "Arbitrum One (Bridged)",
-                "network": "Arbitrum One (Bridged)",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50015
-                    }
-                }
-            },
-            "Arbitrum One (Circle)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Arbitrum One (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "30",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                "id": "Arbitrum One (Circle)",
-                "network": "Arbitrum One (Circle)",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50015
-                    }
-                }
-            },
-            "Optimism (Bridged)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Optimism (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "50",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                "id": "Optimism (Bridged)",
-                "network": "Optimism (Bridged)",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50015
-                    }
-                }
-            },
-            "Optimism (Circle)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Optimism (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "50",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.2",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                "id": "Optimism (Circle)",
-                "network": "Optimism (Circle)",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 10,
-                        "max": 50015
+                    "withdraw": {
+                        "min": 0.3,
+                        "max": 4999953.19
                     }
                 }
             },
@@ -1116,75 +1635,458 @@
                     "network": "SOL",
                     "isDefault": false,
                     "minConfirm": "50",
-                    "withdrawEnable": true,
+                    "withdrawEnable": false,
+                    "depositEnable": true,
                     "withdrawFee": "1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "1.00000000000000000001"
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1.00000000000000000001",
+                    "depositMin": "0.9",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "needTagOrMemo": "false"
                 },
                 "id": "SOL",
                 "network": "SOL",
-                "fee": 6,
+                "fee": 1,
                 "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 1,
-                        "max": 50015
-                    }
-                }
-            },
-            "Polygon (Bridged)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Polygon (Bridged)",
-                    "isDefault": false,
-                    "minConfirm": "256",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "0.80000000000000000001"
-                },
-                "id": "Polygon (Bridged)",
-                "network": "Polygon (Bridged)",
-                "fee": 6,
-                "active": true,
-                "withdraw": true,
-                "limits": {
-                    "amounts": {
-                        "min": 0.8,
-                        "max": 50015
-                    }
-                }
-            },
-            "Polygon (Circle)": {
-                "info": {
-                    "name": "USDC",
-                    "network": "Polygon (Circle)",
-                    "isDefault": false,
-                    "minConfirm": "256",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.1",
-                    "withdrawMax": "50015",
-                    "withdrawMin": "10"
-                },
-                "id": "Polygon (Circle)",
-                "network": "Polygon (Circle)",
-                "fee": 6,
-                "active": true,
+                "deposit": true,
                 "withdraw": false,
+                "precision": 6,
                 "limits": {
-                    "amounts": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "Polygon(Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Polygon(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "64",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "0.5",
+                    "depositMin": "10",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+                    "needTagOrMemo": "false"
+                },
+                "id": "Polygon(Bridged)",
+                "network": "Polygon(Bridged)",
+                "fee": 0.5,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.5,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "name": "USDC",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "1",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "1",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8-OFFLINE",
+                    "needTagOrMemo": "false"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "fee": 1,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "Optimism(Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Optimism(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.3",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+                    "needTagOrMemo": "false"
+                },
+                "id": "Optimism(Bridged)",
+                "network": "Optimism(Bridged)",
+                "fee": 0.3,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
                         "min": 10,
-                        "max": 50015
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "ArbitrumOne(Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "ArbitrumOne(Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "needTagOrMemo": "false"
+                },
+                "id": "ArbitrumOne(Bridged)",
+                "network": "ArbitrumOne(Bridged)",
+                "fee": 0.5,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "ARB": {
+                "info": {
+                    "name": "USDC",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "needTagOrMemo": "false"
+                },
+                "id": "ARBITRUM",
+                "network": "ARB",
+                "fee": 0.5,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "name": "USDC",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.3",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "needTagOrMemo": "false"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "fee": 0.3,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "name": "USDC",
+                    "network": "POLYGON",
+                    "isDefault": false,
+                    "minConfirm": "64",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.5",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "10",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "needTagOrMemo": "false"
+                },
+                "id": "POLYGON",
+                "network": "MATIC",
+                "fee": 0.5,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "BASE": {
+                "info": {
+                    "name": "USDC",
+                    "network": "BASE",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.1",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+                    "needTagOrMemo": "false"
+                },
+                "id": "BASE",
+                "network": "BASE",
+                "fee": 0.1,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
+                    }
+                }
+            },
+            "AVAX-C": {
+                "info": {
+                    "name": "USDC",
+                    "network": "AVAX-C",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "0.11",
+                    "withdrawMax": "4999953.19",
+                    "withdrawMin": "10",
+                    "depositMin": "5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+                    "needTagOrMemo": "false"
+                },
+                "id": "AVAX-C",
+                "network": "AVAX-C",
+                "fee": 0.11,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 4999953.19
                     }
                 }
             }
         },
-        "fee": 6,
+        "fee": 0.11,
         "limits": {
-            "amounts": {
-                "min": 30,
-                "max": 50015
+            "withdraw": {
+                "min": 7.669605,
+                "max": 4999953.19
+            }
+        }
+    },
+    "TRUMP": {
+        "info": {
+            "coin": "TRUMP",
+            "name": "TRUMP",
+            "networkList": [
+                {
+                    "name": "TRUMP",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "10.347522",
+                    "withdrawMax": "7092132.18",
+                    "withdrawMin": "11.382275",
+                    "depositMin": "0.48277",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "9",
+                    "contractAddress": "0x6aa56e1d98b3805921c170eb4b3fe7d4fda6d89b",
+                    "needTagOrMemo": "false"
+                }
+            ]
+        },
+        "code": "TRUMP",
+        "id": "TRUMP",
+        "precision": null,
+        "name": "TRUMP",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "TRUMP",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": false,
+                    "depositEnable": false,
+                    "withdrawFee": "10.347522",
+                    "withdrawMax": "7092132.18",
+                    "withdrawMin": "11.382275",
+                    "depositMin": "0.48277",
+                    "withdrawPrecision": "8",
+                    "depositPrecision": "9",
+                    "contractAddress": "0x6aa56e1d98b3805921c170eb4b3fe7d4fda6d89b",
+                    "needTagOrMemo": "false"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "fee": 10.347522,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 11.382275,
+                        "max": 7092132.18
+                    }
+                }
+            }
+        },
+        "fee": 10.347522,
+        "limits": {
+            "withdraw": {
+                "min": 11.382275,
+                "max": 7092132.18
+            }
+        }
+    },
+    "TRUMPSOL": {
+        "info": {
+            "coin": "TRUMPSOL",
+            "name": "TRUMPSOL",
+            "networkList": [
+                {
+                    "name": "TRUMPSOL",
+                    "network": "SOL",
+                    "isDefault": true,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.049803",
+                    "withdrawMax": "248877.7",
+                    "withdrawMin": "0.249014",
+                    "depositMin": "1.5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+                    "needTagOrMemo": "false"
+                }
+            ]
+        },
+        "code": "TRUMPSOL",
+        "id": "TRUMPSOL",
+        "precision": null,
+        "name": "TRUMPSOL",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "SOL": {
+                "info": {
+                    "name": "TRUMPSOL",
+                    "network": "SOL",
+                    "isDefault": true,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "depositEnable": true,
+                    "withdrawFee": "0.049803",
+                    "withdrawMax": "248877.7",
+                    "withdrawMin": "0.249014",
+                    "depositMin": "1.5",
+                    "withdrawPrecision": "6",
+                    "depositPrecision": "6",
+                    "contractAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+                    "needTagOrMemo": "false"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "fee": 0.049803,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.249014,
+                        "max": 248877.7
+                    }
+                }
+            }
+        },
+        "fee": 0.049803,
+        "limits": {
+            "withdraw": {
+                "min": 0.249014,
+                "max": 248877.7
             }
         }
     }

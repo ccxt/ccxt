@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class bitmex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
@@ -55,7 +55,9 @@ class bitmex(Exchange, ImplicitAPI):
                 'closePosition': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopOrder': True,
                 'createTrailingAmountOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -283,6 +285,113 @@ class bitmex(Exchange, ImplicitAPI):
                     'DOT': 'dot',
                     'SOL': 'sol',
                     'ADA': 'ada',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        # exchange-supported features
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': False,
+                        },
+                    },
+                },
+                'derivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': True,
+                        },
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
+                    },
                 },
             },
             'commonCurrencies': {
@@ -860,7 +969,8 @@ class bitmex(Exchange, ImplicitAPI):
             # https://github.com/ccxt/ccxt/issues/4927
             # the exchange sometimes returns null price in the orderbook
             if price is not None:
-                result[side].append([price, amount])
+                resultSide = result[side]
+                resultSide.append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -989,7 +1099,7 @@ class bitmex(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(500, limit)
         until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
@@ -1173,7 +1283,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         request: dict = {
@@ -1469,7 +1579,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
-        until = self.safe_integer_2(params, 'until', 'endTime')
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['endTime'] = self.iso8601(until)
@@ -1703,7 +1813,7 @@ class bitmex(Exchange, ImplicitAPI):
         if execInst is not None:
             postOnly = (execInst == 'ParticipateDoNotInitiate')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        stopPrice = self.safe_number(order, 'stopPx')
+        triggerPrice = self.safe_number(order, 'stopPx')
         remaining = self.safe_string(order, 'leavesQty')
         return self.safe_order({
             'info': order,
@@ -1718,8 +1828,7 @@ class bitmex(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1857,7 +1966,7 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 if triggerPrice is None:
                     # if exchange specific trigger types were provided
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type')
                 request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
             request['ordType'] = orderType
             params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
@@ -2419,7 +2528,7 @@ class bitmex(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'fundingRate'),
-            'fundingTimestamp': self.parse_to_numeric(self.iso8601(fundingDatetime)),
+            'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': self.safe_number(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': None,

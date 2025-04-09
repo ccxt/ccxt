@@ -5,14 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class upbit(ccxt.async_support.upbit):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(upbit, self).describe(), {
             'has': {
                 'ws': True,
@@ -100,11 +100,11 @@ class upbit(ccxt.async_support.upbit):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
         https://global-docs.upbit.com/reference/websocket-ticker
 
- @param symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """

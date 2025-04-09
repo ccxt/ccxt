@@ -100,10 +100,10 @@ public partial class upbit : ccxt.upbit
 
     /**
      * @method
-     * @name upbit#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @name upbit#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://global-docs.upbit.com/reference/websocket-ticker
-     * @param symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */

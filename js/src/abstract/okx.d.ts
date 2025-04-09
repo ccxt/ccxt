@@ -67,6 +67,7 @@ interface Exchange {
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiSolApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceFixedLoanLendingOffers(params?: {}): Promise<implicitReturnType>;
@@ -105,7 +106,9 @@ interface Exchange {
     privateGetTradeEasyConvertCurrencyList(params?: {}): Promise<implicitReturnType>;
     privateGetTradeEasyConvertHistory(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayCurrencyList(params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOneClickRepayCurrencyListV2(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOneClickRepayHistoryV2(params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountRateLimit(params?: {}): Promise<implicitReturnType>;
     privateGetAssetCurrencies(params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances(params?: {}): Promise<implicitReturnType>;
@@ -122,6 +125,7 @@ interface Exchange {
     privateGetAssetConvertCurrencyPair(params?: {}): Promise<implicitReturnType>;
     privateGetAssetConvertHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetMonthlyStatement(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountInstruments(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositionsHistory(params?: {}): Promise<implicitReturnType>;
@@ -189,6 +193,8 @@ interface Exchange {
     privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthProductInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;
@@ -245,6 +251,7 @@ interface Exchange {
     privatePostTradeCancelAdvanceAlgos(params?: {}): Promise<implicitReturnType>;
     privatePostTradeEasyConvert(params?: {}): Promise<implicitReturnType>;
     privatePostTradeOneClickRepay(params?: {}): Promise<implicitReturnType>;
+    privatePostTradeOneClickRepayV2(params?: {}): Promise<implicitReturnType>;
     privatePostTradeMassCancel(params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelAllAfter(params?: {}): Promise<implicitReturnType>;
     privatePostAssetTransfer(params?: {}): Promise<implicitReturnType>;
@@ -309,6 +316,8 @@ interface Exchange {
     privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthRedeem(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolPurchase(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments(params?: {}): Promise<implicitReturnType>;

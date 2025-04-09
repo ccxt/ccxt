@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class bitvavo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
@@ -212,6 +212,75 @@ class bitvavo(Exchange, ImplicitAPI):
                 'apiKey': True,
                 'secret': True,
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '101': ExchangeError,  # Unknown error. Operation may or may not have succeeded.
@@ -313,7 +382,7 @@ class bitvavo(Exchange, ImplicitAPI):
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1103,7 +1172,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1112,7 +1181,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.stopPrice]: Alias for triggerPrice
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
@@ -1416,6 +1485,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1564,7 +1636,6 @@ class bitvavo(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
-        stopPrice = self.safe_number(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1578,8 +1649,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -1610,7 +1680,7 @@ class bitvavo(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
 
         fetch all trades made by the user
         :param str symbol: unified market symbol

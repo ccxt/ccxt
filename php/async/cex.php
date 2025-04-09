@@ -11,18 +11,18 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class cex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
-            'rateLimit' => 1667, // 100 req/min
+            'rateLimit' => 300, // 200 req/min
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -34,6 +34,9 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
@@ -112,6 +115,65 @@ class cex extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false, // todo check
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true, // todo check
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(),
@@ -123,6 +185,7 @@ class cex extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'timeframes' => array(
@@ -265,6 +328,7 @@ class cex extends Exchange {
                 'margin' => null,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'active' => null,
                 'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -403,7 +467,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
@@ -890,7 +954,7 @@ class cex extends Exchange {
             $code = $this->safe_currency_code($key);
             $account = array(
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
-                'free' => $this->safe_string($balance, 'balance'),
+                'total' => $this->safe_string($balance, 'balance'),
             );
             $result[$code] = $account;
         }
@@ -978,7 +1042,7 @@ class cex extends Exchange {
             //            ),
             //            ...
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1061,10 +1125,16 @@ class cex extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            'PENDING_NEW' => 'open',
+            'NEW' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
+            'EXPIRED' => 'expired',
+            'REJECTED' => 'rejected',
+            'PENDING_CANCEL' => 'canceling',
             'CANCELLED' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1115,7 +1185,7 @@ class cex extends Exchange {
             $currencyId = $this->safe_string($order, 'feeCurrency');
             $feeCode = $this->safe_currency_code($currencyId);
             $fee['currency'] = $feeCode;
-            $fee['fee'] = $feeAmount;
+            $fee['cost'] = $feeAmount;
         }
         $timestamp = $this->safe_integer($order, 'serverCreateTimestamp');
         $requestedBase = $this->safe_number($order, 'requestedAmountCcy1');
@@ -1135,7 +1205,7 @@ class cex extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $requestedBase,
             'cost' => $executedQuote,
             'average' => $this->safe_number($order, 'averagePrice'),
@@ -1162,6 +1232,7 @@ class cex extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountId] account-id to use (default is empty string)
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $accountId = null;
@@ -1320,7 +1391,7 @@ class cex extends Exchange {
              * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $currency = null;

@@ -1320,6 +1320,19 @@
         ],
         "setMarginMode": [
             {
+                "description": "set margin mode isolated",
+                "method": "setMarginMode",
+                "url": "https://www.okx.com/api/v5/account/set-leverage",
+                "input": [
+                    "isolated",
+                    "ADA/USDT:USDT",
+                    {
+                        "leverage": 10
+                    }
+                ],
+                "output": "{\"lever\":10,\"mgnMode\":\"isolated\",\"instId\":\"ADA-USDT-SWAP\"}"
+            },
+            {
                 "description": "set margin mode cross",
                 "method": "setMarginMode",
                 "url": "https://www.okx.com/api/v5/account/set-leverage",

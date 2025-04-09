@@ -10,7 +10,7 @@ use ccxt\abstract\gemini as Exchange;
 
 class gemini extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gemini',
             'name' => 'Gemini',
@@ -291,6 +291,72 @@ class gemini extends Exchange {
                         'base' => 'PAXG',
                         'quote' => 'USD',
                     ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo => implement
+                    'fetchOHLCV' => array(
+                        'limit' => null,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -1348,7 +1414,6 @@ class gemini extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'average' => $average,
             'cost' => null,
@@ -1485,13 +1550,13 @@ class gemini extends Exchange {
         );
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
-        $rawStopPrice = $this->safe_string_2($params, 'stop_price', 'stopPrice');
-        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'type' ));
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
+        $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
         if ($type === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
         }
-        if ($rawStopPrice !== null) {
-            $request['stop_price'] = $this->price_to_precision($symbol, $rawStopPrice);
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['type'] = 'exchange stop limit';
         } else {
             // No $options can be applied to stop-limit orders at this time.
@@ -1897,7 +1962,7 @@ class gemini extends Exchange {
         return null;
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit $address
          *
@@ -1919,6 +1984,7 @@ class gemini extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }

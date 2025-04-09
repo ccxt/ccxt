@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class xt(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(xt, self).describe(), {
             'id': 'xt',
             'name': 'XT',
@@ -128,7 +128,7 @@ class xt(Exchange, ImplicitAPI):
                 'repayMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'signIn': False,
                 'transfer': True,
@@ -156,16 +156,16 @@ class xt(Exchange, ImplicitAPI):
                     'spot': {
                         'get': {
                             'currencies': 1,
-                            'depth': 0.05,
-                            'kline': 0.1,
-                            'symbol': 1,  # 0.1 for a single symbol
-                            'ticker': 1,  # 0.1 for a single symbol
-                            'ticker/book': 1,  # 0.1 for a single symbol
-                            'ticker/price': 1,  # 0.1 for a single symbol
-                            'ticker/24h': 1,  # 0.1 for a single symbol
+                            'depth': 10,
+                            'kline': 1,
+                            'symbol': 1,  # 1 for a single symbol
+                            'ticker': 1,  # 1 for a single symbol
+                            'ticker/book': 1,  # 1 for a single symbol
+                            'ticker/price': 1,  # 1 for a single symbol
+                            'ticker/24h': 1,  # 1 for a single symbol
                             'time': 1,
-                            'trade/history': 0.1,
-                            'trade/recent': 0.1,
+                            'trade/history': 1,
+                            'trade/recent': 1,
                             'wallet/support/currency': 1,
                         },
                     },
@@ -235,7 +235,7 @@ class xt(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'order': 0.2,
-                            'withdraw': 1,
+                            'withdraw': 10,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
                             'ws-token': 1,
@@ -286,6 +286,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -531,10 +532,12 @@ class xt(Exchange, ImplicitAPI):
                     'TRANSFER_012': PermissionDenied,  # Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'Exceeds the minimum notional value of a single order': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -687,12 +690,129 @@ class xt(Exchange, ImplicitAPI):
                 'createMarketBuyOrderRequiresPrice': True,
                 'recvWindow': '5000',  # in milliseconds, spot only
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'marketType': True,
+                        'subType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,  # todo TPSL kind
+                        'trailing': False,
+                        'marketType': True,
+                        'subType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': True,  # todo TPSL
+                        'trailing': False,
+                        'marketType': True,
+                        'subType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': True,  # todo TPSL
+                        'trailing': False,
+                        'marketType': True,
+                        'subType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': True,  # todo TPSL
+                        'trailing': False,
+                        'marketType': True,
+                        'subType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo for derivatives
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        # todo
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                    },
+                    'fetchMyTrades': {
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
         })
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the xt server
 
@@ -1273,9 +1393,15 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the xt api endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1285,6 +1411,12 @@ class xt(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        else:
+            request['limit'] = 1000
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if until is not None:
+            request['endTime'] = until
         response = None
         if market['linear']:
             response = self.publicLinearGetFutureMarketV1PublicQKline(self.extend(request, params))
@@ -2231,7 +2363,8 @@ class xt(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'GTX'
         :param str [params.entrustType]: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
         :param str [params.triggerPriceType]: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-        :param float [params.stopPrice]: price to trigger a stop order
+        :param float [params.triggerPrice]: price to trigger a stop order
+        :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.stopLoss]: price to set a stop-loss on an open position
         :param float [params.takeProfit]: price to set a take-profit on an open position
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -2376,7 +2509,7 @@ class xt(Exchange, ImplicitAPI):
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2390,15 +2523,15 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
+        if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
         else:
             request['orderId'] = id
-        if stop:
+        if trigger:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
@@ -2548,7 +2681,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -2566,9 +2699,9 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
-        stop = self.safe_value(params, 'stop')
-        if stop:
-            params = self.omit(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
             else:
@@ -2709,31 +2842,31 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if status == 'open':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
             elif subType is not None:
                 request['state'] = 'NEW'
         elif status == 'closed':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'TRIGGERED'
             else:
                 request['state'] = 'FILLED'
         elif status == 'canceled':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'USER_REVOCATION'
             else:
                 request['state'] = 'CANCELED'
         else:
             request['state'] = status
-        if stop or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
+        if trigger or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['size'] = limit
-        if stop:
+        if trigger:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
@@ -2959,7 +3092,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2978,7 +3111,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2997,7 +3130,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3015,7 +3148,7 @@ class xt(Exchange, ImplicitAPI):
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3029,16 +3162,16 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelOrder', market, params)
         subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
+        if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
         else:
             request['orderId'] = id
-        if stop:
-            params = self.omit(params, 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
             else:
@@ -3091,7 +3224,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3106,10 +3239,10 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
-            params = self.omit(params, 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
             else:
@@ -3333,7 +3466,7 @@ class xt(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower_2(order, 'side', 'orderSide'),
             'price': self.safe_number(order, 'price'),
-            'stopPrice': self.safe_number(order, 'stopPrice'),
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'stopLoss': self.safe_number(order, 'triggerStopPrice'),
             'takeProfit': self.safe_number(order, 'triggerProfitPrice'),
             'amount': amount,
@@ -4174,6 +4307,8 @@ class xt(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
         interval = self.safe_string(contract, 'collectionInternal')
+        if interval is not None:
+            interval = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -4192,7 +4327,7 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': interval + 'h',
+            'interval': interval,
         }
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4496,6 +4631,53 @@ class xt(Exchange, ImplicitAPI):
             'status': None,
         }
 
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://doc.xt.com/#futures_userchangePositionType
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str [symbol]: required
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: *required* "long" or "short"
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if market['spot']:
+            raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
+        marginMode = marginMode.lower()
+        if marginMode != 'isolated' and marginMode != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        if marginMode == 'cross':
+            marginMode = 'CROSSED'
+        else:
+            marginMode = 'ISOLATED'
+        posSide = self.safe_string_upper(params, 'positionSide')
+        if posSide is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"')
+        request: dict = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        }
+        response = self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
+        #
+        # {
+        #     "error": {
+        #       "code": "",
+        #       "msg": ""
+        #     },
+        #     "msgInfo": "",
+        #     "result": {},
+        #     "returnCode": 0
+        # }
+        #
+        return response  # unify return type
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         # spot: error
@@ -4545,6 +4727,9 @@ class xt(Exchange, ImplicitAPI):
         #         "ma": [],
         #         "result": {}
         #     }
+        #
+        # {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        #
         #
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
         if status is not None and status != 'SUCCESS':

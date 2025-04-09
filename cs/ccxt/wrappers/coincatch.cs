@@ -922,8 +922,7 @@ public partial class coincatch
     /// create a list of trade orders (all orders should be of the same symbol)
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders"/>  <br/>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order"/>  <br/>
+    /// See <see href="https://coincatch.github.io/github.io/en/spot/#batch-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1932,7 +1931,7 @@ public partial class coincatch
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

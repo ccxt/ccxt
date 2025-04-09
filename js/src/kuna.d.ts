@@ -15,7 +15,7 @@ export default class kuna extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name kuna#fetchCurrencies
@@ -131,7 +131,7 @@ export default class kuna extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
-     * @name kuna#cancelOrder
+     * @name kuna#cancelOrders
      * @description cancels an open order
      * @param {string} ids order ids
      * @param {string} symbol not used by kuna cancelOrder

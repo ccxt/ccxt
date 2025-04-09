@@ -4,7 +4,7 @@ var tradeogre$1 = require('./abstract/tradeogre.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class tradeogre
@@ -68,7 +68,7 @@ class tradeogre extends tradeogre$1 {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -86,7 +86,7 @@ class tradeogre extends tradeogre$1 {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -128,11 +128,12 @@ class tradeogre extends tradeogre$1 {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -142,6 +143,7 @@ class tradeogre extends tradeogre$1 {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -155,7 +157,68 @@ class tradeogre extends tradeogre$1 {
                     'Order not found': errors.BadRequest,
                 },
             },
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+            },
             'options': {},
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined, // todo
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     /**
@@ -277,18 +340,75 @@ class tradeogre extends tradeogre$1 {
         //
         return this.parseTicker(response, market);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {};
+        const response = await this.publicGetMarkets(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "AAVE-USDT": {
+        //                 "initialprice": "177.20325711",
+        //                 "price": "177.20325711",
+        //                 "high": "177.20325711",
+        //                 "low": "177.20325711",
+        //                 "volume": "0.00000000",
+        //                 "bid": "160.72768581",
+        //                 "ask": "348.99999999",
+        //                 "basename": "Aave"
+        //             }
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketIdArray = Object.keys(entry);
+            const marketId = this.safeString(marketIdArray, 0);
+            const market = this.safeMarket(marketId);
+            const data = entry[marketId];
+            const ticker = this.parseTicker(data, market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
     parseTicker(ticker, market = undefined) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     {
+        //         "initialprice": "177.20325711",
+        //         "price": "177.20325711",
+        //         "high": "177.20325711",
+        //         "low": "177.20325711",
+        //         "volume": "0.00000000",
+        //         "bid": "160.72768581",
+        //         "ask": "348.99999999",
+        //         "basename": "Aave"
+        //     },
+        //     ...
         //
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
@@ -301,17 +421,80 @@ class tradeogre extends tradeogre$1 {
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
-            'close': undefined,
+            'open': this.safeString(ticker, 'initialprice'),
+            'close': this.safeString(ticker, 'price'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString(ticker, 'volume'),
             'info': ticker,
         }, market);
+    }
+    /**
+     * @method
+     * @name tradeogre#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
+        };
+        let response = undefined;
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['timestamp'] = this.parseToInt(until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetChartIntervalMarket(this.extend(request, params));
+        }
+        //
+        //     [
+        //         [
+        //             1729130040,
+        //             67581.47235999,
+        //             67581.47235999,
+        //             67338.01,
+        //             67338.01,
+        //             6.72168016
+        //         ],
+        //     ]
+        //
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //     [
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     ]
+        //
+        return [
+            this.safeTimestamp(ohlcv, 0),
+            this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
+            this.safeNumber(ohlcv, 3),
+            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 5),
+        ];
     }
     /**
      * @method
@@ -413,11 +596,29 @@ class tradeogre extends tradeogre$1 {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetAccountBalances(params);
+        let response = undefined;
+        const currency = this.safeString(params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance(params);
+            const singleCurrencyresult = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode(currency);
+            const account = {
+                'total': this.safeNumber(response, 'balance'),
+                'free': this.safeNumber(response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance(singleCurrencyresult);
+        }
+        else {
+            response = await this.privateGetAccountBalances(params);
+        }
         const result = this.safeDict(response, 'balances', {});
         return this.parseBalance(result);
     }
@@ -446,6 +647,7 @@ class tradeogre extends tradeogre$1 {
      * @method
      * @name tradeogre#createOrder
      * @description create a trade order
+     * @see https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -461,12 +663,12 @@ class tradeogre extends tradeogre$1 {
             throw new errors.BadRequest(this.id + ' createOrder does not support market orders');
         }
         if (price === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder requires a limit parameter');
+            throw new errors.ArgumentsRequired(this.id + ' createOrder requires a price parameter');
         }
         const request = {
             'market': market['id'],
-            'quantity': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
-            'price': this.parseToNumeric(this.priceToPrecision(symbol, price)),
+            'quantity': this.amountToPrecision(symbol, amount),
+            'price': this.priceToPrecision(symbol, price),
         };
         let response = undefined;
         if (side === 'buy') {
@@ -513,6 +715,7 @@ class tradeogre extends tradeogre$1 {
      * @method
      * @name tradeogre#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @see https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -534,9 +737,9 @@ class tradeogre extends tradeogre$1 {
     }
     /**
      * @method
-     * @name ace#fetchOrder
+     * @name tradeogre#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+     * @see https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -578,12 +781,12 @@ class tradeogre extends tradeogre$1 {
             'postOnly': undefined,
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
-            'amount': this.safeString(order, 'quantity'),
+            'triggerPrice': undefined,
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString(order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,
