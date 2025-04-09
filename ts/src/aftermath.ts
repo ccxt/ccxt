@@ -1,6 +1,6 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 export default class aftermath extends Exchange {
@@ -792,6 +792,37 @@ export default class aftermath extends Exchange {
         //
         //
         return response as MarginModification;
+    }
+
+    /**
+     * @method
+     * @name aftermath#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const txRequest = {
+            'metadata': {
+                'sender': fromAccount,
+            },
+            'accountId': toAccount,
+            'amount': amount,
+        };
+        const tx = await this.privatePostBuildDeposit (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitDeposit (request);
+        //
+        // }
+        //
+        return response;
     }
 
     /**
