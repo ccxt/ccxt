@@ -284,6 +284,9 @@
             },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
             }
         }
     },
