@@ -841,7 +841,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = this.proxyUrlEncoderCallback (proxyUrl, url); 
+            url = proxyUrl + this.urlEncoderForProxyUrl (url); 
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -2111,8 +2111,9 @@ export default class Exchange {
         return proxyUrl;
     }
 
-    proxyUrlEncoderCallback (proxyUrl: string, targetUrl: string) {
-        return proxyUrl + this.encodeURIComponent (targetUrl);
+    urlEncoderForProxyUrl (targetUrl: string) {
+        // to be overriden
+        return this.encodeURIComponent (targetUrl);
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
