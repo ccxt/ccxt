@@ -157,17 +157,18 @@
             "orderBook": {
                 "compareToNextItem": "multiple bids might have same value"
             },
-            "watchOrderBook": "complete skip because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
+            "watchOrderBook": "complete skip (todo fix) because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
         }
     },
     "bitflyer": {
         "skipMethods": {
-            "loadMarkets": "contract is true, but contractSize is undefined",
-            "trade": {
-                "side": "side key has an null value, but is expected to have a value"
+            "loadMarkets": {
+                "contractSize": "not defined when contract",
+                "settle": "set hardcoded, not settleid provided",
+                "currencyIdAndCode": "messed"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4205"
+                "timestamp": "not provided from endoint"
             }
         }
     },
