@@ -85,6 +85,9 @@ class bingx extends \ccxt\async\bingx {
                     'depth' => 100, // 5, 10, 20, 50, 100
                     'interval' => 500, // 100, 200, 500, 1000
                 ),
+                'watchTrades' => array(
+                    'ignoreDuplicates' => true,
+                ),
             ),
             'streaming' => array(
                 'keepAlive' => 1800000, // 30 minutes
@@ -516,7 +519,13 @@ class bingx extends \ccxt\async\bingx {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+                $filtered = $this->remove_repeated_trades_from_array($result);
+                $filtered = $this->sort_by($filtered, 'timestamp');
+                return $filtered;
+            }
+            return $result;
         }) ();
     }
 
