@@ -841,8 +841,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            const encodedUrl = proxyUrl.includes ('?') ? this.encodeURIComponent (url) : url;
-            url = proxyUrl + encodedUrl; 
+            url = this.proxyUrlEncoderCallback (proxyUrl, url); 
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -2110,6 +2109,10 @@ export default class Exchange {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+
+    proxyUrlEncoderCallback (proxyUrl: string, targetUrl: string) {
+        return proxyUrl + this.encodeURIComponent (targetUrl);
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
