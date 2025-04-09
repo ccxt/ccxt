@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bybit extends bybitRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -25,6 +25,7 @@ export default class bybit extends bybitRest {
                 'fetchTradesWs': false,
                 'fetchBalanceWs': false,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
@@ -80,6 +81,25 @@ export default class bybit extends bybitRest {
                         },
                     },
                 },
+                'demotrading': {
+                    'ws': {
+                        'public': {
+                            'spot': 'wss://stream.{hostname}/v5/public/spot',
+                            'inverse': 'wss://stream.{hostname}/v5/public/inverse',
+                            'option': 'wss://stream.{hostname}/v5/public/option',
+                            'linear': 'wss://stream.{hostname}/v5/public/linear',
+                        },
+                        'private': {
+                            'spot': {
+                                'unified': 'wss://stream-demo.{hostname}/v5/private',
+                                'nonUnified': 'wss://stream-demo.{hostname}/spot/private/v3',
+                            },
+                            'contract': 'wss://stream-demo.{hostname}/v5/private',
+                            'usdc': 'wss://stream-demo.{hostname}/trade/option/usdc/private/v1',
+                            'trade': 'wss://stream-demo.bybit.com/v5/trade',
+                        },
+                    },
+                },
             },
             'options': {
                 'watchTicker': {
@@ -88,6 +108,12 @@ export default class bybit extends bybitRest {
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+                'watchMyTrades': {
+                    // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
                 },
                 'spot': {
                     'timeframes': {
@@ -167,7 +193,7 @@ export default class bybit extends bybitRest {
         } else {
             if (isSpot) {
                 url = url[accessibility]['spot'];
-            } else if (type === 'swap') {
+            } else if ((type === 'swap') || (type === 'future')) {
                 let subType = undefined;
                 [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
                 url = url[accessibility][subType];
@@ -185,38 +211,38 @@ export default class bybit extends bybitRest {
         return params;
     }
 
+    /**
+     * @method
+     * @name bybit#createOrderWs
+     * @description create a trade order
+     * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+     * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.mmp] *option only* market maker protection
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#createOrderWs
-         * @description create a trade order
-         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-         * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
-         * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-         * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
-         * @param {string} [params.mmp] *option only* market maker protection
-         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
-         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
-         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, true);
         const url = this.urls['api']['ws']['private']['trade'];
@@ -236,32 +262,32 @@ export default class bybit extends bybitRest {
         return await this.watch (url, requestId, request, requestId, true) as Order;
     }
 
+    /**
+     * @method
+     * @name bybit#editOrderWs
+     * @description edit a trade order
+     * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+     * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+     * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#editOrderWs
-         * @description edit a trade order
-         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
-         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
-         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
-         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
-         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const orderRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const url = this.urls['api']['ws']['private']['trade'];
@@ -281,20 +307,20 @@ export default class bybit extends bybitRest {
         return await this.watch (url, requestId, request, requestId, true) as Order;
     }
 
+    /**
+     * @method
+     * @name bybit#cancelOrderWs
+     * @description cancels an open order
+     * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
+     * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#cancelOrderWs
-         * @description cancels an open order
-         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] *spot only* whether the order is a stop order
-         * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const orderRequest = this.cancelOrderRequest (id, symbol, params);
         const url = this.urls['api']['ws']['private']['trade'];
@@ -317,17 +343,17 @@ export default class bybit extends bybitRest {
         return await this.watch (url, requestId, request, requestId, true) as Order;
     }
 
+    /**
+     * @method
+     * @name bybit#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name bybit#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -344,17 +370,17 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
+    /**
+     * @method
+     * @name bybit#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name bybit#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes = [];
@@ -376,6 +402,51 @@ export default class bybit extends bybitRest {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchTickers
+     * @description unWatches a price ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = symbols[i];
+            topics.push (topic + '.' + marketId);
+            subMessageHashes.push ('ticker:' + symbol);
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
+        }
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
+        return await this.unWatchTopics (url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchTicker
+     * @description unWatches a price ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbols: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchTickers ([ symbols ], params);
     }
 
     handleTicker (client: Client, message) {
@@ -523,38 +594,86 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    /**
+     * @method
+     * @name bybit#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchBidsAsks', params);
+        params = this.cleanParams (params);
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const topic = 'orderbook.1.' + marketId;
+            topics.push (topic);
+            messageHashes.push ('bidask:' + symbols[i]);
+        }
+        const ticker = await this.watchTopics (url, messageHashes, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    parseWsBidAsk (orderbook, market = undefined) {
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
+        const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
+        const bestBid = this.safeList (bids, 0, []);
+        const bestAsk = this.safeList (asks, 0, []);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (bestAsk, 0),
+            'askVolume': this.safeNumber (bestAsk, 1),
+            'bid': this.safeNumber (bestBid, 0),
+            'bidVolume': this.safeNumber (bestBid, 1),
+            'info': orderbook,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name bybit#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name bybit#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
     }
 
+    /**
+     * @method
+     * @name bybit#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
@@ -578,6 +697,58 @@ export default class bybit extends bybitRest {
         }
         const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstSymbol = marketSymbols[0];
+        const url = await this.getUrlByMarketType (firstSymbol, false, 'watchOHLCVForSymbols', params);
+        const rawHashes = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            symbolString = market['symbol'];
+            const unfiedTimeframe = this.safeString (data, 1);
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            rawHashes.push ('kline.' + timeframeId + '.' + market['id']);
+            subMessageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
+            messageHashes.push ('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
+        }
+        const subExtension = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        };
+        return await this.unWatchTopics (url, 'ohlcv', symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        params['callerMethodName'] = 'watchOHLCV';
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -624,7 +795,7 @@ export default class bybit extends bybitRest {
         }
         const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseWsOHLCV (data[i]);
+            const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -648,41 +819,42 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
+        const volumeIndex = (market['inverse']) ? 'turnover' : 'volume';
         return [
             this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
+            this.safeNumber (ohlcv, volumeIndex),
         ];
     }
 
+    /**
+     * @method
+     * @name bybit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bybit#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return.
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    /**
+     * @method
+     * @name bybit#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bybit#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return.
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -694,11 +866,22 @@ export default class bybit extends bybitRest {
         const market = this.market (symbols[0]);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 500;
+            if (market['option']) {
+                limit = 100;
+            }
         } else {
             if (!market['spot']) {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.');
+                if (market['option']) {
+                    if ((limit !== 25) && (limit !== 100)) {
+                        throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
+                    }
+                } else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    // bybit only support limit 1, 50, 200, 500 for contract
+                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
+                }
+            } else {
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
+                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
                 }
             }
         }
@@ -714,6 +897,59 @@ export default class bybit extends bybitRest {
         }
         const orderbook = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchOrderBookForSymbols
+     * @description unsubscribe from the orderbook channel
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: Strings, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let channel = 'orderbook.';
+        let limit = this.safeInteger (params, 'limit');
+        if (limit !== undefined) {
+            params = this.omit (params, 'limit');
+        } else {
+            const firstMarket = this.market (symbols[0]);
+            limit = firstMarket['spot'] ? 50 : 500;
+        }
+        channel += limit.toString ();
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const topic = channel + '.' + marketId;
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+            subMessageHashes.push ('orderbook:' + symbol);
+            topics.push (topic);
+        }
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchOrderBook', params);
+        return await this.unWatchTopics (url, 'orderbook', symbols, messageHashes, subMessageHashes, topics, params);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string} symbol symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
     handleOrderBook (client: Client, message) {
@@ -750,6 +986,8 @@ export default class bybit extends bybitRest {
         //         }
         //     }
         //
+        const topic = this.safeString (message, 'topic');
+        const limit = topic.split ('.')[1];
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
@@ -777,6 +1015,13 @@ export default class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+        if (limit === '1') {
+            const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
+            const newBidsAsks: Dict = {};
+            newBidsAsks[symbol] = bidask;
+            this.bidsasks[symbol] = bidask;
+            client.resolve (newBidsAsks, 'bidask:' + symbol);
+        }
     }
 
     handleDelta (bookside, delta) {
@@ -790,33 +1035,33 @@ export default class bybit extends bybitRest {
         }
     }
 
+    /**
+     * @method
+     * @name bybit#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bybit#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    /**
+     * @method
+     * @name bybit#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bybit#watchTradesForSymbols
-         * @description get the list of most recent trades for a list of symbols
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
@@ -842,6 +1087,48 @@ export default class bybit extends bybitRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchTradesForSymbols
+     * @description unsubscribe from the trades channel
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+     * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols (symbols: Strings, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const url = await this.getUrlByMarketType (symbols[0], false, 'unWatchTradesForSymbols', params);
+        const messageHashes = [];
+        const topics = [];
+        const subMessageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const topic = 'publicTrade.' + market['id'];
+            topics.push (topic);
+            const messageHash = 'unsubscribe:trade:' + symbol;
+            messageHashes.push (messageHash);
+            subMessageHashes.push ('trade:' + symbol);
+        }
+        return await this.unWatchTopics (url, 'trades', symbols, messageHashes, subMessageHashes, topics, params);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     handleTrades (client: Client, message) {
@@ -968,19 +1255,19 @@ export default class bybit extends bybitRest {
         }
     }
 
+    /**
+     * @method
+     * @name bybit#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bybit#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.unifiedMargin] use unified margin account
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
         await this.loadMarkets ();
@@ -1001,6 +1288,36 @@ export default class bybit extends bybitRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        const method = 'watchMyTrades';
+        const messageHash = 'unsubscribe:myTrades';
+        let subHash = 'myTrades';
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            subHash += ':' + symbol;
+        }
+        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        await this.authenticate (url);
+        const topicByMarket: Dict = {
+            'spot': 'ticketInfo',
+            'unified': 'execution',
+            'usdc': 'user.openapi.perp.trade',
+        };
+        const topic = this.safeValue (topicByMarket, this.getPrivateType (url));
+        return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
     }
 
     handleMyTrades (client: Client, message) {
@@ -1078,12 +1395,18 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
+        const filterExecTypes = this.handleOption ('watchMyTrades', 'filterExecTypes', []);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
             if (spot) {
                 parsed = this.parseWsTrade (rawTrade);
             } else {
+                // filter unified trades
+                const execType = this.safeString (rawTrade, 'execType', '');
+                if (!this.inArray (execType, filterExecTypes)) {
+                    continue;
+                }
                 parsed = this.parseTrade (rawTrade);
             }
             const symbol = parsed['symbol'];
@@ -1100,16 +1423,18 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
+    /**
+     * @method
+     * @name bybit#watchPositions
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name bybit#watchPositions
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
-         * @description watch all open positions
-         * @param {string[]} [symbols] list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets ();
         const method = 'watchPositions';
         let messageHash = '';
@@ -1125,7 +1450,7 @@ export default class bybit extends bybitRest {
         this.setPositionsCache (client, symbols);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -1256,82 +1581,128 @@ export default class bybit extends bybitRest {
         client.resolve (newPositions, 'positions');
     }
 
+    /**
+     * @method
+     * @name bybit#watchLiquidations
+     * @description watch the public liquidations of a trading pair
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
+     * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+     */
     async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        /**
-         * @method
-         * @name bybit#watchLiquidations
-         * @description watch the public liquidations of a trading pair
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
-         * @param {string} symbol unified CCXT market symbol
-         * @param {int} [since] the earliest time in ms to fetch liquidations for
-         * @param {int} [limit] the maximum number of liquidation structures to retrieve
-         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
-         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = await this.getUrlByMarketType (symbol, false, 'watchLiquidations', params);
         params = this.cleanParams (params);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchLiquidations', 'method', 'liquidation');
         const messageHash = 'liquidations::' + symbol;
-        const topic = 'liquidation.' + market['id'];
+        const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], params);
         if (this.newUpdates) {
-            return [ newLiquidation ];
+            return newLiquidation;
         }
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
     handleLiquidation (client: Client, message) {
         //
-        //   {
-        //       "data": {
-        //           "price": "0.03803",
-        //           "side": "Buy",
-        //           "size": "1637",
-        //           "symbol": "GALAUSDT",
-        //           "updatedTime": 1673251091822
-        //       },
-        //       "topic": "liquidation.GALAUSDT",
-        //       "ts": 1673251091822,
-        //       "type": "snapshot"
-        //   }
+        //     {
+        //         "data": {
+        //             "price": "0.03803",
+        //             "side": "Buy",
+        //             "size": "1637",
+        //             "symbol": "GALAUSDT",
+        //             "updatedTime": 1673251091822
+        //         },
+        //         "topic": "liquidation.GALAUSDT",
+        //         "ts": 1673251091822,
+        //         "type": "snapshot"
+        //     }
         //
-        const rawLiquidation = this.safeDict (message, 'data', {});
-        const marketId = this.safeString (rawLiquidation, 'symbol');
-        const market = this.safeMarket (marketId, undefined, '', 'contract');
-        const symbol = market['symbol'];
-        const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-        let liquidations = this.safeValue (this.liquidations, symbol);
-        if (liquidations === undefined) {
-            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache (limit);
+        //     {
+        //         "topic": "allLiquidation.ROSEUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1739502303204,
+        //         "data": [
+        //             {
+        //                 "T": 1739502302929,
+        //                 "s": "ROSEUSDT",
+        //                 "S": "Sell",
+        //                 "v": "20000",
+        //                 "p": "0.04499"
+        //             }
+        //         ]
+        //     }
+        //
+        if (Array.isArray (message['data'])) {
+            const rawLiquidations = this.safeList (message, 'data', []);
+            for (let i = 0; i < rawLiquidations.length; i++) {
+                const rawLiquidation = rawLiquidations[i];
+                const marketId = this.safeString (rawLiquidation, 's');
+                const market = this.safeMarket (marketId, undefined, '', 'contract');
+                const symbol = market['symbol'];
+                const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+                let liquidations = this.safeValue (this.liquidations, symbol);
+                if (liquidations === undefined) {
+                    const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+                    liquidations = new ArrayCache (limit);
+                }
+                liquidations.append (liquidation);
+                this.liquidations[symbol] = liquidations;
+                client.resolve ([ liquidation ], 'liquidations');
+                client.resolve ([ liquidation ], 'liquidations::' + symbol);
+            }
+        } else {
+            const rawLiquidation = this.safeDict (message, 'data', {});
+            const marketId = this.safeString (rawLiquidation, 'symbol');
+            const market = this.safeMarket (marketId, undefined, '', 'contract');
+            const symbol = market['symbol'];
+            const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+            let liquidations = this.safeValue (this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache (limit);
+            }
+            liquidations.append (liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve ([ liquidation ], 'liquidations');
+            client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }
-        liquidations.append (liquidation);
-        this.liquidations[symbol] = liquidations;
-        client.resolve ([ liquidation ], 'liquidations');
-        client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
         //
-        //    {
-        //        "price": "0.03803",
-        //        "side": "Buy",
-        //        "size": "1637",
-        //        "symbol": "GALAUSDT",
-        //        "updatedTime": 1673251091822
-        //    }
+        //     {
+        //         "price": "0.03803",
+        //         "side": "Buy",
+        //         "size": "1637",
+        //         "symbol": "GALAUSDT",
+        //         "updatedTime": 1673251091822
+        //     }
         //
-        const marketId = this.safeString (liquidation, 'symbol');
+        //     {
+        //         "T": 1739502302929,
+        //         "s": "ROSEUSDT",
+        //         "S": "Sell",
+        //         "v": "20000",
+        //         "p": "0.04499"
+        //     }
+        //
+        const marketId = this.safeString2 (liquidation, 'symbol', 's');
         market = this.safeMarket (marketId, market, '', 'contract');
-        const timestamp = this.safeInteger (liquidation, 'updatedTime');
+        const timestamp = this.safeInteger2 (liquidation, 'updatedTime', 'T');
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': this.safeNumber (liquidation, 'size'),
+            'contracts': this.safeNumber2 (liquidation, 'size', 'v'),
             'contractSize': this.safeNumber (market, 'contractSize'),
-            'price': this.safeNumber (liquidation, 'price'),
+            'price': this.safeNumber2 (liquidation, 'price', 'p'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -1339,18 +1710,18 @@ export default class bybit extends bybitRest {
         });
     }
 
+    /**
+     * @method
+     * @name bybit#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bybit#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const method = 'watchOrders';
         let messageHash = 'orders';
@@ -1371,6 +1742,36 @@ export default class bybit extends bybitRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const method = 'watchOrders';
+        const messageHash = 'unsubscribe:orders';
+        let subHash = 'orders';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            subHash += ':' + symbol;
+        }
+        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        await this.authenticate (url);
+        const topicsByMarket: Dict = {
+            'spot': [ 'order', 'stopOrder' ],
+            'unified': [ 'order' ],
+            'usdc': [ 'user.openapi.perp.order' ],
+        };
+        const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
+        return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
     handleOrderWs (client: Client, message) {
@@ -1653,15 +2054,15 @@ export default class bybit extends bybitRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bybit#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name bybit#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const method = 'watchBalance';
         let messageHash = 'balances';
@@ -1953,7 +2354,25 @@ export default class bybit extends bybitRest {
             'args': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, topics);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    async unWatchTopics (url: string, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics, params = {}, subExtension = {}) {
+        const reqId = this.requestId ();
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'req_id': reqId,
+            'args': topics,
+        };
+        const subscription = {
+            'id': reqId,
+            'topic': topic,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtension));
     }
 
     async authenticate (url, params = {}) {
@@ -2082,7 +2501,7 @@ export default class bybit extends bybitRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const topic = this.safeString2 (message, 'topic', 'op');
+        const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
@@ -2099,11 +2518,13 @@ export default class bybit extends bybitRest {
             'user.openapi.perp.trade': this.handleMyTrades,
             'position': this.handlePositions,
             'liquidation': this.handleLiquidation,
+            'allLiquidation': this.handleLiquidation,
             'pong': this.handlePong,
             'order.create': this.handleOrderWs,
             'order.amend': this.handleOrderWs,
             'order.cancel': this.handleOrderWs,
             'auth': this.handleAuthenticate,
+            'unsubscribe': this.handleUnSubscribe,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -2195,6 +2616,46 @@ export default class bybit extends bybitRest {
         //        "msg": "Success"
         //    }
         //
+        return message;
+    }
+
+    handleUnSubscribe (client: Client, message) {
+        //
+        // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
+        //
+        // client.subscription will be something like:
+        // {
+        //     "publicTrade.LTCUSDT":true,
+        //     "publicTrade.ADAUSDT":true,
+        //     "unsubscribe:trade:LTC/USDT:USDT": {
+        //        "id":4,
+        //         "subHash": "trade:LTC/USDT"
+        //     },
+        // }
+        const reqId = this.safeString (message, 'req_id');
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith ('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString (subscription, 'id');
+                if (reqId !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    this.cleanUnsubscription (client, subHash, unsubHash);
+                }
+                this.cleanCache (subscription);
+            }
+        }
         return message;
     }
 }

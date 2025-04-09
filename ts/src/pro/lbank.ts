@@ -8,7 +8,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class lbank extends lbankRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -20,6 +20,7 @@ export default class lbank extends lbankRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -60,19 +61,19 @@ export default class lbank extends lbankRest {
         return newValue;
     }
 
+    /**
+     * @method
+     * @name lbank#fetchOHLCVWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name lbank#fetchOHLCVWs
-         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -97,19 +98,19 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name lbank#watchOHLCV
-         * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
@@ -236,16 +237,16 @@ export default class lbank extends lbankRest {
         }
     }
 
+    /**
+     * @method
+     * @name lbank#fetchTickerWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name lbank#fetchTickerWs
-         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -260,16 +261,16 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchTicker
+     * @see https://www.lbank.com/en-US/docs/index.html#market
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name lbank#watchTicker
-         * @see https://www.lbank.com/en-US/docs/index.html#market
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -366,18 +367,18 @@ export default class lbank extends lbankRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name lbank#fetchTradesWs
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name lbank#fetchTradesWs
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -396,18 +397,18 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name lbank#watchTrades
-         * @see https://www.lbank.com/en-US/docs/index.html#trade-record
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -440,7 +441,7 @@ export default class lbank extends lbankRest {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -481,7 +482,7 @@ export default class lbank extends lbankRest {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -490,8 +491,15 @@ export default class lbank extends lbankRest {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }
-        let side = this.safeString2 (trade, 'direction', 3);
-        side = side.replace ('_market', '');
+        const rawSide = this.safeString2 (trade, 'direction', 3);
+        const parts = rawSide.split ('_');
+        const firstPart = this.safeString (parts, 0);
+        const secondPart = this.safeString (parts, 1);
+        let side = firstPart;
+        // reverse if it was 'maker'
+        if (secondPart !== undefined && secondPart === 'maker') {
+            side = (side === 'buy') ? 'sell' : 'buy';
+        }
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -509,18 +517,18 @@ export default class lbank extends lbankRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name lbank#watchOrders
+     * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
+     * @description get the list of trades associated with the user
+     * @param {string} [symbol] unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name lbank#watchOrders
-         * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
-         * @description get the list of trades associated with the user
-         * @param {string} [symbol] unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const key = await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -676,17 +684,17 @@ export default class lbank extends lbankRest {
         return this.safeString (statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name lbank#fetchOrderBookWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name lbank#watchOrderBook
-         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -705,18 +713,17 @@ export default class lbank extends lbankRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name lbank#watchOrderBook
+     * @see https://www.lbank.com/en-US/docs/index.html#market-depth
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name lbank#watchOrderBook
-         * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-         * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
@@ -830,10 +837,14 @@ export default class lbank extends lbankRest {
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         const pingId = this.safeString (message, 'ping');
-        await client.send ({
-            'action': 'pong',
-            'pong': pingId,
-        });
+        try {
+            await client.send ({
+                'action': 'pong',
+                'pong': pingId,
+            });
+        } catch (e) {
+            this.onError (client, e);
+        }
     }
 
     handleMessage (client, message) {

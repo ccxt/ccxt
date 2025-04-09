@@ -248,19 +248,15 @@
                         "price": 68.01,
                         "amount": 0.0485,
                         "cost": 3.298485,
-                        "fee": null,
+                        "fee": 
+                        {
+                            "cost": 0.000097,
+                            "currency": "LTC"
+                        },
                         "fees": [
                             {
-                                "cost": "0.000097",
+                                "cost": 0.000097,
                                 "currency": "LTC"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GT"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GatePoint"
                             }
                         ]
                     },
@@ -294,19 +290,14 @@
                         "price": 68.02,
                         "amount": 0.025,
                         "cost": 1.7005,
-                        "fee": null,
+                        "fee": {
+                            "cost": 0.000050,
+                            "currency": "LTC"
+                        },
                         "fees": [
                             {
-                                "cost": "0.000050",
+                                "cost": 0.000050,
                                 "currency": "LTC"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GT"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GatePoint"
                             }
                         ]
                     }
@@ -363,15 +354,14 @@
                         "price": 68.42,
                         "amount": 1,
                         "cost": 6.842,
-                        "fee": null,
+                        "fee" : {
+                            "cost": 0.003421,
+                            "currency": "USDT"
+                        },
                         "fees": [
                             {
-                                "cost": "0.003421",
+                                "cost": 0.003421,
                                 "currency": "USDT"
-                            },
-                            {
-                                "cost": "0",
-                                "currency": "GatePoint"
                             }
                         ]
                     }
@@ -381,6 +371,7 @@
         "fetchClosedOrders": [
             {
                 "description": "spot closed orders",
+                "disabledGO": true,
                 "method": "fetchClosedOrders",
                 "input": [
                     "LTC/USDT",
@@ -443,14 +434,19 @@
                         "cost": 5,
                         "filled": 0.07349286974419289,
                         "remaining": 0.000014922081740664,
-                        "fee": {
-                            "currency": "LTC",
-                            "cost": 0.000147
-                        },
+                        "fee": null,
                         "fees": [
+                            {
+                                "currency":"GT",
+                                "cost":0
+                            },
                             {
                                 "currency": "LTC",
                                 "cost": 0.000147
+                            },
+                            {
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ],
                         "trades": [],
@@ -490,6 +486,234 @@
                         "takeProfitPrice": null,
                         "stopLossPrice": null
                     }
+                ]
+            },
+            {
+                "description": "spot & trigger",
+                "method": "fetchClosedOrders",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "market": "BTC_USDT",
+                    "user": "3368716",
+                    "trigger": {
+                      "price": "64444",
+                      "rule": "<=",
+                      "expiration": "86400"
+                    },
+                    "put": {
+                      "type": "limit",
+                      "side": "buy",
+                      "price": "61075.1",
+                      "amount": "0.00010000000000000000",
+                      "account": "normal",
+                      "time_in_force": "gtc",
+                      "auto_borrow": false,
+                      "auto_repay": false,
+                      "text": ""
+                    },
+                    "id": "916460068",
+                    "ctime": "1729176124",
+                    "ftime": "1729177584",
+                    "status": "canceled"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "916460068",
+                    "clientOrderId": null,
+                    "timestamp": 1729176124000,
+                    "datetime": "2024-10-17T14:42:04.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 61075.1,
+                    "stopPrice": 64444,
+                    "triggerPrice": 64444,
+                    "average": null,
+                    "amount": 0.0001,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "info": {
+                        "market": "BTC_USDT",
+                        "user": "3368716",
+                        "trigger": {
+                            "price": "64444",
+                            "rule": "<=",
+                            "expiration": "86400"
+                        },
+                        "put": {
+                            "type": "limit",
+                            "side": "buy",
+                            "price": "61075.1",
+                            "amount": "0.00010000000000000000",
+                            "account": "normal",
+                            "time_in_force": "gtc",
+                            "auto_borrow": false,
+                            "auto_repay": false,
+                            "text": ""
+                        },
+                        "id": "916460068",
+                        "ctime": "1729176124",
+                        "ftime": "1729177584",
+                        "status": "canceled"
+                    },
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "swap & trigger",
+                "method": "fetchClosedOrders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "user": "3368716",
+                    "trigger": {
+                      "strategy_type": "0",
+                      "price_type": "0",
+                      "price": "67203.5",
+                      "rule": "2",
+                      "expiration": "0"
+                    },
+                    "initial": {
+                      "contract": "BTC_USDT",
+                      "size": "5",
+                      "price": "67203.5",
+                      "tif": "gtc",
+                      "text": "web",
+                      "iceberg": "0",
+                      "is_close": false,
+                      "is_reduce_only": false,
+                      "auto_size": "",
+                      "default_leverage": "10"
+                    },
+                    "id": "85703616",
+                    "id_string": "85703616",
+                    "trade_id": "545349650904",
+                    "trade_id_string": "545349650904",
+                    "status": "finished",
+                    "finish_as": "succeeded",
+                    "reason": "",
+                    "create_time": "1729529406",
+                    "finish_time": "1729529407",
+                    "is_stop_order": false,
+                    "stop_trigger": {
+                      "rule": "0",
+                      "trigger_price": "",
+                      "order_price": ""
+                    },
+                    "me_order_id": "0",
+                    "me_order_id_string": "0",
+                    "order_type": "",
+                    "in_dual_mode": false,
+                    "parent_id": "0",
+                    "parent_id_string": "0",
+                    "stop_profit_price": "",
+                    "stop_loss_price": "",
+                    "batch_id": ""
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "85703616",
+                    "clientOrderId": null,
+                    "timestamp": 1729529406000,
+                    "datetime": "2024-10-21T16:50:06.000Z",
+                    "lastTradeTimestamp": 1729529407000,
+                    "status": "closed",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 67203.5,
+                    "stopPrice": 67203.5,
+                    "triggerPrice": 67203.5,
+                    "average": null,
+                    "amount": 5,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 5,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "info": {
+                        "user": "3368716",
+                        "trigger": {
+                            "strategy_type": "0",
+                            "price_type": "0",
+                            "price": "67203.5",
+                            "rule": "2",
+                            "expiration": "0"
+                        },
+                        "initial": {
+                            "contract": "BTC_USDT",
+                            "size": "5",
+                            "price": "67203.5",
+                            "tif": "gtc",
+                            "text": "web",
+                            "iceberg": "0",
+                            "is_close": false,
+                            "is_reduce_only": false,
+                            "auto_size": "",
+                            "default_leverage": "10"
+                        },
+                        "id": "85703616",
+                        "id_string": "85703616",
+                        "trade_id": "545349650904",
+                        "trade_id_string": "545349650904",
+                        "status": "finished",
+                        "finish_as": "succeeded",
+                        "reason": "",
+                        "create_time": "1729529406",
+                        "finish_time": "1729529407",
+                        "is_stop_order": false,
+                        "stop_trigger": {
+                            "rule": "0",
+                            "trigger_price": "",
+                            "order_price": ""
+                        },
+                        "me_order_id": "0",
+                        "me_order_id_string": "0",
+                        "order_type": "",
+                        "in_dual_mode": false,
+                        "parent_id": "0",
+                        "parent_id_string": "0",
+                        "stop_profit_price": "",
+                        "stop_loss_price": "",
+                        "batch_id": ""
+                    },                    
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
                 ]
             },
             {
@@ -622,7 +846,7 @@
                         "price": 73236.4,
                         "amount": 0.0002,
                         "cost": 14.64728,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -668,6 +892,8 @@
                     "average": null,
                     "baseVolume": 3410.0783503636,
                     "quoteVolume": 243764368.46418,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "currency_pair": "BTC_USDT",
                         "last": "73373.9",
@@ -714,6 +940,445 @@
                         13.53020576
                     ]
                 ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "default",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "currency_pair": "BTC_USDT",
+                    "total": "1",
+                    "orders": [
+                      {
+                        "id": "700604309511",
+                        "text": "web",
+                        "amend_text": "-",
+                        "create_time": "1729180336",
+                        "update_time": "1729180336",
+                        "create_time_ms": "1729180336718",
+                        "update_time_ms": "1729180336718",
+                        "status": "open",
+                        "currency_pair": "BTC_USDT",
+                        "type": "limit",
+                        "account": "spot",
+                        "side": "sell",
+                        "amount": "0.00009",
+                        "price": "69662.3",
+                        "time_in_force": "gtc",
+                        "iceberg": "0",
+                        "left": "0.00009",
+                        "filled_amount": "0",
+                        "fill_price": "0",
+                        "filled_total": "0",
+                        "fee": "0",
+                        "fee_currency": "USDT",
+                        "point_fee": "0",
+                        "gt_fee": "0",
+                        "gt_maker_fee": "0",
+                        "gt_taker_fee": "0",
+                        "gt_discount": false,
+                        "rebated_fee": "0",
+                        "rebated_fee_currency": "BTC",
+                        "finish_as": "open"
+                      }
+                    ]
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "700604309511",
+                    "clientOrderId": "web",
+                    "timestamp": 1729180336718,
+                    "datetime": "2024-10-17T15:52:16.718Z",
+                    "lastTradeTimestamp": 1729180336718,
+                    "status": "open",
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": 69662.3,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0.00009,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.00009,
+                    "fee": null,
+                    "fees": [
+                      {
+                        "currency": "GT",
+                        "cost": 0
+                      },
+                      {
+                        "currency": "USDT",
+                        "cost": 0
+                      },
+                      {
+                        "currency": "BTC",
+                        "cost": 0
+                      }
+                    ],
+                    "trades": [],
+                    "info":{
+                        "id": "700604309511",
+                        "text": "web",
+                        "amend_text": "-",
+                        "create_time": "1729180336",
+                        "update_time": "1729180336",
+                        "create_time_ms": "1729180336718",
+                        "update_time_ms": "1729180336718",
+                        "status": "open",
+                        "currency_pair": "BTC_USDT",
+                        "type": "limit",
+                        "account": "spot",
+                        "side": "sell",
+                        "amount": "0.00009",
+                        "price": "69662.3",
+                        "time_in_force": "gtc",
+                        "iceberg": "0",
+                        "left": "0.00009",
+                        "filled_amount": "0",
+                        "fill_price": "0",
+                        "filled_total": "0",
+                        "fee": "0",
+                        "fee_currency": "USDT",
+                        "point_fee": "0",
+                        "gt_fee": "0",
+                        "gt_maker_fee": "0",
+                        "gt_taker_fee": "0",
+                        "gt_discount": false,
+                        "rebated_fee": "0",
+                        "rebated_fee_currency": "BTC",
+                        "finish_as": "open"
+                    },                    
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "trigger orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true,
+                    "type": "spot"
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "market": "BTC_USDT",
+                    "user": "3368716",
+                    "trigger": {
+                      "price": "64777",
+                      "rule": "<=",
+                      "expiration": "86400"
+                    },
+                    "put": {
+                      "type": "limit",
+                      "side": "sell",
+                      "price": "67736.3",
+                      "amount": "0.00009000000000000000",
+                      "account": "normal",
+                      "time_in_force": "gtc",
+                      "auto_borrow": false,
+                      "auto_repay": false,
+                      "text": ""
+                    },
+                    "id": "916510270",
+                    "ctime": "1729180075",
+                    "status": "open"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "916510270",
+                    "clientOrderId": null,
+                    "timestamp": 1729180075000,
+                    "datetime": "2024-10-17T15:47:55.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": 67736.3,
+                    "stopPrice": 64777,
+                    "triggerPrice": 64777,
+                    "average": null,
+                    "amount": 0.00009,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.00009,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "info": {
+                        "market": "BTC_USDT",
+                        "user": "3368716",
+                        "trigger": {
+                            "price": "64777",
+                            "rule": "<=",
+                            "expiration": "86400"
+                        },
+                        "put": {
+                            "type": "limit",
+                            "side": "sell",
+                            "price": "67736.3",
+                            "amount": "0.00009000000000000000",
+                            "account": "normal",
+                            "time_in_force": "gtc",
+                            "auto_borrow": false,
+                            "auto_repay": false,
+                            "text": ""
+                        },
+                        "id": "916510270",
+                        "ctime": "1729180075",
+                        "status": "open"
+                    },
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "swap & trigger",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true,
+                    "type": "swap"
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "user": "3368716",
+                    "trigger": {
+                      "strategy_type": "0",
+                      "price_type": "0",
+                      "price": "67203.5",
+                      "rule": "2",
+                      "expiration": "0"
+                    },
+                    "initial": {
+                      "contract": "BTC_USDT",
+                      "size": "5",
+                      "price": "67203.5",
+                      "tif": "gtc",
+                      "text": "web",
+                      "iceberg": "0",
+                      "is_close": false,
+                      "is_reduce_only": false,
+                      "auto_size": ""
+                    },
+                    "id": "85704026",
+                    "id_string": "85704026",
+                    "trade_id": "0",
+                    "trade_id_string": "0",
+                    "status": "open",
+                    "reason": "",
+                    "create_time": "1729529822",
+                    "finish_time": "1729529822",
+                    "is_stop_order": false,
+                    "stop_trigger": {
+                      "rule": "0",
+                      "trigger_price": "",
+                      "order_price": ""
+                    },
+                    "me_order_id": "0",
+                    "me_order_id_string": "0",
+                    "order_type": "",
+                    "in_dual_mode": false,
+                    "parent_id": "0",
+                    "parent_id_string": "0",
+                    "stop_profit_price": "",
+                    "stop_loss_price": "",
+                    "batch_id": ""
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "85704026",
+                    "clientOrderId": null,
+                    "timestamp": 1729529822000,
+                    "datetime": "2024-10-21T16:57:02.000Z",
+                    "lastTradeTimestamp": 1729529822000,
+                    "status": "open",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 67203.5,
+                    "stopPrice": 67203.5,
+                    "triggerPrice": 67203.5,
+                    "average": null,
+                    "amount": 5,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 5,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "info": {
+                        "user": "3368716",
+                        "trigger": {
+                          "strategy_type": "0",
+                          "price_type": "0",
+                          "price": "67203.5",
+                          "rule": "2",
+                          "expiration": "0"
+                        },
+                        "initial": {
+                          "contract": "BTC_USDT",
+                          "size": "5",
+                          "price": "67203.5",
+                          "tif": "gtc",
+                          "text": "web",
+                          "iceberg": "0",
+                          "is_close": false,
+                          "is_reduce_only": false,
+                          "auto_size": ""
+                        },
+                        "id": "85704026",
+                        "id_string": "85704026",
+                        "trade_id": "0",
+                        "trade_id_string": "0",
+                        "status": "open",
+                        "reason": "",
+                        "create_time": "1729529822",
+                        "finish_time": "1729529822",
+                        "is_stop_order": false,
+                        "stop_trigger": {
+                          "rule": "0",
+                          "trigger_price": "",
+                          "order_price": ""
+                        },
+                        "me_order_id": "0",
+                        "me_order_id_string": "0",
+                        "order_type": "",
+                        "in_dual_mode": false,
+                        "parent_id": "0",
+                        "parent_id_string": "0",
+                        "stop_profit_price": "",
+                        "stop_loss_price": "",
+                        "batch_id": ""
+                    },
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch time response",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                  "server_time": "1731448079476"
+                },
+                "parsedResponse": 1731448079476
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch inverse market funding rate",
+                "method": "fetchFundingRates",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ],
+                "httpResponse": [{"funding_rate_indicative":"0.0001","mark_price_round":"0.01","funding_offset":0,"in_delisting":false,"risk_limit_base":"100","interest_rate":"0.0003","index_price":"89025.82000000001","order_price_round":"0.1","order_size_min":1,"ref_rebate_rate":"0.2","name":"BTC_USD","ref_discount_rate":"0","order_price_deviate":"0.5","maintenance_rate":"0.005","mark_type":"index","funding_interval":28800,"type":"inverse","risk_limit_step":"100","enable_bonus":false,"enable_credit":true,"leverage_min":"1","funding_rate":"0.0001","last_price":"88811.7","mark_price":"89029.86","order_size_max":1000000,"funding_next_apply":1741363200,"short_users":207,"config_change_time":1732783287,"create_time":1545235200,"trade_size":59939537641,"position_size":11835253,"long_users":486,"quanto_multiplier":"0","funding_impact_value":"0.5","leverage_max":"100","cross_leverage_default":"10","risk_limit_max":"800","maker_fee_rate":"-0.0002","taker_fee_rate":"0.00075","orders_limit":50,"trade_id":46136002,"orderbook_id":4871277879,"funding_cap_ratio":"0.75","voucher_leverage":"0","is_pre_market":false}],
+                "parsedResponse": {
+                  "BTC/USD:BTC": {
+                    "info": {
+                      "funding_rate_indicative": "0.0001",
+                      "mark_price_round": "0.01",
+                      "funding_offset": 0,
+                      "in_delisting": false,
+                      "risk_limit_base": "100",
+                      "interest_rate": "0.0003",
+                      "index_price": "89025.82000000001",
+                      "order_price_round": "0.1",
+                      "order_size_min": 1,
+                      "ref_rebate_rate": "0.2",
+                      "name": "BTC_USD",
+                      "ref_discount_rate": "0",
+                      "order_price_deviate": "0.5",
+                      "maintenance_rate": "0.005",
+                      "mark_type": "index",
+                      "funding_interval": 28800,
+                      "type": "inverse",
+                      "risk_limit_step": "100",
+                      "enable_bonus": false,
+                      "enable_credit": true,
+                      "leverage_min": "1",
+                      "funding_rate": "0.0001",
+                      "last_price": "88811.7",
+                      "mark_price": "89029.86",
+                      "order_size_max": 1000000,
+                      "funding_next_apply": 1741363200,
+                      "short_users": 207,
+                      "config_change_time": 1732783287,
+                      "create_time": 1545235200,
+                      "trade_size": 59939537641,
+                      "position_size": 11835253,
+                      "long_users": 486,
+                      "quanto_multiplier": "0",
+                      "funding_impact_value": "0.5",
+                      "leverage_max": "100",
+                      "cross_leverage_default": "10",
+                      "risk_limit_max": "800",
+                      "maker_fee_rate": "-0.0002",
+                      "taker_fee_rate": "0.00075",
+                      "orders_limit": 50,
+                      "trade_id": 46136002,
+                      "orderbook_id": 4871277879,
+                      "funding_cap_ratio": "0.75",
+                      "voucher_leverage": "0",
+                      "is_pre_market": false
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 89029.86,
+                    "indexPrice": 89025.82,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1741363200000,
+                    "fundingDatetime": "2025-03-07T16:00:00.000Z",
+                    "nextFundingRate": 0.0001,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                  }
+                }
             }
         ]
     }

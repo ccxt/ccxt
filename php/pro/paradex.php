@@ -6,12 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class paradex extends \ccxt\async\paradex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -20,6 +20,7 @@ class paradex extends \ccxt\async\paradex {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false,
                 'watchOHLCV' => false,
             ),
@@ -45,7 +46,9 @@ class paradex extends \ccxt\async\paradex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.api.testnet.paradex.trade/#sub-$trades-market_symbol-operation
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -114,12 +117,15 @@ class paradex extends \ccxt\async\paradex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.api.testnet.paradex.trade/#sub-order_book-market_symbol-snapshot-15-refresh_rate-operation
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
             $url = $this->urls['api']['ws'];
@@ -202,7 +208,9 @@ class paradex extends \ccxt\async\paradex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -227,10 +235,14 @@ class paradex extends \ccxt\async\paradex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $channel = 'markets_summary';
             $url = $this->urls['api']['ws'];

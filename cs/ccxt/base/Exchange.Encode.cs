@@ -70,42 +70,118 @@ public partial class Exchange
         return Base58.Decode(pt as string);
     }
 
-    public object binaryConcat(object a, object b)
+
+    public object binaryConcat(params object[] parts)
     {
-        byte[] first;
-        byte[] second;
-        if (a is string)
+        var resultList = new List<byte>();
+
+        foreach (var part in parts)
         {
-            first = Encoding.ASCII.GetBytes(a as string);
+            if (part is string str)
+            {
+                resultList.AddRange(Encoding.ASCII.GetBytes(str));
+            }
+            else if (part is byte[] bytes)
+            {
+                resultList.AddRange(bytes);
+            }
+            else
+            {
+                throw new ArgumentException("BinaryConcat: Unsupported type, only string and byte[] are allowed.");
+            }
         }
-        else
+
+        return resultList.ToArray();
+    }
+
+    // public object binaryConcat(object a, object b)
+    // {
+    //     byte[] first;
+    //     byte[] second;
+    //     if (a is string)
+    //     {
+    //         first = Encoding.ASCII.GetBytes(a as string);
+    //     }
+    //     else
+    //     {
+    //         first = (byte[])a;
+    //     }
+    //     if (b is string)
+    //     {
+    //         second = Encoding.ASCII.GetBytes(b as string);
+    //     }
+    //     else
+    //     {
+    //         second = (byte[])b;
+    //     }
+    //     var result = new byte[first.Length + second.Length];
+    //     first.CopyTo(result, 0);
+    //     second.CopyTo(result, first.Length);
+    //     return result;
+    //     // return (string)a + (string)b; // stub
+    // }
+
+    public object binaryConcatArray(object arrays2)
+    {
+        // if (byteArrays is not IList arrays)
+        // {
+        //     throw new ArgumentException("Input must be an array or collection of byte arrays.", nameof(byteArrays));
+        // }
+
+        var arrays = (IList<object>)arrays2;
+        // Determine total length
+        int totalLength = 0;
+        foreach (var item in arrays)
         {
-            first = (byte[])a;
+            // if (item is not byte[] array)
+            // {
+            //     throw new ArgumentException("All elements in the collection must be byte arrays.", nameof(byteArrays));
+            // }
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            totalLength += ((byte[])bytesItem).Length;
         }
-        if (b is string)
+
+        // Concatenate arrays
+        byte[] result = new byte[totalLength];
+        int offset = 0;
+
+        foreach (var item in arrays)
         {
-            second = Encoding.ASCII.GetBytes(b as string);
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            byte[] array = (byte[])bytesItem;
+            Buffer.BlockCopy(array, 0, result, offset, array.Length);
+            offset += array.Length;
         }
-        else
-        {
-            second = (byte[])b;
-        }
-        var result = new byte[first.Length + second.Length];
-        first.CopyTo(result, 0);
-        second.CopyTo(result, first.Length);
+
         return result;
-        // return (string)a + (string)b; // stub
     }
 
-    public object binaryConcatArray(object a)
+    public object numberToBE(object n2, object size2 = null)
     {
-        return (string)a; // stub
-    }
-
-    public object numberToBE(object n, object padding = null)
-    {
-        // implement number to big endian
-        return (string)n; // stub
+        var n = Convert.ToInt64(n2);
+        var size = size2 == null ? 0 : Convert.ToInt32(size2);
+        byte[] bytes = BitConverter.GetBytes(n);
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(bytes);
+        }
+        return bytes[^size..]; // Extract the last 'size' bytes
     }
 
     public static string binaryToHex(byte[] buff)

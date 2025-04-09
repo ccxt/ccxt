@@ -13,13 +13,13 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -47,8 +47,13 @@ class bigone extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -83,7 +88,7 @@ class bigone extends Exchange {
             ),
             'hostname' => 'big.one', // or 'bigone.com'
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api' => array(
                     'public' => 'https://{hostname}/api/v3',
                     'private' => 'https://{hostname}/api/v3/viewer',
@@ -163,7 +168,7 @@ class bigone extends Exchange {
                 ),
                 'webExchange' => array(
                     'get' => array(
-                        'uc/v2/assets',
+                        'v3/assets',
                     ),
                 ),
             ),
@@ -296,6 +301,110 @@ class bigone extends Exchange {
                     // undetermined => XinFin, YAS, Ycash
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true, // todo implement
+                        'stopLossPrice' => false, // todo by trigger
+                        'takeProfitPrice' => false, // todo by trigger
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implement
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'index' => true,
+                            'last' => true,
+                        ),
+                    ),
+                    'fetchOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -344,7 +453,7 @@ class bigone extends Exchange {
              * @return {dict} an associative dictionary of currencies
              */
             // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-            $data = Async\await($this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', true));
+            $data = Async\await($this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true));
             if ($data === null) {
                 return null;
             }
@@ -353,92 +462,41 @@ class bigone extends Exchange {
             //     "code" => "0",
             //     "message" => "",
             //     "data" => array(
-            //       array(
-            //         "name" => "TetherUS",
-            //         "symbol" => "USDT",
-            //         "contract_address" => "31",
-            //         "is_deposit_enabled" => true,
-            //         "is_withdrawal_enabled" => true,
-            //         "is_stub" => false,
-            //         "withdrawal_fee" => "5.0",
-            //         "is_fiat" => false,
-            //         "is_memo_required" => false,
-            //         "logo" => array(
-            //           "default" => "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-            //           "white" => "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+            //       {
+            //             "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+            //             "symbol" => "USDT",
+            //             "name" => "TetherUS",
+            //             "scale" => 12,
+            //             "is_fiat" => false,
+            //             "is_transfer_enabled" => true,
+            //             "transfer_scale" => 12,
+            //             "binding_gateways" => array(
+            //                 array(
+            //                     "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+            //                     "is_deposit_enabled" => true,
+            //                     "gateway_name" => "Ethereum",
+            //                     "min_withdrawal_amount" => "0.000001",
+            //                     "withdrawal_fee" => "5.71",
+            //                     "is_withdrawal_enabled" => true,
+            //                     "min_deposit_amount" => "0.000001",
+            //                     "is_memo_required" => false,
+            //                     "withdrawal_scale" => 6,
+            //                     "scale" => 12
+            //                 ),
+            //                 array(
+            //                     "guid" => "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+            //                     "is_deposit_enabled" => true,
+            //                     "gateway_name" => "BinanceSmartChain",
+            //                     "min_withdrawal_amount" => "10",
+            //                     "withdrawal_fee" => "5",
+            //                     "is_withdrawal_enabled" => false,
+            //                     "min_deposit_amount" => "1",
+            //                     "is_memo_required" => false,
+            //                     "withdrawal_scale" => 8,
+            //                     "scale" => 12
+            //                 }
+            //             )
             //         ),
-            //         "info_link" => null,
-            //         "scale" => "12",
-            //         "default_gateway" => ..., // one object from "gateways"
-            //         "gateways" => array(
-            //           array(
-            //             "uuid" => "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-            //             "name" => "Mixin",
-            //             "kind" => "CHAIN",
-            //             "required_confirmations" => "0",
-            //           ),
-            //           array(
-            //             "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-            //             "name" => "Ethereum",
-            //             "kind" => "CHAIN",
-            //             "required_confirmations" => "18",
-            //           ),
-            //           array(
-            //             "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-            //             "name" => "Tron",
-            //             "kind" => "CHAIN",
-            //             "required_confirmations" => "1",
-            //           ),
-            //          ...
-            //         ),
-            //         "payments" => array(),
-            //         "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-            //         "binding_gateways" => array(
-            //           array(
-            //             "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-            //             "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
-            //             "is_deposit_enabled" => true,
-            //             "display_name" => "Ethereum(ERC20)",
-            //             "gateway_name" => "Ethereum",
-            //             "min_withdrawal_amount" => "0.000001",
-            //             "min_internal_withdrawal_amount" => "0.00000001",
-            //             "withdrawal_fee" => "14",
-            //             "is_withdrawal_enabled" => true,
-            //             "min_deposit_amount" => "0.000001",
-            //             "is_memo_required" => false,
-            //             "withdrawal_scale" => "2",
-            //             "gateway" => array(
-            //               "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-            //               "name" => "Ethereum",
-            //               "kind" => "CHAIN",
-            //               "required_confirmations" => "18",
-            //             ),
-            //             "scale" => "12",
-            //          ),
-            //          array(
-            //             "guid" => "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-            //             "contract_address" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-            //             "is_deposit_enabled" => true,
-            //             "display_name" => "Tron(TRC20)",
-            //             "gateway_name" => "Tron",
-            //             "min_withdrawal_amount" => "0.000001",
-            //             "min_internal_withdrawal_amount" => "0.00000001",
-            //             "withdrawal_fee" => "1",
-            //             "is_withdrawal_enabled" => true,
-            //             "min_deposit_amount" => "0.000001",
-            //             "is_memo_required" => false,
-            //             "withdrawal_scale" => "6",
-            //             "gateway" => array(
-            //               "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-            //               "name" => "Tron",
-            //               "kind" => "CHAIN",
-            //               "required_confirmations" => "1",
-            //             ),
-            //             "scale" => "12",
-            //           ),
-            //           ...
-            //         ),
-            //       ),
             //       ...
             //     ),
             // }
@@ -525,7 +583,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bigone
+             *
              * @see https://open.big.one/docs/spot_asset_pair.html
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -782,6 +842,8 @@ class bigone extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24hInUsd'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -790,7 +852,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://open.big.one/docs/spot_tickers.html
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -833,7 +897,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://open.big.one/docs/spot_tickers.html
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -917,11 +983,13 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
+             *
              * @see https://open.big.one/docs/spot_ping.html
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
@@ -943,7 +1011,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://open.big.one/docs/contract_misc.html#get-$orderbook-snapshot
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1126,8 +1196,6 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
-        $makerCurrencyCode = null;
-        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1178,7 +1246,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://open.big.one/docs/spot_asset_pair_trade.html
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1245,12 +1315,15 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://open.big.one/docs/spot_asset_pair_candle.html
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1258,20 +1331,30 @@ class bigone extends Exchange {
             if ($market['contract']) {
                 throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
             }
+            $until = $this->safe_integer($params, 'until');
+            $untilIsDefined = ($until !== null);
+            $sinceIsDefined = ($since !== null);
             if ($limit === null) {
-                $limit = 100; // default 100, max 500
+                $limit = ($sinceIsDefined && $untilIsDefined) ? 500 : 100; // default 100, max 500, if $since and $limit defined then fetch all the candles between them unless it exceeds the max of 500
             }
             $request = array(
                 'asset_pair_name' => $market['id'],
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
-            if ($since !== null) {
+            if ($sinceIsDefined) {
                 // $start = $this->parse_to_int($since / 1000);
                 $duration = $this->parse_timeframe($timeframe);
-                $end = $this->sum($since, $limit * $duration * 1000);
-                $request['time'] = $this->iso8601($end);
+                $endByLimit = $this->sum($since, $limit * $duration * 1000);
+                if ($untilIsDefined) {
+                    $request['time'] = $this->iso8601(min ($endByLimit, $until + 1));
+                } else {
+                    $request['time'] = $this->iso8601($endByLimit);
+                }
+            } elseif ($untilIsDefined) {
+                $request['time'] = $this->iso8601($until + 1);
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params)));
             //
             //     {
@@ -1324,8 +1407,10 @@ class bigone extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://open.big.one/docs/fund_accounts.html
              * @see https://open.big.one/docs/spot_accounts.html
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1425,7 +1510,6 @@ class bigone extends Exchange {
             'postOnly' => $this->safe_bool($order, 'post_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
@@ -1442,7 +1526,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://open.big.one/docs/spot_orders.html#create-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1462,7 +1548,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://open.big.one/docs/spot_orders.html#create-$order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1475,8 +1563,8 @@ class bigone extends Exchange {
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} operator *stop $order only* GTE or LTE (default)
-             * @param {string} client_order_id must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
+             * @param {string} [$params->operator] *stop $order only* GTE or LTE (default)
+             * @param {string} [$params->client_order_id] must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1572,7 +1660,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             *
              * @see https://open.big.one/docs/spot_orders.html#cancel-$order
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol Not used by bigone cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1602,7 +1692,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
              * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
+             *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are $cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1653,7 +1745,10 @@ class bigone extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://open.big.one/docs/spot_orders.html#get-one-$order
+             *
+             * @param {string} $id the $order $id
              * @param {string} $symbol not used by bigone fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1670,7 +1765,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://open.big.one/docs/spot_orders.html#get-user-$orders-in-one-asset-pair
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1722,7 +1819,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://open.big.one/docs/spot_trade.html#$trades-of-user
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1794,7 +1893,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1812,7 +1913,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1864,11 +1967,13 @@ class bigone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             *
              * @see https://open.big.one/docs/spot_deposit.html#get-deposite-$address-of-one-asset-of-user
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1909,11 +2014,11 @@ class bigone extends Exchange {
             $tag = $this->safe_string($addressObject, 'memo');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $this->network_id_to_code($selectedNetworkId),
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $this->network_id_to_code($selectedNetworkId),
-                'info' => $response,
             );
         }) ();
     }
@@ -2022,7 +2127,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
+             *
              * @see https://open.big.one/docs/spot_deposit.html#deposit-of-user
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
@@ -2075,7 +2182,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $withdrawals made from an account
+             *
              * @see https://open.big.one/docs/spot_withdrawal.html#get-$withdrawals-of-user
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
              * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
@@ -2128,7 +2237,9 @@ class bigone extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
+             *
              * @see https://open.big.one/docs/spot_transfer.html#$transfer-of-user
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
@@ -2199,11 +2310,13 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to

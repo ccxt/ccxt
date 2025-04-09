@@ -121,10 +121,10 @@ public partial class kucoinfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -174,6 +174,26 @@ public partial class kucoinfutures
         return new Ticker(res);
     }
     /// <summary>
+    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
@@ -185,12 +205,37 @@ public partial class kucoinfutures
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// fetches the bid and ask price and volume for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>
@@ -274,6 +319,18 @@ public partial class kucoinfutures
     /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch position history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -305,7 +362,8 @@ public partial class kucoinfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/futures/#place-an-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -317,6 +375,18 @@ public partial class kucoinfutures
     /// <term>params</term>
     /// <description>
     /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
     /// </description>
     /// </item>
     /// <item>
@@ -356,9 +426,15 @@ public partial class kucoinfutures
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of USDT
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.leverage</term>
     /// <description>
-    /// float : Leverage size of the order
+    /// float : Leverage size of the order (mandatory param in request, default is 1)
     /// </description>
     /// </item>
     /// <item>
@@ -376,13 +452,19 @@ public partial class kucoinfutures
     /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// string : 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
+    /// string : 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPriceType</term>
+    /// <description>
+    /// string : "last", "mark", "index" - defaults to "mark"
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopPriceType</term>
     /// <description>
-    /// string :  TP, IP or MP, defaults to MP: Mark Price
+    /// string : exchange-specific alternative for triggerPriceType: TP, IP or MP
     /// </description>
     /// </item>
     /// <item>
@@ -463,6 +545,26 @@ public partial class kucoinfutures
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel all open orders
@@ -694,7 +796,7 @@ public partial class kucoinfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id = null, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
@@ -714,10 +816,30 @@ public partial class kucoinfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -743,6 +865,8 @@ public partial class kucoinfutures
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -983,5 +1107,85 @@ public partial class kucoinfutures
     {
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<MarginMode> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
+    }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Leverage> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setLeverage(leverage, symbol, parameters);
+        return new Leverage(res);
     }
 }

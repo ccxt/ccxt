@@ -10,7 +10,7 @@ use ccxt\async\abstract\bitcoincom as fmfwio;
 
 class bitcoincom extends fmfwio {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitcoincom',
             'name' => 'Bitcoin.com',

@@ -36,7 +36,7 @@
                         "price": 0.5627,
                         "amount": 10,
                         "cost": 5.627,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "pair": "XRPUSDT",
                             "seqNumber": "11298800775",
@@ -173,7 +173,7 @@
                         "price": 69485.92,
                         "amount": 0.008454,
                         "cost": 587.43396768,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "pair": "BTCUSDT",
                             "price": "69485.92",

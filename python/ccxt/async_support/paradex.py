@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class paradex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(paradex, self).describe(), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -53,6 +53,8 @@ class paradex(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': False,
                 'createReduceOnlyOrder': False,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -77,10 +79,10 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': False,
-                'fetchLeverage': False,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
-                'fetchMarginMode': None,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -114,8 +116,8 @@ class paradex(Exchange, ImplicitAPI):
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'sandbox': True,
-                'setLeverage': False,
-                'setMarginMode': False,
+                'setLeverage': True,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
@@ -157,12 +159,23 @@ class paradex(Exchange, ImplicitAPI):
                         'system/state': 1,
                         'system/time': 1,
                         'trades': 1,
+                        'vaults': 1,
+                        'vaults/balance': 1,
+                        'vaults/config': 1,
+                        'vaults/history': 1,
+                        'vaults/positions': 1,
+                        'vaults/summary': 1,
+                        'vaults/transfers': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'account': 1,
+                        'account/info': 1,
+                        'account/history': 1,
+                        'account/margin': 1,
                         'account/profile': 1,
+                        'account/subaccounts': 1,
                         'balance': 1,
                         'fills': 1,
                         'funding/payments': 1,
@@ -175,20 +188,34 @@ class paradex(Exchange, ImplicitAPI):
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
                         'points_data/{market}/{program}': 1,
+                        'referrals/qr-code': 1,
                         'referrals/summary': 1,
                         'transfers': 1,
+                        'algo/orders': 1,
+                        'algo/orders-history': 1,
+                        'algo/orders/{algo_id}': 1,
+                        'vaults/account-summary': 1,
                     },
                     'post': {
+                        'account/margin/{market}': 1,
+                        'account/profile/max_slippage': 1,
                         'account/profile/referral_code': 1,
                         'account/profile/username': 1,
                         'auth': 1,
                         'onboarding': 1,
                         'orders': 1,
+                        'orders/batch': 1,
+                        'algo/orders': 1,
+                        'vaults': 1,
+                    },
+                    'put': {
+                        'orders/{order_id}': 1,
                     },
                     'delete': {
                         'orders': 1,
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
+                        'algo/orders/{algo_id}': 1,
                     },
                 },
             },
@@ -268,20 +295,96 @@ class paradex(Exchange, ImplicitAPI):
                     '40112': PermissionDenied,  # Geo IP blocked
                 },
                 'broad': {
+                    'missing or malformed jwt': AuthenticationError,
                 },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
             },
             'options': {
+                'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
+            },
+            'features': {
+                'spot': None,
+                'forSwap': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerDirection': True,  # todo
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': None,  # todo by from/to
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+
+        https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -296,7 +399,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://docs.api.testnet.paradex.trade/#get-system-state
+
+        https://docs.api.testnet.paradex.trade/#get-system-state
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -318,7 +423,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitget
-        :see: https://docs.api.testnet.paradex.trade/#list-available-markets
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -389,6 +496,57 @@ class paradex(Exchange, ImplicitAPI):
         #         "max_tob_spread": "0.2"
         #     }
         #
+        # {
+        #     "symbol":"BTC-USD-96000-C",
+        #     "base_currency":"BTC",
+        #     "quote_currency":"USD",
+        #     "settlement_currency":"USDC",
+        #     "order_size_increment":"0.001",
+        #     "price_tick_size":"0.01",
+        #     "min_notional":"100",
+        #     "open_at":"1736764200000",
+        #     "expiry_at":"0",
+        #     "asset_kind":"PERP_OPTION",
+        #     "market_kind":"cross",
+        #     "position_limit":"10",
+        #     "price_bands_width":"0.05",
+        #     "iv_bands_width":"0.05",
+        #     "max_open_orders":"100",
+        #     "max_funding_rate":"0.02",
+        #     "option_cross_margin_params":{
+        #        "imf":{
+        #           "long_itm":"0.2",
+        #           "short_itm":"0.15",
+        #           "short_otm":"0.1",
+        #           "short_put_cap":"0.5",
+        #           "premium_multiplier":"1"
+        #        },
+        #        "mmf":{
+        #           "long_itm":"0.1",
+        #           "short_itm":"0.075",
+        #           "short_otm":"0.05",
+        #           "short_put_cap":"0.5",
+        #           "premium_multiplier":"0.5"
+        #        }
+        #     },
+        #     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        #     "oracle_ewma_factor":"0.20000046249626113",
+        #     "max_order_size":"2",
+        #     "max_funding_rate_change":"0.02",
+        #     "max_tob_spread":"0.2",
+        #     "interest_rate":"0.0001",
+        #     "clamp_rate":"0.02",
+        #     "option_type":"CALL",
+        #     "strike_price":"96000",
+        #     "funding_period_hours":"24",
+        #     "tags":[
+        #     ]
+        #  }
+        #
+        assetKind = self.safe_string(market, 'asset_kind')
+        isOption = (assetKind == 'PERP_OPTION')
+        type = 'option' if (isOption) else 'swap'
+        isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
         baseId = self.safe_string(market, 'base_currency')
@@ -398,6 +556,13 @@ class paradex(Exchange, ImplicitAPI):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
+        optionType = self.safe_string(market, 'option_type')
+        strikePrice = self.safe_string(market, 'strike_price')
+        if isOption:
+            optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
+            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix
+        else:
+            expiry = None
         takerFee = self.parse_number('0.0003')
         makerFee = self.parse_number('-0.00005')
         return self.safe_market_structure({
@@ -409,23 +574,23 @@ class paradex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': type,
             'spot': False,
             'margin': None,
-            'swap': True,
+            'swap': isSwap,
             'future': False,
-            'option': False,
+            'option': isOption,
             'active': self.safe_bool(market, 'enableTrading'),
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': self.parse_number('1'),
-            'expiry': None if (expiry == 0) else expiry,
+            'expiry': expiry,
             'expiryDatetime': None if (expiry == 0) else self.iso8601(expiry),
-            'strike': None,
-            'optionType': None,
+            'strike': self.parse_number(strikePrice),
+            'optionType': self.safe_string_lower(market, 'option_type'),
             'precision': {
                 'amount': self.safe_number(market, 'order_size_increment'),
                 'price': self.safe_number(market, 'price_tick_size'),
@@ -455,7 +620,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+
+        https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -527,7 +694,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -570,7 +739,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -640,7 +811,7 @@ class paradex(Exchange, ImplicitAPI):
             'low': None,
             'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'sdk'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -652,13 +823,16 @@ class paradex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume_24h'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
             'info': ticker,
         }, market)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.api.testnet.paradex.trade/#get-market-orderbook
+
+        https://docs.api.testnet.paradex.trade/#get-market-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -697,7 +871,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.api.testnet.paradex.trade/#trade-tape
+
+        https://docs.api.testnet.paradex.trade/#trade-tape
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -810,7 +986,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a contract trading pair
-        :see: https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -852,7 +1030,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTC-USD-PERP",
-        #         "oracle_price": "68465.17449906",
+        #         "oracle_price": "68465.17449904",
         #         "mark_price": "68465.17449906",
         #         "last_traded_price": "68495.1",
         #         "bid": "68477.6",
@@ -931,22 +1109,24 @@ class paradex(Exchange, ImplicitAPI):
     async def prepare_paradex_domain(self, l1=False):
         systemConfig = await self.get_system_config()
         if l1 is True:
-            return {
+            l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             }
-        return {
+            return l1D
+        domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         }
+        return domain
 
     async def retrieve_account(self):
-        self.check_required_credentials()
         cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')
         if cachedAccount is not None:
             return cachedAccount
+        self.check_required_credentials()
         systemConfig = await self.get_system_config()
         domain = await self.prepare_paradex_domain(True)
         messageTypes = {
@@ -988,16 +1168,20 @@ class paradex(Exchange, ImplicitAPI):
 
     async def authenticate_rest(self, params={}):
         cachedToken = self.safe_string(self.options, 'authToken')
-        if cachedToken is not None:
-            return cachedToken
-        account = await self.retrieve_account()
         now = self.nonce()
+        if cachedToken is not None:
+            cachedExpires = self.safe_integer(self.options, 'expires')
+            if now < cachedExpires:
+                return cachedToken
+        account = await self.retrieve_account()
+        # https://docs.paradex.trade/api-reference/general-information/authentication
+        expires = now + 180
         req = {
             'method': 'POST',
             'path': '/v1/auth',
             'body': '',
             'timestamp': now,
-            'expiration': now + 86400 * 7,
+            'expiration': expires,
         }
         domain = await self.prepare_paradex_domain()
         messageTypes = {
@@ -1023,6 +1207,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         token = self.safe_string(response, 'jwt_token')
         self.options['authToken'] = token
+        self.options['expires'] = expires
         return token
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -1067,8 +1252,11 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
-        stopPrice = self.safe_string(order, 'trigger_price')
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
+        flags = self.safe_list(order, 'flags', [])
+        reduceOnly = None
+        if 'REDUCE_ONLY' in flags:
+            reduceOnly = True
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1081,11 +1269,10 @@ class paradex(Exchange, ImplicitAPI):
             'type': self.parse_order_type(orderType),
             'timeInForce': self.parse_time_in_force(self.safe_string(order, 'instrunction')),
             'postOnly': None,
-            'reduceOnly': None,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'average': average,
@@ -1139,15 +1326,19 @@ class paradex(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.api.prod.paradex.trade/#create-order
+
+        https://docs.api.prod.paradex.trade/#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price a trigger order is triggered at
+        :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
@@ -1163,11 +1354,15 @@ class paradex(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size': self.amount_to_precision(symbol, amount),
+            'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         }
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isMarket = orderType == 'MARKET'
+        isTakeProfitOrder = (takeProfitPrice is not None)
+        isStopLossOrder = (stopLossPrice is not None)
+        isStopOrder = (triggerPrice is not None) or isTakeProfitOrder or isStopLossOrder
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
         if not isMarket:
@@ -1175,22 +1370,51 @@ class paradex(Exchange, ImplicitAPI):
                 request['instruction'] = 'POST_ONLY'
             elif timeInForce == 'ioc':
                 request['instruction'] = 'IOC'
-        if reduceOnly:
-            request['flags'] = [
-                'REDUCE_ONLY',
-            ]
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-        if stopPrice is not None:
+        sizeString = '0'
+        stopPrice = None
+        if isStopOrder:
+            # flags: Reduce_Only must be provided for TPSL orders.
             if isMarket:
-                request['type'] = 'STOP_MARKET'
+                if isStopLossOrder:
+                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
+                    reduceOnly = True
+                    request['type'] = 'STOP_LOSS_MARKET'
+                elif isTakeProfitOrder:
+                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    reduceOnly = True
+                    request['type'] = 'TAKE_PROFIT_MARKET'
+                else:
+                    stopPrice = self.price_to_precision(symbol, triggerPrice)
+                    sizeString = self.amount_to_precision(symbol, amount)
+                    request['type'] = 'STOP_MARKET'
             else:
-                request['type'] = 'STOP_LIMIT'
-            request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
+                if isStopLossOrder:
+                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
+                    reduceOnly = True
+                    request['type'] = 'STOP_LOSS_LIMIT'
+                elif isTakeProfitOrder:
+                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    reduceOnly = True
+                    request['type'] = 'TAKE_PROFIT_LIMIT'
+                else:
+                    stopPrice = self.price_to_precision(symbol, triggerPrice)
+                    sizeString = self.amount_to_precision(symbol, amount)
+                    request['type'] = 'STOP_LIMIT'
+        else:
+            sizeString = self.amount_to_precision(symbol, amount)
+        if stopPrice is not None:
+            request['trigger_price'] = stopPrice
+        request['size'] = sizeString
+        if reduceOnly:
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ]
+        params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         account = await self.retrieve_account()
         now = self.nonce()
         orderReq = {
@@ -1251,8 +1475,10 @@ class paradex(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.api.prod.paradex.trade/#cancel-order
-        :see: https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+
+        https://docs.api.prod.paradex.trade/#cancel-order
+        https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1278,7 +1504,9 @@ class paradex(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+
+        https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1300,8 +1528,10 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.api.prod.paradex.trade/#get-order
-        :see: https://docs.api.prod.paradex.trade/#get-order-by-client-id
+
+        https://docs.api.prod.paradex.trade/#get-order
+        https://docs.api.prod.paradex.trade/#get-order-by-client-id
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1351,7 +1581,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.api.prod.paradex.trade/#get-orders
+
+        https://docs.api.prod.paradex.trade/#get-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1424,7 +1656,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+
+        https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1477,7 +1711,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.api.prod.paradex.trade/#list-balances
+
+        https://docs.api.prod.paradex.trade/#list-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1512,7 +1748,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.api.prod.paradex.trade/#list-fills
+
+        https://docs.api.prod.paradex.trade/#list-fills
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1569,7 +1807,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on an open position
-        :see: https://docs.api.prod.paradex.trade/#list-open-positions
+
+        https://docs.api.prod.paradex.trade/#list-open-positions
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1583,7 +1823,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.api.prod.paradex.trade/#list-open-positions
+
+        https://docs.api.prod.paradex.trade/#list-open-positions
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1679,7 +1921,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        :see: https://docs.api.prod.paradex.trade/#list-liquidations
+
+        https://docs.api.prod.paradex.trade/#list-liquidations
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -1732,7 +1976,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+
+        https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1786,7 +2032,9 @@ class paradex(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+
+        https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1898,6 +2146,149 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a specific symbol
+
+        https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        await self.authenticate_rest()
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        response = await self.privateGetAccountMargin(self.extend(request, params))
+        #
+        # {
+        #     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        #     "configs": [
+        #         {
+        #             "market": "SOL-USD-PERP",
+        #             "leverage": 50,
+        #             "margin_type": "CROSS"
+        #         }
+        #     ]
+        # }
+        #
+        configs = self.safe_list(response, 'configs')
+        return self.parse_margin_mode(self.safe_dict(configs, 0), market)
+
+    def parse_margin_mode(self, rawMarginMode: dict, market=None) -> MarginMode:
+        marketId = self.safe_string(rawMarginMode, 'market')
+        market = self.safe_market(marketId, market)
+        marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
+        return {
+            'info': rawMarginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+        }
+
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://docs.api.testnet.paradex.trade/#set-margin-configuration
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.leverage]: the rate of leverage
+        :returns dict: response from the exchange
+        """
+        self.check_required_argument('setMarginMode', symbol, 'symbol')
+        await self.authenticate_rest()
+        await self.load_markets()
+        market: Market = self.market(symbol)
+        leverage: Str = None
+        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 1)
+        request: dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': self.encode_margin_mode(marginMode),
+        }
+        return await self.privatePostAccountMarginMarket(self.extend(request, params))
+
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+
+        https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.authenticate_rest()
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        response = await self.privateGetAccountMargin(self.extend(request, params))
+        #
+        # {
+        #     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        #     "configs": [
+        #         {
+        #             "market": "SOL-USD-PERP",
+        #             "leverage": 50,
+        #             "margin_type": "CROSS"
+        #         }
+        #     ]
+        # }
+        #
+        configs = self.safe_list(response, 'configs')
+        return self.parse_leverage(self.safe_dict(configs, 0), market)
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        marketId = self.safe_string(leverage, 'market')
+        market = self.safe_market(marketId, market)
+        marginMode = self.safe_string_lower(leverage, 'margin_type')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': self.safe_integer(leverage, 'leverage'),
+            'shortLeverage': self.safe_integer(leverage, 'leverage'),
+        }
+
+    def encode_margin_mode(self, mode):
+        modes = {
+            'cross': 'CROSS',
+            'isolated': 'ISOLATED',
+        }
+        return self.safe_string(modes, mode, mode)
+
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+        """
+        set the level of leverage for a market
+
+        https://docs.api.testnet.paradex.trade/#set-margin-configuration
+
+        :param float leverage: the rate of leverage
+        :param str [symbol]: unified market symbol(is mandatory for swap markets)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'
+        :returns dict: response from the exchange
+        """
+        self.check_required_argument('setLeverage', symbol, 'symbol')
+        await self.authenticate_rest()
+        await self.load_markets()
+        market: Market = self.market(symbol)
+        marginMode: Str = None
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+        request: dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': self.encode_margin_mode(marginMode),
+        }
+        return await self.privatePostAccountMarginMarket(self.extend(request, params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][self.version]) + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1905,7 +2296,6 @@ class paradex(Exchange, ImplicitAPI):
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
-            self.check_required_credentials()
             headers = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),

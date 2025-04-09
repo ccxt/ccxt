@@ -18,6 +18,7 @@ interface Exchange {
     v1PublicGetPublicGetValuations (params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetExpiredSettlementPrice (params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetInsurance (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetPublicGetRiskParameters (params?: {}): Promise<implicitReturnType>;
     v1PublicPostPublicStakingGetConversionRate (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
@@ -45,6 +46,8 @@ interface Exchange {
     v1PrivatePostPrivateGetAccounts (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetFeeRate (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetInstrumentFeeRate (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingStake (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingUnstake (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetStakingPosition (params?: {}): Promise<implicitReturnType>;

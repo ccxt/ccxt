@@ -47,7 +47,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
@@ -83,6 +83,7 @@
     "camelcase": "off",
     "no-lonely-if": "off",
     "no-mixed-operators": "off",
+    "jsdoc/no-types": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
       "hoist": "all", // just for cleanest practices
@@ -100,7 +101,8 @@
     "prefer-exponentiation-operator": "off",
     "jsdoc/check-tag-names": ["error", {
       "definedTags": ["method"]
-    }]
+    }],
+    "jsdoc/require-param-description": "off"
   },
   "settings": {
     "import/resolver": {

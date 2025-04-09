@@ -39,6 +39,8 @@ public partial class paradex : Exchange
                 { "createOrder", true },
                 { "createOrders", false },
                 { "createReduceOnlyOrder", false },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -63,10 +65,10 @@ public partial class paradex : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", false },
-                { "fetchLeverage", false },
+                { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", true },
-                { "fetchMarginMode", null },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -100,8 +102,8 @@ public partial class paradex : Exchange
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "sandbox", true },
-                { "setLeverage", false },
-                { "setMarginMode", false },
+                { "setLeverage", true },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "transfer", false },
                 { "withdraw", false },
@@ -143,12 +145,23 @@ public partial class paradex : Exchange
                         { "system/state", 1 },
                         { "system/time", 1 },
                         { "trades", 1 },
+                        { "vaults", 1 },
+                        { "vaults/balance", 1 },
+                        { "vaults/config", 1 },
+                        { "vaults/history", 1 },
+                        { "vaults/positions", 1 },
+                        { "vaults/summary", 1 },
+                        { "vaults/transfers", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "account", 1 },
+                        { "account/info", 1 },
+                        { "account/history", 1 },
+                        { "account/margin", 1 },
                         { "account/profile", 1 },
+                        { "account/subaccounts", 1 },
                         { "balance", 1 },
                         { "fills", 1 },
                         { "funding/payments", 1 },
@@ -161,20 +174,34 @@ public partial class paradex : Exchange
                         { "orders/by_client_id/{client_id}", 1 },
                         { "orders/{order_id}", 1 },
                         { "points_data/{market}/{program}", 1 },
+                        { "referrals/qr-code", 1 },
                         { "referrals/summary", 1 },
                         { "transfers", 1 },
+                        { "algo/orders", 1 },
+                        { "algo/orders-history", 1 },
+                        { "algo/orders/{algo_id}", 1 },
+                        { "vaults/account-summary", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
+                        { "account/margin/{market}", 1 },
+                        { "account/profile/max_slippage", 1 },
                         { "account/profile/referral_code", 1 },
                         { "account/profile/username", 1 },
                         { "auth", 1 },
                         { "onboarding", 1 },
                         { "orders", 1 },
+                        { "orders/batch", 1 },
+                        { "algo/orders", 1 },
+                        { "vaults", 1 },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "orders/{order_id}", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "orders", 1 },
                         { "orders/by_client_id/{client_id}", 1 },
                         { "orders/{order_id}", 1 },
+                        { "algo/orders/{algo_id}", 1 },
                     } },
                 } },
             } },
@@ -253,26 +280,101 @@ public partial class paradex : Exchange
                     { "40111", typeof(AuthenticationError) },
                     { "40112", typeof(PermissionDenied) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "missing or malformed jwt", typeof(AuthenticationError) },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
+                { "paradexAccount", null },
                 { "broker", "CCXT" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", null },
+                { "forSwap", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forSwap" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
 
+    /**
+     * @method
+     * @name paradex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemTime(parameters);
         //
@@ -283,16 +385,16 @@ public partial class paradex : Exchange
         return this.safeInteger(response, "server_time");
     }
 
+    /**
+     * @method
+     * @name paradex#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.api.testnet.paradex.trade/#get-system-state
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.api.testnet.paradex.trade/#get-system-state
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemState(parameters);
         //
@@ -310,16 +412,16 @@ public partial class paradex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name paradex#fetchMarkets
+     * @description retrieves data on all markets for bitget
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchMarkets
-        * @description retrieves data on all markets for bitget
-        * @see https://docs.api.testnet.paradex.trade/#list-available-markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
         //
@@ -390,6 +492,57 @@ public partial class paradex : Exchange
         //         "max_tob_spread": "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":{
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        },
+        //        "mmf":{
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     },
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":[
+        //     ]
+        //  }
+        //
+        object assetKind = this.safeString(market, "asset_kind");
+        object isOption = (isEqual(assetKind, "PERP_OPTION"));
+        object type = ((bool) isTrue((isOption))) ? "option" : "swap";
+        object isSwap = (isEqual(type, "swap"));
         object marketId = this.safeString(market, "symbol");
         object quoteId = this.safeString(market, "quote_currency");
         object baseId = this.safeString(market, "base_currency");
@@ -399,6 +552,16 @@ public partial class paradex : Exchange
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
         object expiry = this.safeInteger(market, "expiry_at");
+        object optionType = this.safeString(market, "option_type");
+        object strikePrice = this.safeString(market, "strike_price");
+        if (isTrue(isOption))
+        {
+            object optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
+            symbol = add(add(add(add(symbol, "-"), strikePrice), "-"), optionTypeSuffix);
+        } else
+        {
+            expiry = null;
+        }
         object takerFee = this.parseNumber("0.0003");
         object makerFee = this.parseNumber("-0.00005");
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -410,23 +573,23 @@ public partial class paradex : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", "swap" },
+            { "type", type },
             { "spot", false },
             { "margin", null },
-            { "swap", true },
+            { "swap", isSwap },
             { "future", false },
-            { "option", false },
+            { "option", isOption },
             { "active", this.safeBool(market, "enableTrading") },
             { "contract", true },
             { "linear", true },
-            { "inverse", null },
+            { "inverse", false },
             { "taker", takerFee },
             { "maker", makerFee },
             { "contractSize", this.parseNumber("1") },
-            { "expiry", ((bool) isTrue((isEqual(expiry, 0)))) ? null : expiry },
+            { "expiry", expiry },
             { "expiryDatetime", ((bool) isTrue((isEqual(expiry, 0)))) ? null : this.iso8601(expiry) },
-            { "strike", null },
-            { "optionType", null },
+            { "strike", this.parseNumber(strikePrice) },
+            { "optionType", this.safeStringLower(market, "option_type") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.safeNumber(market, "order_size_increment") },
                 { "price", this.safeNumber(market, "price_tick_size") },
@@ -454,21 +617,21 @@ public partial class paradex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -536,17 +699,17 @@ public partial class paradex : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name paradex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -590,17 +753,17 @@ public partial class paradex : Exchange
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -671,7 +834,7 @@ public partial class paradex : Exchange
             { "low", null },
             { "bid", this.safeString(ticker, "bid") },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "sdk") },
+            { "ask", this.safeString(ticker, "ask") },
             { "askVolume", null },
             { "vwap", null },
             { "open", null },
@@ -683,22 +846,23 @@ public partial class paradex : Exchange
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeString(ticker, "volume_24h") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.api.testnet.paradex.trade/#get-market-orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.api.testnet.paradex.trade/#get-market-orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -735,21 +899,21 @@ public partial class paradex : Exchange
         return orderbook;
     }
 
+    /**
+     * @method
+     * @name paradex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.api.testnet.paradex.trade/#trade-tape
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.api.testnet.paradex.trade/#trade-tape
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch trades for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -867,17 +1031,17 @@ public partial class paradex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOpenInterest
-        * @description retrieves the open interest of a contract trading pair
-        * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
-        * @param {string} symbol unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -920,7 +1084,7 @@ public partial class paradex : Exchange
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -1013,27 +1177,29 @@ public partial class paradex : Exchange
         object systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
-            return new Dictionary<string, object>() {
+            object l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },
                 { "chainId", getValue(systemConfig, "l1_chain_id") },
                 { "version", "1" },
             };
+            return l1D;
         }
-        return new Dictionary<string, object>() {
+        object domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
             { "chainId", getValue(systemConfig, "starknet_chain_id") },
             { "version", 1 },
         };
+        return domain;
     }
 
     public async virtual Task<object> retrieveAccount()
     {
-        this.checkRequiredCredentials();
         object cachedAccount = this.safeDict(this.options, "paradexAccount");
         if (isTrue(!isEqual(cachedAccount, null)))
         {
             return cachedAccount;
         }
+        this.checkRequiredCredentials();
         object systemConfig = await this.getSystemConfig();
         object domain = await this.prepareParadexDomain(true);
         object messageTypes = new Dictionary<string, object>() {
@@ -1079,18 +1245,24 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object cachedToken = this.safeString(this.options, "authToken");
+        object now = this.nonce();
         if (isTrue(!isEqual(cachedToken, null)))
         {
-            return cachedToken;
+            object cachedExpires = this.safeInteger(this.options, "expires");
+            if (isTrue(isLessThan(now, cachedExpires)))
+            {
+                return cachedToken;
+            }
         }
         object account = await this.retrieveAccount();
-        object now = this.nonce();
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        object expires = add(now, 180);
         object req = new Dictionary<string, object>() {
             { "method", "POST" },
             { "path", "/v1/auth" },
             { "body", "" },
             { "timestamp", now },
-            { "expiration", add(now, multiply(86400, 7)) },
+            { "expiration", expires },
         };
         object domain = await this.prepareParadexDomain();
         object messageTypes = new Dictionary<string, object>() {
@@ -1125,6 +1297,7 @@ public partial class paradex : Exchange
         //
         object token = this.safeString(response, "jwt_token");
         ((IDictionary<string,object>)this.options)["authToken"] = token;
+        ((IDictionary<string,object>)this.options)["expires"] = expires;
         return token;
     }
 
@@ -1171,8 +1344,13 @@ public partial class paradex : Exchange
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
-        object stopPrice = this.safeString(order, "trigger_price");
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
+        object flags = this.safeList(order, "flags", new List<object>() {});
+        object reduceOnly = null;
+        if (isTrue(inOp(flags, "REDUCE_ONLY")))
+        {
+            reduceOnly = true;
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -1185,11 +1363,10 @@ public partial class paradex : Exchange
             { "type", this.parseOrderType(orderType) },
             { "timeInForce", this.parseTimeInForce(this.safeString(order, "instrunction")) },
             { "postOnly", null },
-            { "reduceOnly", null },
+            { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "trigger_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "average", average },
@@ -1253,27 +1430,29 @@ public partial class paradex : Exchange
         return Precise.stringMul(num, "100000000");
     }
 
+    /**
+     * @method
+     * @name paradex#createOrder
+     * @description create a trade order
+     * @see https://docs.api.prod.paradex.trade/#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {bool} [params.postOnly] true or false
+     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#createOrder
-        * @description create a trade order
-        * @see https://docs.api.prod.paradex.trade/#create-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] The price a trigger order is triggered at
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
-        * @param {bool} [params.postOnly] true or false
-        * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1285,10 +1464,14 @@ public partial class paradex : Exchange
             { "market", getValue(market, "id") },
             { "side", orderSide },
             { "type", orderType },
-            { "size", this.amountToPrecision(symbol, amount) },
         };
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object isMarket = isEqual(orderType, "MARKET");
+        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        object isStopLossOrder = (!isEqual(stopLossPrice, null));
+        object isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isTrue(isMarket))
@@ -1301,10 +1484,6 @@ public partial class paradex : Exchange
                 ((IDictionary<string,object>)request)["instruction"] = "IOC";
             }
         }
-        if (isTrue(reduceOnly))
-        {
-            ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
-        }
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1314,18 +1493,62 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        object sizeString = "0";
+        object stopPrice = null;
+        if (isTrue(isStopOrder))
         {
+            // flags: Reduce_Only must be provided for TPSL orders.
             if (isTrue(isMarket))
             {
-                ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
+                if (isTrue(isStopLossOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LOSS_MARKET";
+                } else if (isTrue(isTakeProfitOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_MARKET";
+                } else
+                {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
+                }
             } else
             {
-                ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
+                if (isTrue(isStopLossOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LOSS_LIMIT";
+                } else if (isTrue(isTakeProfitOrder))
+                {
+                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_PROFIT_LIMIT";
+                } else
+                {
+                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                    sizeString = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
+                }
             }
-            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopPrice);
+        } else
+        {
+            sizeString = this.amountToPrecision(symbol, amount);
         }
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
+        if (isTrue(!isEqual(stopPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["trigger_price"] = stopPrice;
+        }
+        ((IDictionary<string,object>)request)["size"] = sizeString;
+        if (isTrue(reduceOnly))
+        {
+            ((IDictionary<string,object>)request)["flags"] = new List<object>() {"REDUCE_ONLY"};
+        }
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         object account = await this.retrieveAccount();
         object now = this.nonce();
         object orderReq = new Dictionary<string, object>() {
@@ -1395,20 +1618,20 @@ public partial class paradex : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name paradex#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.api.prod.paradex.trade/#cancel-order
+     * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.api.prod.paradex.trade/#cancel-order
-        * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1430,17 +1653,17 @@ public partial class paradex : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name paradex#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
-        * @param {string} symbol unified market symbol of the market to cancel orders in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1459,20 +1682,20 @@ public partial class paradex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.api.prod.paradex.trade/#get-order
+     * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.api.prod.paradex.trade/#get-order
-        * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1518,22 +1741,22 @@ public partial class paradex : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.api.prod.paradex.trade/#get-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] 'buy' or 'sell'
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @param {int} params.until timestamp in ms of the latest order to fetch
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.api.prod.paradex.trade/#get-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] 'buy' or 'sell'
-        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-        * @param {int} params.until timestamp in ms of the latest order to fetch
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1610,19 +1833,19 @@ public partial class paradex : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchOpenOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchOpenOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1670,16 +1893,16 @@ public partial class paradex : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.api.prod.paradex.trade/#list-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.api.prod.paradex.trade/#list-balances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1716,21 +1939,21 @@ public partial class paradex : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.api.prod.paradex.trade/#list-fills
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.api.prod.paradex.trade/#list-fills
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1792,17 +2015,17 @@ public partial class paradex : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchPositions
-        * @description fetch data on an open position
-        * @see https://docs.api.prod.paradex.trade/#list-open-positions
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1811,17 +2034,17 @@ public partial class paradex : Exchange
         return this.safeDict(positions, 0, new Dictionary<string, object>() {});
     }
 
+    /**
+     * @method
+     * @name paradex#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.api.prod.paradex.trade/#list-open-positions
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -1916,20 +2139,20 @@ public partial class paradex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name paradex#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://docs.api.prod.paradex.trade/#list-liquidations
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the huobi api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchLiquidations
-        * @description retrieves the public liquidations of a trading pair
-        * @see https://docs.api.prod.paradex.trade/#list-liquidations
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the huobi api endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         object request = new Dictionary<string, object>() {};
@@ -1981,21 +2204,21 @@ public partial class paradex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name paradex#fetchTransfers
+     * @description fetch all deposits made to an account
+     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchTransfers
-        * @description fetch all deposits made to an account
-        * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -2054,21 +2277,21 @@ public partial class paradex : Exchange
         return this.parseTransactions(deposits, null, since, limit);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paradex#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch withdrawals for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
         await this.loadMarkets();
@@ -2192,6 +2415,171 @@ public partial class paradex : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name paradex#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.authenticateRest();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        object response = await this.privateGetAccountMargin(this.extend(request, parameters));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        object configs = this.safeList(response, "configs");
+        return this.parseMarginMode(this.safeDict(configs, 0), market);
+    }
+
+    public override object parseMarginMode(object rawMarginMode, object market = null)
+    {
+        object marketId = this.safeString(rawMarginMode, "market");
+        market = this.safeMarket(marketId, market);
+        object marginMode = this.safeStringLower(rawMarginMode, "margin_type");
+        return new Dictionary<string, object>() {
+            { "info", rawMarginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginMode },
+        };
+    }
+
+    /**
+     * @method
+     * @name paradex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] the rate of leverage
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredArgument("setMarginMode", symbol, "symbol");
+        await this.authenticateRest();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object leverage = null;
+        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", 1);
+        leverage = ((IList<object>)leverageparametersVariable)[0];
+        parameters = ((IList<object>)leverageparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+            { "leverage", leverage },
+            { "margin_type", this.encodeMarginMode(marginMode) },
+        };
+        return await this.privatePostAccountMarginMarket(this.extend(request, parameters));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.authenticateRest();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        object response = await this.privateGetAccountMargin(this.extend(request, parameters));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        object configs = this.safeList(response, "configs");
+        return this.parseLeverage(this.safeDict(configs, 0), market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "market");
+        market = this.safeMarket(marketId, market);
+        object marginMode = this.safeStringLower(leverage, "margin_type");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", this.safeInteger(leverage, "leverage") },
+            { "shortLeverage", this.safeInteger(leverage, "leverage") },
+        };
+    }
+
+    public virtual object encodeMarginMode(object mode)
+    {
+        object modes = new Dictionary<string, object>() {
+            { "cross", "CROSS" },
+            { "isolated", "ISOLATED" },
+        };
+        return this.safeString(modes, mode, mode);
+    }
+
+    /**
+     * @method
+     * @name paradex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {float} leverage the rate of leverage
+     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredArgument("setLeverage", symbol, "symbol");
+        await this.authenticateRest();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+            { "leverage", leverage },
+            { "margin_type", this.encodeMarginMode(marginMode) },
+        };
+        return await this.privatePostAccountMarginMarket(this.extend(request, parameters));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -2207,7 +2595,6 @@ public partial class paradex : Exchange
             }
         } else if (isTrue(isEqual(api, "private")))
         {
-            this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "PARADEX-PARTNER", this.safeString(this.options, "broker", "CCXT") },

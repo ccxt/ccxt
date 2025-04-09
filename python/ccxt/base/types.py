@@ -272,11 +272,13 @@ class Ticker(TypedDict):
     average: Num
     quoteVolume: Num
     baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
 
 
 Tickers = Dict[str, Ticker]
 
-
+OrderBooks = Dict[str, OrderBook]
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -354,9 +356,20 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
-class MarketMarginMode(TypedDict):
+class MarketMarginModes(TypedDict):
     cross: bool
     isolated: bool
+
+class MinMax(TypedDict):
+    min: Num
+    max: Num
+
+class MarketLimits(TypedDict):
+    amount: Optional[MinMax]
+    cost: Optional[MinMax]
+    leverage: Optional[MinMax]
+    price: Optional[MinMax]
+    market: Optional[MinMax]
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
@@ -371,7 +384,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
-    marginMode: MarketMarginMode
+    marginModes: MarketMarginModes
     swap: bool
     future: bool
     option: bool
@@ -391,7 +404,7 @@ class MarketInterface(TypedDict):
     tierBased: bool
     feeSide: Str
     precision: Any
-    limits: Any
+    limits: MarketLimits
     created: Int
 
 class Limit(TypedDict):
@@ -481,10 +494,21 @@ class FundingRate(TypedDict):
     previousFundingDatetime: Str
     previousFundingRate: Num
     info: Dict[str, Any]
+    interval: Str
 
+class OpenInterest(TypedDict):
+    symbol: Str
+    openInterestAmount: Num
+    openInterestValue: Num
+    baseVolume: Num
+    quoteVolume: Num
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
 
 class LeverageTier:
     tier: Num
+    symbol: Str
     currency: Str
     minNotional: Num
     maxNotional: Num
@@ -511,7 +535,37 @@ class LedgerEntry:
     fee: Fee
 
 
+class DepositAddress:
+    info: Any
+    currency: Str
+    network: Optional[Str]
+    address: Str
+    tag: Optional[Str]
+
+
+class LongShortRatio:
+    info: Any
+    symbol: Str
+    timestamp: Optional[Int]
+    datetime: Optional[Str]
+    timeframe: Optional[Str]
+    longShortRatio: float
+
+
+class BorrowInterest:
+    info: Any
+    symbol: Optional[Str]
+    currency: Optional[Str]
+    interest: Optional[Num]
+    interestRate: Optional[Num]
+    amountBorrowed: Optional[Num]
+    marginMode: Optional[Str]
+    timestamp: Optional[Int]
+    datetime: Optional[Str]
+
+
 FundingRates = Dict[Str, FundingRate]
+OpenInterests = Dict[Str, OpenInterest]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
@@ -521,3 +575,31 @@ LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+class ConstructorArgs(TypedDict, total=False):
+    apiKey: str
+    secret: str
+    passphrase: str
+    password: str
+    privateKey: str
+    walletAddress: str
+    uid: str
+    verbose: bool
+    testnet: bool
+    sandbox: bool  # redudant but kept for backwards compatibility
+    options: Dict[str, Any]
+    enableRateLimit: bool
+    httpsProxy: str
+    socksProxy: str
+    wssProxy: str
+    proxy: str
+    rateLimit: Num
+    commonCurrencies: Dict[str, Any]
+    userAgent: str
+    userAgents: Dict[str, Any]
+    timeout: Num
+    markets: Dict[str, Any]
+    currencies: Dict[str, Any]
+    hostname: str
+    urls: Dict[str, Any]
+    headers: Dict[str, Any]

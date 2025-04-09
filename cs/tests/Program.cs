@@ -49,7 +49,7 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests =  args.Contains("--requestTests") || args.Contains("--responseTests");
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
         isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
@@ -111,12 +111,13 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                Helper.Green("[C#] base WS tests passed");
             }
             else 
             {
                 RestBaseTests();
+                Helper.Green("[C#] base REST tests passed");
             }
-            Helper.Green(" [C#] base tests passed");
         }
 
         if (raceCondition)
@@ -135,14 +136,14 @@ public class Tests
     {
         tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
-        // run auto-transpiled tests (all of them start by 'testBaseFunction')
+        // run auto-transpiled tests (all of them start by 'testFunction')
         RunAutoTranspiledBaseTests (tests);
     }
 
     static void RunAutoTranspiledBaseTests(object testsInstance) {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(m => m.Name.StartsWith("testBase") && m.ReturnType == typeof(void))
+                        .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
                         .ToArray();
         // 2. Invoke Each Method
         foreach (MethodInfo method in methods)

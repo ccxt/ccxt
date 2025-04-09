@@ -27,8 +27,9 @@ public partial class p2b : ccxt.p2b
                 { "watchOrderBook", true },
                 { "watchOrders", false },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -58,18 +59,18 @@ public partial class p2b : ccxt.p2b
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash string to look up in handler
+     * @param {string[]|float[]} request endpoint parameters
+     * @param {object} [params] extra parameters specific to the p2b api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> subscribe(object name, object messageHash, object request, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @param {string} name name of the channel
-        * @param {string} messageHash string to look up in handler
-        * @param {string[]|float[]} request endpoint parameters
-        * @param {object} [params] extra parameters specific to the p2b api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
@@ -81,20 +82,20 @@ public partial class p2b : ccxt.p2b
         return await this.watch(url, messageHash, query, messageHash);
     }
 
+    /**
+     * @method
+     * @name p2b#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 15m, 30m, 1h or 1d
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name p2b#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
-        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe 15m, 30m, 1h or 1d
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "15m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -115,19 +116,19 @@ public partial class p2b : ccxt.p2b
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name p2b#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name p2b#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
-        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.method] 'state' (default) or 'price'
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object watchTickerOptions = this.safeDict(this.options, "watchTicker");
@@ -144,45 +145,117 @@ public partial class p2b : ccxt.p2b
         return await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters);
     }
 
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name p2b#watchTickers
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name p2b#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new List<object>() {getValue(market, "id")};
-        object messageHash = add("deals::", getValue(market, "symbol"));
-        object trades = await this.subscribe("deals.subscribe", messageHash, request, parameters);
+        symbols = this.marketSymbols(symbols, null, false);
+        object watchTickerOptions = this.safeDict(this.options, "watchTicker");
+        object name = this.safeString(watchTickerOptions, "name", "state"); // or price
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+        name = ((IList<object>)nameparametersVariable)[0];
+        parameters = ((IList<object>)nameparametersVariable)[1];
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
+            ((IList<object>)args).Add(getValue(market, "id"));
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "method", add(name, ".subscribe") },
+            { "params", args },
+            { "id", this.milliseconds() },
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    /**
+     * @method
+     * @name p2b#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    /**
+     * @method
+     * @name p2b#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
+            }
+        }
+        object marketIds = this.marketIds(symbols);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object subscribe = new Dictionary<string, object>() {
+            { "method", "deals.subscribe" },
+            { "params", marketIds },
+            { "id", this.milliseconds() },
+        };
+        object query = this.extend(subscribe, parameters);
+        object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name p2b#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] 1-100, default=100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name p2b#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] 1-100, default=100
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -345,6 +418,7 @@ public partial class p2b : ccxt.p2b
             ticker = this.parseTicker(tickerData, market);
         }
         object symbol = getValue(ticker, "symbol");
+        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add(add(messageHashStart, "::"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         return message;
