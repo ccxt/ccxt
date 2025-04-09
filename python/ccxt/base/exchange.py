@@ -6484,6 +6484,23 @@ class Exchange(object):
             return values
         return input
 
+    def remove_repeated_trades_from_array(self, input):
+        uniqueResult = {}
+        for i in range(0, len(input)):
+            entry = input[i]
+            id = self.safe_string(entry, 'id')
+            if id is None:
+                price = self.safe_string(entry, 'price')
+                amount = self.safe_string(entry, 'amount')
+                timestamp = self.safe_string(entry, 'timestamp')
+                side = self.safe_string(entry, 'side')
+                # unique trade identifier
+                id = 't_' + str(timestamp) + '_' + side + '_' + price + '_' + amount
+            if id is not None and not (id in uniqueResult):
+                uniqueResult[id] = entry
+        values = list(uniqueResult.values())
+        return values
+
     def handle_until_option(self, key: str, request, params, multiplier=1):
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
