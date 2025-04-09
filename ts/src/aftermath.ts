@@ -4,7 +4,7 @@ import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV,
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 export default class aftermath extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'aftermath',
             'name': 'AftermathFinance',
