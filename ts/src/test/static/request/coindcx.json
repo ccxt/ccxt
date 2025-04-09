@@ -12,17 +12,6 @@
                 "output": "{\"timestamp\":1744189746777}"
             }
         ],
-        "fetchPosition": [
-            {
-                "description": "fetch potition",
-                "method": "fetchPosition",
-                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/positions",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "output": "{\"pairs\":\"B-ETH_USDT\",\"timestamp\":1744189508172}"
-            }
-        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel all orders",
