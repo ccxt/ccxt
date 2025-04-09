@@ -9014,6 +9014,26 @@ func  (this *Exchange) RemoveRepeatedElementsFromArray(input interface{}, option
     }
     return input
 }
+func  (this *Exchange) RemoveRepeatedTradesFromArray(input interface{}) interface{}  {
+    var uniqueResult interface{} = map[string]interface{} {}
+    for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
+        var entry interface{} = GetValue(input, i)
+        var id interface{} = this.SafeString(entry, "id")
+        if IsTrue(IsEqual(id, nil)) {
+            var price interface{} = this.SafeString(entry, "price")
+            var amount interface{} = this.SafeString(entry, "amount")
+            var timestamp interface{} = this.SafeString(entry, "timestamp")
+            var side interface{} = this.SafeString(entry, "side")
+            // unique trade identifier
+            id = Add(Add(Add(Add(Add(Add(Add("t_", ToString(timestamp)), "_"), side), "_"), price), "_"), amount)
+        }
+        if IsTrue(IsTrue(!IsEqual(id, nil)) && !IsTrue((InOp(uniqueResult, id)))) {
+            AddElementToObject(uniqueResult, id, entry)
+        }
+    }
+    var values interface{} = ObjectValues(uniqueResult)
+    return values
+}
 func  (this *Exchange) HandleUntilOption(key interface{}, request interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
     multiplier := GetArg(optionalArgs, 0, 1)
     _ = multiplier

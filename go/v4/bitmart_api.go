@@ -1766,3 +1766,19 @@ func (this *bitmart) PrivatePostContractPrivateCancelTrailOrder (args ...interfa
    }()
    return ch
 }
+
+func (this *bitmart) PrivatePostContractPrivateSetPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostContractPrivateSetPositionMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
