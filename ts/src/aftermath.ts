@@ -718,8 +718,14 @@ export default class aftermath extends Exchange {
         };
         const tx = await this.privatePostBuildCreateSubaccount (txRequest);
         const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostSubmitCreateAccount (request);
+        const response = await this.privatePostSubmitCreateSubaccount (request);
         //
+        // {
+        //     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
+        //     "type": "subaccount",
+        //     "code": "USDC",
+        //     "accountNumber": 101
+        // }
         //
         return response;
     }
@@ -804,7 +810,7 @@ export default class aftermath extends Exchange {
         const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (signature, publicKey));
         const base64Sig = this.binaryToBase64 (suiSignature);
         const transactionBytes = this.safeString (tx, 'transactionBytes');
-        return { 'transactionBytes': transactionBytes, 'signature': base64Sig };
+        return { 'transactionBytes': transactionBytes, 'signatures': [ base64Sig ] };
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

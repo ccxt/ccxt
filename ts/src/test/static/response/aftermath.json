@@ -402,8 +402,17 @@
                     "vwap": null,
                     "previousClose": null,
                     "markPrice": null,
-                    "info": {},
-                    "datetime": null
+                    "info": {
+                        "symbol": "BTC/USD:USDC",
+                        "timestamp": "1740440462532",
+                        "bid": "91915.877",
+                        "ask": "91928.508",
+                        "change": "-2790.1630000000005",
+                        "baseVolume": "0.0",
+                        "quoteVolume": "0.0",
+                        "indexPrice": "91943.48492847"
+                    },
+                    "datetime": "2025-02-24T23:41:02.532Z"
                 }
             }
         ],
