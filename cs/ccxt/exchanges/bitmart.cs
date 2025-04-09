@@ -98,6 +98,7 @@ public partial class bitmart : Exchange
                 { "repayIsolatedMargin", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -240,6 +241,7 @@ public partial class bitmart : Exchange
                         { "contract/private/modify-tp-sl-order", 2.5 },
                         { "contract/private/submit-trail-order", 2.5 },
                         { "contract/private/cancel-trail-order", 1.5 },
+                        { "contract/private/set-position-mode", 1 },
                     } },
                 } },
             } },
@@ -5716,6 +5718,44 @@ public partial class bitmart : Exchange
             }
         }
         return addresses;
+    }
+
+    /**
+     * @method
+     * @name bitmart#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object positionMode = null;
+        if (isTrue(hedged))
+        {
+            positionMode = "hedge_mode";
+        } else
+        {
+            positionMode = "one_way_mode";
+        }
+        object request = new Dictionary<string, object>() {
+            { "position_mode", positionMode },
+        };
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return await ((Task<object>)callDynamically(this, "privatePostContractPrivateSetPositionMode", new object[] { this.extend(request, parameters) }));
     }
 
     public override object nonce()

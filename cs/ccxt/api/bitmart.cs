@@ -561,4 +561,9 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privatePostContractPrivateCancelTrailOrder",parameters);
     }
 
+    public async Task<object> privatePostContractPrivateSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateSetPositionMode",parameters);
+    }
+
 }
