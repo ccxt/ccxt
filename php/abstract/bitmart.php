@@ -337,6 +337,9 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_contract_private_cancel_trail_order($params = array()) {
         return $this->request('contract/private/cancel-trail-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
+    public function private_post_contract_private_set_position_mode($params = array()) {
+        return $this->request('contract/private/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetSystemTime($params = array()) {
         return $this->request('system/time', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -666,5 +669,8 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privatePostContractPrivateCancelTrailOrder($params = array()) {
         return $this->request('contract/private/cancel-trail-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostContractPrivateSetPositionMode($params = array()) {
+        return $this->request('contract/private/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

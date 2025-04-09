@@ -252,6 +252,7 @@ class bitflyer extends Exchange {
             //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
             //         // forex $swap
             //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
+            //
             //         // $future
             //         array(
             //             "product_code" => "BTCJPY11FEB2022",
