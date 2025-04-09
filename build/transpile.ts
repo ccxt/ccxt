@@ -896,9 +896,6 @@ class Transpiler {
     // exchange capabilities ordering
 
     sortExchangeCapabilities (code) {
-        const baseExchange = this.getBaseClass ()
-        const defaultDescribe = baseExchange.describe ();
-        const defaultHas = defaultDescribe.has;
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
@@ -928,6 +925,9 @@ class Transpiler {
             }
         }
         // check unified methods and autofill the .has tree
+        const baseExchange = this.getBaseClass ()
+        const defaultDescribe = baseExchange.describe ();
+        const defaultHas = defaultDescribe.has;
         const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
         const specialMethods = [
             // ohlcv-related
