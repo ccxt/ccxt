@@ -336,7 +336,6 @@ export default class aftermath extends Exchange {
         //     "bidVolume": 0.1,
         //     "change": 0.1,
         //     "close": 0.1,
-        //     "datetime": "string",
         //     "high": 0.1,
         //     "indexPrice": 0.1,
         //     "last": 0.1,
@@ -351,15 +350,35 @@ export default class aftermath extends Exchange {
         //     "vwap": 0.1
         // }
         //
-        return this.parseTicker (response);
+        return this.parseTicker (response, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        const parsed = this.safeTicker (ticker);
-        parsed['info'] = {};
-        parsed['timestamp'] = this.safeInteger (ticker, 'timestamp');
-        parsed['datetime'] = this.safeString (ticker, 'datetime');
-        return parsed;
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        return this.safeTicker ({
+            'symbol': this.safeString (ticker, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidVolume'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askVolume'),
+            'vwap': this.safeString (ticker, 'vwap'),
+            'open': this.safeString (ticker, 'open'),
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'markPrice': undefined,
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'info': ticker,
+        }, market);
     }
 
     /**
