@@ -2113,7 +2113,9 @@ export default class Exchange {
 
     urlEncoderForProxyUrl (targetUrl: string) {
         // to be overriden
-        return this.encodeURIComponent (targetUrl);
+        const includesQuery = targetUrl.indexOf ('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent (targetUrl) : targetUrl;
+        return finalUrl;
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
