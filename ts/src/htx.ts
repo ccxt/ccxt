@@ -6,16 +6,16 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
- * @class huobi
+ * @class htx
  * @augments Exchange
  */
 export default class htx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'htx',
             'name': 'HTX',
@@ -98,6 +98,7 @@ export default class htx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -892,6 +893,7 @@ export default class htx extends Exchange {
                     '1041': InvalidOrder, // {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds, // {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  // {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061': OrderNotFound, // {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
                     '1051': InvalidOrder, // {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol, // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder, // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
@@ -951,6 +953,8 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1267,17 +1271,20 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                         'limit': 500,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -1286,6 +1293,7 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -1293,8 +1301,9 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
@@ -1334,7 +1343,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1598,7 +1607,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const options = this.safeValue (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
@@ -1770,6 +1779,9 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         let types = undefined;
         [ types, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -3317,7 +3329,10 @@ export default class htx extends Exchange {
                 type = 'margin';
             }
         }
-        const marketId = (symbol === undefined) ? undefined : this.marketId (symbol);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            marketId = this.marketId (symbol);
+        }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue (account, 'info');
@@ -7120,14 +7135,18 @@ export default class htx extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const options = this.safeValue (this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString (symbols, 0);
+            const market = this.market (firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request: Dict = {
             // 'contract_code': market['id'],
         };
-        params = this.omit (params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate (this.extend (request, params));
@@ -7155,8 +7174,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = this.parseFundingRates (data);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     /**
@@ -7286,6 +7304,10 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
@@ -7299,7 +7321,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams (path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7374,18 +7396,20 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend (request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort (request) as any;
-                let auth = this.urlencode (request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort (query) as any;
+                    request = this.extend (request, sortedQuery);
+                }
+                let auth = this.urlencode (request).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
@@ -7419,6 +7443,7 @@ export default class htx extends Exchange {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString (response, 'status');
             if (status === 'error') {
@@ -7436,6 +7461,16 @@ export default class htx extends Exchange {
             const feedback = this.id + ' ' + body;
             const code = this.safeString (response, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict (response, 'data');
+        const errorsList = this.safeList (data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict (errorsList, 0);
+            const errcode = this.safeString (first, 'err_code');
+            const errmessage = this.safeString (first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }
@@ -8464,6 +8499,103 @@ export default class htx extends Exchange {
 
     /**
      * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString (symbols, 0);
+                market = this.market (first);
+            }
+        }
+        const request: Dict = {};
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        let response = undefined;
+        if (marketType === 'future') {
+            response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 118850.000000000000000000,
+            //                 "amount": 635.502025211544374189,
+            //                 "symbol": "BTC",
+            //                 "contract_type": "this_week",
+            //                 "contract_code": "BTC220930",
+            //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            //                 "trade_volume": 286286,
+            //                 "trade_turnover": 28628600.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337928805
+            //     }
+            //
+        } else if (subType === 'inverse') {
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 518018.000000000000000000,
+            //                 "amount": 2769.675777407074725180,
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USD",
+            //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            //                 "trade_volume": 1848448,
+            //                 "trade_turnover": 184844800.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337226028
+            //     }
+            //
+        } else {
+            request['contract_type'] = 'swap';
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 7192610.000000000000000000,
+            //                 "amount": 7192.610000000000000000,
+            //                 "symbol": "BTC",
+            //                 "value": 134654290.332000000000000000,
+            //                 "contract_code": "BTC-USDT",
+            //                 "trade_amount": 70692.804,
+            //                 "trade_volume": 70692804,
+            //                 "trade_turnover": 1379302592.9518,
+            //                 "business_type": "swap",
+            //                 "pair": "BTC-USDT",
+            //                 "contract_type": "swap",
+            //                 "trade_partition": "USDT"
+            //             }
+            //         ],
+            //         "ts": 1664336503144
+            //     }
+            //
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
+    }
+
+    /**
+     * @method
      * @name htx#fetchOpenInterest
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -8624,8 +8756,9 @@ export default class htx extends Exchange {
         const timestamp = this.safeInteger (interest, 'ts');
         const amount = this.safeNumber (interest, 'volume');
         const value = this.safeNumber (interest, 'value');
+        const marketId = this.safeString (interest, 'contract_code');
         return this.safeOpenInterest ({
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeSymbol (marketId, market),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,

@@ -10,6 +10,7 @@ require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
+// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.useMessageQueue = false;

@@ -7,9 +7,8 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -40,7 +39,7 @@ from ccxt.base.precise import Precise
 
 class okx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okx, self).describe(), {
             'id': 'okx',
             'name': 'OKX',
@@ -334,7 +333,9 @@ class okx(Exchange, ImplicitAPI):
                         'trade/easy-convert-currency-list': 20,
                         'trade/easy-convert-history': 20,
                         'trade/one-click-repay-currency-list': 20,
+                        'trade/one-click-repay-currency-list-v2': 20,
                         'trade/one-click-repay-history': 20,
+                        'trade/one-click-repay-history-v2': 20,
                         'trade/account-rate-limit': 1,
                         # asset
                         'asset/currencies': 5 / 3,
@@ -491,6 +492,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/cancel-advance-algos': 1,
                         'trade/easy-convert': 20,
                         'trade/one-click-repay': 20,
+                        'trade/one-click-repay-v2': 20,
                         'trade/mass-cancel': 4,
                         'trade/cancel-all-after': 10,
                         # asset
@@ -1011,71 +1013,64 @@ class okx(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLN': 'Lightning',
+                    'BTCLIGHTNING': 'Lightning',
                     'BEP20': 'BSC',
+                    'BRC20': 'BRC20',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    # sorted
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
-                    'BHP': 'BHP',
                     'APT': 'Aptos',
+                    'SCROLL': 'Scroll',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
-                    'ARK': 'ARK',
+                    'BASE': 'Base',
+                    'SUI': 'SUI',
+                    'ZKSYNCERA': 'zkSync Era',
+                    'LINEA': 'Linea',
                     'AR': 'Arweave',
                     'ASTR': 'Astar',
                     'BCH': 'BitcoinCash',
                     'BSV': 'Bitcoin SV',
-                    'BTM': 'Bytom',
                     'ADA': 'Cardano',
                     'CSPR': 'Casper',
                     'CELO': 'CELO',
                     'XCH': 'Chia',
-                    'CHZ': 'Chiliz',
+                    # 'CHZ': 'Chiliz', TBD: Chiliz 2.0 Chain vs Chiliz Chain
                     'ATOM': 'Cosmos',
-                    'TRUE': 'TrueChain',
-                    'DCR': 'Decred',
                     'DGB': 'Digibyte',
                     'DOGE': 'Dogecoin',
-                    'XEC': 'XEC',
                     'EGLD': 'Elrond',
+                    'CFX': 'Conflux',  # CFX_EVM is different
                     'EOS': 'EOS',
+                    'CORE': 'CORE',
                     'ETC': 'Ethereum Classic',
                     'ETHW': 'EthereumPow',
-                    'FTM': 'Fantom',
+                    # 'FTM': 'Fantom', 'Sonic' TBD
                     'FIL': 'Filecoin',
-                    'FLOW': 'FLOW',
-                    'FSN': 'Fusion',
                     'ONE': 'Harmony',
                     'HBAR': 'Hedera',
-                    'HNT': 'Helium',
-                    'ZEN': 'Horizen',
                     'ICX': 'ICON',
                     'ICP': 'Dfinity',
                     'IOST': 'IOST',
                     'IOTA': 'MIOTA',
-                    'KDA': 'Kadena',
-                    'KAR': 'KAR',
                     'KLAY': 'Klaytn',
                     'KSM': 'Kusama',
                     'LSK': 'Lisk',
                     'LTC': 'Litecoin',
                     'METIS': 'Metis',
                     'MINA': 'Mina',
-                    'XMR': 'Monero',
                     'GLRM': 'Moonbeam',
                     'MOVR': 'Moonriver',
                     'NANO': 'Nano',
                     'NEAR': 'NEAR',
-                    'NAS': 'Nebulas',
-                    'NEM': 'New Economy Movement',
                     'NULS': 'NULS',
                     'OASYS': 'OASYS',
-                    'OKC': 'OKC',
                     'ONT': 'Ontology',
                     'OPTIMISM': 'Optimism',
+                    # 'OP': 'Optimism', or Optimism(V2), TBD
                     'LAT': 'PlatON',
                     'DOT': 'Polkadot',
                     'MATIC': 'Polygon',
@@ -1088,35 +1083,54 @@ class okx(Exchange, ImplicitAPI):
                     'XTZ': 'Tezos',
                     'TON': 'TON',
                     'THETA': 'Theta',
-                    'VSYS': 'VSYSTEMS',
-                    'WAVES': 'WAVES',
                     'WAX': 'Wax',
-                    'ZEC': 'Zcash',
                     'ZIL': 'Zilliqa',
-                    'ZKSYNC': 'ZKSYNC',
-                    'OMNI': 'Omni',
-                    # 'NEON3': 'N3',  # tbd
-                    # undetermined : "CELO-TOKEN", "Digital Cash", Khala
-                    # todo: uncomment below after consensus
-                    # 'AELF': 'AELF',
-                    # 'BITCOINDIAMOND': 'Bitcoin Diamond',
-                    # 'BITCOINGOLD': 'BitcoinGold',
-                    # 'YOYOW': 'YOYOW',
-                    # 'QTUM': 'Quantum',
-                    # 'INTCHAIN': 'INTCHAIN',
-                    # 'YOUCHAIN': 'YOUCHAIN',
-                    # 'RONIN': 'Ronin',
-                    # 'OEC': 'OEC',
-                    # 'WAYIKICHAIN': 'WGRT',
-                    # 'MDNA': 'DNA',
-                    # 'STEP': 'Step Network',
-                    # 'EMINER': 'Eminer',
-                    # 'CYBERMILES': 'CyberMiles',
-                    # 'HYPERCASH': 'HyperCash',
-                    # 'CONFLUX': 'Conflux',
-                    # 'CORTEX': 'Cortex',
-                    # 'TERRA': 'Terra',
-                    # 'TERRACLASSIC': 'Terra Classic',
+                    # non-supported known network: CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    # others:
+                    # "OKTC",
+                    # "X Layer",
+                    # "Polygon(Bridged)",
+                    # "BTCK-OKTC",
+                    # "ETHK-OKTC",
+                    # "Starknet",
+                    # "LTCK-OKTC",
+                    # "XRPK-OKTC",
+                    # "BCHK-OKTC",
+                    # "ETCK-OKTC",
+                    # "Endurance Smart Chain",
+                    # "Berachain",
+                    # "CELO-TOKEN",
+                    # "CFX_EVM",
+                    # "Cortex",
+                    # "DAIK-OKTC",
+                    # "Dora Vota Mainnet",
+                    # "DOTK-OKTC",
+                    # "DYDX",
+                    # "AELF",
+                    # "Enjin Relay Chain",
+                    # "FEVM",
+                    # "FILK-OKTC",
+                    # "Flare",
+                    # "Gravity Alpha Mainnet",
+                    # "INJ",
+                    # "Story",
+                    # "LINKK-OKTC",
+                    # "Terra",
+                    # "Terra Classic",
+                    # "Terra Classic(USTC)",
+                    # "MERLIN Network",
+                    # "Layer 3",
+                    # "PI",
+                    # "Ronin",
+                    # "Quantum",
+                    # "SHIBK-OKTC",
+                    # "SUSHIK-OKTC",
+                    # "Celestia",
+                    # "TRXK-OKTC",
+                    # "UNIK-OKTC",
+                    # "Venom",
+                    # "WBTCK-OKTC",
+                    # "ZetaChain",
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1140,6 +1154,8 @@ class okx(Exchange, ImplicitAPI):
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
                 'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                'timeDifference': 0,  # the difference between system clock and exchange server clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 # 'fetchBalance': {
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
@@ -1226,7 +1242,7 @@ class okx(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1250,27 +1266,31 @@ class okx(Exchange, ImplicitAPI):
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,  # not supported
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': 90,  # 3 months
+                        'daysBack': 90,  # 3 months
                         'daysBackCanceled': 1 / 12,  # 2 hour
                         'untilDays': None,
                         'trigger': True,
                         'trailing': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -1437,7 +1457,7 @@ class okx(Exchange, ImplicitAPI):
                 update['status'] = 'ok'
         return update
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1504,6 +1524,9 @@ class okx(Exchange, ImplicitAPI):
             })
         return result
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for okx
@@ -1513,6 +1536,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         types = self.safe_list(self.options, 'fetchMarkets', [])
         promises = []
         result = []
@@ -1599,11 +1624,12 @@ class okx(Exchange, ImplicitAPI):
         optionType = None
         if contract:
             symbol = symbol + ':' + settle
-            expiry = self.safe_integer(market, 'expTime')
             if future:
+                expiry = self.safe_integer(market, 'expTime')
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
             elif option:
+                expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 ymd = self.yymmdd(expiry)
@@ -1636,7 +1662,7 @@ class okx(Exchange, ImplicitAPI):
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': self.parse_number(strikePrice),
             'optionType': optionType,
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
@@ -1794,37 +1820,24 @@ class okx(Exchange, ImplicitAPI):
             code = currency['code']
             chains = dataByCurrencyId[currencyId]
             networks: dict = {}
-            currencyActive = False
-            depositEnabled = False
-            withdrawEnabled = False
-            maxPrecision = None
-            for j in range(0, len(chains)):
+            type = 'crypto'
+            chainsLength = len(chains)
+            for j in range(0, chainsLength):
                 chain = chains[j]
-                canDeposit = self.safe_bool(chain, 'canDep')
-                depositEnabled = canDeposit if (canDeposit) else depositEnabled
-                canWithdraw = self.safe_bool(chain, 'canWd')
-                withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
-                canInternal = self.safe_bool(chain, 'canInternal')
-                active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = active if (active) else currencyActive
-                networkId = self.safe_string(chain, 'chain')
-                if (networkId is not None) and (networkId.find('-') >= 0):
-                    parts = networkId.split('-')
-                    chainPart = self.safe_string(parts, 1, networkId)
+                networkId = self.safe_string(chain, 'chain')  # USDT-BEP20, USDT-Avalance-C, etc
+                if networkId is not None:
+                    idParts = networkId.split('-')
+                    parts = self.array_slice(idParts, 1)
+                    chainPart = '-'.join(parts)
                     networkCode = self.network_id_to_code(chainPart, currency['code'])
-                    precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
-                    if maxPrecision is None:
-                        maxPrecision = precision
-                    else:
-                        maxPrecision = Precise.string_min(maxPrecision, precision)
                     networks[networkCode] = {
                         'id': networkId,
                         'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
+                        'active': None,
+                        'deposit': self.safe_bool(chain, 'canDep'),
+                        'withdraw': self.safe_bool(chain, 'canWd'),
                         'fee': self.safe_number(chain, 'fee'),
-                        'precision': self.parse_number(precision),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
                         'limits': {
                             'withdraw': {
                                 'min': self.safe_number(chain, 'minWd'),
@@ -1833,25 +1846,29 @@ class okx(Exchange, ImplicitAPI):
                         },
                         'info': chain,
                     }
+                else:
+                    # only happens for FIAT currency
+                    type = 'fiat'
             firstChain = self.safe_dict(chains, 0, {})
-            result[code] = {
-                'info': None,
+            result[code] = self.safe_currency_structure({
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': self.safe_string(firstChain, 'name'),
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
-                'precision': self.parse_number(maxPrecision),
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                 },
+                'type': type,
                 'networks': networks,
-            }
+            })
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -2750,9 +2767,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2769,9 +2788,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return await self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return await self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
@@ -2979,11 +3000,17 @@ class okx(Exchange, ImplicitAPI):
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice)
-                request['tpOrdPx'] = '-1' if (tpOrdPx is None) else self.price_to_precision(symbol, tpOrdPx)
+                tpOrdPxReq = '-1'
+                if tpOrdPx is not None:
+                    tpOrdPxReq = self.price_to_precision(symbol, tpOrdPx)
+                request['tpOrdPx'] = tpOrdPxReq
                 request['tpTriggerPxType'] = tpTriggerPxType
             if stopLossPrice is not None:
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice)
-                request['slOrdPx'] = '-1' if (slOrdPx is None) else self.price_to_precision(symbol, slOrdPx)
+                slOrdPxReq = '-1'
+                if slOrdPx is not None:
+                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx)
+                request['slOrdPx'] = slOrdPxReq
                 request['slTriggerPxType'] = slTriggerPxType
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -3023,6 +3050,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.trailingPercent]: the percent to trail away from the current market price
         :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode
+        :param str [params.marginMode]: 'cross' or 'isolated', the default is 'cross'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5874,7 +5902,7 @@ class okx(Exchange, ImplicitAPI):
                     if clientOrderId is None:
                         params['clOrdId'] = brokerId + self.uuid16()
                         params['tag'] = brokerId
-            timestamp = self.iso8601(self.milliseconds())
+            timestamp = self.iso8601(self.nonce())
             headers = {
                 'OK-ACCESS-KEY': self.apiKey,
                 'OK-ACCESS-PASSPHRASE': self.password,
@@ -6438,7 +6466,8 @@ class okx(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
-                borrowRateHistories[code].append(borrowRateStructure)
+                borrrowRateCode = borrowRateHistories[code]
+                borrrowRateCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())
         for i in range(0, len(keys)):
             code = keys[i]

@@ -10,7 +10,7 @@ use ccxt\async\abstract\fmfwio as hitbtc;
 
 class fmfwio extends hitbtc {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'fmfwio',
             'name' => 'FMFW.io',

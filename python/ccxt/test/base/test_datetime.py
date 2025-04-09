@@ -26,6 +26,7 @@ def test_datetime():
     assert exchange.iso8601(514862627062) == '1986-04-26T01:23:47.062Z'
     assert exchange.iso8601(0) == '1970-01-01T00:00:00.000Z'
     assert exchange.iso8601(-1) is None
+    # assert (exchange.iso8601 () === undefined);
     # todo: assert (exchange.iso8601 () === undefined);
     assert exchange.iso8601(None) is None
     assert exchange.iso8601('') is None
@@ -42,6 +43,7 @@ def test_datetime():
     assert exchange.parse8601('3333') is None
     assert exchange.parse8601('Sr90') is None
     assert exchange.parse8601('') is None
+    # assert (exchange.parse8601 () === undefined);
     # todo: assert (exchange.parse8601 () === undefined);
     assert exchange.parse8601(None) is None
     assert exchange.parse8601({}) is None

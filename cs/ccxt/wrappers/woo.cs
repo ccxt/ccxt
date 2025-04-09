@@ -1334,7 +1334,7 @@ public partial class woo
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Position> FetchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);

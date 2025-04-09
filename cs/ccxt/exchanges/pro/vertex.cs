@@ -47,6 +47,11 @@ public partial class vertex : ccxt.vertex
                 } },
                 { "ws", new Dictionary<string, object>() {
                     { "inflate", true },
+                    { "options", new Dictionary<string, object>() {
+                        { "headers", new Dictionary<string, object>() {
+                            { "Sec-WebSocket-Extensions", "permessage-deflate" },
+                        } },
+                    } },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {

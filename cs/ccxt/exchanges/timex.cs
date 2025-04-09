@@ -189,6 +189,76 @@ public partial class timex : Exchange
                 { "defaultSort", "timestamp,asc" },
                 { "defaultSortOrders", "createdAt,asc" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
         });
     }
 
@@ -607,6 +677,7 @@ public partial class timex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -621,6 +692,7 @@ public partial class timex : Exchange
         };
         // if since and limit are not specified
         object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(isEqual(limit, null)))
         {
             limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
@@ -628,13 +700,25 @@ public partial class timex : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
-            ((IDictionary<string,object>)request)["till"] = this.iso8601(this.sum(since, multiply(multiply(this.sum(limit, 1), duration), 1000)));
+            if (isTrue(isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["till"] = this.iso8601(this.sum(since, multiply(multiply(this.sum(limit, 1), duration), 1000)));
+            } else
+            {
+                ((IDictionary<string,object>)request)["till"] = this.iso8601(until);
+            }
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["till"] = this.iso8601(until);
+            object fromTimestamp = subtract(until, multiply(multiply(this.sum(limit, 1), duration), 1000));
+            ((IDictionary<string,object>)request)["from"] = this.iso8601(fromTimestamp);
         } else
         {
             object now = this.milliseconds();
             ((IDictionary<string,object>)request)["till"] = this.iso8601(now);
-            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(subtract(now, multiply(multiply(limit, duration), 1000)), 1));
+            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(subtract(now, multiply(multiply(this.sum(limit, 1), duration), 1000)), 1));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandles(this.extend(request, parameters));
         //
         //     [

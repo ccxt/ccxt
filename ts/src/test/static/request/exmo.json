@@ -289,6 +289,83 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "Fetch OHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1731916799&to=1735516800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735516800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1735430399&to=1735516800",
+                "input": [
+                "BTC/USDT",
+                "1h",
+                1735430400000,
+                null,
+                {
+                    "until": 1735516800000
+                }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1735505999&to=1735516800",
+                "input": [
+                "BTC/USDT",
+                "1h",
+                null,
+                3,
+                {
+                    "until": 1735516800000
+                }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1735430399&to=1735516800",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735430400000,
+                    3,
+                    {
+                    "until": 1735516800000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1735666548&to=1735677349",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=60&from=1735430399&to=1735677380",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735430400000
+                ]
             }
         ]
     }

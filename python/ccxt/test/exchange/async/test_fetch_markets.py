@@ -23,3 +23,4 @@ async def test_fetch_markets(exchange, skipped_properties):
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, market_values)
     for i in range(0, len(market_values)):
         test_market(exchange, skipped_properties, method, market_values[i])
+    return True

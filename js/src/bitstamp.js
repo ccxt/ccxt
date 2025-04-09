@@ -527,17 +527,20 @@ export default class bitstamp extends Exchange {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -1307,10 +1310,9 @@ export default class bitstamp extends Exchange {
     }
     parseTradingFees(fees) {
         const result = { 'info': fees };
-        const symbols = this.symbols;
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
+            const symbol = fee['symbol'];
             result[symbol] = fee;
         }
         return result;

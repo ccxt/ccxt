@@ -15,5 +15,6 @@ async function testFetchMyTrades(exchange, skippedProperties, symbol) {
         testTrade(exchange, skippedProperties, method, trades[i], symbol, now);
     }
     testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
+    return true;
 }
 export default testFetchMyTrades;

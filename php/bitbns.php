@@ -10,7 +10,7 @@ use ccxt\abstract\bitbns as Exchange;
 
 class bitbns extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',
@@ -141,6 +141,69 @@ class bitbns extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo with triggerPrice
+                        'takeProfitPrice' => false, // todo with triggerPrice
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false, // todo recheck
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    // todo => implement fetchOHLCV
+                    'fetchOHLCV' => array(
+                        'limit' => 100,
+                    ),
+                ),
+                // todo => implement swap methods
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // array("msg":"Invalid Request","status":-1,"code":400)
@@ -244,7 +307,7 @@ class bitbns extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => null,
+                'active' => $this->safe_bool($market, 'active'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

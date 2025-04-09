@@ -12,12 +12,12 @@ use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitstamp extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
@@ -528,17 +528,20 @@ class bitstamp extends Exchange {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null,
@@ -1340,10 +1343,9 @@ class bitstamp extends Exchange {
 
     public function parse_trading_fees($fees) {
         $result = array( 'info' => $fees );
-        $symbols = $this->symbols;
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
+            $symbol = $fee['symbol'];
             $result[$symbol] = $fee;
         }
         return $result;

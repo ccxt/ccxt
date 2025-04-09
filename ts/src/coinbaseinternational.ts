@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -15,12 +15,12 @@ import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction,
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': [ 'US' ],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
             'version': 'v1',
@@ -289,17 +289,20 @@ export default class coinbaseinternational extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -775,7 +778,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.network] unified network code to identify the blockchain network
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
@@ -811,8 +814,9 @@ export default class coinbaseinternational extends Exchange {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
-        };
+        } as DepositAddress;
     }
 
     findDefaultNetwork (networks) {
@@ -831,7 +835,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const networks = this.safeDict (currency, 'networks');
         if (networks !== undefined) {
-            return;
+            return false;
         }
         const request: Dict = {
             'asset': currency['id'],
@@ -856,6 +860,7 @@ export default class coinbaseinternational extends Exchange {
         //    ]
         //
         currency['networks'] = this.parseNetworks (rawNetworks);
+        return true;
     }
 
     parseNetworks (networks, params = {}) {
@@ -1754,7 +1759,7 @@ export default class coinbaseinternational extends Exchange {
         request['type'] = typeId;
         if (type === 'limit') {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + 'createOrder() requires a price parameter for a limit order types');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
         }
@@ -1768,7 +1773,7 @@ export default class coinbaseinternational extends Exchange {
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
-                throw new InvalidOrder (this.id + 'createOrder() market orders must have tif set to "IOC"');
+                throw new InvalidOrder (this.id + ' createOrder() market orders must have tif set to "IOC"');
             }
             tif = 'IOC';
         } else {

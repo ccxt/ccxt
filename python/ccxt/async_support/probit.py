@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class probit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(probit, self).describe(), {
             'id': 'probit',
             'name': 'ProBit',
@@ -103,7 +103,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'sandbox': True,
+                'sandbox': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -183,6 +183,77 @@ class probit(Exchange, ImplicitAPI):
                     'percentage': True,
                     'maker': self.parse_number('0.002'),
                     'taker': self.parse_number('0.002'),
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        # todo
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 90,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 4000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -867,7 +938,7 @@ class probit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
 
         https://docs-en.probit.com/reference/time
@@ -923,6 +994,7 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -938,18 +1010,19 @@ class probit(Exchange, ImplicitAPI):
             'limit': requestLimit,  # max 1000
         }
         now = self.milliseconds()
-        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
+        durationMilliseconds = self.parse_timeframe(timeframe) * 1000
         startTime = since
-        endTime = now
+        endTime = until - durationMilliseconds if (until is not None) else now
         if since is None:
             if limit is None:
                 limit = requestLimit
-            startTime = now - limit * duration * 1000
+            startLimit = limit - 1
+            startTime = endTime - startLimit * durationMilliseconds
         else:
-            if limit is None:
-                endTime = now
-            else:
-                endTime = self.sum(since, self.sum(limit, 1) * duration * 1000)
+            if limit is not None:
+                endByLimit = self.sum(since, limit * durationMilliseconds)
+                endTime = min(endTime, endByLimit)
         startTimeNormalized = self.normalize_ohlcv_timestamp(startTime, timeframe)
         endTimeNormalized = self.normalize_ohlcv_timestamp(endTime, timeframe, True)
         request['start_time'] = startTimeNormalized

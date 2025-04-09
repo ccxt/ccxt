@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class okx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'okx',
             'name': 'OKX',
@@ -309,7 +309,9 @@ export default class okx extends Exchange {
                         'trade/easy-convert-currency-list': 20,
                         'trade/easy-convert-history': 20,
                         'trade/one-click-repay-currency-list': 20,
+                        'trade/one-click-repay-currency-list-v2': 20,
                         'trade/one-click-repay-history': 20,
+                        'trade/one-click-repay-history-v2': 20,
                         'trade/account-rate-limit': 1,
                         // asset
                         'asset/currencies': 5 / 3,
@@ -466,6 +468,7 @@ export default class okx extends Exchange {
                         'trade/cancel-advance-algos': 1,
                         'trade/easy-convert': 20,
                         'trade/one-click-repay': 20,
+                        'trade/one-click-repay-v2': 20,
                         'trade/mass-cancel': 4,
                         'trade/cancel-all-after': 10,
                         // asset
@@ -986,71 +989,64 @@ export default class okx extends Exchange {
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLN': 'Lightning',
+                    'BTCLIGHTNING': 'Lightning',
                     'BEP20': 'BSC',
+                    'BRC20': 'BRC20',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    // sorted
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
-                    'BHP': 'BHP',
                     'APT': 'Aptos',
+                    'SCROLL': 'Scroll',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
-                    'ARK': 'ARK',
+                    'BASE': 'Base',
+                    'SUI': 'SUI',
+                    'ZKSYNCERA': 'zkSync Era',
+                    'LINEA': 'Linea',
                     'AR': 'Arweave',
                     'ASTR': 'Astar',
                     'BCH': 'BitcoinCash',
                     'BSV': 'Bitcoin SV',
-                    'BTM': 'Bytom',
                     'ADA': 'Cardano',
                     'CSPR': 'Casper',
                     'CELO': 'CELO',
                     'XCH': 'Chia',
-                    'CHZ': 'Chiliz',
+                    // 'CHZ': 'Chiliz', TBD: Chiliz 2.0 Chain vs Chiliz Chain
                     'ATOM': 'Cosmos',
-                    'TRUE': 'TrueChain',
-                    'DCR': 'Decred',
                     'DGB': 'Digibyte',
                     'DOGE': 'Dogecoin',
-                    'XEC': 'XEC',
                     'EGLD': 'Elrond',
+                    'CFX': 'Conflux', // CFX_EVM is different
                     'EOS': 'EOS',
+                    'CORE': 'CORE',
                     'ETC': 'Ethereum Classic',
                     'ETHW': 'EthereumPow',
-                    'FTM': 'Fantom',
+                    // 'FTM': 'Fantom', 'Sonic' TBD
                     'FIL': 'Filecoin',
-                    'FLOW': 'FLOW',
-                    'FSN': 'Fusion',
                     'ONE': 'Harmony',
                     'HBAR': 'Hedera',
-                    'HNT': 'Helium',
-                    'ZEN': 'Horizen',
                     'ICX': 'ICON',
                     'ICP': 'Dfinity',
                     'IOST': 'IOST',
                     'IOTA': 'MIOTA',
-                    'KDA': 'Kadena',
-                    'KAR': 'KAR',
                     'KLAY': 'Klaytn',
                     'KSM': 'Kusama',
                     'LSK': 'Lisk',
                     'LTC': 'Litecoin',
                     'METIS': 'Metis',
                     'MINA': 'Mina',
-                    'XMR': 'Monero',
                     'GLRM': 'Moonbeam',
                     'MOVR': 'Moonriver',
                     'NANO': 'Nano',
                     'NEAR': 'NEAR',
-                    'NAS': 'Nebulas',
-                    'NEM': 'New Economy Movement',
                     'NULS': 'NULS',
                     'OASYS': 'OASYS',
-                    'OKC': 'OKC',
                     'ONT': 'Ontology',
                     'OPTIMISM': 'Optimism',
+                    // 'OP': 'Optimism', or Optimism (V2), TBD
                     'LAT': 'PlatON',
                     'DOT': 'Polkadot',
                     'MATIC': 'Polygon',
@@ -1063,35 +1059,54 @@ export default class okx extends Exchange {
                     'XTZ': 'Tezos',
                     'TON': 'TON',
                     'THETA': 'Theta',
-                    'VSYS': 'VSYSTEMS',
-                    'WAVES': 'WAVES',
                     'WAX': 'Wax',
-                    'ZEC': 'Zcash',
                     'ZIL': 'Zilliqa',
-                    'ZKSYNC': 'ZKSYNC',
-                    'OMNI': 'Omni',
-                    // 'NEON3': 'N3', // tbd
-                    // undetermined : "CELO-TOKEN", "Digital Cash", Khala
-                    // todo: uncomment below after consensus
-                    // 'AELF': 'AELF',
-                    // 'BITCOINDIAMOND': 'Bitcoin Diamond',
-                    // 'BITCOINGOLD': 'BitcoinGold',
-                    // 'YOYOW': 'YOYOW',
-                    // 'QTUM': 'Quantum',
-                    // 'INTCHAIN': 'INTCHAIN',
-                    // 'YOUCHAIN': 'YOUCHAIN',
-                    // 'RONIN': 'Ronin',
-                    // 'OEC': 'OEC',
-                    // 'WAYIKICHAIN': 'WGRT',
-                    // 'MDNA': 'DNA',
-                    // 'STEP': 'Step Network',
-                    // 'EMINER': 'Eminer',
-                    // 'CYBERMILES': 'CyberMiles',
-                    // 'HYPERCASH': 'HyperCash',
-                    // 'CONFLUX': 'Conflux',
-                    // 'CORTEX': 'Cortex',
-                    // 'TERRA': 'Terra',
-                    // 'TERRACLASSIC': 'Terra Classic',
+                    // non-supported known network: CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    // others:
+                    // "OKTC",
+                    // "X Layer",
+                    // "Polygon (Bridged)",
+                    // "BTCK-OKTC",
+                    // "ETHK-OKTC",
+                    // "Starknet",
+                    // "LTCK-OKTC",
+                    // "XRPK-OKTC",
+                    // "BCHK-OKTC",
+                    // "ETCK-OKTC",
+                    // "Endurance Smart Chain",
+                    // "Berachain",
+                    // "CELO-TOKEN",
+                    // "CFX_EVM",
+                    // "Cortex",
+                    // "DAIK-OKTC",
+                    // "Dora Vota Mainnet",
+                    // "DOTK-OKTC",
+                    // "DYDX",
+                    // "AELF",
+                    // "Enjin Relay Chain",
+                    // "FEVM",
+                    // "FILK-OKTC",
+                    // "Flare",
+                    // "Gravity Alpha Mainnet",
+                    // "INJ",
+                    // "Story",
+                    // "LINKK-OKTC",
+                    // "Terra",
+                    // "Terra Classic",
+                    // "Terra Classic (USTC)",
+                    // "MERLIN Network",
+                    // "Layer 3",
+                    // "PI",
+                    // "Ronin",
+                    // "Quantum",
+                    // "SHIBK-OKTC",
+                    // "SUSHIK-OKTC",
+                    // "Celestia",
+                    // "TRXK-OKTC",
+                    // "UNIK-OKTC",
+                    // "Venom",
+                    // "WBTCK-OKTC",
+                    // "ZetaChain",
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1115,6 +1130,8 @@ export default class okx extends Exchange {
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -1201,7 +1218,7 @@ export default class okx extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1225,27 +1242,31 @@ export default class okx extends Exchange {
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined, // not supported
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90, // 3 months
+                        'daysBack': 90, // 3 months
                         'daysBackCanceled': 1 / 12, // 2 hour
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -1431,7 +1452,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPublicTime (params);
         //
         //     {
@@ -1493,6 +1514,10 @@ export default class okx extends Exchange {
         return result;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1502,6 +1527,9 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const types = this.safeList (this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
@@ -1593,11 +1621,12 @@ export default class okx extends Exchange {
         let optionType = undefined;
         if (contract) {
             symbol = symbol + ':' + settle;
-            expiry = this.safeInteger (market, 'expTime');
             if (future) {
+                expiry = this.safeInteger (market, 'expTime');
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             } else if (option) {
+                expiry = this.safeInteger (market, 'expTime');
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
                 const ymd = this.yymmdd (expiry);
@@ -1632,7 +1661,7 @@ export default class okx extends Exchange {
             'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber (strikePrice),
             'optionType': optionType,
             'created': this.safeInteger (market, 'listTime'),
             'precision': {
@@ -1796,38 +1825,24 @@ export default class okx extends Exchange {
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks: Dict = {};
-            let currencyActive = false;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            let maxPrecision = undefined;
-            for (let j = 0; j < chains.length; j++) {
+            let type = 'crypto';
+            const chainsLength = chains.length;
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeBool (chain, 'canDep');
-                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeBool (chain, 'canWd');
-                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeBool (chain, 'canInternal');
-                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
+                const networkId = this.safeString (chain, 'chain'); // USDT-BEP20, USDT-Avalance-C, etc
+                if (networkId !== undefined) {
+                    const idParts = networkId.split ('-');
+                    const parts = this.arraySlice (idParts, 1);
+                    const chainPart = parts.join ('-');
                     const networkCode = this.networkIdToCode (chainPart, currency['code']);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
                     networks[networkCode] = {
                         'id': networkId,
                         'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
+                        'active': undefined,
+                        'deposit': this.safeBool (chain, 'canDep'),
+                        'withdraw': this.safeBool (chain, 'canWd'),
                         'fee': this.safeNumber (chain, 'fee'),
-                        'precision': this.parseNumber (precision),
+                        'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber (chain, 'minWd'),
@@ -1836,27 +1851,31 @@ export default class okx extends Exchange {
                         },
                         'info': chain,
                     };
+                } else {
+                    // only happens for FIAT currency
+                    type = 'fiat';
                 }
             }
             const firstChain = this.safeDict (chains, 0, {});
-            result[code] = {
-                'info': undefined,
+            result[code] = this.safeCurrencyStructure ({
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString (firstChain, 'name'),
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber (maxPrecision),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'type': type,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -2809,9 +2828,11 @@ export default class okx extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -2830,9 +2851,11 @@ export default class okx extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (req, params));
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -3074,12 +3097,20 @@ export default class okx extends Exchange {
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
+                let tpOrdPxReq = '-1';
+                if (tpOrdPx !== undefined) {
+                    tpOrdPxReq = this.priceToPrecision (symbol, tpOrdPx);
+                }
+                request['tpOrdPx'] = tpOrdPxReq;
                 request['tpTriggerPxType'] = tpTriggerPxType;
             }
             if (stopLossPrice !== undefined) {
                 request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
-                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, slOrdPx);
+                let slOrdPxReq = '-1';
+                if (slOrdPx !== undefined) {
+                    slOrdPxReq = this.priceToPrecision (symbol, slOrdPx);
+                }
+                request['slOrdPx'] = slOrdPxReq;
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
@@ -3123,6 +3154,7 @@ export default class okx extends Exchange {
      * @param {string} [params.trailingPercent] the percent to trail away from the current market price
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+     * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -5704,7 +5736,7 @@ export default class okx extends Exchange {
 
     /**
      * @method
-     * @name okx#fetchPositions
+     * @name okx#fetchPositionsForSymbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
@@ -6160,7 +6192,7 @@ export default class okx extends Exchange {
                     }
                 }
             }
-            const timestamp = this.iso8601 (this.milliseconds ());
+            const timestamp = this.iso8601 (this.nonce ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
                 'OK-ACCESS-PASSPHRASE': this.password,
@@ -6762,7 +6794,8 @@ export default class okx extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
-                borrowRateHistories[code].push (borrowRateStructure);
+                const borrrowRateCode = borrowRateHistories[code];
+                borrrowRateCode.push (borrowRateStructure);
             }
         }
         const keys = Object.keys (borrowRateHistories);

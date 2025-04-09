@@ -447,6 +447,94 @@
                 ]
             },
             {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC%2FUSD&interval=60&from=1735776000000&to=1735786800001",
+                "input": [
+                  "BTC/USD",
+                  "1h",
+                  1735776000000,
+                  3
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC%2FUSD&interval=60&from=1735776000000&to=1737576000001",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1735776000000
+                ]
+            },
+            {
+                "description": "fetchOHLVC with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&to=1735689600001&from=1735678800000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3,
+                    {
+                    "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&to=1735689600001&from=1733889600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&n=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&from=1735682400000&to=1735689600001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1735682400000,
+                    null,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&from=1735682400000&to=1735689600001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1735682400000,
+                    2,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=1",

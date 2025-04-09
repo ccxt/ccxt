@@ -49,31 +49,73 @@ export default class alpaca extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -86,6 +128,8 @@ export default class alpaca extends Exchange {
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -97,9 +141,14 @@ export default class alpaca extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -266,6 +315,91 @@ export default class alpaca extends Exchange {
                 'defaultTimeInForce': 'gtc',
                 'clientOrderId': 'ccxt_{id}',
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'forbidden.': PermissionDenied,
@@ -356,7 +490,7 @@ export default class alpaca extends Exchange {
         //         "status": "active",
         //         "tradable": true,
         //         "marginable": false,
-        //         "maintenance_margin_requirement": 100,
+        //         "maintenance_margin_requirement": 101,
         //         "shortable": false,
         //         "easy_to_borrow": false,
         //         "fractionable": true,
@@ -834,6 +968,58 @@ export default class alpaca extends Exchange {
     }
     /**
      * @method
+     * @name alpaca#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        await this.loadMarkets();
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
+    }
+    /**
+     * @method
+     * @name alpaca#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
+    }
+    /**
+     * @method
+     * @name alpaca#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
+    }
+    /**
+     * @method
      * @name alpaca#createOrder
      * @description create a trade order
      * @see https://docs.alpaca.markets/reference/postorder
@@ -844,6 +1030,7 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -852,13 +1039,12 @@ export default class alpaca extends Exchange {
         const id = market['id'];
         const request = {
             'symbol': id,
-            'qty': this.amountToPrecision(symbol, amount),
             'side': side,
             'type': type, // market, limit, stop_limit
         };
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
         if (triggerPrice !== undefined) {
-            let newType = undefined;
+            let newType;
             if (type.indexOf('limit') >= 0) {
                 newType = 'stop_limit';
             }
@@ -870,6 +1056,14 @@ export default class alpaca extends Exchange {
         }
         if (type.indexOf('limit') >= 0) {
             request['limit_price'] = this.priceToPrecision(symbol, price);
+        }
+        const cost = this.safeString(params, 'cost');
+        if (cost !== undefined) {
+            params = this.omit(params, 'cost');
+            request['notional'] = this.costToPrecision(symbol, cost);
+        }
+        else {
+            request['qty'] = this.amountToPrecision(symbol, amount);
         }
         const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
         request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
@@ -1006,10 +1200,10 @@ export default class alpaca extends Exchange {
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, 'until');
-            request['endTime'] = until;
+            request['endTime'] = this.iso8601(until);
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1252,6 +1446,7 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1263,8 +1458,13 @@ export default class alpaca extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['until'] = this.iso8601(until);
+        }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;

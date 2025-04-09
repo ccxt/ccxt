@@ -129,6 +129,7 @@
             {
                 "description": "Spot create multiple buy orders at once",
                 "method": "createOrders",
+                "disabledGO": true,
                 "url": "https://api.mexc.com/api/v3/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221000%22%2C%22price%22%3A%220.005%22%7D%2C%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221100%22%2C%22price%22%3A%220.0054%22%7D%5D&timestamp=1701304049492&recvWindow=5000&signature=2b277d28ccda099ffe176604ab3e87f27fb151180a6d7a35d3ad1640ae6839f3",
                 "input": [
                     [
@@ -406,6 +407,7 @@
         "fetchDepositAddress": [
             {
                 "description": "fetch USDT deposit address",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&timestamp=1699460640223&recvWindow=5000&signature=04c87095842f1fc7c122a8d44739b14eb01733fe99ce6f25ed84899f8c5802f4",
                 "input": [
@@ -414,6 +416,7 @@
             },
             {
                 "description": "fetch address with network",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223738994&recvWindow=5000&signature=ccfd37c930d89725783e5ee1f8c1cba2445fa303a641bd030b838f6edbf8250b",
                 "input": [

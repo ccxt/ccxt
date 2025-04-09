@@ -490,17 +490,20 @@ public partial class bitstamp : Exchange
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 30 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -1336,11 +1339,10 @@ public partial class bitstamp : Exchange
         object result = new Dictionary<string, object>() {
             { "info", fees },
         };
-        object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
             object fee = this.parseTradingFee(getValue(fees, i));
+            object symbol = getValue(fee, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
         return result;

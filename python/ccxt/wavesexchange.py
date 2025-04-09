@@ -6,9 +6,8 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import json
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class wavesexchange(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(wavesexchange, self).describe(), {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
@@ -357,6 +356,84 @@ class wavesexchange(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': True,  # todo
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,  # todo
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': None,  # todo
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
                 'EGG': 'Waves Ducks',
             },
@@ -681,6 +758,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise AuthenticationError(self.id + ' apiKey must be a base58 encoded public key')
         if len(hexSecretKeyBytes) != 64:
             raise AuthenticationError(self.id + ' secret must be a base58 encoded private key')
+        return True
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
@@ -934,6 +1012,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -944,19 +1023,29 @@ class wavesexchange(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = until is not None
         if limit is None:
             limit = allowedCandles
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            durationRoundedTimestamp = self.parse_to_int(self.milliseconds() / duration) * duration
+            now = self.milliseconds()
+            timeEnd = until if untilIsDefined else now
+            durationRoundedTimestamp = self.parse_to_int(timeEnd / duration) * duration
             delta = (limit - 1) * duration
             timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
+            if untilIsDefined:
+                request['timeEnd'] = str(until)
         else:
             request['timeStart'] = str(since)
-            timeEnd = self.sum(since, duration * limit)
-            request['timeEnd'] = str(timeEnd)
+            if untilIsDefined:
+                request['timeEnd'] = str(until)
+            else:
+                timeEnd = self.sum(since, duration * limit)
+                request['timeEnd'] = str(timeEnd)
+        params = self.omit(params, 'until')
         response = self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {

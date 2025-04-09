@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class coinmetro(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinmetro, self).describe(), {
             'id': 'coinmetro',
             'name': 'Coinmetro',
@@ -219,7 +219,79 @@ class coinmetro(Exchange, ImplicitAPI):
             # exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': None,
-                'currencyIdsListForParseMarket': None,
+                'currencyIdsListForParseMarket': ['QRDO'],
+            },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,  # todo implement
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': False,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'exceptions': {
                 # https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
@@ -339,7 +411,11 @@ class coinmetro(Exchange, ImplicitAPI):
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
             currenciesById = self.index_by(result, 'id')
             self.options['currenciesByIdForParseMarket'] = currenciesById
-            self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
+            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+            currencyIdsList = list(currenciesById.keys())
+            for i in range(0, len(currencyIdsList)):
+                currentCurrencyIdsList.append(currencyIdsList[i])
+            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -438,10 +514,19 @@ class coinmetro(Exchange, ImplicitAPI):
         baseId = None
         quoteId = None
         currencyIds = self.safe_value(self.options, 'currencyIdsListForParseMarket', [])
+        # Bubble sort by length(longest first)
+        currencyIdsLength = len(currencyIds)
+        for i in range(0, currencyIdsLength):
+            for j in range(0, currencyIdsLength - i - 1):
+                a = currencyIds[j]
+                b = currencyIds[j + 1]
+                if len(a) < len(b):
+                    currencyIds[j] = b
+                    currencyIds[j + 1] = a
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             entryIndex = marketId.find(currencyId)
-            if entryIndex != -1:
+            if entryIndex == 0:
                 restId = marketId.replace(currencyId, '')
                 if self.in_array(restId, currencyIds):
                     if entryIndex == 0:
@@ -1180,24 +1265,24 @@ class coinmetro(Exchange, ImplicitAPI):
         request: dict = {
         }
         request['orderType'] = type
-        precisedAmount = None
+        formattedAmount = None
         if amount is not None:
-            precisedAmount = self.amount_to_precision(symbol, amount)
+            formattedAmount = self.amount_to_precision(symbol, amount)
         cost = self.safe_value(params, 'cost')
         params = self.omit(params, 'cost')
         if type == 'limit':
             if (price is None) and (cost is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order')
             elif (price is not None) and (amount is not None):
-                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(precisedAmount))
+                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(formattedAmount))
                 cost = self.parse_to_numeric(costString)
         precisedCost = None
         if cost is not None:
             precisedCost = self.cost_to_precision(symbol, cost)
         if side == 'sell':
-            request = self.handle_create_order_side(market['baseId'], market['quoteId'], precisedAmount, precisedCost, request)
+            request = self.handle_create_order_side(market['baseId'], market['quoteId'], formattedAmount, precisedCost, request)
         elif side == 'buy':
-            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, precisedAmount, request)
+            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, formattedAmount, request)
         timeInForce = self.safe_value(params, 'timeInForce')
         if timeInForce is not None:
             params = self.omit(params, 'timeInForce')

@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\ChecksumError;
 use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitget extends \ccxt\async\bitget {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -47,6 +47,10 @@ class bitget extends \ccxt\async\bitget {
                     'ws' => array(
                         'public' => 'wss://ws.bitget.com/v2/ws/public',
                         'private' => 'wss://ws.bitget.com/v2/ws/private',
+                    ),
+                    'demo' => array(
+                        'public' => 'wss://wspap.bitget.com/v2/ws/public',
+                        'private' => 'wss://wspap.bitget.com/v2/ws/private',
                     ),
                 ),
             ),
@@ -1067,15 +1071,12 @@ class bitget extends \ccxt\async\bitget {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions))) {
+        $action = $this->safe_string($message, 'action');
+        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions)) || ($action === 'snapshot')) {
             $this->positions[$instType] = new ArrayCacheBySymbolBySide ();
         }
         $cache = $this->positions[$instType];
         $rawPositions = $this->safe_value($message, 'data', array());
-        $dataLength = count($rawPositions);
-        if ($dataLength === 0) {
-            return;
-        }
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
@@ -1224,7 +1225,7 @@ class bitget extends \ccxt\async\bitget {
             } else {
                 list($instType, $params) = $this->get_inst_type($market, $params);
             }
-            if ($type === 'spot') {
+            if ($type === 'spot' && ($symbol !== null)) {
                 $subscriptionHash = $subscriptionHash . ':' . $symbol;
             }
             if ($isTrigger) {
@@ -1839,6 +1840,13 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public($messageHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $args, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),
@@ -1851,6 +1859,13 @@ class bitget extends \ccxt\async\bitget {
     public function un_watch_public($messageHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $args, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'unsubscribe',
                 'args' => array( $args ),
@@ -1863,6 +1878,14 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public_multiple($messageHashes, $argsArray, $params = array ()) {
         return Async\async(function () use ($messageHashes, $argsArray, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $argsArrayFirst = $this->safe_dict($argsArray, 0, array());
+                $instType = $this->safe_string($argsArrayFirst, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
                 'args' => $argsArray,
@@ -1875,7 +1898,7 @@ class bitget extends \ccxt\async\bitget {
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->safe_string($params, 'url');
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $future = $client->future ($messageHash);
@@ -1905,8 +1928,15 @@ class bitget extends \ccxt\async\bitget {
 
     public function watch_private($messageHash, $subscriptionHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $subscriptionHash, $args, $params) {
-            Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['private'];
+                }
+            }
+            Async\await($this->authenticate(array( 'url' => $url )));
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),
@@ -2094,7 +2124,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'orderbook ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' orderbook ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -2120,7 +2150,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'trades ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' trades ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }
@@ -2146,7 +2176,7 @@ class bitget extends \ccxt\async\bitget {
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
-        $error = new UnsubscribeError ($this->id . 'ticker ' . $symbol);
+        $error = new UnsubscribeError ($this->id . ' ticker ' . $symbol);
         $client->reject ($error, $subMessageHash);
         $client->resolve (true, $messageHash);
     }

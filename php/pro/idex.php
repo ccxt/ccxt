@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\InvalidNonce;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class idex extends \ccxt\async\idex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

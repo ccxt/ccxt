@@ -199,7 +199,7 @@ export default class bybit extends bybitRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols
@@ -329,6 +329,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;

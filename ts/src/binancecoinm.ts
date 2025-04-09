@@ -6,7 +6,7 @@ import binance from './binance.js';
 //  ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

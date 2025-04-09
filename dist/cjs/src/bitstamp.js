@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitstamp
@@ -524,17 +524,20 @@ class bitstamp extends bitstamp$1 {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -1304,10 +1307,9 @@ class bitstamp extends bitstamp$1 {
     }
     parseTradingFees(fees) {
         const result = { 'info': fees };
-        const symbols = this.symbols;
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
+            const symbol = fee['symbol'];
             result[symbol] = fee;
         }
         return result;

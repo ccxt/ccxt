@@ -14,7 +14,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, Ord
  * @augments Exchange
  */
 export default class kucoinfutures extends kucoin {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -375,9 +375,8 @@ export default class kucoinfutures extends kucoin {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'triggerPrice': undefined,
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -401,27 +400,31 @@ export default class kucoinfutures extends kucoin {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 7,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
@@ -651,7 +654,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {
@@ -2186,7 +2189,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;

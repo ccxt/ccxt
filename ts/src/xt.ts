@@ -15,7 +15,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
  * @augments Exchange
  */
 export default class xt extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'xt',
             'name': 'XT',
@@ -116,7 +116,7 @@ export default class xt extends Exchange {
                 'repayMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
@@ -274,6 +274,7 @@ export default class xt extends Exchange {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -519,10 +520,12 @@ export default class xt extends Exchange {
                     'TRANSFER_012': PermissionDenied, // Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'Exceeds the minimum notional value of a single order': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -675,6 +678,123 @@ export default class xt extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'recvWindow': '5000', // in milliseconds, spot only
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'marketType': true,
+                        'subType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true, // todo TPSL kind
+                        'trailing': false,
+                        'marketType': true,
+                        'subType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': true, // todo TPSL
+                        'trailing': false,
+                        'marketType': true,
+                        'subType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': true, // todo TPSL
+                        'trailing': false,
+                        'marketType': true,
+                        'subType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': true, // todo TPSL
+                        'trailing': false,
+                        'marketType': true,
+                        'subType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo for derivatives
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        // todo
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                    },
+                    'fetchMyTrades': {
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
         });
     }
 
@@ -690,7 +810,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {int} the current integer timestamp in milliseconds from the xt server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicSpotGetTime (params);
         //
         //     {
@@ -1285,10 +1405,17 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -1299,6 +1426,13 @@ export default class xt extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 1000;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         let response = undefined;
         if (market['linear']) {
@@ -4701,6 +4835,59 @@ export default class xt extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'CROSSED';
+        } else {
+            marginMode = 'ISOLATED';
+        }
+        const posSide = this.safeStringUpper (params, 'positionSide');
+        if (posSide === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
+        }
+        const request: Dict = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        };
+        const response = await this.privateLinearPostFutureUserV1PositionChangeType (this.extend (request, params));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response; // unify return type
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         // spot: error
@@ -4750,6 +4937,9 @@ export default class xt extends Exchange {
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {

@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class cex extends cexRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -1268,7 +1268,7 @@ export default class cex extends cexRest {
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchOpenOrdersWs requires a symbol.');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersWs requires a symbol.');
         }
         await this.loadMarkets ();
         await this.authenticate ();

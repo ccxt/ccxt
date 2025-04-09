@@ -59,7 +59,7 @@
                         "order": "6928122855",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": null,
+                        "takerOrMaker": "taker",
                         "price": 132.31,
                         "amount": 0.5,
                         "cost": 66.155,
@@ -127,7 +127,7 @@
                         "order": "13981880088",
                         "type": null,
                         "side": "sell",
-                        "takerOrMaker": null,
+                        "takerOrMaker": "taker",
                         "price": 0.9641,
                         "amount": 49.0,
                         "cost": 47.2409,
@@ -207,7 +207,7 @@
                         "timestamp": 1718099116378,
                         "datetime": "2024-06-11T09:45:16.378Z",
                         "lastTradeTimestamp": null,
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1718099116378,
                         "symbol": "SOL/USDC:USDC",
                         "type": "limit",
                         "timeInForce": "IOC",
@@ -368,7 +368,173 @@
                 ]
             }
         ],
-        "fetchOrder": [
+    "fetchOrder": [
+            {
+                "description": "fetch postOnly order",
+                "method": "fetchOrder",
+                "input": [
+                    "80972193016",
+                    "HYPE/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "B",
+                            "limitPx": "13.5",
+                            "sz": "2.0",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "2.0",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1742488072039
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "B",
+                            "limitPx": "13.5",
+                            "sz": "2.0",
+                            "oid": 80972193016,
+                            "timestamp": 1742488072039,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "2.0",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1742488072039
+                    },
+                    "id": "80972193016",
+                    "clientOrderId": null,
+                    "timestamp": 1742488072039,
+                    "datetime": "2025-03-20T16:27:52.039Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1742488072039,
+                    "symbol": "HYPE/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "ALO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 13.5,
+                    "triggerPrice": null,
+                    "amount": 2,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 2,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "fetchOrder with both ts",
+                "method": "fetchOrder",
+                "input": [
+                    "60816227852",
+                    "PURR/USDC"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1736094629472"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1736094629472"
+                    },
+                    "id": "60816227852",
+                    "clientOrderId": null,
+                    "timestamp": 1736094308023,
+                    "datetime": "2025-01-05T16:25:08.023Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1736094629472,
+                    "symbol": "PURR/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 0.5,
+                    "triggerPrice": null,
+                    "amount": 50,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 50,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
             {
                 "description": "fetch order",
                 "method": "fetchOrder",
@@ -425,10 +591,10 @@
                     },
                     "id": "6463065738",
                     "clientOrderId": null,
-                    "timestamp": 1709141541609,
-                    "datetime": "2024-02-28T17:32:21.609Z",
+                    "timestamp": 1709141516884,
+                    "datetime": "2024-02-28T17:31:56.884Z",
                     "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1709141541609,
                     "symbol": "ETH/USDC:USDC",
                     "type": "limit",
                     "timeInForce": "GTC",
@@ -511,7 +677,7 @@
                     "timestamp": 1711797850059,
                     "datetime": "2024-03-30T11:24:10.059Z",
                     "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1711797850059,
                     "symbol": "PURR/USDC",
                     "type": "limit",
                     "timeInForce": "IOC",
@@ -1170,16 +1336,16 @@
                     },
                     "USDC": {
                         "total": 20.454862,
-                        "free": 19.954862,
-                        "used": 0.5
+                        "free": 20.454862,
+                        "used": 0
                     },
                     "timestamp": 1729416701061,
                     "datetime": "2024-10-20T09:31:41.061Z",
                     "free": {
-                        "USDC": 19.954862
+                        "USDC": 20.454862
                     },
                     "used": {
-                        "USDC": 0.5
+                        "USDC": 0
                     },
                     "total": {
                         "USDC": 20.454862
@@ -1389,7 +1555,29 @@
                 ]
             }
         ],
-        "transfer": [
+    "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    5,
+                    "swap",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                }
+            },
             {
                 "description": "transfer",
                 "method": "transfer",

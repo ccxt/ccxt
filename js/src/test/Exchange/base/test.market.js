@@ -67,7 +67,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate(exchange, method, market);
     //
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index'];
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'

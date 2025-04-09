@@ -21,6 +21,9 @@ declare function assertFeeStructure(exchange: Exchange, skippedProperties: objec
 declare function assertTimestampOrder(exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending?: boolean): void;
 declare function assertInteger(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number): void;
 declare function checkPrecisionAccuracy(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number): void;
+declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promise<any[]>;
+declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<any>;
+declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
 declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): any[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string): void;
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
@@ -49,6 +52,9 @@ declare const _default: {
     assertNonEqual: typeof assertNonEqual;
     assertInteger: typeof assertInteger;
     checkPrecisionAccuracy: typeof checkPrecisionAccuracy;
+    fetchBestBidAsk: typeof fetchBestBidAsk;
+    fetchOrder: typeof fetchOrder;
+    assertOrderState: typeof assertOrderState;
     assertValidCurrencyIdAndCode: typeof assertValidCurrencyIdAndCode;
     assertType: typeof assertType;
     removeProxyOptions: typeof removeProxyOptions;
