@@ -13,12 +13,12 @@ use ccxt\BadRequest;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinsph extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
             'name' => 'Coins.ph',
@@ -301,6 +301,76 @@ class coinsph extends Exchange {
                     'ARB' => 'ARBITRUM',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             // https://coins-docs.github.io/errors/
             'exceptions' => array(
                 'exact' => array(
@@ -469,7 +539,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -830,30 +900,39 @@ class coinsph extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $interval = $this->safe_string($this->timeframes, $timeframe);
+            $until = $this->safe_integer($params, 'until');
             $request = array(
                 'symbol' => $market['id'],
                 'interval' => $interval,
             );
+            if ($limit === null) {
+                $limit = 1000;
+            }
             if ($since !== null) {
                 $request['startTime'] = $since;
-                $request['limit'] = 1000;
                 // $since work properly only when it is "younger" than last "limit" candle
-                if ($limit !== null) {
-                    $duration = $this->parse_timeframe($timeframe) * 1000;
-                    $request['endTime'] = $this->sum($since, $duration * ($limit - 1));
+                if ($until !== null) {
+                    $request['endTime'] = $until;
                 } else {
-                    $request['endTime'] = $this->milliseconds();
+                    $duration = $this->parse_timeframe($timeframe) * 1000;
+                    $endTimeByLimit = $this->sum($since, $duration * ($limit - 1));
+                    $now = $this->milliseconds();
+                    $request['endTime'] = min ($endTimeByLimit, $now);
                 }
-            } else {
-                if ($limit !== null) {
-                    $request['limit'] = $limit;
-                }
+            } elseif ($until !== null) {
+                $request['endTime'] = $until;
+                // $since work properly only when it is "younger" than last "limit" candle
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $request['startTime'] = $until - ($duration * ($limit - 1));
             }
+            $request['limit'] = $limit;
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params)));
             //
             //     array(
@@ -1280,7 +1359,7 @@ class coinsph extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+             * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for

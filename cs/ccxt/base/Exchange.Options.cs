@@ -125,6 +125,7 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+    public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
@@ -160,6 +161,7 @@ public partial class Exchange
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
+
     public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
@@ -184,6 +186,8 @@ public partial class Exchange
 
     public object wsProxy { get; set; } = null;
     public object ws_proxy { get; set; } = null;
+
+    public Dictionary<string, object> streaming { get; set; } = new dict();
 
     private string httpProxyValue = "";
     public object httpProxy
@@ -246,13 +250,19 @@ public partial class Exchange
         this.urls = SafeValue(extendedProperties, "urls") as dict;
         this.limits = SafeValue(extendedProperties, "limits") as dict;
 
+        this.streaming = SafeValue(extendedProperties, "streaming") as dict;
+
         // handle options
         var extendedOptions = safeDict(extendedProperties, "options");
         if (extendedOptions != null)
         {
+            extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
+        } else {
+            var dict2 = this.getDefaultOptions() as dict;
+            this.options =  new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;

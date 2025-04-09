@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class htx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(htx, self).describe(), {
             'id': 'htx',
             'name': 'HTX',
@@ -115,6 +115,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -909,6 +910,7 @@ class htx(Exchange, ImplicitAPI):
                     '1041': InvalidOrder,  # {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit(170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds,  # {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  # {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061': OrderNotFound,  # {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
                     '1051': InvalidOrder,  # {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
@@ -968,6 +970,8 @@ class htx(Exchange, ImplicitAPI):
                         'inverse': True,
                     },
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': True,
                 },
@@ -1284,17 +1288,20 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
                         'limit': 500,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': {
                         'marginMode': False,
@@ -1303,6 +1310,7 @@ class htx(Exchange, ImplicitAPI):
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -1310,8 +1318,9 @@ class htx(Exchange, ImplicitAPI):
                         'trailing': False,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,  # 2000 for non-historical
@@ -1351,7 +1360,7 @@ class htx(Exchange, ImplicitAPI):
                         'trailing': False,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1598,7 +1607,7 @@ class htx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1769,6 +1778,8 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         types = None
         types, params = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
         allMarkets = []
@@ -3208,7 +3219,9 @@ class htx(Exchange, ImplicitAPI):
                 type = 'super-margin'
             elif marginMode == 'isolated':
                 type = 'margin'
-        marketId = None if (symbol is None) else self.market_id(symbol)
+        marketId = None
+        if symbol is not None:
+            marketId = self.market_id(symbol)
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')
@@ -6745,14 +6758,17 @@ class htx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchFundingRates', {})
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+        subType = None
+        subType, params = self.handle_option_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+            isLinear = market['linear']
+            subType = 'linear' if isLinear else 'inverse'
         request: dict = {
             # 'contract_code': market['id'],
         }
-        params = self.omit(params, 'subType')
         response = None
         if subType == 'linear':
             response = await self.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(self.extend(request, params))
@@ -6779,8 +6795,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
@@ -6902,6 +6917,9 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
@@ -6914,7 +6932,7 @@ class htx(Exchange, ImplicitAPI):
             url += '/' + self.implode_params(path, params)
             if api == 'private' or api == 'v2Private':
                 self.check_required_credentials()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -6978,17 +6996,19 @@ class htx(Exchange, ImplicitAPI):
                         clientOrderId = self.safe_string(params, 'client-order-id')
                         if clientOrderId is None:
                             params['client-order-id'] = id + self.uuid()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                timestamp = self.ymdhms(self.nonce(), 'T')
                 request: dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': self.apiKey,
                     'Timestamp': timestamp,
                 }
-                if method != 'POST':
-                    request = self.extend(request, query)
+                # sorting needs such flow exactly, before urlencoding(more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = self.keysort(request)
-                auth = self.urlencode(request)
+                if method != 'POST':
+                    sortedQuery = self.keysort(query)
+                    request = self.extend(request, sortedQuery)
+                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -7016,6 +7036,7 @@ class htx(Exchange, ImplicitAPI):
         if 'status' in response:
             #
             #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             #
             status = self.safe_string(response, 'status')
             if status == 'error':
@@ -7031,6 +7052,15 @@ class htx(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             code = self.safe_string(response, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        data = self.safe_dict(response, 'data')
+        errorsList = self.safe_list(data, 'errors')
+        if errorsList is not None:
+            first = self.safe_dict(errorsList, 0)
+            errcode = self.safe_string(first, 'err_code')
+            errmessage = self.safe_string(first, 'err_msg')
+            feedBack = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errcode, feedBack)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errmessage, feedBack)
         return None
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -8006,6 +8036,99 @@ class htx(Exchange, ImplicitAPI):
         tick = self.safe_list(data, 'tick')
         return self.parse_open_interests_history(tick, market, since, limit)
 
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                first = self.safe_string(symbols, 0)
+                market = self.market(first)
+        request: dict = {}
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        response = None
+        if marketType == 'future':
+            response = await self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 118850.000000000000000000,
+            #                 "amount": 635.502025211544374189,
+            #                 "symbol": "BTC",
+            #                 "contract_type": "self_week",
+            #                 "contract_code": "BTC220930",
+            #                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            #                 "trade_volume": 286286,
+            #                 "trade_turnover": 28628600.000000000000000000
+            #             }
+            #         ],
+            #         "ts": 1664337928805
+            #     }
+            #
+        elif subType == 'inverse':
+            response = await self.contractPublicGetSwapApiV1SwapOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 518018.000000000000000000,
+            #                 "amount": 2769.675777407074725180,
+            #                 "symbol": "BTC",
+            #                 "contract_code": "BTC-USD",
+            #                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            #                 "trade_volume": 1848448,
+            #                 "trade_turnover": 184844800.000000000000000000
+            #             }
+            #         ],
+            #         "ts": 1664337226028
+            #     }
+            #
+        else:
+            request['contract_type'] = 'swap'
+            response = await self.contractPublicGetLinearSwapApiV1SwapOpenInterest(self.extend(request, params))
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": [
+            #             {
+            #                 "volume": 7192610.000000000000000000,
+            #                 "amount": 7192.610000000000000000,
+            #                 "symbol": "BTC",
+            #                 "value": 134654290.332000000000000000,
+            #                 "contract_code": "BTC-USDT",
+            #                 "trade_amount": 70692.804,
+            #                 "trade_volume": 70692804,
+            #                 "trade_turnover": 1379302592.9518,
+            #                 "business_type": "swap",
+            #                 "pair": "BTC-USDT",
+            #                 "contract_type": "swap",
+            #                 "trade_partition": "USDT"
+            #             }
+            #         ],
+            #         "ts": 1664336503144
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
+
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
@@ -8164,8 +8287,9 @@ class htx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
         value = self.safe_number(interest, 'value')
+        marketId = self.safe_string(interest, 'contract_code')
         return self.safe_open_interest({
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_symbol(marketId, market),
             'baseVolume': amount,  # deprecated
             'quoteVolume': value,  # deprecated
             'openInterestAmount': amount,

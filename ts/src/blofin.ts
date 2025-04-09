@@ -15,7 +15,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -159,6 +159,9 @@ export default class blofin extends Exchange {
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
                     'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
@@ -197,6 +200,18 @@ export default class blofin extends Exchange {
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
+                        'copytrading/instruments': 1,
+                        'copytrading/account/balance': 1,
+                        'copytrading/account/positions-by-order': 1,
+                        'copytrading/account/positions-details-by-order': 1,
+                        'copytrading/account/positions-by-contract': 1,
+                        'copytrading/account/position-mode': 1,
+                        'copytrading/account/leverage-info': 1,
+                        'copytrading/trade/orders-pending': 1,
+                        'copytrading/trade/pending-tpsl-by-contract': 1,
+                        'copytrading/trade/position-history-by-order': 1,
+                        'copytrading/trade/orders-history': 1,
+                        'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -208,6 +223,16 @@ export default class blofin extends Exchange {
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
                         'asset/transfer': 1,
+                        'copytrading/account/set-position-mode': 1,
+                        'copytrading/account/set-leverage': 1,
+                        'copytrading/trade/place-order': 1,
+                        'copytrading/trade/cancel-order': 1,
+                        'copytrading/trade/place-tpsl-by-contract': 1,
+                        'copytrading/trade/cancel-tpsl-by-contract': 1,
+                        'copytrading/trade/place-tpsl-by-order': 1,
+                        'copytrading/trade/cancel-tpsl-by-order': 1,
+                        'copytrading/trade/close-position-by-order': 1,
+                        'copytrading/trade/close-position-by-contract': 1,
                     },
                 },
             },
@@ -221,6 +246,96 @@ export default class blofin extends Exchange {
                 'apiKey': true,
                 'secret': true,
                 'password': true,
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'hedged': false,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false, // todo
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': true,
+                        },
+                        'hedged': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -293,7 +408,6 @@ export default class blofin extends Exchange {
                     'earn': 'earn',
                     'spot': 'spot',
                 },
-                'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -1878,7 +1992,7 @@ export default class blofin extends Exchange {
 
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols

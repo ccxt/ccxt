@@ -219,6 +219,8 @@ interface Exchange {
     sapiGetPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioMarginAssetLeverage(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioBalance(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioNegativeBalanceExchangeRecord(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioPmloanHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
@@ -726,6 +728,7 @@ interface Exchange {
     papiGetUmSymbolConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmAccountConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder(params?: {}): Promise<implicitReturnType>;

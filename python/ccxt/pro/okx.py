@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +19,7 @@ from ccxt.base.errors import ChecksumError
 
 class okx(ccxt.async_support.okx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okx, self).describe(), {
             'has': {
                 'ws': True,
@@ -2076,7 +2075,7 @@ class okx(ccxt.async_support.okx):
         await self.authenticate()
         market = self.market(symbol)
         if market['type'] != 'option':
-            raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
+            raise BadRequest(self.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
         request: dict = {

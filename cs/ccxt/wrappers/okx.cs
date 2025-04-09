@@ -514,6 +514,12 @@ public partial class okx
     /// bool : *swap and future only* true for hedged mode, false for one way mode
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', the default is 'cross'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1382,6 +1388,33 @@ public partial class okx
         return new Position(res);
     }
     /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-account-get-positions"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : MARGIN, SWAP, FUTURES, OPTION
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
     /// fetch all open positions for specific symbol
     /// </summary>
     /// <remarks>
@@ -1402,11 +1435,6 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
-    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
     public async Task<List<Position>> FetchPositionsForSymbol(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsForSymbol(symbol, parameters);

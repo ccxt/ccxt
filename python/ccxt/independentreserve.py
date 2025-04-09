@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class independentreserve(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
@@ -107,7 +107,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
+                        'GetCryptoWithdrawalFees',  # deprecated - replaced by GetCryptoWithdrawalFees2(docs removed)
+                        'GetCryptoWithdrawalFees2',
+                        'GetNetworks',
+                        'GetPrimaryCurrencyConfig2',
                     ],
                 },
                 'private': {
@@ -119,8 +122,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'GetAccounts',
                         'GetTransactions',
                         'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
-                        'GetDigitalCurrencyDepositAddresses',
+                        'GetDigitalCurrencyDepositAddress',  # deprecated - replaced by GetDigitalCurrencyDepositAddress2(docs removed)
+                        'GetDigitalCurrencyDepositAddress2',
+                        'GetDigitalCurrencyDepositAddresses',  # deprecated - replaced by GetDigitalCurrencyDepositAddresses2(docs removed)
+                        'GetDigitalCurrencyDepositAddresses2',
                         'GetTrades',
                         'GetBrokerageFees',
                         'GetDigitalCurrencyWithdrawal',
@@ -130,7 +135,8 @@ class independentreserve(Exchange, ImplicitAPI):
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
+                        'WithdrawDigitalCurrency',  # deprecated - replaced by WithdrawCrypto(docs removed)
+                        'WithdrawCrypto',
                     ],
                 },
             },
@@ -142,10 +148,132 @@ class independentreserve(Exchange, ImplicitAPI):
                     'tierBased': False,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'defaultNetworks': {
+                    'USDT': 'Ethereum',
+                    'USDC': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'BitcoinCash',
+                    'ETH': 'Ethereum',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'ZRX': 'Ethereum',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'BAT': 'Ethereum',
+                    'ETC': 'EthereumClassic',
+                    'LINK': 'Ethereum',
+                    'MKR': 'Ethereum',
+                    'DAI': 'Ethereum',
+                    'COMP': 'Ethereum',
+                    'SNX': 'Ethereum',
+                    'YFI': 'Ethereum',
+                    'AAVE': 'Ethereum',
+                    'GRT': 'Ethereum',
+                    'DOT': 'Polkadot',
+                    'UNI': 'Ethereum',
+                    'ADA': 'Cardano',
+                    'MATIC': 'Ethereum',
+                    'DOGE': 'Dogecoin',
+                    'SOL': 'Solana',
+                    'MANA': 'Ethereum',
+                    'SAND': 'Ethereum',
+                    'SHIB': 'Ethereum',
+                    'TRX': 'Tron',
+                    'RENDER': 'Solana',
+                    'WIF': 'Solana',
+                    'RLUSD': 'Ethereum',
+                    'PEPE': 'Ethereum',
+                },
+                'networks': {
+                    'BTC': 'Bitcoin',
+                    'ETH': 'Ethereum',
+                    'BCH': 'BitcoinCash',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'ETC': 'EthereumClassic',
+                    'BSV': 'BitcoinSV',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'ADA': 'Cardano',
+                    'SOL': 'Solana',
+                    'TRX': 'Tron',
+                },
+            },
         })
 
     def fetch_markets(self, params={}) -> List[Market]:

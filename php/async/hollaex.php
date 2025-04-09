@@ -10,12 +10,12 @@ use ccxt\async\abstract\hollaex as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class hollaex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
@@ -166,6 +166,84 @@ class hollaex extends Exchange {
                         'order/all' => 1,
                         'order' => 1,
                     ),
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // todo => no limit in request
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'fees' => array(
@@ -353,7 +431,7 @@ class hollaex extends Exchange {
             //                 "verified":true,
             //                 "allow_deposit":true,
             //                 "allow_withdrawal":true,
-            //                 "withdrawal_fee":0.0001,
+            //                 "withdrawal_fee":0.0002,
             //                 "min":0.001,
             //                 "max":100000,
             //                 "increment_unit":0.001,
@@ -421,7 +499,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -785,7 +863,7 @@ class hollaex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * hollaex has large gaps between candles, so it's recommended to specify $since
              *
              * @see https://apidocs.hollaex.com/#chart
              *
@@ -794,6 +872,7 @@ class hollaex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -802,25 +881,19 @@ class hollaex extends Exchange {
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $duration = $this->parse_timeframe($timeframe);
-            if ($since === null) {
-                if ($limit === null) {
-                    $limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one $request, but we should cap "default" at generous amount
-                }
-                $end = $this->seconds();
-                $start = $end - $duration * $limit;
-                $request['to'] = $end;
-                $request['from'] = $start;
-            } else {
-                if ($limit === null) {
-                    $request['from'] = $this->parse_to_int($since / 1000);
-                    $request['to'] = $this->seconds();
-                } else {
-                    $start = $this->parse_to_int($since / 1000);
-                    $request['from'] = $start;
-                    $request['to'] = $this->sum($start, $duration * $limit);
-                }
+            $until = $this->safe_integer($params, 'until');
+            $end = $this->seconds();
+            if ($until !== null) {
+                $end = $this->parse_to_int($until / 1000);
             }
+            $defaultSpan = 2592000; // 30 days
+            if ($since !== null) {
+                $request['from'] = $this->parse_to_int($since / 1000);
+            } else {
+                $request['from'] = $end - $defaultSpan;
+            }
+            $request['to'] = $end;
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetChart ($this->extend($request, $params)));
             //
             //     array(
@@ -1923,7 +1996,7 @@ class hollaex extends Exchange {
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            $coins = $this->safe_list($response, 'coins');
+            $coins = $this->safe_dict($response, 'coins', array());
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
         }) ();
     }
@@ -1968,6 +2041,7 @@ class hollaex extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+        // array( "message" => "Invalid token" )
         if ($response === null) {
             return null;
         }
@@ -1975,7 +2049,7 @@ class hollaex extends Exchange {
             //
             //  array( "message" => "Invalid token" )
             //
-            // different errors return the same $code eg:
+            // different errors return the same $code eg
             //
             //  array( "message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order." )
             //

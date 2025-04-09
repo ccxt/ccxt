@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex1 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class bitfinex1(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitfinex1, self).describe(), {
             'id': 'bitfinex1',
             'name': 'Bitfinex',
@@ -1353,6 +1353,7 @@ class bitfinex1(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1368,8 +1369,15 @@ class bitfinex1(Exchange, ImplicitAPI):
             'sort': 1,
             'limit': limit,
         }
+        until = self.safe_integer(params, 'until')
         if since is not None:
             request['start'] = since
+        elif until is not None:
+            duration = self.parse_timeframe(timeframe)
+            request['start'] = until - ((limit - 1) * duration * 1000)
+        if until is not None:
+            request['end'] = until
+        params = self.omit(params, 'until')
         response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
         #     [
@@ -1386,7 +1394,7 @@ class bitfinex1(Exchange, ImplicitAPI):
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

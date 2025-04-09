@@ -6,7 +6,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class cryptocom
  * @augments Exchange
@@ -386,17 +386,20 @@ class cryptocom extends cryptocom$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 1,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -405,15 +408,17 @@ class cryptocom extends cryptocom$1 {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -448,6 +453,8 @@ class cryptocom extends cryptocom$1 {
                 'exact': {
                     '219': errors.InvalidOrder,
                     '314': errors.InvalidOrder,
+                    '325': errors.InvalidOrder,
+                    '415': errors.InvalidOrder,
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,

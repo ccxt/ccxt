@@ -18,7 +18,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100,
             'version': 'v1',
@@ -287,17 +287,20 @@ class coinbaseinternational extends coinbaseinternational$1 {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -798,6 +801,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }
@@ -816,7 +820,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const currency = this.currency(code);
         const networks = this.safeDict(currency, 'networks');
         if (networks !== undefined) {
-            return;
+            return false;
         }
         const request = {
             'asset': currency['id'],
@@ -841,6 +845,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //    ]
         //
         currency['networks'] = this.parseNetworks(rawNetworks);
+        return true;
     }
     parseNetworks(networks, params = {}) {
         const result = {};
@@ -1717,7 +1722,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         request['type'] = typeId;
         if (type === 'limit') {
             if (price === undefined) {
-                throw new errors.InvalidOrder(this.id + 'createOrder() requires a price parameter for a limit order types');
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
         }
@@ -1731,7 +1736,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
-                throw new errors.InvalidOrder(this.id + 'createOrder() market orders must have tif set to "IOC"');
+                throw new errors.InvalidOrder(this.id + ' createOrder() market orders must have tif set to "IOC"');
             }
             tif = 'IOC';
         }

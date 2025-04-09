@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchMarkets(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchMarkets(Exchange exchange, object skippedProperties)
     {
         object method = "fetchMarkets";
         object markets = await exchange.fetchMarkets();
@@ -18,6 +18,7 @@ public partial class testMainClass : BaseTest
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
+        return true;
     }
 
 }

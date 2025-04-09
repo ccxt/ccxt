@@ -12,13 +12,13 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class hyperliquid extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hyperliquid',
             'name' => 'Hyperliquid',
@@ -54,6 +54,7 @@ class hyperliquid extends Exchange {
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'editOrders' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -70,7 +71,7 @@ class hyperliquid extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -197,7 +198,7 @@ class hyperliquid extends Exchange {
                 'broad' => array(
                     'Price must be divisible by tick size.' => '\\ccxt\\InvalidOrder',
                     'Order must have minimum value of $10' => '\\ccxt\\InvalidOrder',
-                    'Insufficient margin to place order.' => '\\ccxt\\InvalidOrder',
+                    'Insufficient margin to place order.' => '\\ccxt\\InsufficientFunds',
                     'Reduce only order would increase position.' => '\\ccxt\\InvalidOrder',
                     'Post only order would have immediately matched,' => '\\ccxt\\InvalidOrder',
                     'Order could not immediately match against any resting orders.' => '\\ccxt\\InvalidOrder',
@@ -209,6 +210,8 @@ class hyperliquid extends Exchange {
                     'Order price cannot be more than 80% away from the reference price' => '\\ccxt\\InvalidOrder',
                     'Order has zero size.' => '\\ccxt\\InvalidOrder',
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -232,7 +235,6 @@ class hyperliquid extends Exchange {
                         'takeProfitPrice' => false,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => false,
                             'PO' => true,
@@ -254,17 +256,20 @@ class hyperliquid extends Exchange {
                         'limit' => 2000,
                         'daysBack' => null,
                         'untilDays' => null,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 2000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -273,15 +278,17 @@ class hyperliquid extends Exchange {
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 2000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 5000,
@@ -607,7 +614,10 @@ class hyperliquid extends Exchange {
                 $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
                 $amountPrecision = intval($amountPrecisionStr);
                 $price = $this->safe_number($extraData, 'midPx');
-                $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+                $pricePrecision = 0;
+                if ($price !== null) {
+                    $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+                }
                 $pricePrecisionStr = $this->number_to_string($pricePrecision);
                 // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
                 $baseId = $this->number_to_string($index + 10000);
@@ -709,8 +719,16 @@ class hyperliquid extends Exchange {
         $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
         $amountPrecision = intval($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
-        $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecision = 0;
+        if ($price !== null) {
+            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        }
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
+        $isDelisted = $this->safe_bool($market, 'isDelisted');
+        $active = true;
+        if ($isDelisted !== null) {
+            $active = !$isDelisted;
+        }
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -726,7 +744,7 @@ class hyperliquid extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => true,
+            'active' => $active,
             'contract' => $contract,
             'linear' => true,
             'inverse' => false,
@@ -843,7 +861,7 @@ class hyperliquid extends Exchange {
                 'info' => $response,
                 'USDC' => array(
                     'total' => $this->safe_number($data, 'accountValue'),
-                    'free' => $this->safe_number($response, 'withdrawable'),
+                    'used' => $this->safe_number($data, 'totalMarginUsed'),
                 ),
             );
             $timestamp = $this->safe_integer($response, 'time');
@@ -1000,8 +1018,7 @@ class hyperliquid extends Exchange {
                 );
                 $result[] = $data;
             }
-            $funding_rates = $this->parse_funding_rates($result);
-            return $this->filter_by_array($funding_rates, 'symbol', $symbols);
+            return $this->parse_funding_rates($result, $symbols);
         }) ();
     }
 
@@ -1171,7 +1188,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1404,7 +1421,7 @@ class hyperliquid extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            list($order, $globalParams) = $this->parse_create_order_args($symbol, $type, $side, $amount, $price, $params);
+            list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
             $orders = Async\await($this->create_orders(array( $order ), $globalParams));
             return $orders[0];
         }) ();
@@ -1803,81 +1820,110 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_orders_request($orders, $params = array ()) {
         $this->check_required_credentials();
-        if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
-        }
-        $market = $this->market($symbol);
-        $type = strtoupper($type);
-        $isMarket = ($type === 'MARKET');
-        $side = strtoupper($side);
-        $isBuy = ($side === 'BUY');
-        $defaultSlippage = $this->safe_string($this->options, 'defaultSlippage');
-        $slippage = $this->safe_string($params, 'slippage', $defaultSlippage);
-        $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
-        $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly) {
-            $defaultTimeInForce = 'alo';
-        }
-        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
-        $timeInForce = $this->capitalize($timeInForce);
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $isTrigger = ($stopLossPrice || $takeProfitPrice);
-        $params = $this->omit($params, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ));
-        $px = (string) $price;
-        if ($isMarket) {
-            $px = ($isBuy) ? (string) Precise::string_mul($price, Precise::string_add('1', $slippage)) : (string) Precise::string_mul($price, Precise::string_sub('1', $slippage));
-        } else {
-            $px = $this->price_to_precision($symbol, (string) $price);
-        }
-        $sz = $this->amount_to_precision($symbol, $amount);
-        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $orderType = array();
-        if ($isTrigger) {
-            $isTp = false;
-            if ($takeProfitPrice !== null) {
-                $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                $isTp = true;
-            } else {
-                $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+        $hasClientOrderId = false;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
+            if ($clientOrderId !== null) {
+                $hasClientOrderId = true;
             }
-            $orderType['trigger'] = array(
-                'isMarket' => $isMarket,
-                'triggerPx' => $triggerPrice,
-                'tpsl' => ($isTp) ? 'tp' : 'sl',
-            );
-        } else {
-            $orderType['limit'] = array(
-                'tif' => $timeInForce,
-            );
         }
-        if ($triggerPrice === null) {
-            $triggerPrice = '0';
+        if ($hasClientOrderId) {
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
+                if ($clientOrderId === null) {
+                    throw new ArgumentsRequired($this->id . ' editOrders() all $orders must have $clientOrderId if at least one has a clientOrderId');
+                }
+            }
+        }
+        $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
+        $modifies = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $id = $this->safe_string($rawOrder, 'id');
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $market = $this->market($marketId);
+            $symbol = $market['symbol'];
+            $type = $this->safe_string_upper($rawOrder, 'type');
+            $isMarket = ($type === 'MARKET');
+            $side = $this->safe_string_upper($rawOrder, 'side');
+            $isBuy = ($side === 'BUY');
+            $amount = $this->safe_string($rawOrder, 'amount');
+            $price = $this->safe_string($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $defaultSlippage = $this->safe_string($this->options, 'defaultSlippage');
+            $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
+            $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+            $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
+            if ($postOnly) {
+                $defaultTimeInForce = 'alo';
+            }
+            $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
+            $timeInForce = $this->capitalize($timeInForce);
+            $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
+            $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
+            $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
+            $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
+            $isTrigger = ($stopLossPrice || $takeProfitPrice);
+            $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
+            $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
+            $px = $this->number_to_string($price);
+            if ($isMarket) {
+                $px = ($isBuy) ? Precise::string_mul($px, Precise::string_add('1', $slippage)) : Precise::string_mul($px, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px);
+            } else {
+                $px = $this->price_to_precision($symbol, $px);
+            }
+            $sz = $this->amount_to_precision($symbol, $amount);
+            $orderType = array();
+            if ($isTrigger) {
+                $isTp = false;
+                if ($takeProfitPrice !== null) {
+                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $isTp = true;
+                } else {
+                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                }
+                $orderType['trigger'] = array(
+                    'isMarket' => $isMarket,
+                    'triggerPx' => $triggerPrice,
+                    'tpsl' => ($isTp) ? 'tp' : 'sl',
+                );
+            } else {
+                $orderType['limit'] = array(
+                    'tif' => $timeInForce,
+                );
+            }
+            if ($triggerPrice === null) {
+                $triggerPrice = '0';
+            }
+            $orderReq = array(
+                'a' => $this->parse_to_int($market['baseId']),
+                'b' => $isBuy,
+                'p' => $px,
+                's' => $sz,
+                'r' => $reduceOnly,
+                't' => $orderType,
+                // 'c' => $clientOrderId,
+            );
+            if ($clientOrderId !== null) {
+                $orderReq['c'] = $clientOrderId;
+            }
+            $modifyReq = array(
+                'oid' => $this->parse_to_int($id),
+                'order' => $orderReq,
+            );
+            $modifies[] = $modifyReq;
         }
         $nonce = $this->milliseconds();
-        $orderReq = array(
-            'a' => $this->parse_to_int($market['baseId']),
-            'b' => $isBuy,
-            'p' => $px,
-            's' => $sz,
-            'r' => $reduceOnly,
-            't' => $orderType,
-            // 'c' => $clientOrderId,
-        );
-        if ($clientOrderId !== null) {
-            $orderReq['c'] = $clientOrderId;
-        }
-        $modifyReq = array(
-            'oid' => $this->parse_to_int($id),
-            'order' => $orderReq,
-        );
         $modifyAction = array(
             'type' => 'batchModify',
-            'modifies' => array( $modifyReq ),
+            'modifies' => $modifies,
         );
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
         $signature = $this->sign_l1_action($modifyAction, $nonce, $vaultAddress);
@@ -1897,29 +1943,48 @@ class hyperliquid extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
-             * edit a trade order
+             * edit a trade $order
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-$orders
              *
-             * @param {string} $id cancel order $id
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $id cancel $order $id
+             * @param {string} $symbol unified $symbol of the market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market $orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
-             * @param {bool} [$params->postOnly] true or false whether the order is post-only
-             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
-             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-             * @param {string} [$params->vaultAddress] the vault address for order
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+             * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {string} [$params->clientOrderId] client $order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->vaultAddress] the vault address for $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+            if ($id === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
+            }
+            list($order, $globalParams) = $this->parse_create_edit_order_args($id, $symbol, $type, $side, $amount, $price, $params);
+            $orders = Async\await($this->edit_orders(array( $order ), $globalParams));
+            return $orders[0];
+        }) ();
+    }
+
+    public function edit_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * edit a list of trade $orders
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-$orders
+             *
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = $this->edit_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
             //     {
@@ -1959,8 +2024,48 @@ class hyperliquid extends Exchange {
             $responseObject = $this->safe_dict($response, 'response', array());
             $dataObject = $this->safe_dict($responseObject, 'data', array());
             $statuses = $this->safe_list($dataObject, 'statuses', array());
-            $first = $this->safe_dict($statuses, 0, array());
-            return $this->parse_order($first, $market);
+            return $this->parse_orders($statuses);
+        }) ();
+    }
+
+    public function create_vault(string $name, string $description, int $initialUsd, $params = array ()) {
+        return Async\async(function () use ($name, $description, $initialUsd, $params) {
+            /**
+             * creates a value
+             * @param {string} $name The $name of the vault
+             * @param {string} $description The $description of the vault
+             * @param {number} $initialUsd The $initialUsd of the vault
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($initialUsd), '1000000'));
+            $action = array(
+                'type' => 'createVault',
+                'name' => $name,
+                'description' => $description,
+                'initialUsd' => $usd,
+                'nonce' => $nonce,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            //
+            // {
+            //     "status" => "ok",
+            //     "response" => {
+            //         "type" => "createVault",
+            //         "data" => "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+            //     }
+            // }
+            //
+            return $response;
         }) ();
     }
 
@@ -1979,6 +2084,9 @@ class hyperliquid extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
             $market = $this->market($symbol);
             $request = array(
                 'type' => 'fundingHistory',
@@ -2329,7 +2437,7 @@ class hyperliquid extends Exchange {
             $market = $this->safe_market($marketId, $market);
         }
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer_2($order, 'timestamp', 'statusTimestamp');
+        $timestamp = $this->safe_integer($entry, 'timestamp');
         $status = $this->safe_string_2($order, 'status', 'ccxtStatus');
         $order = $this->omit($order, array( 'ccxtStatus' ));
         $side = $this->safe_string($entry, 'side');
@@ -2338,6 +2446,11 @@ class hyperliquid extends Exchange {
         }
         $totalAmount = $this->safe_string_2($entry, 'origSz', 'totalSz');
         $remaining = $this->safe_string($entry, 'sz');
+        $tif = $this->safe_string_upper($entry, 'tif');
+        $postOnly = null;
+        if ($tif !== null) {
+            $postOnly = ($tif === 'ALO');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -2345,11 +2458,11 @@ class hyperliquid extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($order, 'statusTimestamp'),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
-            'timeInForce' => $this->safe_string_upper($entry, 'tif'),
-            'postOnly' => null,
+            'timeInForce' => $tif,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
@@ -2476,6 +2589,11 @@ class hyperliquid extends Exchange {
             $side = ($side === 'A') ? 'sell' : 'buy';
         }
         $fee = $this->safe_string($trade, 'fee');
+        $takerOrMaker = null;
+        $crossed = $this->safe_bool($trade, 'crossed');
+        if ($crossed !== null) {
+            $takerOrMaker = $crossed ? 'taker' : 'maker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2485,7 +2603,7 @@ class hyperliquid extends Exchange {
             'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -2889,7 +3007,7 @@ class hyperliquid extends Exchange {
             if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
                 // handle swap <> spot account transfer
                 if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
-                    throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
+                    throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
                 }
                 $strAmount = $this->number_to_string($amount);
                 $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -2928,7 +3046,7 @@ class hyperliquid extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'transfer() only support USDC');
+                    throw new NotSupported($this->id . ' transfer() only support USDC');
                 }
             }
             $payload = array(
@@ -2951,8 +3069,28 @@ class hyperliquid extends Exchange {
                 'signature' => $sig,
             );
             $response = Async\await($this->privatePostExchange ($request));
-            return $response;
+            //
+            // array('response' => array('type' => 'default'), 'status' => 'ok')
+            //
+            return $this->parse_transfer($response);
         }) ();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        // array('response' => array('type' => 'default'), 'status' => 'ok')
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'ok',
+        );
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
@@ -2977,7 +3115,7 @@ class hyperliquid extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'withdraw() only support USDC');
+                    throw new NotSupported($this->id . ' withdraw() only support USDC');
                 }
             }
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
@@ -3065,7 +3203,7 @@ class hyperliquid extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => null,
-            'amount' => $this->safe_integer($delta, 'usdc'),
+            'amount' => $this->safe_number($delta, 'usdc'),
             'currency' => null,
             'status' => $this->safe_string($transaction, 'status'),
             'updated' => null,
@@ -3381,8 +3519,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $swapMarkets = Async\await($this->fetch_swap_markets());
-            $result = $this->parse_open_interests($swapMarkets);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_open_interests($swapMarkets, $symbols);
         }) ();
     }
 
@@ -3436,6 +3573,93 @@ class hyperliquid extends Exchange {
         ), $market);
     }
 
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the history of funding payments paid and received on this account
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch funding history for
+             * @param {int} [$limit] the maximum number of funding history structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $userAddress = null;
+            list($userAddress, $params) = $this->handle_public_address('fetchFundingHistory', $params);
+            $request = array(
+                'user' => $userAddress,
+                'type' => 'userFunding',
+            );
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
+            //
+            // array(
+            //     {
+            //         "time" => 1734026400057,
+            //         "hash" => "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //         "delta" => {
+            //             "type" => "funding",
+            //             "coin" => "SOL",
+            //             "usdc" => "75.635093",
+            //             "szi" => "-7375.9",
+            //             "fundingRate" => "0.00004381",
+            //             "nSamples" => null
+            //         }
+            //     }
+            // )
+            //
+            return $this->parse_incomes($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //     "time" => 1734026400057,
+        //     "hash" => "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //     "delta" => {
+        //         "type" => "funding",
+        //         "coin" => "SOL",
+        //         "usdc" => "75.635093",
+        //         "szi" => "-7375.9",
+        //         "fundingRate" => "0.00004381",
+        //         "nSamples" => null
+        //     }
+        // }
+        //
+        $id = $this->safe_string($income, 'hash');
+        $timestamp = $this->safe_integer($income, 'time');
+        $delta = $this->safe_dict($income, 'delta');
+        $baseId = $this->safe_string($delta, 'coin');
+        $marketSymbol = $baseId . '/USDC:USDC';
+        $market = $this->safe_market($marketSymbol);
+        $symbol = $market['symbol'];
+        $amount = $this->safe_string($delta, 'usdc');
+        $code = $this->safe_currency_code('USDC');
+        $rate = $this->safe_number($delta, 'fundingRate');
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $this->parse_number($amount),
+            'rate' => $rate,
+        );
+    }
+
     public function extract_type_from_delta($data = []) {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -3487,6 +3711,7 @@ class hyperliquid extends Exchange {
         //         $status => 'ok',
         //         $response => array( type => 'order', $data => array( $statuses => array( array( error => 'Insufficient margin to place order. asset=4' ) ) ) )
         //     }
+        // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
         $status = $this->safe_string($response, 'status', '');
         $message = null;
@@ -3533,7 +3758,7 @@ class hyperliquid extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function parse_create_order_args(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $vaultAddress = $this->safe_string($params, 'vaultAddress');
         $params = $this->omit($params, 'vaultAddress');
@@ -3549,6 +3774,9 @@ class hyperliquid extends Exchange {
         $globalParams = array();
         if ($vaultAddress !== null) {
             $globalParams['vaultAddress'] = $vaultAddress;
+        }
+        if ($id !== null) {
+            $order['id'] = $id;
         }
         return array( $order, $globalParams );
     }

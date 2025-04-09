@@ -91,6 +91,27 @@ public partial class hashkey
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    /// <summary>
+    /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of order book entries to return.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -193,6 +214,27 @@ public partial class hashkey
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    /// <summary>
+    /// watch balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
     public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBalance(parameters);

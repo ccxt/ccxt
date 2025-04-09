@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -38,7 +38,7 @@ from ccxt.base.precise import Precise
 
 class hashkey(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hashkey, self).describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
@@ -394,17 +394,20 @@ class hashkey(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 30,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 1000,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo
@@ -1454,9 +1457,14 @@ class hashkey(Exchange, ImplicitAPI):
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
         takerOrMaker = None
-        isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker', 'ibm'])
+        isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker'])
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
+        isBuyerMaker = self.safe_bool(trade, 'ibm')
+        # if public trade
+        if isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
         feeCost = self.safe_string(trade, 'commission')
         feeCurrncyId = self.safe_string(trade, 'commissionAsset')
         feeInfo = self.safe_dict(trade, 'fee')
@@ -2391,8 +2399,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is supported for spot markets only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -3616,8 +3626,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
         #     ]
         #
-        fundingRates = self.parse_funding_rates(response)
-        return self.filter_by_array(fundingRates, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

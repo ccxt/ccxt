@@ -3,6 +3,34 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "setMarginMode": [
+            {
+                "description": "set margin mode isolated",
+                "method": "setMarginMode",
+                "url": "https://fapi.xt.com/future/user/v1/position/change-type",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT",
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "output": "{\"positionType\":\"ISOLATED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usdt\"}"
+            },
+            {
+                "description": "set margin mode long",
+                "method": "setMarginMode",
+                "url": "https://fapi.xt.com/future/user/v1/position/change-type",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT",
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "output": "{\"positionType\":\"CROSSED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usdt\"}"
+            }
+        ],
         "createOrder":[
             {
                 "description": "limit spot order",

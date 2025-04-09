@@ -9,7 +9,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 //  ---------------------------------------------------------------------------
 
 export default class hyperliquid extends hyperliquidRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -79,7 +79,7 @@ export default class hyperliquid extends hyperliquidRest {
 
     /**
      * @method
-     * @name hyperliquid#createOrder
+     * @name hyperliquid#createOrderWs
      * @description create a trade order using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -99,16 +99,15 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs ([ order as any ], globalParams);
         return orders[0];
     }
 
     /**
      * @method
-     * @name hyperliquid#editOrder
+     * @name hyperliquid#editOrderWs
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -129,7 +128,8 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
-        const postRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, amount, price, params);
+        const postRequest = this.editOrdersRequest ([ order as any ], globalParams);
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');

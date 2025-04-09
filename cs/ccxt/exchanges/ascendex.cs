@@ -46,6 +46,7 @@ public partial class ascendex : Exchange
                 { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
@@ -55,10 +56,13 @@ public partial class ascendex : Exchange
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -67,6 +71,7 @@ public partial class ascendex : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -78,6 +83,7 @@ public partial class ascendex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
@@ -270,7 +276,6 @@ public partial class ascendex : Exchange
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
-                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "GO20", "GO20" },
@@ -280,6 +285,103 @@ public partial class ascendex : Exchange
                     { "LTC", "Litecoin" },
                     { "MATIC", "Matic Network" },
                     { "AKT", "Akash" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", false },
+                                { "index", false },
+                            } },
+                            { "price", false },
+                        } },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -445,7 +547,7 @@ public partial class ascendex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
+            object id = this.safeString(ids, i);
             object currency = getValue(dataById, id);
             object code = this.safeCurrencyCode(id);
             object scale = this.safeString2(currency, "precisionScale", "nativeScale");
@@ -1155,6 +1257,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1172,6 +1275,7 @@ public partial class ascendex : Exchange
         object duration = this.parseTimeframe(timeframe);
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object defaultLimit = this.safeInteger(options, "limit", 500);
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = since;
@@ -1182,11 +1286,30 @@ public partial class ascendex : Exchange
             {
                 limit = mathMin(limit, defaultLimit);
             }
-            ((IDictionary<string,object>)request)["to"] = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            object toWithLimit = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["to"] = mathMin(toWithLimit, add(until, 1));
+            } else
+            {
+                ((IDictionary<string,object>)request)["to"] = toWithLimit;
+            }
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = add(until, 1);
+            if (isTrue(isEqual(limit, null)))
+            {
+                limit = defaultLimit;
+            } else
+            {
+                limit = mathMin(limit, defaultLimit);
+            }
+            ((IDictionary<string,object>)request)["from"] = subtract(until, (multiply(multiply(limit, duration), 1000)));
         } else if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["n"] = limit; // max 500
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.v1PublicGetBarhist(this.extend(request, parameters));
         //
         //     {
@@ -2036,7 +2159,7 @@ public partial class ascendex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty
@@ -2995,8 +3118,7 @@ public partial class ascendex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object contracts = this.safeList(data, "contracts", new List<object>() {});
-        object result = this.parseFundingRates(contracts);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(contracts, symbols);
     }
 
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)

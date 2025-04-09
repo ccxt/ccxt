@@ -5,11 +5,12 @@
 
 from ccxt.async_support.hitbtc import hitbtc
 from ccxt.abstract.bequant import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class bequant(hitbtc, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',
@@ -18,6 +19,7 @@ class bequant(hitbtc, ImplicitAPI):
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api': {
+                    # v3
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
                 },

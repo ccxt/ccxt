@@ -15,7 +15,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name coinbase#fetchAccounts
@@ -53,12 +53,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        tag: string;
-        address: string;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     /**
      * @method
      * @name coinbase#fetchMySells
@@ -139,8 +134,8 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsV2(params?: {}): Promise<any[]>;
-    fetchMarketsV3(params?: {}): Promise<any[]>;
+    fetchMarketsV2(params?: {}): Promise<Market[]>;
+    fetchMarketsV3(params?: {}): Promise<Market[]>;
     parseSpotMarket(market: any, feeTier: any): MarketInterface;
     parseContractMarket(market: any, feeTier: any): MarketInterface;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
@@ -166,8 +161,8 @@ export default class coinbase extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchTickersV2(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchTickersV3(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickersV2(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickersV3(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name coinbase#fetchTicker
@@ -605,7 +600,19 @@ export default class coinbase extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
+    parsePortfolioDetails(portfolioData: Dict): any[];
     createAuthToken(seconds: Int, method?: Str, url?: Str): string;
+    nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

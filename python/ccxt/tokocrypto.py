@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -37,7 +37,7 @@ from ccxt.base.precise import Precise
 
 class tokocrypto(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(tokocrypto, self).describe(), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',
@@ -619,12 +619,90 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'MAX_POSITION': InvalidOrder,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
 
         https://www.tokocrypto.com/apidocs/#check-server-time
@@ -635,9 +713,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         response = self.publicGetOpenV1CommonTime(params)
         #
+        # {
+        #     "code": 0,
+        #     "msg": "Success",
+        #     "data": null,
+        #     "timestamp": 1737378074159
+        # }
         #
-        #
-        return self.safe_integer(response, 'serverTime')
+        return self.safe_integer(response, 'timestamp')
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1575,7 +1658,6 @@ class tokocrypto(Exchange, ImplicitAPI):
         create a trade order
 
         https://www.tokocrypto.com/apidocs/#new-order--signed
-        https://www.tokocrypto.com/apidocs/#account-trade-list-signed
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1733,7 +1815,7 @@ class tokocrypto(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://www.tokocrypto.com/apidocs/#all-orders-signed
+        https://www.tokocrypto.com/apidocs/#query-order-signed
 
         fetches information on an order made by the user
         :param str id: order id

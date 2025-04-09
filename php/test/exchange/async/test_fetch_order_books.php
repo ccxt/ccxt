@@ -23,5 +23,6 @@ function test_fetch_order_books($exchange, $skipped_properties) {
             $symbol_inner = $order_book_keys[$i];
             test_order_book($exchange, $skipped_properties, $method, $order_books[$symbol_inner], $symbol_inner);
         }
+        return true;
     }) ();
 }

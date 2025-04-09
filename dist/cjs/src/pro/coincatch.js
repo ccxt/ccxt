@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coincatch extends coincatch$1 {
     describe() {
@@ -558,7 +558,7 @@ class coincatch extends coincatch$1 {
     }
     /**
      * @method
-     * @name coincatch#watchOrderBook
+     * @name coincatch#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param symbols
@@ -696,7 +696,7 @@ class coincatch extends coincatch$1 {
     }
     /**
      * @method
-     * @name coincatch#watchTrades
+     * @name coincatch#watchTradesForSymbols
      * @description watches information on multiple trades made in a market
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param symbols
@@ -1488,7 +1488,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'orderbook ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' orderbook ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }
@@ -1510,7 +1510,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'trades ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' trades ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }
@@ -1532,7 +1532,7 @@ class coincatch extends coincatch$1 {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new errors.UnsubscribeError(this.id + 'ticker ' + symbol);
+        const error = new errors.UnsubscribeError(this.id + ' ticker ' + symbol);
         client.reject(error, subMessageHash);
         client.resolve(true, messageHash);
     }

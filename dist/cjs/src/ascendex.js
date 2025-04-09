@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ascendex
@@ -283,7 +283,6 @@ class ascendex extends ascendex$1 {
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
                     // 'TRC': 'TRC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -293,6 +292,104 @@ class ascendex extends ascendex$1 {
                     'LTC': 'Litecoin',
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo: implementation
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': false,
+                        },
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -450,7 +547,7 @@ class ascendex extends ascendex$1 {
         const ids = Object.keys(dataById);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const currency = dataById[id];
             const code = this.safeCurrencyCode(id);
             const scale = this.safeString2(currency, 'precisionScale', 'nativeScale');
@@ -1114,6 +1211,7 @@ class ascendex extends ascendex$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1128,6 +1226,7 @@ class ascendex extends ascendex$1 {
         const duration = this.parseTimeframe(timeframe);
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger(options, 'limit', 500);
+        const until = this.safeInteger(params, 'until');
         if (since !== undefined) {
             request['from'] = since;
             if (limit === undefined) {
@@ -1136,11 +1235,28 @@ class ascendex extends ascendex$1 {
             else {
                 limit = Math.min(limit, defaultLimit);
             }
-            request['to'] = this.sum(since, limit * duration * 1000, 1);
+            const toWithLimit = this.sum(since, limit * duration * 1000, 1);
+            if (until !== undefined) {
+                request['to'] = Math.min(toWithLimit, until + 1);
+            }
+            else {
+                request['to'] = toWithLimit;
+            }
+        }
+        else if (until !== undefined) {
+            request['to'] = until + 1;
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
+            else {
+                limit = Math.min(limit, defaultLimit);
+            }
+            request['from'] = until - (limit * duration * 1000);
         }
         else if (limit !== undefined) {
             request['n'] = limit; // max 500
         }
+        params = this.omit(params, 'until');
         const response = await this.v1PublicGetBarhist(this.extend(request, params));
         //
         //     {
@@ -1925,7 +2041,7 @@ class ascendex extends ascendex$1 {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty
@@ -2834,8 +2950,7 @@ class ascendex extends ascendex$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const contracts = this.safeList(data, 'contracts', []);
-        const result = this.parseFundingRates(contracts);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(contracts, symbols);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
         await this.loadMarkets();

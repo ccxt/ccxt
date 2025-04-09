@@ -57,8 +57,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -154,6 +154,9 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+}
+
+export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
 export interface Ticker {
@@ -275,13 +278,6 @@ export interface DepositAddress {
 export interface WithdrawalResponse {
     info: any;
     id: string;
-}
-
-export interface DepositAddressResponse {
-    currency: Str;
-    address: string;
-    info: any;
-    tag?: Str;
 }
 
 export interface FundingRate {
@@ -599,10 +595,10 @@ export interface MarginModes extends Dictionary<MarginMode> {
 export interface OptionChain extends Dictionary<Option> {
 }
 
-export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRate> {
 }
 
-export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 }
 
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
@@ -618,4 +614,34 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+interface BaseConstructorArgs {
+    apiKey?: string;
+    secret?: string;
+    password?: string;
+    privateKey?: string;
+    walletAddress?: string;
+    uid?: string;
+    verbose?: boolean;
+    sandbox?: boolean; // redundant with testnet but kept for backward compatibility
+    testnet?: boolean;
+    options?: Dict;
+    enableRateLimit?: boolean;
+    httpsProxy?: string;
+    socksProxy?: string;
+    wssProxy?: string;
+    proxy?: string;
+    rateLimit?: number;
+    commonCurrencies?: Dict;
+    userAgent?: string;
+    userAgents?: Dict;
+    timeout?: number;
+    markets?: Dict;
+    currencies?: Dict;
+    hostname?: string
+    urls?: Dict;
+    headers?: Dict;
+}
 
+export type ConstructorArgs = Partial<BaseConstructorArgs> & {
+    [key: string]: any;
+};

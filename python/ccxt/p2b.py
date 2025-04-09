@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class p2b(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(p2b, self).describe(), {
             'id': 'p2b',
             'name': 'p2b',
@@ -81,7 +81,7 @@ class p2b(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
@@ -186,6 +186,71 @@ class p2b(Exchange, ImplicitAPI):
                         [self.parse_number('450'), self.parse_number('0.02')],
                         [self.parse_number('500'), self.parse_number('0.01')],
                     ],
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 1,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': None,  # todo
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1 / 12,  # todo
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'commonCurrencies': {
