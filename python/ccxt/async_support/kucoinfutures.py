@@ -5,7 +5,7 @@
 
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class kucoinfutures(kucoin, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -386,9 +386,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': {
-                            'triggerPrice': None,
                             'triggerPriceType': None,
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -398,11 +397,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'iceberg': True,
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'oco': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,
                     },
                     'createOrders': {
                         'max': 20,
@@ -412,27 +411,31 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 7,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 1000,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
@@ -646,7 +649,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             })
         return result
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -2098,7 +2101,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 

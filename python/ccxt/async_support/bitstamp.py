@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class bitstamp(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
@@ -165,6 +165,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'user_transactions/': 1,
                         'user_transactions/{pair}/': 1,
                         'crypto-transactions/': 1,
+                        'open_order': 1,
                         'open_orders/all/': 1,
                         'open_orders/{pair}/': 1,
                         'order_status/': 1,
@@ -503,6 +504,67 @@ class bitstamp(Exchange, ImplicitAPI):
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
                     'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 30,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })
@@ -1220,10 +1282,9 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_trading_fees(self, fees):
         result: dict = {'info': fees}
-        symbols = self.symbols
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
+            symbol = fee['symbol']
             result[symbol] = fee
         return result
 

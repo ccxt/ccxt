@@ -983,7 +983,7 @@ export default class oxfun extends oxfunRest {
     }
     /**
      * @method
-     * @name okx#cancelOrdersWs
+     * @name oxfun#cancelOrdersWs
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
      * @description cancel multiple orders
      * @param {string[]} ids order ids

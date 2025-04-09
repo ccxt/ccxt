@@ -17,13 +17,13 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\BadResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class digifinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'digifinex',
             'name' => 'DigiFinex',
@@ -244,6 +244,112 @@ class digifinex extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 30,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'marketType' => true,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 30,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrders' => array(
+                        'max' => 20,
+                        'marginMode' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'daysBack' => 100000, // todo
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 100,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'fees' => array(
                 'trading' => array(
                     'tierBased' => true,
@@ -457,10 +563,11 @@ class digifinex extends Exchange {
                     ),
                 );
                 if (is_array($result) && array_key_exists($code, $result)) {
-                    if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
-                        $result[$code]['info'][] = $currency;
+                    $resultCodeInfo = $result[$code]['info'];
+                    if (gettype($resultCodeInfo) === 'array' && array_keys($resultCodeInfo) === array_keys(array_keys($resultCodeInfo))) {
+                        $resultCodeInfo[] = $currency;
                     } else {
-                        $result[$code]['info'] = [ $result[$code]['info'], $currency ];
+                        $resultCodeInfo = array( $resultCodeInfo, $currency );
                     }
                     if ($withdraw) {
                         $result[$code]['withdraw'] = true;
@@ -1361,7 +1468,7 @@ class digifinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1524,6 +1631,7 @@ class digifinex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1538,21 +1646,36 @@ class digifinex extends Exchange {
                 }
                 $response = Async\await($this->publicSwapGetPublicCandles ($this->extend($request, $params)));
             } else {
+                $until = $this->safe_integer($params, 'until');
                 $request['symbol'] = $market['id'];
                 $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                if ($since !== null) {
-                    $startTime = $this->parse_to_int($since / 1000);
-                    $request['start_time'] = $startTime;
-                    if ($limit !== null) {
-                        $duration = $this->parse_timeframe($timeframe);
-                        $request['end_time'] = $this->sum($startTime, $limit * $duration);
+                $startTime = $since;
+                $duration = $this->parse_timeframe($timeframe);
+                if ($startTime === null) {
+                    if (($limit !== null) || ($until !== null)) {
+                        $endTime = ($until !== null) ? $until : $this->milliseconds();
+                        $startLimit = ($limit !== null) ? $limit : 200;
+                        $startTime = $endTime - ($startLimit * $duration * 1000);
                     }
-                } elseif ($limit !== null) {
-                    $endTime = $this->seconds();
-                    $duration = $this->parse_timeframe($timeframe);
-                    $auxLimit = $limit; // in c# -$limit is mutating the arg
-                    $request['start_time'] = $this->sum($endTime, -$auxLimit * $duration);
                 }
+                if ($startTime !== null) {
+                    $startTime = $this->parse_to_int($startTime / 1000);
+                    $request['start_time'] = $startTime;
+                    if (($limit !== null) || ($until !== null)) {
+                        if ($until !== null) {
+                            $endByUntil = $this->parse_to_int($until / 1000);
+                            if ($limit !== null) {
+                                $endByLimit = $this->sum($startTime, $limit * $duration);
+                                $request['end_time'] = min ($endByLimit, $endByUntil);
+                            } else {
+                                $request['end_time'] = $endByUntil;
+                            }
+                        } else {
+                            $request['end_time'] = $this->sum($startTime, $limit * $duration);
+                        }
+                    }
+                }
+                $params = $this->omit($params, 'until');
                 $response = Async\await($this->publicSpotGetKline ($this->extend($request, $params)));
             }
             //
@@ -4157,7 +4280,8 @@ class digifinex extends Exchange {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                     $depositWithdrawFees[$code]['info'] = array();
                 }
-                $depositWithdrawFees[$code]['info'][] = $entry;
+                $depositWithdrawInfo = $depositWithdrawFees[$code]['info'];
+                $depositWithdrawInfo[] = $entry;
                 $networkId = $this->safe_string($entry, 'chain');
                 $withdrawFee = $this->safe_value($entry, 'min_withdraw_fee');
                 $withdrawResult = array(

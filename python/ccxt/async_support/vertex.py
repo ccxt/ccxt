@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class vertex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(vertex, self).describe(), {
             'id': 'vertex',
             'name': 'Vertex',
@@ -330,6 +330,72 @@ class vertex(Exchange, ImplicitAPI):
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'brokerId': 5930043274845996,
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': True,  # todo
+                        'takeProfitPrice': True,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': True,  # todo fix implementation
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo, only for trigger
+                    'fetchClosedOrders': None,  # todo through fetchOrders
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def set_sandbox_mode(self, enabled):
@@ -556,7 +622,7 @@ class vertex(Exchange, ImplicitAPI):
             result.append(self.parse_market(rawMarket))
         return result
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -564,7 +630,7 @@ class vertex(Exchange, ImplicitAPI):
         """
         response = await self.v1GatewayGetTime(params)
         # 1717481623452
-        return self.parse_number(response)
+        return self.parse_to_int(response)
 
     async def fetch_status(self, params={}):
         """
@@ -1457,7 +1523,7 @@ class vertex(Exchange, ImplicitAPI):
         marketId = base + '/' + quote
         if base.find('PERP') > 0:
             marketId = marketId.replace('-PERP', '') + ':USDC'
-        market = self.market(marketId)
+        market = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -2104,7 +2170,7 @@ class vertex(Exchange, ImplicitAPI):
             #       "product_id": 1,
             #       "orders": [
             #         {
-            #           "product_id": 1,
+            #           "product_id": 2,
             #           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             #           "price_x18": "1000000000000000000",
             #           "amount": "1000000000000000000",
@@ -2113,7 +2179,7 @@ class vertex(Exchange, ImplicitAPI):
             #           "order_type": "default",
             #           "unfilled_amount": "1000000000000000000",
             #           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            #           "placed_at": 1682437739,
+            #           "placed_at": 1682437737,
             #           "order_type": "ioc"
             #         }
             #       ]
@@ -2331,14 +2397,15 @@ class vertex(Exchange, ImplicitAPI):
             'digests': ids,
             'nonce': nonce,
         }
+        productIds = cancels['productIds']
         marketIdNum = self.parse_to_numeric(marketId)
         for i in range(0, len(ids)):
-            cancels['productIds'].append(marketIdNum)
+            productIds.append(marketIdNum)
         request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': self.number_to_string(cancels['nonce']),
                 },

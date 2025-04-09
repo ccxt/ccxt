@@ -270,6 +270,76 @@ public partial class coinsph : Exchange
                     { "ARB", "ARBITRUM" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "-1000", typeof(BadRequest) },
@@ -817,6 +887,7 @@ public partial class coinsph : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -826,30 +897,38 @@ public partial class coinsph : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe);
+        object until = this.safeInteger(parameters, "until");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", interval },
         };
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 1000;
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-            ((IDictionary<string,object>)request)["limit"] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(!isEqual(until, null)))
             {
-                object duration = multiply(this.parseTimeframe(timeframe), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                ((IDictionary<string,object>)request)["endTime"] = until;
             } else
             {
-                ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
+                object duration = multiply(this.parseTimeframe(timeframe), 1000);
+                object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limit, 1))));
+                object now = this.milliseconds();
+                ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
             }
-        } else
+        } else if (isTrue(!isEqual(until, null)))
         {
-            if (isTrue(!isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["limit"] = limit;
-            }
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            object duration = multiply(this.parseTimeframe(timeframe), 1000);
+            ((IDictionary<string,object>)request)["startTime"] = subtract(until, (multiply(duration, (subtract(limit, 1)))));
         }
+        ((IDictionary<string,object>)request)["limit"] = limit;
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters));
         //
         //     [
@@ -1300,7 +1379,7 @@ public partial class coinsph : Exchange
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve

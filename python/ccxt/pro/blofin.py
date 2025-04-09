@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class blofin(ccxt.async_support.blofin):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(blofin, self).describe(), {
             'has': {
                 'ws': True,
@@ -39,6 +39,14 @@ class blofin(ccxt.async_support.blofin):
                         'swap': {
                             'public': 'wss://openapi.blofin.com/ws/public',
                             'private': 'wss://openapi.blofin.com/ws/private',
+                        },
+                    },
+                },
+                'test': {
+                    'ws': {
+                        'swap': {
+                            'public': 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private': 'wss://demo-trading-openapi.blofin.com/ws/private',
                         },
                     },
                 },

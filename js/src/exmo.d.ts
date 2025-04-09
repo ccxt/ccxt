@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, int, DepositAddress, OrderBooks } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
@@ -94,6 +94,7 @@ export default class exmo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -131,7 +132,7 @@ export default class exmo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
-    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<OrderBooks>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -401,7 +402,7 @@ export default class exmo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchDeposit(id?: any, code?: Str, params?: {}): Promise<Transaction>;
+    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name exmo#fetchDeposits

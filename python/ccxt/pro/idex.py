@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import InvalidNonce
@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class idex(ccxt.async_support.idex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(idex, self).describe(), {
             'has': {
                 'ws': True,

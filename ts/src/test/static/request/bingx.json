@@ -8,6 +8,23 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "withdraw": [
+            {
+                "description": "sol",
+                "method": "withdraw",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=1&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
+                "input": [
+                    "TRUMPSOL",
+                    2.31157,
+                    "eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "closeAllPositions": [
             {
                 "description": "Close all open positions",
@@ -332,6 +349,7 @@
             },
             {
                 "description": "Swap order with attached tp and sl",
+                "disabledGO": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A50%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=LTC-USDT&takeProfit=%7B%22stopPrice%22%3A150%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1704026482160&type=MARKET&signature=cbc5f76613bb456d642bd90f556a58d674cafab85559804ddd19c28a4daadddc",
                 "input": [
@@ -567,6 +585,7 @@
         "createOrders": [
             {
                 "description": "Spot create multiple limit orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/batchOrders?data=%5B%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22quantity%22%3A0.0002%2C%22price%22%3A25000%7D%2C%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22quantity%22%3A0.0002%2C%22price%22%3A27000%7D%5D&timestamp=1699073035068&signature=6864c0fb646b46b6f7ff266fe4cbd12cf8aa3d565cc57f74ce3ac229c42a686e",
                 "input": [
@@ -590,6 +609,7 @@
             },
             {
                 "description": "Swap create multiple limit orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22price%22%3A25000%2C%22positionSide%22%3A%22BOTH%22%2C%22quantity%22%3A0.0001%7D%2C%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22price%22%3A27000%2C%22positionSide%22%3A%22BOTH%22%2C%22quantity%22%3A0.0001%7D%5D&timestamp=1699073296743&signature=0e9387a6bdfe14bce939479b3ad9ec3124081e34aa878725c5812b70febe1545",
                 "input": [
@@ -958,6 +978,17 @@
             }
         ],
         "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders with limit",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?pageSize=50&symbol=LTC-USDT&timestamp=1740518148275&signature=2797718cce7debcdd081aa813738210bf8f56e100aeefa9e51871847c15d0ddf",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    50
+                ],
+                "output": null
+            },
             {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
@@ -1604,7 +1635,7 @@
         ],
         "reduceMargin": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "reduceMargin",
                 "method": "reduceMargin",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660858980&type=2&signature=bde504579e677b43e8450197833dd7992680de74fa1926c4814578dd2b1a5ed9",
                 "input": [

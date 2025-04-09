@@ -16,7 +16,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
  * @augments Exchange
  */
 export default class coinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -469,7 +469,7 @@ export default class coinex extends Exchange {
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -521,11 +521,11 @@ export default class coinex extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': true,
-                        // 'marketBuyByCost': true,
-                        // 'selfTradePrevention': true,
-                        // 'iceberg': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true, // todo: implement
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -535,27 +535,31 @@ export default class coinex extends Exchange {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 100000,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -808,7 +812,7 @@ export default class coinex extends Exchange {
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params): Promise<Market[]> {
         const response = await this.v2PublicGetSpotMarket (params);
         //
         //     {
@@ -1214,7 +1218,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v2PublicGetTime (params);
         //
         //     {
@@ -3815,7 +3819,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString2 (params, 'chain', 'network');
@@ -3902,7 +3906,7 @@ export default class coinex extends Exchange {
             'currency': this.safeCurrencyCode (undefined, currency),
             'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositAddress, 'memo', tag),
         } as DepositAddress;
     }
 
@@ -4770,8 +4774,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data, market);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     /**
@@ -4792,14 +4795,14 @@ export default class coinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag) {
-            address = address + ':' + tag;
-        }
         const request: Dict = {
             'ccy': currency['id'],
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'amount': this.currencyToPrecision (code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {

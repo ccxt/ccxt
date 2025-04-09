@@ -6,7 +6,7 @@ var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bitfinex
@@ -420,8 +420,12 @@ class bitfinex extends bitfinex$1 {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo: unify
-                        // todo: leverage unify
+                        'trailing': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 75,
@@ -430,28 +434,32 @@ class bitfinex extends bitfinex$1 {
                         'marginMode': false,
                         'limit': 2500,
                         'daysBack': undefined,
-                        'untilDays': 100000, // todo: implement
+                        'untilDays': 100000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 10000,
@@ -1139,7 +1147,8 @@ class bitfinex extends bitfinex$1 {
             const signedAmount = this.safeString(order, 2);
             const amount = Precise["default"].stringAbs(signedAmount);
             const side = Precise["default"].stringGt(signedAmount, '0') ? 'bids' : 'asks';
-            result[side].push([price, this.parseNumber(amount)]);
+            const resultSide = result[side];
+            resultSide.push([price, this.parseNumber(amount)]);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);
@@ -3132,7 +3141,7 @@ class bitfinex extends bitfinex$1 {
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response);
+        return this.parseFundingRates(response, symbols);
     }
     /**
      * @method
@@ -3365,8 +3374,7 @@ class bitfinex extends bitfinex$1 {
         //         ]
         //     ]
         //
-        const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(response, symbols);
     }
     /**
      * @method

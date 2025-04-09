@@ -34,6 +34,14 @@ public partial class blofin : ccxt.blofin
                         } },
                     } },
                 } },
+                { "test", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "swap", new Dictionary<string, object>() {
+                            { "public", "wss://demo-trading-openapi.blofin.com/ws/public" },
+                            { "private", "wss://demo-trading-openapi.blofin.com/ws/private" },
+                        } },
+                    } },
+                } },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
@@ -555,7 +563,7 @@ public partial class blofin : ccxt.blofin
 
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for

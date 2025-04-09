@@ -10,7 +10,7 @@ use ccxt\async\abstract\binanceus as binance;
 
 class binanceus extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
@@ -208,6 +208,16 @@ class binanceus extends binance {
                     'post' => array(
                         'sub-account/transfer' => 1,
                     ),
+                ),
+            ),
+            'features' => array(
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));

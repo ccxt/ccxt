@@ -22,6 +22,47 @@
                 ]
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.oceanex.pro/v1/k?market=btcusdt&period=1",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV with all arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.oceanex.pro/v1/k?market=btcusdt&period=1&timestamp=1727740800000&limit=5",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1727740800000,
+                  5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch Open Orders with a symbol argument",
+                "method": "fetchOpenOrders",
+                "url": "https://api.oceanex.pro/v1/orders/filter?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7Im1hcmtldCI6ImJ0Y3VzZHQiLCJzdGF0ZXMiOlsid2FpdCJdLCJuZWVkX3ByaWNlIjoiVHJ1ZSJ9fQ.Nj7aQ1wd3Ir6jSd5C4AfPJKLvtKPZvms3ZtU04BON9VKSOkWFMejh-HUVWOtNm-cv1-KELW9rn3pUJDDWNnGZKH_4H0_eQHqsL0tXGAHDAOX17dHL5TI50hPK016XT707qzQoUdtL0QdfdyAD-dY787hYSBkk1ZgkEC-8d-aJqxs02otEDpgWES1pR4Ye7E_UHHCpISHOGFZK025r9UiH5P9I0YHBDhRlbh3spCLrW6_wBRYrsmUWd6ae8-dy9sTSRth_x3yb1LAQAV8nbz2zjI20QvojmjQ0WH2dEjweXY9N3N2PTKt0i6kRFBX3y7wd7aP2S4Pk7ocllfat51cCg",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Open Orders with all arguments",
+                "method": "fetchOpenOrders",
+                "url": "https://api.oceanex.pro/v1/orders/filter?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7Im1hcmtldCI6ImJ0Y3VzZHQiLCJzdGF0ZXMiOlsid2FpdCJdLCJuZWVkX3ByaWNlIjoiVHJ1ZSIsImxpbWl0Ijo1fX0.e2AEcjkXti0zfE68w9Hn2nxRCqADq75CYY0fw4llaVbx6Ny0P3iD8rvlH52f-rB6HTXg1n61WZyuZGhn-FS8xZ_D2A9KMFKUV6ZbKnuyarula7eGSWJYVgw6co7WBi913yTK7wdkoZXHtK2YbEl2yy2r23XydyIkpsC8nDgCYaIM0XdMKpJIfD6wnPX9wCArJNAhAoM1l9Fxjq53sfn6QwNJ0eCLlVsBCr-TXwREJVj5QU5TW1jFzj2mMCsb6vc3-uJU_BQFO4ZXnrlRjdIOUM2WDmzxdAk0sZhy3-pX9JwTkBihxCNobNkYIduHnRXxy82-GKqBUYBgmfDTszWBFg",
+                "input": [
+                  "BTC/USDT",
+                  1727740800000,
+                  5
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Fetch Ticker",

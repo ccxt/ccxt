@@ -6,9 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,12 +21,12 @@ from ccxt.base.precise import Precise
 
 class coinbaseinternational(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': True,
+            'certified': False,
             'pro': True,
             'rateLimit': 100,  # 10 requests per second
             'version': 'v1',
@@ -265,7 +264,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': False,
@@ -284,6 +283,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo: implement
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -291,17 +295,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': 10000,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,
@@ -309,21 +316,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'limit': 300,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                 },
                 'future': {
-                    'linear': {
-                        'extends': 'spot',
-                    },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })
@@ -730,7 +736,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -777,6 +783,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': None,
             'info': response,
         }
 
@@ -793,7 +800,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networks = self.safe_dict(currency, 'networks')
         if networks is not None:
-            return
+            return False
         request: dict = {
             'asset': currency['id'],
         }
@@ -801,7 +808,23 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            "asset_id" = self.parse_networks(rawNetworks)
+        #            "asset_id":"1",
+        #            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        #            "asset_name":"USDC",
+        #            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+        #            "min_withdrawal_amt":"1",
+        #            "max_withdrawal_amt":"100000000",
+        #            "network_confirms":35,
+        #            "processing_time":485,
+        #            "is_default":true,
+        #            "network_name":"ethereum",
+        #            "display_name":"Ethereum"
+        #        },
+        #        ....
+        #    ]
+        #
+        currency['networks'] = self.parse_networks(rawNetworks)
+        return True
 
     def parse_networks(self, networks, params={}):
         result: dict = {}
@@ -1661,7 +1684,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         request['type'] = typeId
         if type == 'limit':
             if price is None:
-                raise InvalidOrder(self.id + 'createOrder() requires a price parameter for a limit order types')
+                raise InvalidOrder(self.id + ' createOrder() requires a price parameter for a limit order types')
             request['price'] = price
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('createOrder', params)
@@ -1672,7 +1695,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         # market orders must be IOC
         if typeId == 'MARKET':
             if tif is not None and tif != 'IOC':
-                raise InvalidOrder(self.id + 'createOrder() market orders must have tif set to "IOC"')
+                raise InvalidOrder(self.id + ' createOrder() market orders must have tif set to "IOC"')
             tif = 'IOC'
         else:
             tif = 'GTC' if (tif is None) else tif

@@ -12,7 +12,7 @@ public partial class coinbase : Exchange
             { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
-            { "certified", true },
+            { "certified", false },
             { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
@@ -285,6 +285,7 @@ public partial class coinbase : Exchange
                     { "INSUFFICIENT_FUND", typeof(BadRequest) },
                     { "PERMISSION_DENIED", typeof(PermissionDenied) },
                     { "INVALID_ARGUMENT", typeof(BadRequest) },
+                    { "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "request timestamp expired", typeof(InvalidNonce) },
@@ -320,6 +321,8 @@ public partial class coinbase : Exchange
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "advanced", true },
                 { "fetchMarkets", "fetchMarketsV3" },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchTicker", "fetchTickerV3" },
                 { "fetchTickers", "fetchTickersV3" },
                 { "fetchAccounts", "fetchAccountsV3" },
@@ -328,7 +331,7 @@ public partial class coinbase : Exchange
                 { "user_native_currency", "USD" },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -346,6 +349,11 @@ public partial class coinbase : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -353,17 +361,20 @@ public partial class coinbase : Exchange
                         { "limit", 3000 },
                         { "daysBack", null },
                         { "untilDays", 10000 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -372,35 +383,36 @@ public partial class coinbase : Exchange
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 10000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 350 },
+                        { "limit", 300 },
                     } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -724,7 +736,7 @@ public partial class coinbase : Exchange
         }
         if (isTrue(isEqual(accountId, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param")) ;
+            throw new ExchangeError ((string)add(add(add(this.id, " createDepositAddress() could not find the account with matching currency code "), code), ", specify an `account_id` extra param to target specific wallet")) ;
         }
         object request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -773,6 +785,7 @@ public partial class coinbase : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
@@ -1298,6 +1311,10 @@ public partial class coinbase : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object method = this.safeString(this.options, "fetchMarkets", "fetchMarketsV3");
         if (isTrue(isEqual(method, "fetchMarketsV3")))
         {
@@ -1330,7 +1347,7 @@ public partial class coinbase : Exchange
                     object quoteCurrency = getValue(data, j);
                     object quoteId = this.safeString(quoteCurrency, "id");
                     object quote = this.safeCurrencyCode(quoteId);
-                    ((IList<object>)result).Add(new Dictionary<string, object>() {
+                    ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                         { "id", add(add(baseId, "-"), quoteId) },
                         { "symbol", add(add(bs, "/"), quote) },
                         { "base", bs },
@@ -1377,7 +1394,7 @@ public partial class coinbase : Exchange
                             } },
                         } },
                         { "info", quoteCurrency },
-                    });
+                    }));
                 }
             }
         }
@@ -2464,7 +2481,7 @@ public partial class coinbase : Exchange
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,
@@ -2567,7 +2584,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
         object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
         object length = getArrayLength(ledger);
@@ -4402,7 +4419,7 @@ public partial class coinbase : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object request = null;
-        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"));
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"), null, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
@@ -4516,12 +4533,16 @@ public partial class coinbase : Exchange
         object networkId = this.safeString(depositAddress, "network");
         object code = this.safeCurrencyCode(null, currency);
         object addressLabel = this.safeString(depositAddress, "address_label");
-        object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(splitAddressLabel, 0);
+        object currencyId = null;
+        if (isTrue(!isEqual(addressLabel, null)))
+        {
+            object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         object addressInfo = this.safeDict(depositAddress, "address_info");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(addressInfo, "destination_tag") },
@@ -4563,6 +4584,7 @@ public partial class coinbase : Exchange
             { "amount", this.numberToString(amount) },
             { "currency", ((string)code).ToUpper() },
             { "payment_method", id },
+            { "commit", true },
         };
         object response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, parameters));
         //
@@ -4601,7 +4623,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -4675,7 +4698,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -4816,7 +4840,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4841,7 +4865,7 @@ public partial class coinbase : Exchange
      * @param {strng} params.toCode the unified currency code that was converted into
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5228,6 +5252,77 @@ public partial class coinbase : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    public async virtual Task<object> fetchPortfolioDetails(object portfolioUuid, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "portfolio_uuid", portfolioUuid },
+        };
+        object response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters));
+        object result = this.parsePortfolioDetails(response);
+        return result;
+    }
+
+    public virtual object parsePortfolioDetails(object portfolioData)
+    {
+        object breakdown = getValue(portfolioData, "breakdown");
+        object portfolioInfo = this.safeDict(breakdown, "portfolio", new Dictionary<string, object>() {});
+        object portfolioName = this.safeString(portfolioInfo, "name", "Unknown");
+        object portfolioUuid = this.safeString(portfolioInfo, "uuid", "");
+        object spotPositions = this.safeList(breakdown, "spot_positions", new List<object>() {});
+        object parsedPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(spotPositions)); postFixIncrement(ref i))
+        {
+            object position = getValue(spotPositions, i);
+            object currencyCode = this.safeString(position, "asset", "Unknown");
+            object availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
+            object availableBalance = this.parseNumber(availableBalanceStr);
+            object totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
+            object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            object holdAmount = subtract(totalBalanceFiat, availableBalance);
+            object costBasisDict = this.safeDict(position, "cost_basis", new Dictionary<string, object>() {});
+            object costBasisStr = this.safeString(costBasisDict, "value", "0");
+            object averageEntryPriceDict = this.safeDict(position, "average_entry_price", new Dictionary<string, object>() {});
+            object averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
+            object positionData = new Dictionary<string, object>() {
+                { "currency", currencyCode },
+                { "available_balance", availableBalance },
+                { "hold_amount", ((bool) isTrue(isGreaterThan(holdAmount, 0))) ? holdAmount : 0 },
+                { "wallet_name", portfolioName },
+                { "account_id", portfolioUuid },
+                { "account_uuid", this.safeString(position, "account_uuid", "") },
+                { "total_balance_fiat", totalBalanceFiat },
+                { "total_balance_crypto", this.parseNumber(this.safeString(position, "total_balance_crypto", "0")) },
+                { "available_to_trade_fiat", this.parseNumber(this.safeString(position, "available_to_trade_fiat", "0")) },
+                { "available_to_trade_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "available_to_transfer_fiat", this.parseNumber(this.safeString(position, "available_to_transfer_fiat", "0")) },
+                { "available_to_transfer_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "allocation", this.parseNumber(this.safeString(position, "allocation", "0")) },
+                { "cost_basis", this.parseNumber(costBasisStr) },
+                { "cost_basis_currency", this.safeString(costBasisDict, "currency", "USD") },
+                { "is_cash", this.safeBool(position, "is_cash", false) },
+                { "average_entry_price", this.parseNumber(averageEntryPriceStr) },
+                { "average_entry_price_currency", this.safeString(averageEntryPriceDict, "currency", "USD") },
+                { "asset_uuid", this.safeString(position, "asset_uuid", "") },
+                { "unrealized_pnl", this.parseNumber(this.safeString(position, "unrealized_pnl", "0")) },
+                { "asset_color", this.safeString(position, "asset_color", "") },
+                { "account_type", this.safeString(position, "account_type", "") },
+            };
+            ((IList<object>)parsedPositions).Add(positionData);
+        }
+        return parsedPositions;
+    }
+
     public virtual object createAuthToken(object seconds, object method = null, object url = null)
     {
         // it may not work for v2
@@ -5262,6 +5357,11 @@ public partial class coinbase : Exchange
             { "alg", "ES256" },
         });
         return token;
+    }
+
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -5350,7 +5450,9 @@ public partial class coinbase : Exchange
                     authorizationString = add("Bearer ", token);
                 } else
                 {
-                    object timestampString = ((object)this.seconds()).ToString();
+                    object nonce = this.nonce();
+                    object timestamp = this.parseToInt(divide(nonce, 1000));
+                    object timestampString = ((object)timestamp).ToString();
                     object auth = add(add(add(timestampString, method), savedPath), payload);
                     object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
@@ -5404,13 +5506,40 @@ public partial class coinbase : Exchange
         //        }
         //      ]
         //    }
+        // or
+        // {
+        //     "success": false,
+        //     "error_response": {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         object errorCode = this.safeString(response, "error");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object errorMessage = this.safeString(response, "error_description");
+            object errorMessage = this.safeString2(response, "error_description", "error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
+        }
+        object errorResponse = this.safeDict(response, "error_response");
+        if (isTrue(!isEqual(errorResponse, null)))
+        {
+            object errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessageInner, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessageInner, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         object errors = this.safeList(response, "errors");

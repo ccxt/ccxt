@@ -46,7 +46,7 @@ def test_currency(exchange, skipped_properties, method, entry):
         }
         # todo: format['type'] = 'fiat|crypto'; # after all exchanges have `type` defined, romove "if" check
         if currency_type is not None:
-            test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['fiat', 'crypto', 'other'])
+            test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['fiat', 'crypto', 'leveraged', 'other'])
         # only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if currency_type == 'crypto' or not ('depositForNonCrypto' in skipped_properties):
             format['deposit'] = True

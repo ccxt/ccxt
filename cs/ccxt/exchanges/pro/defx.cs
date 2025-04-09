@@ -457,7 +457,7 @@ public partial class defx : ccxt.defx
 
     /**
      * @method
-     * @name defx#unWatchTradesForSymbols
+     * @name defx#unWatchTrades
      * @description unWatches from the stream channel
      * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
      * @param {string} symbol unified symbol of the market to fetch trades for

@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, O
  * @augments Exchange
  */
 export default class bingx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bingx',
             'name': 'BingX',
@@ -44,6 +44,7 @@ export default class bingx extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
+                'createReduceOnlyOrder': true,
                 'createStopLossOrder': true,
                 'createStopOrder': true,
                 'createTakeProfitOrder': true,
@@ -387,6 +388,7 @@ export default class bingx extends Exchange {
                                 'uid': 1,
                                 'apiKey/query': 2,
                                 'account/apiPermissions': 5,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,
@@ -505,6 +507,8 @@ export default class bingx extends Exchange {
                 'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
                 'NAP': '$NAP', // NAP on SOL = SNAP
+                'TRUMP': 'TRUMPMAGA',
+                'TRUMPSOL': 'TRUMP',
             },
             'options': {
                 'defaultType': 'spot',
@@ -552,7 +556,7 @@ export default class bingx extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -562,6 +566,11 @@ export default class bingx extends Exchange {
                         },
                         'hedged': true,
                         'trailing': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 5,
@@ -571,17 +580,20 @@ export default class bingx extends Exchange {
                         'limit': 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -590,15 +602,17 @@ export default class bingx extends Exchange {
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -611,19 +625,7 @@ export default class bingx extends Exchange {
                         'daysBack': undefined,
                         'untilDays': undefined,
                     },
-                    'fetchOHLCV': {
-                        'limit': 1440,
-                    },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'daysBackClosed': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 7,
-                        'trigger': false,
-                        'trailing': false,
-                    },
                 },
                 //
                 'spot': {
@@ -652,12 +654,16 @@ export default class bingx extends Exchange {
                         'extends': 'defaultForInverse',
                     },
                 },
+                'defaultForFuture': {
+                    'extends': 'defaultForLinear',
+                    'fetchOrders': undefined,
+                },
                 'future': {
                     'linear': {
-                        'extends': 'defaultForLinear',
+                        'extends': 'defaultForFuture',
                     },
                     'inverse': {
-                        'extends': 'defaultForInverse',
+                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -672,7 +678,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the bingx server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.swapV2PublicGetServerTime (params);
         //
         //    {
@@ -810,7 +816,7 @@ export default class bingx extends Exchange {
         return result;
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params): Promise<Market[]> {
         const response = await this.spotV1PublicGetCommonSymbols (params);
         //
         //    {
@@ -821,8 +827,8 @@ export default class bingx extends Exchange {
         //              "symbols": [
         //                  {
         //                    "symbol": "GEAR-USDT",
-        //                    "minQty": 735,
-        //                    "maxQty": 2941177,
+        //                    "minQty": 735, // deprecated
+        //                    "maxQty": 2941177, // deprecated.
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -948,6 +954,10 @@ export default class bingx extends Exchange {
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
+        let minAmount = undefined;
+        if (!spot) {
+            minAmount = this.safeNumber2 (market, 'minQty', 'tradeMinQuantity');
+        }
         let timeOnline = this.safeInteger (market, 'timeOnline');
         if (timeOnline === 0) {
             timeOnline = undefined;
@@ -989,8 +999,8 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber2 (market, 'minQty', 'tradeMinQuantity'),
-                    'max': this.safeNumber (market, 'maxQty'),
+                    'min': minAmount,
+                    'max': undefined,
                 },
                 'price': {
                     'min': minTickSize,
@@ -1456,62 +1466,82 @@ export default class bingx extends Exchange {
         // spot
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //           "bids": [
-        //             [
-        //               "26324.73",
-        //               "0.37655"
+        //         "code":0,
+        //         "timestamp":1743240504535,
+        //         "data":{
+        //             "bids":[
+        //                 ["83775.39","1.981875"],
+        //                 ["83775.38","0.001076"],
+        //                 ["83775.34","0.254716"],
         //             ],
-        //             [
-        //               "26324.71",
-        //               "0.31888"
+        //             "asks":[
+        //                 ["83985.40","0.000013"],
+        //                 ["83980.00","0.000011"],
+        //                 ["83975.70","0.000061000000000000005"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26340.30",
-        //               "6.45221"
-        //             ],
-        //             [
-        //               "26340.15",
-        //               "6.73261"
-        //             ],
-        //         ]}
+        //             "ts":1743240504535,
+        //             "lastUpdateId":13565639906
+        //         }
         //     }
         //
-        // swap
+        //
+        // linear swap
         //
         //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //           "T": 1683914263304,
-        //           "bids": [
-        //             [
-        //               "26300.90000000",
-        //               "30408.00000000"
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "T":1743240836255,
+        //             "bids":[
+        //                 ["83760.7","7.0861"],
+        //                 ["83760.6","0.0044"],
+        //                 ["83757.7","1.9526"],
         //             ],
-        //             [
-        //               "26300.80000000",
-        //               "50906.00000000"
+        //             "asks":[
+        //                 ["83784.3","8.3531"],
+        //                 ["83782.8","23.7289"],
+        //                 ["83780.1","18.0617"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26301.00000000",
-        //               "43616.00000000"
+        //             "bidsCoin":[
+        //                 ["83760.7","0.0007"],
+        //                 ["83760.6","0.0000"],
+        //                 ["83757.7","0.0002"],
         //             ],
-        //             [
-        //               "26301.10000000",
-        //               "49402.00000000"
+        //             "asksCoin":[
+        //                 ["83784.3","0.0008"],
+        //                 ["83782.8","0.0024"],
+        //                 ["83780.1","0.0018"],
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "timestamp":1743240979146,
+        //         "data":{
+        //             "T":1743240978691,
+        //             "bids":[
+        //                 ["83611.4","241.0"],
+        //                 ["83611.3","1.0"],
+        //                 ["83602.9","666.0"],
         //             ],
-        //         ]}
+        //             "asks":[
+        //                 ["83645.0","4253.0"],
+        //                 ["83640.5","3188.0"],
+        //                 ["83636.0","5540.0"],
+        //             ]
+        //         }
         //     }
         //
         const orderbook = this.safeDict (response, 'data', {});
+        const nonce = this.safeInteger (orderbook, 'lastUpdateId');
         const timestamp = this.safeInteger2 (orderbook, 'T', 'ts');
-        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+        const result = this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+        result['nonce'] = nonce;
+        return result;
     }
 
     /**
@@ -1570,8 +1600,7 @@ export default class bingx extends Exchange {
         symbols = this.marketSymbols (symbols, 'swap', true);
         const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (params));
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -1662,22 +1691,25 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString (entry, 'symbol');
-            const symbolInner = this.safeSymbol (marketId, market, '-', 'swap');
-            const timestamp = this.safeInteger (entry, 'fundingTime');
-            rates.push ({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': this.safeNumber (entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "fundingRate": "0.0001",
+        //         "fundingTime": 1585684800000
+        //     }
+        //
+        const timestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (this.safeString (contract, 'symbol'), market, '-', 'swap'),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     /**
@@ -2345,12 +2377,14 @@ export default class bingx extends Exchange {
         } else {
             const linearSwapData = this.safeDict (response, 'data', {});
             const linearSwapBalance = this.safeDict (linearSwapData, 'balance');
-            const currencyId = this.safeString (linearSwapBalance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (linearSwapBalance, 'availableMargin');
-            account['used'] = this.safeString (linearSwapBalance, 'usedMargin');
-            result[code] = account;
+            if (linearSwapBalance) {
+                const currencyId = this.safeString (linearSwapBalance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (linearSwapBalance, 'availableMargin');
+                account['used'] = this.safeString (linearSwapBalance, 'usedMargin');
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2980,7 +3014,11 @@ export default class bingx extends Exchange {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
+            let amountReq = amount;
+            if (!market['inverse']) {
+                amountReq = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            }
+            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit (params, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
@@ -4635,14 +4673,13 @@ export default class bingx extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         let type = undefined;
         let subType = undefined;
         let standard = undefined;
@@ -4654,7 +4691,7 @@ export default class bingx extends Exchange {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['pageSize'] = limit;
             }
             response = await this.spotV1PrivateGetTradeHistoryOrders (this.extend (request, params));
             //
@@ -5773,7 +5810,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.numberToString (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'walletType': walletType,
         };
         const network = this.safeStringUpper (params, 'network');
@@ -6440,6 +6477,45 @@ export default class bingx extends Exchange {
         };
     }
 
+    customEncode (params) {
+        const sortedParams = this.keysort (params);
+        const keys = Object.keys (sortedParams);
+        let adjustedValue = undefined;
+        let result = undefined;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = sortedParams[key];
+            if (Array.isArray (value)) {
+                let arrStr = undefined;
+                for (let j = 0; j < value.length; j++) {
+                    const arrayElement = value[j];
+                    const isString = (typeof arrayElement === 'string');
+                    if (isString) {
+                        if (j > 0) {
+                            arrStr += ',' + '"' + arrayElement.toString () + '"';
+                        } else {
+                            arrStr = '"' + arrayElement.toString () + '"';
+                        }
+                    } else {
+                        if (j > 0) {
+                            arrStr += ',' + arrayElement.toString ();
+                        } else {
+                            arrStr = arrayElement.toString ();
+                        }
+                    }
+                }
+                adjustedValue = '[' + arrStr + ']';
+                value = adjustedValue;
+            }
+            if (i === 0) {
+                result = key + '=' + value;
+            } else {
+                result += '&' + key + '=' + value;
+            }
+        }
+        return result;
+    }
+
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let type = section[0];
         let version = section[1];
@@ -6473,16 +6549,23 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            const parsedParams = this.parseParams (params);
-            const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
+            let parsedParams = undefined;
+            let encodeRequest = undefined;
+            if (isJsonContentType) {
+                encodeRequest = this.customEncode (params);
+            } else {
+                parsedParams = this.parseParams (params);
+                encodeRequest = this.rawencode (parsedParams);
+            }
+            const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),
             };
             if (isJsonContentType) {
                 headers['Content-Type'] = 'application/json';
-                parsedParams['signature'] = signature;
-                body = this.json (parsedParams);
+                params['signature'] = signature;
+                body = this.json (params);
             } else {
                 const query = this.urlencode (parsedParams);
                 url += '?' + query + '&' + 'signature=' + signature;

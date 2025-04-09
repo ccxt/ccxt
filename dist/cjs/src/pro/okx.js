@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class okx extends okx$1 {
     describe() {
@@ -253,7 +253,7 @@ class okx extends okx$1 {
     }
     /**
      * @method
-     * @name okx#unWatchTradesForSymbols
+     * @name okx#unWatchTrades
      * @description unWatches from the stream channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2192,7 +2192,7 @@ class okx extends okx$1 {
         await this.authenticate();
         const market = this.market(symbol);
         if (market['type'] !== 'option') {
-            throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();

@@ -191,7 +191,6 @@ public partial class kraken : Exchange
                 { "REP", "REPV1" },
                 { "UST", "USTC" },
                 { "XBT", "BTC" },
-                { "XBT.M", "BTC.M" },
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
@@ -405,6 +404,11 @@ public partial class kraken : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -412,27 +416,31 @@ public partial class kraken : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 720 },
@@ -660,7 +668,7 @@ public partial class kraken : Exchange
             {
                 if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
                 {
-                    if (!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))))
+                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
                     {
                         currencyId = slice(currencyId, 1, null);
                     }
@@ -756,9 +764,48 @@ public partial class kraken : Exchange
         //     {
         //         "error": [],
         //         "result": {
-        //             "BCH": {
+        //             "ATOM": {
         //                 "aclass": "currency",
-        //                 "altname": "BCH",
+        //                 "altname": "ATOM",
+        //                 "collateral_value": "0.7",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "ATOM.S": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM.S",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "status": "enabled",
+        //             },
+        //             "XXBT": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5,
+        //                 "margin_rate": 0.01,
+        //                 "status": "enabled",
+        //             },
+        //             "XETH": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "XBT.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
+        //             "ETH.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH.M",
         //                 "decimals": 10,
         //                 "display_decimals": 5
         //                 "status": "enabled",
@@ -778,7 +825,32 @@ public partial class kraken : Exchange
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
+            //
+            // Notes about abbreviations:
+            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+            //
             object code = this.safeCurrencyCode(id);
+            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+            if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
+            {
+                object altName = this.safeString(currency, "altname");
+                // handle cases like below:
+                //
+                //  id   | altname
+                // ---------------
+                // XXBT  |  XBT
+                // ZUSD  |  USD
+                if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
+                {
+                    code = this.safeCurrencyCode(altName);
+                    // also, add map in commonCurrencies:
+                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+                } else
+                {
+                    code = this.safeCurrencyCode(id);
+                }
+            }
             object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
             // assumes all currencies are active except those listed above
             object active = isEqual(this.safeString(currency, "status"), "enabled");
@@ -806,6 +878,23 @@ public partial class kraken : Exchange
             };
         }
         return result;
+    }
+
+    public override object safeCurrencyCode(object currencyId, object currency = null)
+    {
+        if (isTrue(isEqual(currencyId, null)))
+        {
+            return currencyId;
+        }
+        if (isTrue(isGreaterThan(getIndexOf(currencyId, "."), 0)))
+        {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            object parts = ((string)currencyId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object firstPart = this.safeString(parts, 0);
+            object secondPart = this.safeString(parts, 1);
+            return add(add(base.safeCurrencyCode(firstPart, currency), "."), secondPart);
+        }
+        return base.safeCurrencyCode(currencyId, currency);
     }
 
     /**
@@ -980,9 +1069,9 @@ public partial class kraken : Exchange
             { "high", this.safeString(high, 1) },
             { "low", this.safeString(low, 1) },
             { "bid", this.safeString(bid, 0) },
-            { "bidVolume", null },
+            { "bidVolume", this.safeString(bid, 2) },
             { "ask", this.safeString(ask, 0) },
-            { "askVolume", null },
+            { "askVolume", this.safeString(ask, 2) },
             { "vwap", vwap },
             { "open", this.safeString(ticker, "o") },
             { "close", last },
@@ -1579,8 +1668,10 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2653,7 +2744,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
-            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {

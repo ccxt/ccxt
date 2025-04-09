@@ -43,6 +43,7 @@ export default class kraken extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
     /**
      * @method
      * @name kraken#fetchTradingFee
@@ -375,7 +376,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name kraken#fetchWithdrawals

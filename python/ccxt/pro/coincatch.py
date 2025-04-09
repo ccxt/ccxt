@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class coincatch(ccxt.async_support.coincatch):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincatch, self).describe(), {
             'has': {
                 'ws': True,
@@ -1403,7 +1402,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'orderbook ' + symbol)
+        error = UnsubscribeError(self.id + ' orderbook ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1422,7 +1421,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'trades ' + symbol)
+        error = UnsubscribeError(self.id + ' trades ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1441,7 +1440,7 @@ class coincatch(ccxt.async_support.coincatch):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'ticker ' + symbol)
+        error = UnsubscribeError(self.id + ' ticker ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 

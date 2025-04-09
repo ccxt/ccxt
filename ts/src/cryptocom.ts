@@ -13,7 +13,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',
             'name': 'Crypto.com',
@@ -372,10 +372,12 @@ export default class cryptocom extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -385,17 +387,20 @@ export default class cryptocom extends Exchange {
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 1,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -404,15 +409,17 @@ export default class cryptocom extends Exchange {
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 300,
@@ -447,6 +454,8 @@ export default class cryptocom extends Exchange {
                 'exact': {
                     '219': InvalidOrder,
                     '314': InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '325': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,

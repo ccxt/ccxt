@@ -642,6 +642,45 @@ public struct OrderBook
     }
 }
 
+public struct OrderBooks
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OrderBook> orderbooks;
+
+    public OrderBooks(object tickers2)
+    {
+        var orderbooks = (Dictionary<string, object>)tickers2;
+
+        info = Helper.GetInfo(orderbooks);
+        this.orderbooks = new Dictionary<string, OrderBook>();
+        foreach (var ticker in orderbooks)
+        {
+            if (ticker.Key != "info")
+                this.orderbooks.Add(ticker.Key, new OrderBook(ticker.Value));
+        }
+    }
+
+    // Indexer
+    public OrderBook this[string key]
+    {
+        get
+        {
+            if (orderbooks.ContainsKey(key))
+            {
+                return orderbooks[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OrderBooks.");
+            }
+        }
+        set
+        {
+            orderbooks[key] = value;
+        }
+    }
+}
+
 public struct OHLCV
 {
     public Int64? timestamp;
@@ -778,23 +817,6 @@ public struct WithdrawlResponse
         var withdrawlResponse = (Dictionary<string, object>)withdrawlResponse2;
         info = (Dictionary<string, object>)withdrawlResponse["info"];
         id = Exchange.SafeString(withdrawlResponse, "id");
-    }
-}
-
-public struct DepositAddressResponse
-{
-    public string? address;
-    public string? tag;
-    public string? status;
-    public Dictionary<string, object>? info;
-
-    public DepositAddressResponse(object depositAddressResponse2)
-    {
-        var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
-        address = Exchange.SafeString(depositAddressResponse, "address");
-        tag = Exchange.SafeString(depositAddressResponse, "tag");
-        status = Exchange.SafeString(depositAddressResponse, "status");
-        info = Helper.GetInfo(depositAddressResponse);
     }
 }
 

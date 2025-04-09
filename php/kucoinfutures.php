@@ -10,7 +10,7 @@ use ccxt\abstract\kucoinfutures as kucoin;
 
 class kucoinfutures extends kucoin {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',
@@ -371,9 +371,8 @@ class kucoinfutures extends kucoin {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
-                            'triggerPrice' => null,
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -383,11 +382,11 @@ class kucoinfutures extends kucoin {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'iceberg' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'oco' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -397,27 +396,31 @@ class kucoinfutures extends kucoin {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 7,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 500,
@@ -639,7 +642,7 @@ class kucoinfutures extends kucoin {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2170,7 +2173,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          *

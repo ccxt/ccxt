@@ -104,10 +104,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch sells
@@ -332,15 +332,15 @@ public partial class coinbase
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV2(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV2(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV3(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarketsV3(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV3(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
     {
@@ -374,15 +374,15 @@ public partial class coinbase
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV2(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV3(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1377,6 +1377,26 @@ public partial class coinbase
     {
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
+    }
+    /// <summary>
+    /// Fetch details for a specific portfolio by UUID
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// Dict : Extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>any[]</term> An account structure <https://docs.ccxt.com/#/?id=account-structure>.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchPortfolioDetails(string portfolioUuid, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPortfolioDetails(portfolioUuid, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
     {

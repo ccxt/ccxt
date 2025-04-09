@@ -11,13 +11,13 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class cex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
@@ -34,6 +34,7 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
@@ -112,6 +113,65 @@ class cex extends Exchange {
                         'do_deposit_funds_from_wallet' => 1,
                         'do_withdrawal_funds_to_wallet' => 1,
                     ),
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false, // todo check
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true, // todo check
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -268,6 +328,7 @@ class cex extends Exchange {
                 'margin' => null,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'active' => null,
                 'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -406,7 +467,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server

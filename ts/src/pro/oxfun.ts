@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class oxfun extends oxfunRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -1009,7 +1009,7 @@ export default class oxfun extends oxfunRest {
 
     /**
      * @method
-     * @name okx#cancelOrdersWs
+     * @name oxfun#cancelOrdersWs
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
      * @description cancel multiple orders
      * @param {string[]} ids order ids

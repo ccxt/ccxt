@@ -243,7 +243,7 @@ public partial class mexc : ccxt.mexc
             {
                 if (isTrue(isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, "watchTickers required symbols argument for the bookTicker channel")) ;
+                    throw new ArgumentsRequired ((string)add(this.id, " watchTickers required symbols argument for the bookTicker channel")) ;
                 }
                 object marketIds = this.marketIds(symbols);
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
@@ -451,7 +451,7 @@ public partial class mexc : ccxt.mexc
         object marketType = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, "watchBidsAsks required symbols argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks required symbols argument")) ;
         }
         object markets = this.marketsForSymbols(symbols);
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
@@ -460,7 +460,7 @@ public partial class mexc : ccxt.mexc
         object isSpot = isEqual(marketType, "spot");
         if (!isTrue(isSpot))
         {
-            throw new NotSupported ((string)add(this.id, "watchBidsAsks only support spot market")) ;
+            throw new NotSupported ((string)add(this.id, " watchBidsAsks only support spot market")) ;
         }
         object messageHashes = new List<object>() {};
         object topics = new List<object>() {};
@@ -504,7 +504,11 @@ public partial class mexc : ccxt.mexc
         //    }
         //
         object parsedTicker = this.parseWsBidAsk(message);
-        object symbol = getValue(parsedTicker, "symbol");
+        object symbol = this.safeString(parsedTicker, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
         object messageHash = add("bidask:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});

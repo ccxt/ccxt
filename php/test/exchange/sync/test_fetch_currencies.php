@@ -21,4 +21,5 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             test_currency($exchange, $skipped_properties, $method, $values[$i]);
         }
     }
+    return true;
 }

@@ -5,7 +5,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kucoinfutures
@@ -373,9 +373,8 @@ class kucoinfutures extends kucoinfutures$1 {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'triggerPrice': undefined,
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -385,11 +384,11 @@ class kucoinfutures extends kucoinfutures$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'iceberg': true,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': true,
                     },
                     'createOrders': {
                         'max': 20,
@@ -399,27 +398,31 @@ class kucoinfutures extends kucoinfutures$1 {
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 7,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 500,
@@ -2175,7 +2178,7 @@ class kucoinfutures extends kucoinfutures$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder(id = undefined, symbol = undefined, params = {}) {
+    async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
         let response = undefined;

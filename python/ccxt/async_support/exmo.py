@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class exmo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(exmo, self).describe(), {
             'id': 'exmo',
             'name': 'EXMO',
@@ -218,6 +218,67 @@ class exmo(Exchange, ImplicitAPI):
                 },
                 'margin': {
                     'fillResponseFromRequest': True,
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,  # todo revise
+                        'triggerPrice': True,  # todo: endpoint lacks other features
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': True,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo, not in request
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'commonCurrencies': {
@@ -846,32 +907,40 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
         request: dict = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
-        now = self.milliseconds()
+        now = self.parse_to_int(self.milliseconds() / 1000)
         if since is None:
+            to = min(until, now) if untilIsDefined else now
             if limit is None:
                 limit = 1000  # cap default at generous amount
             else:
                 limit = min(limit, maxLimit)
-            request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
-            request['to'] = self.parse_to_int(now / 1000)
+            request['from'] = to - (limit * duration) - 1
+            request['to'] = to
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
-            if limit is None:
-                limit = maxLimit
+            if untilIsDefined:
+                request['to'] = min(until, now)
             else:
-                limit = min(limit, maxLimit)
-            to = self.sum(since, limit * duration * 1000)
-            request['to'] = self.parse_to_int(to / 1000)
+                if limit is None:
+                    limit = maxLimit
+                else:
+                    limit = min(limit, maxLimit)
+                to = self.sum(since, limit * duration)
+                request['to'] = min(to, now)
+        params = self.omit(params, 'until')
         response = await self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -1002,7 +1071,7 @@ class exmo(Exchange, ImplicitAPI):
         result = self.safe_dict(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -1282,7 +1351,7 @@ class exmo(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if marginMode == 'cross':
-            raise BadRequest(self.id + 'only isolated margin is supported')
+            raise BadRequest(self.id + ' only isolated margin is supported')
         await self.load_markets()
         market = self.market(symbol)
         pair = market['id']
@@ -2411,7 +2480,7 @@ class exmo(Exchange, ImplicitAPI):
         first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    async def fetch_deposit(self, id=None, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
 

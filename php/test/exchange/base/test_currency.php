@@ -40,7 +40,7 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
         );
         // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
         if ($currency_type !== null) {
-            assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['fiat', 'crypto', 'other']);
+            assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['fiat', 'crypto', 'leveraged', 'other']);
         }
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if ($currency_type === 'crypto' || !(is_array($skipped_properties) && array_key_exists('depositForNonCrypto', $skipped_properties))) {

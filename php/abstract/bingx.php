@@ -421,6 +421,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function account_v1_private_get_account_apipermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function account_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -879,6 +882,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function accountV1PrivateGetAccountApiPermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function accountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));

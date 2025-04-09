@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class deribit(ccxt.async_support.deribit):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(deribit, self).describe(), {
             'has': {
                 'ws': True,

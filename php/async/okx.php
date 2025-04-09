@@ -14,13 +14,13 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class okx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
@@ -314,7 +314,9 @@ class okx extends Exchange {
                         'trade/easy-convert-currency-list' => 20,
                         'trade/easy-convert-history' => 20,
                         'trade/one-click-repay-currency-list' => 20,
+                        'trade/one-click-repay-currency-list-v2' => 20,
                         'trade/one-click-repay-history' => 20,
+                        'trade/one-click-repay-history-v2' => 20,
                         'trade/account-rate-limit' => 1,
                         // asset
                         'asset/currencies' => 5 / 3,
@@ -471,6 +473,7 @@ class okx extends Exchange {
                         'trade/cancel-advance-algos' => 1,
                         'trade/easy-convert' => 20,
                         'trade/one-click-repay' => 20,
+                        'trade/one-click-repay-v2' => 20,
                         'trade/mass-cancel' => 4,
                         'trade/cancel-all-after' => 10,
                         // asset
@@ -992,71 +995,64 @@ class okx extends Exchange {
                 'networks' => array(
                     'BTC' => 'Bitcoin',
                     'BTCLN' => 'Lightning',
+                    'BTCLIGHTNING' => 'Lightning',
                     'BEP20' => 'BSC',
+                    'BRC20' => 'BRC20',
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
-                    // sorted
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
-                    'BHP' => 'BHP',
                     'APT' => 'Aptos',
+                    'SCROLL' => 'Scroll',
                     'ARBONE' => 'Arbitrum One',
-                    'AVAXC' => 'Avalanche C',
+                    'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
-                    'ARK' => 'ARK',
+                    'BASE' => 'Base',
+                    'SUI' => 'SUI',
+                    'ZKSYNCERA' => 'zkSync Era',
+                    'LINEA' => 'Linea',
                     'AR' => 'Arweave',
                     'ASTR' => 'Astar',
                     'BCH' => 'BitcoinCash',
                     'BSV' => 'Bitcoin SV',
-                    'BTM' => 'Bytom',
                     'ADA' => 'Cardano',
                     'CSPR' => 'Casper',
                     'CELO' => 'CELO',
                     'XCH' => 'Chia',
-                    'CHZ' => 'Chiliz',
+                    // 'CHZ' => 'Chiliz', TBD => Chiliz 2.0 Chain vs Chiliz Chain
                     'ATOM' => 'Cosmos',
-                    'TRUE' => 'TrueChain',
-                    'DCR' => 'Decred',
                     'DGB' => 'Digibyte',
                     'DOGE' => 'Dogecoin',
-                    'XEC' => 'XEC',
                     'EGLD' => 'Elrond',
+                    'CFX' => 'Conflux', // CFX_EVM is different
                     'EOS' => 'EOS',
+                    'CORE' => 'CORE',
                     'ETC' => 'Ethereum Classic',
                     'ETHW' => 'EthereumPow',
-                    'FTM' => 'Fantom',
+                    // 'FTM' => 'Fantom', 'Sonic' TBD
                     'FIL' => 'Filecoin',
-                    'FLOW' => 'FLOW',
-                    'FSN' => 'Fusion',
                     'ONE' => 'Harmony',
                     'HBAR' => 'Hedera',
-                    'HNT' => 'Helium',
-                    'ZEN' => 'Horizen',
                     'ICX' => 'ICON',
                     'ICP' => 'Dfinity',
                     'IOST' => 'IOST',
                     'IOTA' => 'MIOTA',
-                    'KDA' => 'Kadena',
-                    'KAR' => 'KAR',
                     'KLAY' => 'Klaytn',
                     'KSM' => 'Kusama',
                     'LSK' => 'Lisk',
                     'LTC' => 'Litecoin',
                     'METIS' => 'Metis',
                     'MINA' => 'Mina',
-                    'XMR' => 'Monero',
                     'GLRM' => 'Moonbeam',
                     'MOVR' => 'Moonriver',
                     'NANO' => 'Nano',
                     'NEAR' => 'NEAR',
-                    'NAS' => 'Nebulas',
-                    'NEM' => 'New Economy Movement',
                     'NULS' => 'NULS',
                     'OASYS' => 'OASYS',
-                    'OKC' => 'OKC',
                     'ONT' => 'Ontology',
                     'OPTIMISM' => 'Optimism',
+                    // 'OP' => 'Optimism', or Optimism (V2), TBD
                     'LAT' => 'PlatON',
                     'DOT' => 'Polkadot',
                     'MATIC' => 'Polygon',
@@ -1069,35 +1065,54 @@ class okx extends Exchange {
                     'XTZ' => 'Tezos',
                     'TON' => 'TON',
                     'THETA' => 'Theta',
-                    'VSYS' => 'VSYSTEMS',
-                    'WAVES' => 'WAVES',
                     'WAX' => 'Wax',
-                    'ZEC' => 'Zcash',
                     'ZIL' => 'Zilliqa',
-                    'ZKSYNC' => 'ZKSYNC',
-                    'OMNI' => 'Omni',
-                    // 'NEON3' => 'N3', // tbd
-                    // undetermined : "CELO-TOKEN", "Digital Cash", Khala
-                    // todo => uncomment below after consensus
-                    // 'AELF' => 'AELF',
-                    // 'BITCOINDIAMOND' => 'Bitcoin Diamond',
-                    // 'BITCOINGOLD' => 'BitcoinGold',
-                    // 'YOYOW' => 'YOYOW',
-                    // 'QTUM' => 'Quantum',
-                    // 'INTCHAIN' => 'INTCHAIN',
-                    // 'YOUCHAIN' => 'YOUCHAIN',
-                    // 'RONIN' => 'Ronin',
-                    // 'OEC' => 'OEC',
-                    // 'WAYIKICHAIN' => 'WGRT',
-                    // 'MDNA' => 'DNA',
-                    // 'STEP' => 'Step Network',
-                    // 'EMINER' => 'Eminer',
-                    // 'CYBERMILES' => 'CyberMiles',
-                    // 'HYPERCASH' => 'HyperCash',
-                    // 'CONFLUX' => 'Conflux',
-                    // 'CORTEX' => 'Cortex',
-                    // 'TERRA' => 'Terra',
-                    // 'TERRACLASSIC' => 'Terra Classic',
+                    // non-supported known network => CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    // others:
+                    // "OKTC",
+                    // "X Layer",
+                    // "Polygon (Bridged)",
+                    // "BTCK-OKTC",
+                    // "ETHK-OKTC",
+                    // "Starknet",
+                    // "LTCK-OKTC",
+                    // "XRPK-OKTC",
+                    // "BCHK-OKTC",
+                    // "ETCK-OKTC",
+                    // "Endurance Smart Chain",
+                    // "Berachain",
+                    // "CELO-TOKEN",
+                    // "CFX_EVM",
+                    // "Cortex",
+                    // "DAIK-OKTC",
+                    // "Dora Vota Mainnet",
+                    // "DOTK-OKTC",
+                    // "DYDX",
+                    // "AELF",
+                    // "Enjin Relay Chain",
+                    // "FEVM",
+                    // "FILK-OKTC",
+                    // "Flare",
+                    // "Gravity Alpha Mainnet",
+                    // "INJ",
+                    // "Story",
+                    // "LINKK-OKTC",
+                    // "Terra",
+                    // "Terra Classic",
+                    // "Terra Classic (USTC)",
+                    // "MERLIN Network",
+                    // "Layer 3",
+                    // "PI",
+                    // "Ronin",
+                    // "Quantum",
+                    // "SHIBK-OKTC",
+                    // "SUSHIK-OKTC",
+                    // "Celestia",
+                    // "TRXK-OKTC",
+                    // "UNIK-OKTC",
+                    // "Venom",
+                    // "WBTCK-OKTC",
+                    // "ZetaChain",
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1121,6 +1136,8 @@ class okx extends Exchange {
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -1188,7 +1205,6 @@ class okx extends Exchange {
                 'brokerId' => 'e847386590ce4dBC',
             ),
             'features' => array(
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -1208,7 +1224,7 @@ class okx extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1217,12 +1233,12 @@ class okx extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention' => true,
                         'trailing' => true,
-                        'twap' => true,
-                        'iceberg' => true,
-                        'oco' => true,
+                        'iceberg' => true, // todo implement
+                        'leverage' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -1232,27 +1248,31 @@ class okx extends Exchange {
                         'daysBack' => 90,
                         'limit' => 100,
                         'untilDays' => 10000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null, // not supported
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBackClosed' => 90, // 3 months
+                        'daysBack' => 90, // 3 months
                         'daysBackCanceled' => 1 / 12, // 2 hour
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,
@@ -1432,7 +1452,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1506,6 +1526,10 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1516,6 +1540,9 @@ class okx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $types = $this->safe_list($this->options, 'fetchMarkets', array());
             $promises = array();
             $result = array();
@@ -1608,11 +1635,12 @@ class okx extends Exchange {
         $optionType = null;
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
-            $expiry = $this->safe_integer($market, 'expTime');
             if ($future) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
             } elseif ($option) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $ymd = $this->yymmdd($expiry);
@@ -1647,7 +1675,7 @@ class okx extends Exchange {
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strikePrice,
+            'strike' => $this->parse_number($strikePrice),
             'optionType' => $optionType,
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
@@ -1814,38 +1842,24 @@ class okx extends Exchange {
                 $code = $currency['code'];
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
-                $currencyActive = false;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $maxPrecision = null;
-                for ($j = 0; $j < count($chains); $j++) {
+                $type = 'crypto';
+                $chainsLength = count($chains);
+                for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
-                    $canDeposit = $this->safe_bool($chain, 'canDep');
-                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                    $canWithdraw = $this->safe_bool($chain, 'canWd');
-                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                    $canInternal = $this->safe_bool($chain, 'canInternal');
-                    $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                    $currencyActive = ($active) ? $active : $currencyActive;
-                    $networkId = $this->safe_string($chain, 'chain');
-                    if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                        $parts = explode('-', $networkId);
-                        $chainPart = $this->safe_string($parts, 1, $networkId);
+                    $networkId = $this->safe_string($chain, 'chain'); // USDT-BEP20, USDT-Avalance-C, etc
+                    if ($networkId !== null) {
+                        $idParts = explode('-', $networkId);
+                        $parts = $this->array_slice($idParts, 1);
+                        $chainPart = implode('-', $parts);
                         $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
-                        $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
-                        if ($maxPrecision === null) {
-                            $maxPrecision = $precision;
-                        } else {
-                            $maxPrecision = Precise::string_min($maxPrecision, $precision);
-                        }
                         $networks[$networkCode] = array(
                             'id' => $networkId,
                             'network' => $networkCode,
-                            'active' => $active,
-                            'deposit' => $canDeposit,
-                            'withdraw' => $canWithdraw,
+                            'active' => null,
+                            'deposit' => $this->safe_bool($chain, 'canDep'),
+                            'withdraw' => $this->safe_bool($chain, 'canWd'),
                             'fee' => $this->safe_number($chain, 'fee'),
-                            'precision' => $this->parse_number($precision),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
                             'limits' => array(
                                 'withdraw' => array(
                                     'min' => $this->safe_number($chain, 'minWd'),
@@ -1854,27 +1868,31 @@ class okx extends Exchange {
                             ),
                             'info' => $chain,
                         );
+                    } else {
+                        // only happens for FIAT $currency
+                        $type = 'fiat';
                     }
                 }
                 $firstChain = $this->safe_dict($chains, 0, array());
-                $result[$code] = array(
-                    'info' => null,
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => $chains,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $this->safe_string($firstChain, 'name'),
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
-                    'precision' => $this->parse_number($maxPrecision),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                     ),
+                    'type' => $type,
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2849,9 +2867,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2872,9 +2892,11 @@ class okx extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            $params['tgtCcy'] = 'quote_ccy';
-            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+            $req = array(
+                'createMarketBuyOrderRequiresPrice' => false,
+                'tgtCcy' => 'quote_ccy',
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -3117,12 +3139,20 @@ class okx extends Exchange {
             }
             if ($takeProfitPrice !== null) {
                 $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                $request['tpOrdPx'] = ($tpOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $tpOrdPx);
+                $tpOrdPxReq = '-1';
+                if ($tpOrdPx !== null) {
+                    $tpOrdPxReq = $this->price_to_precision($symbol, $tpOrdPx);
+                }
+                $request['tpOrdPx'] = $tpOrdPxReq;
                 $request['tpTriggerPxType'] = $tpTriggerPxType;
             }
             if ($stopLossPrice !== null) {
                 $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossPrice);
-                $request['slOrdPx'] = ($slOrdPx === null) ? '-1' : $this->price_to_precision($symbol, $slOrdPx);
+                $slOrdPxReq = '-1';
+                if ($slOrdPx !== null) {
+                    $slOrdPxReq = $this->price_to_precision($symbol, $slOrdPx);
+                }
+                $request['slOrdPx'] = $slOrdPxReq;
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
@@ -3168,6 +3198,7 @@ class okx extends Exchange {
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
              * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -6257,7 +6288,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $timestamp = $this->iso8601($this->milliseconds());
+            $timestamp = $this->iso8601($this->nonce());
             $headers = array(
                 'OK-ACCESS-KEY' => $this->apiKey,
                 'OK-ACCESS-PASSPHRASE' => $this->password,
@@ -6877,7 +6908,8 @@ class okx extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrrowRateCode = $borrowRateHistories[$code];
+                $borrrowRateCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();

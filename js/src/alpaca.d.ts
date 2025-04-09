@@ -13,7 +13,7 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name alpaca#fetchMarkets
@@ -93,6 +93,40 @@ export default class alpaca extends Exchange {
     generateClientOrderId(params: any): string;
     /**
      * @method
+     * @name alpaca#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name alpaca#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name alpaca#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://docs.alpaca.markets/reference/postorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    /**
+     * @method
      * @name alpaca#createOrder
      * @description create a trade order
      * @see https://docs.alpaca.markets/reference/postorder
@@ -103,6 +137,7 @@ export default class alpaca extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -208,6 +243,7 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

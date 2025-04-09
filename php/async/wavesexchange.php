@@ -14,13 +14,13 @@ use ccxt\BadRequest;
 use ccxt\InsufficientFunds;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class wavesexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
@@ -349,6 +349,84 @@ class wavesexchange extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => true, // todo
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false, // todo
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ), // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => null, // todo
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'commonCurrencies' => array(
@@ -707,6 +785,7 @@ class wavesexchange extends Exchange {
         if (strlen($hexSecretKeyBytes) !== 64) {
             throw new AuthenticationError($this->id . ' secret must be a base58 encoded private key');
         }
+        return true;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -982,6 +1061,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, $open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -992,21 +1072,33 @@ class wavesexchange extends Exchange {
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
+            $until = $this->safe_integer($params, 'until');
+            $untilIsDefined = $until !== null;
             if ($limit === null) {
                 $limit = $allowedCandles;
             }
             $limit = min ($allowedCandles, $limit);
             $duration = $this->parse_timeframe($timeframe) * 1000;
             if ($since === null) {
-                $durationRoundedTimestamp = $this->parse_to_int($this->milliseconds() / $duration) * $duration;
+                $now = $this->milliseconds();
+                $timeEnd = $untilIsDefined ? $until : $now;
+                $durationRoundedTimestamp = $this->parse_to_int($timeEnd / $duration) * $duration;
                 $delta = ($limit - 1) * $duration;
                 $timeStart = $durationRoundedTimestamp - $delta;
                 $request['timeStart'] = (string) $timeStart;
+                if ($untilIsDefined) {
+                    $request['timeEnd'] = (string) $until;
+                }
             } else {
                 $request['timeStart'] = (string) $since;
-                $timeEnd = $this->sum($since, $duration * $limit);
-                $request['timeEnd'] = (string) $timeEnd;
+                if ($untilIsDefined) {
+                    $request['timeEnd'] = (string) $until;
+                } else {
+                    $timeEnd = $this->sum($since, $duration * $limit);
+                    $request['timeEnd'] = (string) $timeEnd;
+                }
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {

@@ -10,7 +10,7 @@ use ccxt\abstract\vertex as Exchange;
 
 class vertex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'vertex',
             'name' => 'Vertex',
@@ -318,6 +318,72 @@ class vertex extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'brokerId' => 5930043274845996,
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => true, // todo
+                        'takeProfitPrice' => true, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true, // todo
+                        'marketBuyRequiresPrice' => true, // todo fix implementation
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo, only for trigger
+                    'fetchClosedOrders' => null, // todo through fetchOrders
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -557,7 +623,7 @@ class vertex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -565,7 +631,7 @@ class vertex extends Exchange {
          */
         $response = $this->v1GatewayGetTime ($params);
         // 1717481623452
-        return $this->parse_number($response);
+        return $this->parse_to_int($response);
     }
 
     public function fetch_status($params = array ()) {
@@ -1498,7 +1564,7 @@ class vertex extends Exchange {
         if (mb_strpos($base, 'PERP') > 0) {
             $marketId = str_replace('-PERP', '', $marketId) . ':USDC';
         }
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -2196,7 +2262,7 @@ class vertex extends Exchange {
             //       "product_id" => 1,
             //       "orders" => array(
             //         array(
-            //           "product_id" => 1,
+            //           "product_id" => 2,
             //           "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18" => "1000000000000000000",
             //           "amount" => "1000000000000000000",
@@ -2205,7 +2271,7 @@ class vertex extends Exchange {
             //           "order_type" => "default",
             //           "unfilled_amount" => "1000000000000000000",
             //           "digest" => "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at" => 1682437739,
+            //           "placed_at" => 1682437737,
             //           "order_type" => "ioc"
             //         }
             //       )
@@ -2435,15 +2501,16 @@ class vertex extends Exchange {
             'digests' => $ids,
             'nonce' => $nonce,
         );
+        $productIds = $cancels['productIds'];
         $marketIdNum = $this->parse_to_numeric($marketId);
         for ($i = 0; $i < count($ids); $i++) {
-            $cancels['productIds'][] = $marketIdNum;
+            $productIds[] = $marketIdNum;
         }
         $request = array(
             'cancel_orders' => array(
                 'tx' => array(
                     'sender' => $cancels['sender'],
-                    'productIds' => $cancels['productIds'],
+                    'productIds' => $productIds,
                     'digests' => $cancels['digests'],
                     'nonce' => $this->number_to_string($cancels['nonce']),
                 ),

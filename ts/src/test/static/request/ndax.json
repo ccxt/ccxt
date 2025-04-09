@@ -1,6 +1,6 @@
 {
     "exchange": "ndax",
-    "skipKeys": ["AccountId"],
+    "skipKeys": ["AccountId", "UserId", "UserName"],
     "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
@@ -44,11 +44,27 @@
                 ]
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch Accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.ndax.io:8443/AP/GetUserAccounts?omsId=1&UserId=187209&UserName=samgermain",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch Balance",
                 "method": "fetchBalance",
                 "url": "https://api.ndax.io:8443/AP/GetAccountPositions?omsId=1&AccountId=187639",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch Ledger",
+                "method": "fetchLedger",
+                "url": "https://api.ndax.io:8443/AP/GetAccountTransactions?omsId=1&AccountId=187639",
                 "input": []
             }
         ],

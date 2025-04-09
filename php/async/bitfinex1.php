@@ -11,13 +11,13 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bitfinex1 extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex1',
             'name' => 'Bitfinex',
@@ -1443,6 +1443,7 @@ class bitfinex1 extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1459,9 +1460,17 @@ class bitfinex1 extends Exchange {
                 'sort' => 1,
                 'limit' => $limit,
             );
+            $until = $this->safe_integer($params, 'until');
             if ($since !== null) {
                 $request['start'] = $since;
+            } elseif ($until !== null) {
+                $duration = $this->parse_timeframe($timeframe);
+                $request['start'] = $until - (($limit - 1) * $duration * 1000);
             }
+            if ($until !== null) {
+                $request['end'] = $until;
+            }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->v2GetCandlesTradeTimeframeSymbolHist ($this->extend($request, $params)));
             //
             //     [
@@ -1482,7 +1491,7 @@ class bitfinex1 extends Exchange {
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address

@@ -105,7 +105,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     /**
      * @method
-     * @name cryptocom#watchOrderBook
+     * @name cryptocom#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
      * @param {string[]} symbols unified array of symbols
@@ -1234,7 +1234,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     /**
      * @method
-     * @name cryptocom#cancelOrder
+     * @name cryptocom#cancelOrderWs
      * @description cancels an open order
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
      * @param {string} id the order id of the order to cancel

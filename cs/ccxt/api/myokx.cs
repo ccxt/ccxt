@@ -536,9 +536,19 @@ public partial class myokx : okx
         return await this.callAsync ("privateGetTradeOneClickRepayCurrencyList",parameters);
     }
 
+    public async Task<object> privateGetTradeOneClickRepayCurrencyListV2 (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOneClickRepayCurrencyListV2",parameters);
+    }
+
     public async Task<object> privateGetTradeOneClickRepayHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeOneClickRepayHistory",parameters);
+    }
+
+    public async Task<object> privateGetTradeOneClickRepayHistoryV2 (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOneClickRepayHistoryV2",parameters);
     }
 
     public async Task<object> privateGetTradeAccountRateLimit (object parameters = null)
@@ -1249,6 +1259,11 @@ public partial class myokx : okx
     public async Task<object> privatePostTradeOneClickRepay (object parameters = null)
     {
         return await this.callAsync ("privatePostTradeOneClickRepay",parameters);
+    }
+
+    public async Task<object> privatePostTradeOneClickRepayV2 (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradeOneClickRepayV2",parameters);
     }
 
     public async Task<object> privatePostTradeMassCancel (object parameters = null)

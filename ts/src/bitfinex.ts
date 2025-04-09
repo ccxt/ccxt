@@ -13,7 +13,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class bitfinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
             'name': 'Bitfinex',
@@ -420,8 +420,12 @@ export default class bitfinex extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo: unify
-                        // todo: leverage unify
+                        'trailing': true, // todo: implement
+                        'leverage': true, // todo: implement
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 75,
@@ -431,27 +435,31 @@ export default class bitfinex extends Exchange {
                         'limit': 2500,
                         'daysBack': undefined,
                         'untilDays': 100000, // todo: implement
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 10000,
@@ -1150,7 +1158,8 @@ export default class bitfinex extends Exchange {
             const signedAmount = this.safeString (order, 2);
             const amount = Precise.stringAbs (signedAmount);
             const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
-            result[side].push ([ price, this.parseNumber (amount) ]);
+            const resultSide = result[side];
+            resultSide.push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -2301,7 +2310,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const request: Dict = {
             'op_renew': 1,
@@ -3157,7 +3166,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        return this.parseFundingRates (response);
+        return this.parseFundingRates (response, symbols);
     }
 
     /**
@@ -3394,8 +3403,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const result = this.parseOpenInterests (response);
-        return this.filterByArray (result, 'symbol', symbols) as OpenInterests;
+        return this.parseOpenInterests (response, symbols) as OpenInterests;
     }
 
     /**

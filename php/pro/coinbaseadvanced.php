@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class coinbaseadvanced extends \ccxt\pro\coinbase {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseadvanced',
             'name' => 'Coinbase Advanced',

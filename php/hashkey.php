@@ -10,7 +10,7 @@ use ccxt\abstract\hashkey as Exchange;
 
 class hashkey extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hashkey',
             'name' => 'HashKey Global',
@@ -352,13 +352,11 @@ class hashkey extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice' => false,
-                        // 'marketBuyByCost' => false,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'iceberg' => false,
-                        // 'oco' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true, // todo fix
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -368,17 +366,20 @@ class hashkey extends Exchange {
                         'limit' => 1000,
                         'daysBack' => 30,
                         'untilDays' => 30,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null, // todo
@@ -1460,9 +1461,15 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker', 'ibm' ));
+        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        }
+        $isBuyerMaker = $this->safe_bool($trade, 'ibm');
+        // if public $trade
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $feeCost = $this->safe_string($trade, 'commission');
         $feeCurrncyId = $this->safe_string($trade, 'commissionAsset');
@@ -2461,8 +2468,10 @@ class hashkey extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
     }
 
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
@@ -3772,8 +3781,7 @@ class hashkey extends Exchange {
         //         array( "symbol" => "ETHUSDT-PERPETUAL", "rate" => "0.0001", "nextSettleTime" => "1722297600000" )
         //     )
         //
-        $fundingRates = $this->parse_funding_rates($response);
-        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
