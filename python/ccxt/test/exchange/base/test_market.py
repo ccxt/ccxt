@@ -67,104 +67,129 @@ def test_market(exchange, skipped_properties, method, market):
         },
         'info': {},
     }
-    empty_allowed_for = ['linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize']
+    # temporary: only test QUANTO markets where that prop exists (todo: add in type later)
+    if 'quanto' in market:
+        format['quanto'] = False  # whether the market is QUANTO or not
+    # define locals
+    spot = market['spot']
+    contract = market['contract']
+    swap = market['swap']
+    future = market['future']
+    option = market['option']
+    index = exchange.safe_bool(market, 'index')  # todo: unify
+    is_index = (index is not None) and index
+    linear = market['linear']
+    inverse = market['inverse']
+    quanto = exchange.safe_bool(market, 'quanto')  # todo: unify
+    is_quanto = (quanto is not None) and quanto
+    #
+    empty_allowed_for = ['margin']
+    if not contract:
+        empty_allowed_for.append('contractSize')
+        empty_allowed_for.append('linear')
+        empty_allowed_for.append('inverse')
+        empty_allowed_for.append('quanto')
+        empty_allowed_for.append('settle')
+        empty_allowed_for.append('settleId')
+    if not future and not option:
+        empty_allowed_for.append('expiry')
+        empty_allowed_for.append('expiryDatetime')
+    if not option:
+        empty_allowed_for.append('optionType')
+        empty_allowed_for.append('strike')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, market, format, empty_allowed_for)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
-    #
+    # check taker/maker
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'taker', '-100')
+    test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
+    test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'maker', '100')
+    # validate type
     valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
-    has_index = ('index' in market)  # todo: add in all
-    # check if string is consistent with 'type'
-    if market['spot']:
-        assert market['type'] == 'spot', '"type" string should be "spot" when spot is true' + log_text
-    elif market['swap']:
-        assert market['type'] == 'swap', '"type" string should be "swap" when swap is true' + log_text
-    elif market['future']:
-        assert market['type'] == 'future', '"type" string should be "future" when future is true' + log_text
-    elif market['option']:
-        assert market['type'] == 'option', '"type" string should be "option" when option is true' + log_text
-    elif has_index and market['index']:
-        # todo: add index in all implementations
-        assert market['type'] == 'index', '"type" string should be "index" when index is true' + log_text
+    # validate subTypes
+    valid_sub_types = ['linear', 'inverse', 'quanto', None]
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'subType', valid_sub_types)
+    # check if 'type' is consistent
+    checked_types = ['spot', 'swap', 'future', 'option']
+    for i in range(0, len(checked_types)):
+        type = checked_types[i]
+        if market[type]:
+            assert type == market['type'], 'market.type (' + market['type'] + ') not equal to "' + type + '"' + log_text
+    # check if 'subType' is consistent
+    if swap or future:
+        checked_sub_types = ['linear', 'inverse']
+        for i in range(0, len(checked_sub_types)):
+            sub_type = checked_sub_types[i]
+            if market[sub_type]:
+                assert sub_type == market['subType'], 'market.subType (' + market['subType'] + ') not equal to "' + sub_type + '"' + log_text
     # margin check (todo: add margin as mandatory, instead of undefined)
-    if market['spot']:
+    if spot:
         # for spot market, 'margin' can be either true/false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [True, False, None])
     else:
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
-    if not ('contractSize' in skipped_properties):
-        if not market['spot']:
-            # if not spot, then contractSize should be defined
-            assert market['contractSize'] is not None, '"contractSize" must be defined when "spot" is false' + log_text
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'contractSize', '0')
-    # typical values
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'strike', '0')
-    test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'optionType', ['put', 'call'])
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'taker', '-100')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
-    # 'contract' boolean check
-    if market['future'] or market['swap'] or market['option'] or (has_index and market['index']):
-        # if it's some kind of contract market, then `conctract` should be true
-        assert market['contract'], '"contract" must be true when "future", "swap", "option" or "index" is true' + log_text
+    # check mutually exclusive fields
+    if spot:
+        assert not contract and linear is None and inverse is None and not option and not swap and not future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + log_text
     else:
-        assert not market['contract'], '"contract" must be false when neither "future", "swap","option" or "index" is true' + log_text
-    is_swap_or_future = market['swap'] or market['future']
+        # if not spot, any of the below should be true
+        assert contract and (future or swap or option or is_index), 'for non-spot markets, any of (future/swap/option/index) should be set' + log_text
     contract_size = exchange.safe_string(market, 'contractSize')
     # contract fields
-    if market['contract']:
-        # linear & inverse should have different values (true/false)
-        # todo: expand logic on other market types
-        if is_swap_or_future:
-            assert market['linear'] != market['inverse'], 'market linear and inverse must not be the same' + log_text
-            if not ('contractSize' in skipped_properties):
-                # contract size should be defined
-                assert contract_size is not None, '"contractSize" must be defined when "contract" is true' + log_text
-                # contract size should be above zero
-                assert Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
-            if not ('settle' in skipped_properties):
-                # settle should be defined
-                assert (market['settle'] is not None) and (market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
-        # spot should be false
-        assert not market['spot'], '"spot" must be false when "contract" is true' + log_text
+    if contract:
+        if is_quanto:
+            assert linear is False, 'linear must be false when "quanto" is true' + log_text
+            assert inverse is False, 'inverse must be false when "quanto" is true' + log_text
+        else:
+            # if false or undefined
+            assert inverse is not None, 'inverse must be defined when "contract" is true' + log_text
+            assert linear is not None, 'linear must be defined when "contract" is true' + log_text
+            assert linear != inverse, 'linear and inverse must not be the same' + log_text
+        # contract size should be defined
+        assert (not ('contractSize' in skipped_properties) or contract_size is not None), '"contractSize" must be defined when "contract" is true' + log_text
+        # contract size should be above zero
+        assert not ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
+        # settle should be defined
+        assert not ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
     else:
         # linear & inverse needs to be undefined
-        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when "contract" is false' + log_text
+        assert linear is None and inverse is None and quanto is None, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + log_text
         # contract size should be undefined
-        if not ('contractSize' in skipped_properties):
-            assert contract_size is None, '"contractSize" must be undefined when "contract" is false' + log_text
+        assert contract_size is None, '"contractSize" must be undefined when "contract" is false' + log_text
         # settle should be undefined
         assert (market['settle'] is None) and (market['settleId'] is None), '"settle" must be undefined when "contract" is false' + log_text
-        # spot should be true
-        assert market['spot'], '"spot" must be true when "contract" is false' + log_text
-    # option fields
-    if market['option']:
-        # if option, then strike and optionType should be defined
-        assert market['strike'] is not None, '"strike" must be defined when "option" is true' + log_text
-        assert market['optionType'] is not None, '"optionType" must be defined when "option" is true' + log_text
-    else:
-        # if not option, then strike and optionType should be undefined
-        assert market['strike'] is None, '"strike" must be undefined when "option" is false' + log_text
-        assert market['optionType'] is None, '"optionType" must be undefined when "option" is false' + log_text
     # future, swap and option should be mutually exclusive
     if market['future']:
-        assert not market['swap'] and not market['option'], 'market swap and option must be false when "future" is true' + log_text
+        assert not market['swap'] and not market['option'] and not is_index, 'market swap and option must be false when "future" is true' + log_text
     elif market['swap']:
         assert not market['future'] and not market['option'], 'market future and option must be false when "swap" is true' + log_text
     elif market['option']:
         assert not market['future'] and not market['swap'], 'market future and swap must be false when "option" is true' + log_text
-    # expiry field
-    if market['future'] or market['option']:
+    # check specific fields for options & futures
+    if option or future:
         # future or option markets need 'expiry' and 'expiryDatetime'
         assert market['expiry'] is not None, '"expiry" must be defined when "future" is true' + log_text
         assert market['expiryDatetime'] is not None, '"expiryDatetime" must be defined when "future" is true' + log_text
         # expiry datetime should be correct
         iso_string = exchange.iso8601(market['expiry'])
         assert market['expiryDatetime'] == iso_string, 'expiryDatetime ("' + market['expiryDatetime'] + '") must be equal to expiry in iso8601 format "' + iso_string + '"' + log_text
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')
+        if option:
+            # strike should be defined
+            assert market['strike'] is not None, '"strike" must be defined when "option" is true' + log_text
+            test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'strike', '0')
+            # optionType should be defined
+            assert market['optionType'] is not None, '"optionType" must be defined when "option" is true' + log_text
+            test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'optionType', ['put', 'call'])
+        else:
+            # if not option, then strike and optionType should be undefined
+            assert market['strike'] is None, '"strike" must be undefined when "option" is false' + log_text
+            assert market['optionType'] is None, '"optionType" must be undefined when "option" is false' + log_text
     else:
-        # otherwise, they need to be undefined
+        # otherwise, expiry needs to be undefined
         assert (market['expiry'] is None) and (market['expiryDatetime'] is None), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + log_text
     # check precisions
     if not ('precision' in skipped_properties):

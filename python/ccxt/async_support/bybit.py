@@ -2390,6 +2390,7 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
+        code = self.safe_string_n(params, ['code', 'currency', 'baseCoin'])
         market = None
         parsedSymbols = None
         if symbols is not None:
@@ -2411,6 +2412,12 @@ class bybit(Exchange, ImplicitAPI):
                     currentType = market['type']
                 elif market['type'] != currentType:
                     raise BadRequest(self.id + ' fetchTickers can only accept a list of symbols of the same type')
+                if market['option']:
+                    if code is not None and code != market['base']:
+                        raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers')
+                    if code is None:
+                        code = market['base']
+                    params = self.omit(params, ['code', 'currency'])
                 parsedSymbols.append(market['symbol'])
         request: dict = {
             # 'symbol': market['id'],
@@ -2430,7 +2437,9 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'spot'
         elif type == 'option':
             request['category'] = 'option'
-            request['baseCoin'] = self.safe_string(params, 'baseCoin', 'BTC')
+            if code is None:
+                code = 'BTC'
+            request['baseCoin'] = code
         elif type == 'swap' or type == 'future' or subType is not None:
             request['category'] = subType
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
