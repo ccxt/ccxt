@@ -1002,13 +1002,16 @@ Note: the `false` value for the `active` property doesn't always guarantee that 
 
 ## Precision And Limits
 
-**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of `0.01` does not necessarily mean that a minimum limit for market is `0.01`. The opposite is also true: a min limit of `0.01` does not necessarily mean a precision is `0.01`.
 
 Examples:
 
-1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 0.0001)`
-
-  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
+1.
+```
+market['limits']['amount']['min'] == 0.05 &&
+market['precision']['amount'] == 0.0001 &&
+market['precision']['price'] == 0.01
+```
 
   - The *amount value* should be >= 0.05:
     ```diff
@@ -1017,9 +1020,15 @@ Examples:
     ```
   - *Precision of the amount* should be up to 4 digits after dot (0.0001):
     ```diff
-    + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
+    + good: 0.05, 0.0501, ..., 0.06, ..., 0.0719, ...
     - bad: 0.05001, 0.05000, 0.06001
     ```
+  - *Precision of the price* should be up to 2 digits after dot (0.01):
+    ```diff
+    + good: 1.6, 1.61, 123.01, ..., 1234.56, ...
+    - bad: 1.601, ..., 123.012, ..., 1234.567
+    ```
+  - 
 
 2. `(market['precision']['amount'] == -1)`
 
