@@ -583,9 +583,13 @@ export default class coinlist extends Exchange {
         let settledId = undefined;
         let settled = undefined;
         let linear = undefined;
+        let inverse = undefined;
+        let contractSize = undefined;
         let symbol = base + '/' + quote;
         if (isSwap) {
+            contractSize = this.parseNumber ('1');
             linear = true;
+            inverse = false;
             settledId = quoteId;
             settled = quote;
             symbol = symbol + ':' + quote;
@@ -609,8 +613,8 @@ export default class coinlist extends Exchange {
             'active': true,
             'contract': isSwap,
             'linear': linear,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
