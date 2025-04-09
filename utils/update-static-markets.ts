@@ -213,7 +213,7 @@ export default {};
 export { update_markets_and_currencies };
 
 
-if (process.argv.includes ('--execute')) {
+if (process.argv.includes ('--update')) {
     args.shift ();
     update_markets_and_currencies();
 }
