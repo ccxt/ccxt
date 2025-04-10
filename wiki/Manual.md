@@ -4792,62 +4792,40 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 12.34, // at what price it will trigger
+        'price': 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
+        // similar params here
     }
 }
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+const order = await exchange.createOrder ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **Python**
 ```python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'buy'
-amount = 123.45  # your amount
-price = 115.321  # your price
 params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
-        'price': 100.33,  # limit price for a limit stop loss order
+        'triggerPrice': 12.34,  # at what price it will trigger
+        'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
-        # no limit price for a market take profit order
-        # 'price': 160.33,  # this field is not necessary for a market take profit order
+        # similar params here
     }
 }
-order = exchange.create_order (symbol, type, side, amount, price, params)
+order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **PHP**
 ```php
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'buy';
-$amount = 123.45; // your amount
-$price = 115.321; // your price
-$params = {
-    'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
-    },
-    'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
-    }
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+$params = [
+    'stopLoss': [
+        'triggerPrice'=> 12.34, // at what price it will trigger
+        'price'=> 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+    ],
+    'takeProfit'=> [
+        // similar params here
+    ]
+]
+$order = $exchange->create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, $params);
 ```
 <!-- tabs:end -->
 
