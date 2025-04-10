@@ -7220,21 +7220,22 @@ public partial class Exchange
     public virtual object removeRepeatedElementsFromArray(object input, object fallbackToTimestamp = null)
     {
         fallbackToTimestamp ??= true;
-        object uniqueResult = new Dictionary<string, object>() {};
+        object uniqueDic = new Dictionary<string, object>() {};
+        object uniqueResult = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
         {
             object entry = getValue(input, i);
             object uniqValue = ((bool) isTrue(fallbackToTimestamp)) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
-            if (isTrue(isTrue(!isEqual(uniqValue, null)) && !isTrue((inOp(uniqueResult, uniqValue)))))
+            if (isTrue(isTrue(!isEqual(uniqValue, null)) && !isTrue((inOp(uniqueDic, uniqValue)))))
             {
-                ((IDictionary<string,object>)uniqueResult)[(string)uniqValue] = entry;
+                ((IDictionary<string,object>)uniqueDic)[(string)uniqValue] = 1;
+                ((IList<object>)uniqueResult).Add(entry);
             }
         }
-        object values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
-        object valuesLength = getArrayLength(values);
+        object valuesLength = getArrayLength(uniqueResult);
         if (isTrue(isGreaterThan(valuesLength, 0)))
         {
-            return ((object)values);
+            return ((object)uniqueResult);
         }
         return input;
     }

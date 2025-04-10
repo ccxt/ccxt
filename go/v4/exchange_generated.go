@@ -8999,18 +8999,19 @@ func  (this *Exchange) SortCursorPaginatedResult(result interface{}) interface{}
 func  (this *Exchange) RemoveRepeatedElementsFromArray(input interface{}, optionalArgs ...interface{}) interface{}  {
     fallbackToTimestamp := GetArg(optionalArgs, 0, true)
     _ = fallbackToTimestamp
-    var uniqueResult interface{} = map[string]interface{} {}
+    var uniqueDic interface{} = map[string]interface{} {}
+    var uniqueResult interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
         var entry interface{} = GetValue(input, i)
         var uniqValue interface{} = Ternary(IsTrue(fallbackToTimestamp), this.SafeStringN(entry, []interface{}{"id", "timestamp", 0}), this.SafeString(entry, "id"))
-        if IsTrue(IsTrue(!IsEqual(uniqValue, nil)) && !IsTrue((InOp(uniqueResult, uniqValue)))) {
-            AddElementToObject(uniqueResult, uniqValue, entry)
+        if IsTrue(IsTrue(!IsEqual(uniqValue, nil)) && !IsTrue((InOp(uniqueDic, uniqValue)))) {
+            AddElementToObject(uniqueDic, uniqValue, 1)
+            AppendToArray(&uniqueResult,entry)
         }
     }
-    var values interface{} = ObjectValues(uniqueResult)
-    var valuesLength interface{} =     GetArrayLength(values)
+    var valuesLength interface{} =     GetArrayLength(uniqueResult)
     if IsTrue(IsGreaterThan(valuesLength, 0)) {
-        return values
+        return uniqueResult
     }
     return input
 }
