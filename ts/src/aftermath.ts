@@ -670,6 +670,27 @@ export default class aftermath extends Exchange {
         const tx = await this.privatePostBuildCreateOrders (this.extend (txRequest, params));
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitCreateOrders (request);
+        //
+        // [
+        //     {
+        //         "id": "340282366919093604570116171100942992979",
+        //         "datetime": "2025-04-10 10:38:39.323 UTC",
+        //         "timestamp": 1744281519323,
+        //         "status": "open",
+        //         "symbol": "BTC/USD:USDC",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": 10001.0,
+        //         "average": 0.0,
+        //         "amount": 0.01,
+        //         "filled": 0.0,
+        //         "remaining": 0.01,
+        //         "cost": 0.0,
+        //         "trades": [],
+        //         "fee": {}
+        //     }
+        // ]
+        //
         return this.parseOrders (response);
     }
 
@@ -701,6 +722,24 @@ export default class aftermath extends Exchange {
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitCancelOrders (request);
         //
+        // [
+        //     {
+        //         "id": "340282366919093604570116171100942992979",
+        //         "datetime": "2025-04-10 10:45:16.765 UTC",
+        //         "timestamp": 1744281916765,
+        //         "status": "closed",
+        //         "symbol": "BTC/USD:USDC",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": 10001.0,
+        //         "amount": 0.01,
+        //         "filled": 0.0,
+        //         "remaining": 0.0,
+        //         "cost": 0.0,
+        //         "trades": [],
+        //         "fee": {}
+        //     }
+        // ]
         //
         return this.parseOrders (response);
     }
