@@ -7,11 +7,8 @@
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
                 "active":"is undefined"
             },
-            "fetchOrderBook": {
+            "orderBook": {
                 "timestamp": "not provided"
-            },
-            "fetchL2OrderBook": {
-                "timestamp": "same"
             }
         }
     },
@@ -103,7 +100,6 @@
             }
         }
     },
-
     "bingx": {
         "skipMethods": {
             "loadMarkets": {
@@ -214,7 +210,7 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
-		"open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
+		        "open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
@@ -757,7 +753,7 @@
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4756"
             }
         }
-    },,
+    },
     "cryptomus": {
         "skipMethods": {
             "fetchCurrencies": {
