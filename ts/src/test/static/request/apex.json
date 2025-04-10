@@ -14,6 +14,19 @@
         ],
         "createOrder": [
             {
+                "description": "swap market sell order",
+                "method": "createOrder",
+                "url": "https://omni.apex.exchange/api/v3/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    70
+                ],
+                "output": "brokerId=6956&clientId=apexomni-346629571951-1744293408391-603638&expiration=1746885408&limitFee=0.01&price=70&side=SELL&signature=ea9690ccc9c1bb9cb9987e4e4cf2f8e71ba16895db3281bb9eb0defd3d4cc11acf67968a95464be9baa7249b30a32ab840882c67d33d35fcbdad9ba174da2400&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+            },
+            {
                 "description": "swap market buy order",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",

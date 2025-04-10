@@ -11,3 +11,4 @@ tox>=4.8.0
 mypy==1.6.1
 pyopenssl
 psutil
+apexomni-x86-windows-linux # apex exchange requirements

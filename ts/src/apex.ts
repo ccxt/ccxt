@@ -4,7 +4,7 @@ import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types';
-import { ArgumentsRequired, BadRequest, InvalidOrder, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1942,6 +1942,7 @@ export default class apex extends Exchange {
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
+        // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
         //
         if (response === undefined) {
             return undefined;
@@ -1953,6 +1954,7 @@ export default class apex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             const status = code.toString ();
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
