@@ -50,7 +50,7 @@ export default class apex extends Exchange {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -1255,6 +1255,15 @@ export default class apex extends Exchange {
         return seeds;
     }
 
+    async getAccountId () {
+        const accountId = this.safeString (this.options, 'accountId', '0');
+        if (accountId === '0') {
+            const accountData = await this.fetchAccount ();
+            this.options['accountId'] = this.safeString (accountData, 'id', '0');
+        }
+        return this.options['accountId'];
+    }
+
     /**
      * @method
      * @name apex#createOrder
@@ -1306,18 +1315,11 @@ export default class apex extends Exchange {
         params = this.omit (params, 'timeInForce');
         params = this.omit (params, 'postOnly');
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const accountId = await this.getAccountId ();
         if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
+            clientOrderId = this.generateRandomClientIdOmni (accountId);
         }
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        let accountId = this.accountId;
-        if (accountId === undefined || this.accountId === '0') {
-            accountId = this.safeString (this.options, 'accountId', '0');
-            if (accountId === '0') {
-                const accountData = await this.fetchAccount ();
-                accountId = this.safeString (accountData, 'id', '0');
-            }
-        }
         const orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1868,10 +1870,7 @@ export default class apex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (position, 'side');
-        let quantity = this.safeString (position, 'size');
-        if (side !== 'long') {
-            quantity = Precise.stringMul ('-1', quantity);
-        }
+        const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
         let leverage = 20;
         const customInitialMarginRate = this.safeStringN (position, [ 'customInitialMarginRate', 'customImr' ], '0');

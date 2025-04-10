@@ -34,6 +34,8 @@ interface Exchange {
     privatePostV3DeleteOrder (params?: {}): Promise<implicitReturnType>;
     privatePostV3Order (params?: {}): Promise<implicitReturnType>;
     privatePostV3SetInitialMarginRate (params?: {}): Promise<implicitReturnType>;
+    privatePostV3TransferOut (params?: {}): Promise<implicitReturnType>;
+    privatePostV3ContractTransferOut (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
