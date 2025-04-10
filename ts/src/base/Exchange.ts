@@ -7371,7 +7371,7 @@ export default class Exchange {
             const entry = input[i];
             const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
             if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
-                uniqueDic[uniqValue] = entry;
+                uniqueDic[uniqValue] = 1;
                 uniqueResult.push (entry);
             }
         }
