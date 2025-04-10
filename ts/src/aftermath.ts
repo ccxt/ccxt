@@ -758,6 +758,21 @@ export default class aftermath extends Exchange {
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitAllocate (request);
         //
+        // {
+        //     "id": "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
+        //     "symbol": "BTC/USD",
+        //     "contracts": 0.0,
+        //     "contractSize": 81656.98359916,
+        //     "notional": 0.0,
+        //     "leverage": 0.0,
+        //     "collateral": 40.0,
+        //     "initialMargin": 0.0,
+        //     "maintenanceMargin": 0.0,
+        //     "initialMarginPercentage": 0.025,
+        //     "maintenanceMarginPercentage": 0.0125,
+        //     "unrealizedPnl": 0.0,
+        //     "marginMode": "isolated"
+        // }
         //
         return response as MarginModification;
     }
@@ -790,6 +805,21 @@ export default class aftermath extends Exchange {
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitDeallocate (request);
         //
+        // {
+        //     "id": "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
+        //     "symbol": "BTC/USD",
+        //     "contracts": 0.0,
+        //     "contractSize": 81678.2625,
+        //     "notional": 0.0,
+        //     "leverage": 0.0,
+        //     "collateral": 39.0,
+        //     "initialMargin": 0.0,
+        //     "maintenanceMargin": 0.0,
+        //     "initialMarginPercentage": 0.025,
+        //     "maintenanceMarginPercentage": 0.0125,
+        //     "unrealizedPnl": 0.0,
+        //     "marginMode": "isolated"
+        // }
         //
         return response as MarginModification;
     }
