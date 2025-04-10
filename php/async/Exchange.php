@@ -6203,18 +6203,19 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function remove_repeated_elements_from_array($input, bool $fallbackToTimestamp = true) {
+        $uniqueDic = array();
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
             $uniqValue = $fallbackToTimestamp ? $this->safe_string_n($entry, array( 'id', 'timestamp', 0 )) : $this->safe_string($entry, 'id');
-            if ($uniqValue !== null && !(is_array($uniqueResult) && array_key_exists($uniqValue, $uniqueResult))) {
-                $uniqueResult[$uniqValue] = $entry;
+            if ($uniqValue !== null && !(is_array($uniqueDic) && array_key_exists($uniqValue, $uniqueDic))) {
+                $uniqueDic[$uniqValue] = 1;
+                $uniqueResult[] = $entry;
             }
         }
-        $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
-        $valuesLength = count($values);
+        $valuesLength = count($uniqueResult);
         if ($valuesLength > 0) {
-            return $values;
+            return $uniqueResult;
         }
         return $input;
     }
