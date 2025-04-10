@@ -1,7 +1,11 @@
 {
     "exchange": "apex",
-    "skipKeys": [],
-    "outputType": "json",
+    "skipKeys": ["signature", "clientId", "expiration"],
+    "outputType": "both",
+    "options": {
+        "seeds": "0xa404dd69766d282ded6f4aded884044049ef727df94d9d42d0e92d424a87e72444d46462d2f9444efe427442fed47d42f2de774ed92dd4d42e74d7a7404d087e2d",
+        "accountId": "495274990579220581"
+    },
     "methods": {
         "fetchPositions": [
             {
@@ -44,7 +48,7 @@
             {
                 "description": "fetch trades",
                 "method": "fetchTrades",
-                "url": "https://omni.apex.exchange/api/v3/trades?symbol=BTCUSDT",
+                "url": "https://omni.apex.exchange/api/v3/trades?symbol=BTCUSDT&limit=500",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
