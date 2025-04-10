@@ -852,6 +852,75 @@ export default class aftermath extends Exchange {
 
     /**
      * @method
+     * @name aftermath#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const subaccount = this.safeString (params, 'subaccount');
+        params = this.omit (params, [ 'subaccount' ]);
+        const txRequest = {
+            'metadata': {
+                'sender': this.walletAddress,
+            },
+            'primary': address,
+            'subaccount': subaccount,
+            'amount': amount,
+        };
+        const tx = await this.privatePostBuildWithdraw (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitWithdraw (request);
+        //
+        // {
+        //     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
+        //     "type": "subaccount",
+        //     "code": "USDC",
+        //     "accountNumber": 101,
+        //     "collateral": 39.0
+        // }
+        //
+        return this.extend (this.parseTransaction (response, currency), {
+            'addressFrom': subaccount,
+            'addressTo': address,
+            'amount': amount,
+        });
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'tx_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': this.safeString (transaction, 'code'),
+            'status': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+            'network': undefined,
+        };
+    }
+
+    /**
+     * @method
      * @name aftermath#signTxEd25519
      * @description Helper to sign some transaction bytes and return a generic transaction execution request.
      * @param {object} [tx] transaction bytes and the signing digest for them
