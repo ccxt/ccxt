@@ -236,7 +236,7 @@ export default class Exchange {
     // whether fees should be summed by currency code
     reduceFees: boolean = true
 
-    // don't delete this line, it is needed for users to be able to define their own fetchImplementation
+    // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
     AbortError: any
     FetchError: any
@@ -7365,18 +7365,19 @@ export default class Exchange {
     }
 
     removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
-        const uniqueResult = {};
+        const uniqueDic = {};
+        const uniqueResult = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
-            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
-                uniqueResult[uniqValue] = entry;
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = entry;
+                uniqueResult.push (entry);
             }
         }
-        const values = Object.values (uniqueResult);
-        const valuesLength = values.length;
+        const valuesLength = uniqueResult.length;
         if (valuesLength > 0) {
-            return values as any;
+            return uniqueResult as any;
         }
         return input;
     }
