@@ -4780,12 +4780,13 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
 
-* By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
+* By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Not supported by all exchanges.
-* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
-
-*Note: This is still under unification and is work in progress*
+* Note, before creating order, ensure an exchange supports this specific functionality, by checking the below values are not null, for example:
+```
+exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
+exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+```
 
 <!-- tabs:start -->
 #### **Javascript**
