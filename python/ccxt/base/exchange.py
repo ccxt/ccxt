@@ -6472,16 +6472,17 @@ class Exchange(object):
         return result
 
     def remove_repeated_elements_from_array(self, input, fallbackToTimestamp: bool = True):
-        uniqueResult = {}
+        uniqueDic = {}
+        uniqueResult = []
         for i in range(0, len(input)):
             entry = input[i]
             uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0]) if fallbackToTimestamp else self.safe_string(entry, 'id')
-            if uniqValue is not None and not (uniqValue in uniqueResult):
-                uniqueResult[uniqValue] = entry
-        values = list(uniqueResult.values())
-        valuesLength = len(values)
+            if uniqValue is not None and not (uniqValue in uniqueDic):
+                uniqueDic[uniqValue] = 1
+                uniqueResult.append(entry)
+        valuesLength = len(uniqueResult)
         if valuesLength > 0:
-            return values
+            return uniqueResult
         return input
 
     def remove_repeated_trades_from_array(self, input):
