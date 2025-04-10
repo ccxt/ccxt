@@ -3,8 +3,8 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types';
-import { ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.js';
+import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types';
+import { ArgumentsRequired, BadRequest, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -201,8 +201,9 @@ export default class apex extends Exchange {
                     '10001': BadRequest,
                 },
                 'broad': {
-                    'ORDER_POSSIBLE_LEAD_TO_ACCOUNT_LIQUIDATED': 'If order is filled, your account may be liquidated.',
-                    'ORDER_WITH_THIS_PRICE_CANNOT_REDUCE_POSITION_ONLY': 'Order with this price xxx cannot be Reduce-Only.',
+                    'ORDER_PRICE_MUST_GREETER_ZERO': InvalidOrder,
+                    'ORDER_POSSIBLE_LEAD_TO_ACCOUNT_LIQUIDATED': InvalidOrder,
+                    'ORDER_WITH_THIS_PRICE_CANNOT_REDUCE_POSITION_ONLY': InvalidOrder,
                 },
             },
             'fees': {
@@ -216,6 +217,7 @@ export default class apex extends Exchange {
                 'secret': true,
                 'walletAddress': false,
                 'privateKey': false,
+                'password': true,
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
@@ -1245,6 +1247,14 @@ export default class apex extends Exchange {
         return symbol;
     }
 
+    getSeeds () {
+        const seeds = this.safeString (this.options, 'seeds');
+        if (seeds === undefined) {
+            throw new ArgumentsRequired (this.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
+        }
+        return seeds;
+    }
+
     /**
      * @method
      * @name apex#createOrder
@@ -1319,7 +1329,7 @@ export default class apex extends Exchange {
             'makerFeeRate': maker.toString (),
             'takerFeeRate': taker.toString (),
         };
-        const signature = await this.getZKContractSignatureObj (this.remove0xPrefix (this.safeString (this.options, 'seeds')), orderToSign);
+        const signature = await this.getZKContractSignatureObj (this.remove0xPrefix (this.getSeeds ()), orderToSign);
         const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,
@@ -1416,7 +1426,7 @@ export default class apex extends Exchange {
                 'timestampSeconds': expireTime,
                 'isContract': true,
             };
-            const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.safeString (this.options, 'seeds')), orderToSign);
+            const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.getSeeds ()), orderToSign);
             const request: Dict = {
                 'amount': amount,
                 'expireTime': expireTime,
@@ -1447,7 +1457,7 @@ export default class apex extends Exchange {
                 'nonce': nonce,
                 'timestampSeconds': timestampSeconds,
             };
-            const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.safeString (this.options, 'seeds')), orderToSign);
+            const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.getSeeds ()), orderToSign);
             const request: Dict = {
                 'amount': amount.toString (),
                 'timestamp': timestampSeconds,
@@ -1924,9 +1934,27 @@ export default class apex extends Exchange {
             headers['APEX-SIGNATURE'] = signature;
             headers['APEX-API-KEY'] = this.apiKey;
             headers['APEX-TIMESTAMP'] = timestamp;
-            headers['APEX-PASSPHRASE'] = this.safeString (this.options, 'passphrase');
+            headers['APEX-PASSPHRASE'] = this.password;
         }
         return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        //
+        // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
+        //
+        if (response === undefined) {
+            return undefined;
+        }
+        const errorCode = this.safeInteger (response, 'code');
+        if (errorCode !== undefined && errorCode !== 0) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (response, 'key', 'msg');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            const status = code.toString ();
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+        }
+        return undefined;
     }
 }
 
