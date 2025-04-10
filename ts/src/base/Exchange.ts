@@ -2874,76 +2874,150 @@ export default class Exchange {
         return featuresObj;
     }
 
-    /**
-     * @method
-     * @name exchange#featureSupported
-     * @description this method is a very deterministic to help users to know what feature is supported by the exchange
-     * @param {string} [marketType] supported only: "spot", "swap", "future"
-     * @param {string} [subType] supported only: "linear", "inverse"
-     * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-     * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
-     * @param {string} [paramValueName] to see whether unified param is supported
-     * @returns {bool | undefined} returns true if the feature is supported, false if it's not supported, and undefined if it's not known
-     */
-    featureSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
+    featureIsSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
+        /**
+         * @method
+         * @name exchange#featureIsSupported
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [marketType] supported only: "spot", "swap", "future"
+         * @param {string} [subType] supported only: "linear", "inverse"
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
+         * @param {string} [paramValueName] to see whether unified param is supported
+         * @returns {bool | undefined} returns true if the feature is supported, false if it's not supported, and undefined if it's not known
+         */
         // if exchange does not yet have features manually implemented
         if (this.features === undefined) {
             return undefined;
         }
         // if marketType does not exist in features (eg. option), return exception, so users are not confused
         if (!(marketType in this.features)) {
-            throw new NotSupported (this.id + ' unsupported marketType:' + marketType + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' unsupported marketType:' + marketType + ', check "exchange.features" for details');
         }
-        let container = undefined;
-        if (subType === undefined) {
-            container = this.features[marketType];
-        } else {
+        let container = this.features[marketType];
+        if (subType !== undefined) {
             if (!this.inArray (subType, [ 'linear', 'inverse' ])) {
-                throw new NotSupported (this.id + ' unsupported subType:' + subType + ', check "exchange.features" to know supported values');
+                throw new NotSupported (this.id + ' unsupported subType:' + subType + ', check "exchange.features" for details');
             }
-            container = this.safeDict (this.features[marketType], subType);
+            container = this.safeDict (container, subType);
         }
-        // if methods container (marketType or subType block) is undefined, then it means not supported by exchange
+        // if marketType or subType dict is undefined, then it means not supported by exchange
         if (container === undefined) {
             return false;
         }
-        // return `true` if user wanted only marketType and didn't provide methodName, eg: featureSupported('spot')
+        // return `true` if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
             return true;
         }
         // throw an exception for unsupported method
         if (!(methodName in container)) {
-            throw new NotSupported (this.id + ' featureSupported() unsupported method: ' + methodName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported method: ' + methodName + ', check "exchange.features" for details');
         }
         // if it has `undefined` value, then it means it's not supported
         if (container[methodName] === undefined) {
             return false;
         }
-        // return `true` if user wanted only method and didn't provide `paramName`, eg: featureSupported('spot', undefined, 'createOrder')
+        // return `true` if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('spot', undefined, 'createOrder')
         if (paramName === undefined) {
             return true;
         }
         // throw an exception for unsupported paramName
         if (!(paramName in container[methodName])) {
-            throw new NotSupported (this.id + ' featureSupported() unsupported paramName: ' + paramName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramName: ' + paramName + ', check "exchange.features" to know supported values');
         }
         // if it has `undefined` value, then it means it's not supported (same for 'false')
         if (this.inArray (container[methodName][paramName], [ undefined, false ])) {
             return false;
         }
-        // if didn't provide `paramValue`, eg: featureSupported('spot', undefined, 'createOrder', 'stopLoss')
+        // if didn't provide `paramValue`, eg: featureIsSupported('spot', undefined, 'createOrder', 'stopLoss')
         if (paramValueName === undefined) {
             return true;
         }
         // throw an exception for unsupported paramValueName
         if (!(paramValueName in container[methodName][paramName])) {
-            throw new NotSupported (this.id + ' featureSupported() unsupported paramValueName: ' + paramValueName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramValueName: ' + paramValueName + ', check "exchange.features" to know supported values');
         }
         // if it has `undefined` value, then it means it's not supported (same for 'false')
         if (this.inArray (container[methodName][paramName][paramValueName], [ undefined, false ])) {
             return false;
         }
         return container[methodName][paramName][paramValueName];
+    }
+
+    featureValue (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined): any {
+        /**
+         * @method
+         * @name exchange#featureIsSupported
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [marketType] supported only: "spot", "swap", "future"
+         * @param {string} [subType] supported only: "linear", "inverse"
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
+         * @param {string} [paramValueName] to see whether unified param is supported
+         * @returns {object} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if (this.features === undefined) {
+            return undefined;
+        }
+        // if marketType (e.g. 'option') does not exist in features, return exception
+        if (!(marketType in this.features)) {
+            throw new NotSupported (this.id + ' featureValue(): unsupported marketType' + marketType + ', check "exchange.features" for details');
+        }
+        // if marketType dict undefined
+        if (this.features[marketType] === undefined) {
+            return undefined;
+        }
+        let methodsContainer = this.features[marketType];
+        if (subType === undefined) {
+            if (marketType !== 'spot') {
+                throw new NotSupported (this.id + ' featureValue(): for ' + marketType + ' marketType, subType is required');
+            }
+        } else {
+            if (!(subType in this.features[marketType])) {
+                throw new NotSupported (this.id + ' featureValue(): unsupported subType:' + subType + ', check "exchange.features" for details');
+            }
+            // if subType dict undefined
+            if (this.features[marketType][subType] === undefined) {
+                return undefined;
+            }
+            methodsContainer = this.features[marketType][subType];
+        }
+        // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if (methodName === undefined) {
+            return methodsContainer;
+        }
+        if (!(methodName in methodsContainer)) {
+            // throw an exception for unsupported
+            throw new NotSupported (this.id + ' featureValue(): unsupported method ' + methodName + ', check "exchange.features" for details');
+        }
+        const methodDict = methodsContainer[methodName];
+        if (methodDict === undefined) {
+            return undefined;
+        }
+        // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
+        if (paramName === undefined) {
+            return methodDict;
+        }
+        if (!(paramName in methodDict)) {
+            // throw an exception for unsupported
+            throw new NotSupported (this.id + ' featureValue(): unsupported paramName ' + paramName + ', check "exchange.features" for details');
+        }
+        const dictionary = this.safeDict (methodDict, paramName);
+        if (dictionary === undefined) {
+            // if the value is not dictionary but a scalar value (or undefined), return as is
+            return methodDict[paramName];
+        } else {
+            // return as is, when calling without `subParamName` eg: featureValue('spot', undefined, 'createOrder', 'stopLoss')
+            if (subParamName === undefined) {
+                return methodDict[paramName];
+            }
+            // throw an exception for unsupported subParamName
+            if (!(subParamName in methodDict[paramName])) {
+                throw new NotSupported (this.id + ' featureValue(): unsupported subParamName ' + subParamName + ', check "exchange.features" to know supported values');
+            }
+            return methodDict[paramName][subParamName];
+        }
     }
 
     orderbookChecksumMessage (symbol:Str) {
