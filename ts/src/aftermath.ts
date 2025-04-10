@@ -806,12 +806,12 @@ export default class aftermath extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const txRequest = {
             'metadata': {
-                'sender': fromAccount,
+                'sender': this.walletAddress,
             },
             'accountId': toAccount,
             'amount': amount,
@@ -820,9 +820,34 @@ export default class aftermath extends Exchange {
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitDeposit (request);
         //
+        // {
+        //     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
+        //     "type": "subaccount",
+        //     "code": "USDC",
+        //     "accountNumber": 101,
+        //     "collateral": 1.0
         // }
         //
-        return response;
+        return this.extend (this.parseTransfer (response, currency), {
+            'fromAccount': this.walletAddress,
+            'toAccount': toAccount,
+            'amount': amount,
+        });
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const currencyId = this.safeString (transfer, 'code');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     /**
