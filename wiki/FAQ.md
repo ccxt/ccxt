@@ -80,7 +80,7 @@
 
 
 
-## How to create an order with stopLoss & takeProfit?
+## How to create an order with takeProfit+stopLoss?
 Let's assume you want to have a long position (buy order) at a price `123` with a *stop-loss* to trigger when the price reaches `120` (similar principle applies for take-profit orders). You can use one of the two approaches:
 
 A) Some exchanges support the creation of an entry order with an attached stopLoss (& takeProfit) object:
