@@ -15,13 +15,13 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\OperationFailed;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class htx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'htx',
             'name' => 'HTX',
@@ -899,6 +899,7 @@ class htx extends Exchange {
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
+                    '1061' => '\\ccxt\\OrderNotFound', // array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
                     '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
@@ -958,6 +959,8 @@ class htx extends Exchange {
                         'inverse' => true,
                     ),
                 ),
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV' => array(
                     'useHistoricalEndpointForSpot' => true,
                 ),
@@ -1274,17 +1277,20 @@ class htx extends Exchange {
                         'limit' => 500,
                         'daysBack' => 120,
                         'untilDays' => 2,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                         'limit' => 500,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -1293,6 +1299,7 @@ class htx extends Exchange {
                         'limit' => 500,
                         'untilDays' => 2,
                         'daysBack' => 180,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -1300,8 +1307,9 @@ class htx extends Exchange {
                         'trailing' => false,
                         'untilDays' => 2,
                         'limit' => 500,
-                        'daysBackClosed' => 180,
+                        'daysBack' => 180,
                         'daysBackCanceled' => 1 / 12,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000, // 2000 for non-historical
@@ -1341,7 +1349,7 @@ class htx extends Exchange {
                         'trailing' => false,
                         'untilDays' => 2,
                         'limit' => 50,
-                        'daysBackClosed' => 90,
+                        'daysBack' => 90,
                         'daysBackCanceled' => 1 / 12,
                     ),
                     'fetchOHLCV' => array(
@@ -1598,7 +1606,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1788,6 +1796,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $types = null;
             list($types, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'types', array());
             $allMarkets = array();
@@ -3359,7 +3370,10 @@ class htx extends Exchange {
                     $type = 'margin';
                 }
             }
-            $marketId = ($symbol === null) ? null : $this->market_id($symbol);
+            $marketId = null;
+            if ($symbol !== null) {
+                $marketId = $this->market_id($symbol);
+            }
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
                 $info = $this->safe_value($account, 'info');
@@ -7206,27 +7220,31 @@ class htx extends Exchange {
              * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
              *
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $options = $this->safe_value($this->options, 'fetchFundingRates', array());
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
+            $subType = null;
+            list($subType, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
+            if ($symbols !== null) {
+                $firstSymbol = $this->safe_string($symbols, 0);
+                $market = $this->market($firstSymbol);
+                $isLinear = $market['linear'];
+                $subType = $isLinear ? 'linear' : 'inverse';
+            }
             $request = array(
-                // 'contract_code' => market['id'],
+                // 'contract_code' => $market['id'],
             );
-            $params = $this->omit($params, 'subType');
             $response = null;
             if ($subType === 'linear') {
                 $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapBatchFundingRate ($this->extend($request, $params)));
             } elseif ($subType === 'inverse') {
                 $response = Async\await($this->contractPublicGetSwapApiV1SwapBatchFundingRate ($this->extend($request, $params)));
             } else {
-                throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
+                throw new NotSupported($this->id . ' fetchFundingRates() not support this $market type');
             }
             //
             //     {
@@ -7247,8 +7265,7 @@ class htx extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = $this->parse_funding_rates($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 
@@ -7381,6 +7398,10 @@ class htx extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -7394,7 +7415,7 @@ class htx extends Exchange {
             $url .= '/' . $this->implode_params($path, $params);
             if ($api === 'private' || $api === 'v2Private') {
                 $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',
@@ -7469,18 +7490,20 @@ class htx extends Exchange {
                         }
                     }
                 }
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',
                     'AccessKeyId' => $this->apiKey,
                     'Timestamp' => $timestamp,
                 );
-                if ($method !== 'POST') {
-                    $request = $this->extend($request, $query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at => https://github.com/ccxt/ccxt/issues/24930 )
                 $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                if ($method !== 'POST') {
+                    $sortedQuery = $this->keysort($query);
+                    $request = $this->extend($request, $sortedQuery);
+                }
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7514,6 +7537,7 @@ class htx extends Exchange {
         if (is_array($response) && array_key_exists('status', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
@@ -7531,6 +7555,16 @@ class htx extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $code = $this->safe_string($response, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
+        $data = $this->safe_dict($response, 'data');
+        $errorsList = $this->safe_list($data, 'errors');
+        if ($errorsList !== null) {
+            $first = $this->safe_dict($errorsList, 0);
+            $errcode = $this->safe_string($first, 'err_code');
+            $errmessage = $this->safe_string($first, 'err_msg');
+            $feedBack = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errcode, $feedBack);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errmessage, $feedBack);
         }
         return null;
     }
@@ -8664,8 +8698,7 @@ class htx extends Exchange {
                 //
             }
             $data = $this->safe_list($response, 'data', array());
-            $result = $this->parse_open_interests($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_open_interests($data, $symbols);
         }) ();
     }
 

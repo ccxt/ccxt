@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -18,7 +18,7 @@ import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
  * @augments Exchange
  */
 export default class paradex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -77,10 +77,10 @@ export default class paradex extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
-                'fetchMarginMode': undefined,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -114,8 +114,8 @@ export default class paradex extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
-                'setMarginMode': false,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -157,12 +157,23 @@ export default class paradex extends Exchange {
                         'system/state': 1,
                         'system/time': 1,
                         'trades': 1,
+                        'vaults': 1,
+                        'vaults/balance': 1,
+                        'vaults/config': 1,
+                        'vaults/history': 1,
+                        'vaults/positions': 1,
+                        'vaults/summary': 1,
+                        'vaults/transfers': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'account': 1,
+                        'account/info': 1,
+                        'account/history': 1,
+                        'account/margin': 1,
                         'account/profile': 1,
+                        'account/subaccounts': 1,
                         'balance': 1,
                         'fills': 1,
                         'funding/payments': 1,
@@ -175,20 +186,34 @@ export default class paradex extends Exchange {
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
                         'points_data/{market}/{program}': 1,
+                        'referrals/qr-code': 1,
                         'referrals/summary': 1,
                         'transfers': 1,
+                        'algo/orders': 1,
+                        'algo/orders-history': 1,
+                        'algo/orders/{algo_id}': 1,
+                        'vaults/account-summary': 1,
                     },
                     'post': {
+                        'account/margin/{market}': 1,
+                        'account/profile/max_slippage': 1,
                         'account/profile/referral_code': 1,
                         'account/profile/username': 1,
                         'auth': 1,
                         'onboarding': 1,
                         'orders': 1,
+                        'orders/batch': 1,
+                        'algo/orders': 1,
+                        'vaults': 1,
+                    },
+                    'put': {
+                        'orders/{order_id}': 1,
                     },
                     'delete': {
                         'orders': 1,
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
+                        'algo/orders/{algo_id}': 1,
                     },
                 },
             },
@@ -268,6 +293,7 @@ export default class paradex extends Exchange {
                     '40112': PermissionDenied, // Geo IP blocked
                 },
                 'broad': {
+                    'missing or malformed jwt': AuthenticationError,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -276,6 +302,78 @@ export default class paradex extends Exchange {
             'options': {
                 'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
+            },
+            'features': {
+                'spot': undefined,
+                'forSwap': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true, // todo
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined, // todo
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined, // todo
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo by from/to
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -288,7 +386,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSystemTime (params);
         //
         //     {
@@ -400,6 +498,57 @@ export default class paradex extends Exchange {
         //         "max_tob_spread": "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":{
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        },
+        //        "mmf":{
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     },
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":[
+        //     ]
+        //  }
+        //
+        const assetKind = this.safeString (market, 'asset_kind');
+        const isOption = (assetKind === 'PERP_OPTION');
+        const type = (isOption) ? 'option' : 'swap';
+        const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quote_currency');
         const baseId = this.safeString (market, 'base_currency');
@@ -407,8 +556,16 @@ export default class paradex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
-        const expiry = this.safeInteger (market, 'expiry_at');
+        let symbol = base + '/' + quote + ':' + settle;
+        let expiry = this.safeInteger (market, 'expiry_at');
+        const optionType = this.safeString (market, 'option_type');
+        const strikePrice = this.safeString (market, 'strike_price');
+        if (isOption) {
+            const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
+            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
+        } else {
+            expiry = undefined;
+        }
         const takerFee = this.parseNumber ('0.0003');
         const makerFee = this.parseNumber ('-0.00005');
         return this.safeMarketStructure ({
@@ -420,23 +577,23 @@ export default class paradex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': type,
             'spot': false,
             'margin': undefined,
-            'swap': true,
+            'swap': isSwap,
             'future': false,
-            'option': false,
+            'option': isOption,
             'active': this.safeBool (market, 'enableTrading'),
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': this.parseNumber ('1'),
-            'expiry': (expiry === 0) ? undefined : expiry,
+            'expiry': expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': this.parseNumber (strikePrice),
+            'optionType': this.safeStringLower (market, 'option_type'),
             'precision': {
                 'amount': this.safeNumber (market, 'order_size_increment'),
                 'price': this.safeNumber (market, 'price_tick_size'),
@@ -898,7 +1055,7 @@ export default class paradex extends Exchange {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
-        //         "oracle_price": "68465.17449906",
+        //         "oracle_price": "68465.17449904",
         //         "mark_price": "68465.17449906",
         //         "last_traded_price": "68495.1",
         //         "bid": "68477.6",
@@ -983,17 +1140,19 @@ export default class paradex extends Exchange {
     async prepareParadexDomain (l1 = false) {
         const systemConfig = await this.getSystemConfig ();
         if (l1 === true) {
-            return {
+            const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
                 'version': '1',
             };
+            return l1D;
         }
-        return {
+        const domain = {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
             'version': 1,
         };
+        return domain;
     }
 
     async retrieveAccount () {
@@ -1053,7 +1212,8 @@ export default class paradex extends Exchange {
             }
         }
         const account = await this.retrieveAccount ();
-        const expires = now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
@@ -1132,6 +1292,11 @@ export default class paradex extends Exchange {
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
+        const flags = this.safeList (order, 'flags', []);
+        let reduceOnly = undefined;
+        if ('REDUCE_ONLY' in flags) {
+            reduceOnly = true;
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1144,7 +1309,7 @@ export default class paradex extends Exchange {
             'type': this.parseOrderType (orderType),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'instrunction')),
             'postOnly': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': this.safeString (order, 'trigger_price'),
@@ -1218,6 +1383,8 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1228,17 +1395,21 @@ export default class paradex extends Exchange {
         await this.authenticateRest ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size': this.amountToPrecision (symbol, amount),
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isMarket = orderType === 'MARKET';
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         if (!isMarket) {
@@ -1248,11 +1419,6 @@ export default class paradex extends Exchange {
                 request['instruction'] = 'IOC';
             }
         }
-        if (reduceOnly) {
-            request['flags'] = [
-                'REDUCE_ONLY',
-            ];
-        }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1260,15 +1426,52 @@ export default class paradex extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (triggerPrice !== undefined) {
+        let sizeString = '0';
+        let stopPrice = undefined;
+        if (isStopOrder) {
+            // flags: Reduce_Only must be provided for TPSL orders.
             if (isMarket) {
-                request['type'] = 'STOP_MARKET';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_MARKET';
+                } else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_MARKET';
+                } else {
+                    stopPrice = this.priceToPrecision (symbol, triggerPrice);
+                    sizeString = this.amountToPrecision (symbol, amount);
+                    request['type'] = 'STOP_MARKET';
+                }
             } else {
-                request['type'] = 'STOP_LIMIT';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_LIMIT';
+                } else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                } else {
+                    stopPrice = this.priceToPrecision (symbol, triggerPrice);
+                    sizeString = this.amountToPrecision (symbol, amount);
+                    request['type'] = 'STOP_LIMIT';
+                }
             }
-            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        } else {
+            sizeString = this.amountToPrecision (symbol, amount);
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        if (stopPrice !== undefined) {
+            request['trigger_price'] = stopPrice;
+        }
+        request['size'] = sizeString;
+        if (reduceOnly) {
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ];
+        }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const orderReq = {
@@ -1684,7 +1887,7 @@ export default class paradex extends Exchange {
 
     /**
      * @method
-     * @name paradex#fetchPositions
+     * @name paradex#fetchPosition
      * @description fetch data on an open position
      * @see https://docs.api.prod.paradex.trade/#list-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in
@@ -2043,6 +2246,156 @@ export default class paradex extends Exchange {
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseMarginMode (this.safeDict (configs, 0), market);
+    }
+
+    parseMarginMode (rawMarginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (rawMarginMode, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
+        return {
+            'info': rawMarginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+        } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name paradex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] the rate of leverage
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let leverage: Str = undefined;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseLeverage (this.safeDict (configs, 0), market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (leverage, 'margin_type');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
+    }
+
+    encodeMarginMode (mode) {
+        const modes = {
+            'cross': 'CROSS',
+            'isolated': 'ISOLATED',
+        };
+        return this.safeString (modes, mode, mode);
+    }
+
+    /**
+     * @method
+     * @name paradex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @param {float} leverage the rate of leverage
+     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -8,7 +8,7 @@ from ccxt.abstract.coincatch import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class coincatch(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincatch, self).describe(), {
             'id': 'coincatch',
             'name': 'CoinCatch',
@@ -427,6 +427,94 @@ class coincatch(Exchange, ImplicitAPI):
                     'CronosChain': 'CRO',  # todo check
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo implement
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo check
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': False,
+                        },
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -498,7 +586,7 @@ class coincatch(Exchange, ImplicitAPI):
         else:
             return cost
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -2528,8 +2616,7 @@ class coincatch(Exchange, ImplicitAPI):
         """
         create a list of trade orders(all orders should be of the same symbol)
 
-        https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-        https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+        https://coincatch.github.io/github.io/en/spot/#batch-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params(max 50 entries)
         :param dict [params]: extra parameters specific to the api endpoint

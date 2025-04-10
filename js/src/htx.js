@@ -12,7 +12,7 @@ import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
- * @class huobi
+ * @class htx
  * @augments Exchange
  */
 export default class htx extends Exchange {
@@ -894,6 +894,7 @@ export default class htx extends Exchange {
                     '1041': InvalidOrder,
                     '1047': InsufficientFunds,
                     '1048': InsufficientFunds,
+                    '1061': OrderNotFound,
                     '1051': InvalidOrder,
                     '1066': BadSymbol,
                     '1067': InvalidOrder,
@@ -953,6 +954,8 @@ export default class htx extends Exchange {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1269,17 +1272,20 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'daysBack': 120,
                         'untilDays': 2,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                         'limit': 500,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -1288,6 +1294,7 @@ export default class htx extends Exchange {
                         'limit': 500,
                         'untilDays': 2,
                         'daysBack': 180,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -1295,8 +1302,9 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
@@ -1336,7 +1344,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1771,6 +1779,9 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         let types = undefined;
         [types, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -3358,7 +3369,10 @@ export default class htx extends Exchange {
                 type = 'margin';
             }
         }
-        const marketId = (symbol === undefined) ? undefined : this.marketId(symbol);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            marketId = this.marketId(symbol);
+        }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue(account, 'info');
@@ -7286,14 +7300,18 @@ export default class htx extends Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString(options, 'subType', defaultSubType);
-        subType = this.safeString(params, 'subType', subType);
+        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request = {
         // 'contract_code': market['id'],
         };
-        params = this.omit(params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));
@@ -7323,8 +7341,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -7452,6 +7469,9 @@ export default class htx extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit(params, this.extractParams(path));
@@ -7466,7 +7486,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams(path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials();
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7546,18 +7566,20 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend(request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort(request);
-                let auth = this.urlencode(request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort(query);
+                    request = this.extend(request, sortedQuery);
+                }
+                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
@@ -7591,6 +7613,7 @@ export default class htx extends Exchange {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
@@ -7608,6 +7631,16 @@ export default class htx extends Exchange {
             const feedback = this.id + ' ' + body;
             const code = this.safeString(response, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict(response, 'data');
+        const errorsList = this.safeList(data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict(errorsList, 0);
+            const errcode = this.safeString(first, 'err_code');
+            const errmessage = this.safeString(first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }
@@ -8742,8 +8775,7 @@ export default class htx extends Exchange {
             //
         }
         const data = this.safeList(response, 'data', []);
-        const result = this.parseOpenInterests(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method

@@ -7,10 +7,9 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -19,7 +18,7 @@ from ccxt.base.errors import BadRequest
 
 class bybit(ccxt.async_support.bybit):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bybit, self).describe(), {
             'has': {
                 'ws': True,
@@ -768,7 +767,7 @@ class bybit(ccxt.async_support.bybit):
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
         for i in range(0, len(data)):
-            parsed = self.parse_ws_ohlcv(data[i])
+            parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
         resolveData = [symbol, timeframe, stored]
@@ -790,13 +789,14 @@ class bybit(ccxt.async_support.bybit):
         #         "timestamp": 1670363219614
         #     }
         #
+        volumeIndex = 'turnover' if (market['inverse']) else 'volume'
         return [
             self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
             self.safe_number(ohlcv, 'close'),
-            self.safe_number_2(ohlcv, 'volume', 'turnover'),
+            self.safe_number(ohlcv, volumeIndex),
         ]
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -833,11 +833,19 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbols[0])
         if limit is None:
             limit = 50 if (market['spot']) else 500
+            if market['option']:
+                limit = 100
         else:
             if not market['spot']:
-                # bybit only support limit 1, 50, 200, 500 for contract
-                if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.')
+                if market['option']:
+                    if (limit != 25) and (limit != 100):
+                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
+                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                    # bybit only support limit 1, 50, 200, 500 for contract
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
+            else:
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -1486,6 +1494,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param str [params.method]: exchange specific method, supported: liquidation, allLiquidation
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         await self.load_markets()
@@ -1493,8 +1502,10 @@ class bybit(ccxt.async_support.bybit):
         symbol = market['symbol']
         url = await self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
         params = self.clean_params(params)
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchLiquidations', 'method', 'liquidation')
         messageHash = 'liquidations::' + symbol
-        topic = 'liquidation.' + market['id']
+        topic = method + '.' + market['id']
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], params)
         if self.newUpdates:
             return newLiquidation
@@ -1502,52 +1513,92 @@ class bybit(ccxt.async_support.bybit):
 
     def handle_liquidation(self, client: Client, message):
         #
-        #   {
-        #       "data": {
-        #           "price": "0.03803",
-        #           "side": "Buy",
-        #           "size": "1637",
-        #           "symbol": "GALAUSDT",
-        #           "updatedTime": 1673251091822
-        #       },
-        #       "topic": "liquidation.GALAUSDT",
-        #       "ts": 1673251091822,
-        #       "type": "snapshot"
-        #   }
+        #     {
+        #         "data": {
+        #             "price": "0.03803",
+        #             "side": "Buy",
+        #             "size": "1637",
+        #             "symbol": "GALAUSDT",
+        #             "updatedTime": 1673251091822
+        #         },
+        #         "topic": "liquidation.GALAUSDT",
+        #         "ts": 1673251091822,
+        #         "type": "snapshot"
+        #     }
         #
-        rawLiquidation = self.safe_dict(message, 'data', {})
-        marketId = self.safe_string(rawLiquidation, 'symbol')
-        market = self.safe_market(marketId, None, '', 'contract')
-        symbol = market['symbol']
-        liquidation = self.parse_ws_liquidation(rawLiquidation, market)
-        liquidations = self.safe_value(self.liquidations, symbol)
-        if liquidations is None:
-            limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-            liquidations = ArrayCache(limit)
-        liquidations.append(liquidation)
-        self.liquidations[symbol] = liquidations
-        client.resolve([liquidation], 'liquidations')
-        client.resolve([liquidation], 'liquidations::' + symbol)
+        #     {
+        #         "topic": "allLiquidation.ROSEUSDT",
+        #         "type": "snapshot",
+        #         "ts": 1739502303204,
+        #         "data": [
+        #             {
+        #                 "T": 1739502302929,
+        #                 "s": "ROSEUSDT",
+        #                 "S": "Sell",
+        #                 "v": "20000",
+        #                 "p": "0.04499"
+        #             }
+        #         ]
+        #     }
+        #
+        if isinstance(message['data'], list):
+            rawLiquidations = self.safe_list(message, 'data', [])
+            for i in range(0, len(rawLiquidations)):
+                rawLiquidation = rawLiquidations[i]
+                marketId = self.safe_string(rawLiquidation, 's')
+                market = self.safe_market(marketId, None, '', 'contract')
+                symbol = market['symbol']
+                liquidation = self.parse_ws_liquidation(rawLiquidation, market)
+                liquidations = self.safe_value(self.liquidations, symbol)
+                if liquidations is None:
+                    limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                    liquidations = ArrayCache(limit)
+                liquidations.append(liquidation)
+                self.liquidations[symbol] = liquidations
+                client.resolve([liquidation], 'liquidations')
+                client.resolve([liquidation], 'liquidations::' + symbol)
+        else:
+            rawLiquidation = self.safe_dict(message, 'data', {})
+            marketId = self.safe_string(rawLiquidation, 'symbol')
+            market = self.safe_market(marketId, None, '', 'contract')
+            symbol = market['symbol']
+            liquidation = self.parse_ws_liquidation(rawLiquidation, market)
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            client.resolve([liquidation], 'liquidations')
+            client.resolve([liquidation], 'liquidations::' + symbol)
 
     def parse_ws_liquidation(self, liquidation, market=None):
         #
-        #    {
-        #        "price": "0.03803",
-        #        "side": "Buy",
-        #        "size": "1637",
-        #        "symbol": "GALAUSDT",
-        #        "updatedTime": 1673251091822
-        #    }
+        #     {
+        #         "price": "0.03803",
+        #         "side": "Buy",
+        #         "size": "1637",
+        #         "symbol": "GALAUSDT",
+        #         "updatedTime": 1673251091822
+        #     }
         #
-        marketId = self.safe_string(liquidation, 'symbol')
+        #     {
+        #         "T": 1739502302929,
+        #         "s": "ROSEUSDT",
+        #         "S": "Sell",
+        #         "v": "20000",
+        #         "p": "0.04499"
+        #     }
+        #
+        marketId = self.safe_string_2(liquidation, 'symbol', 's')
         market = self.safe_market(marketId, market, '', 'contract')
-        timestamp = self.safe_integer(liquidation, 'updatedTime')
+        timestamp = self.safe_integer_2(liquidation, 'updatedTime', 'T')
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': self.safe_number(liquidation, 'size'),
+            'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(market, 'contractSize'),
-            'price': self.safe_number(liquidation, 'price'),
+            'price': self.safe_number_2(liquidation, 'price', 'p'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2310,6 +2361,7 @@ class bybit(ccxt.async_support.bybit):
             'user.openapi.perp.trade': self.handle_my_trades,
             'position': self.handle_positions,
             'liquidation': self.handle_liquidation,
+            'allLiquidation': self.handle_liquidation,
             'pong': self.handle_pong,
             'order.create': self.handle_order_ws,
             'order.amend': self.handle_order_ws,

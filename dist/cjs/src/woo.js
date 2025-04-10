@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -285,6 +285,8 @@ class woo extends woo$1 {
                 },
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -345,17 +347,20 @@ class woo extends woo$1 {
                         'limit': 500,
                         'daysBack': 90,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': true,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 500,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -364,15 +369,17 @@ class woo extends woo$1 {
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
                         'trailing': true,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -500,6 +507,9 @@ class woo extends woo$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const response = await this.v1PublicGetInfo(params);
         //
         // {
@@ -549,6 +559,7 @@ class woo extends woo$1 {
         let symbol = base + '/' + quote;
         let contractSize = undefined;
         let linear = undefined;
+        let inverse = undefined;
         let margin = true;
         const contract = swap;
         if (contract) {
@@ -558,6 +569,7 @@ class woo extends woo$1 {
             symbol = base + '/' + quote + ':' + settle;
             contractSize = this.parseNumber('1');
             linear = true;
+            inverse = false;
         }
         return {
             'id': marketId,
@@ -577,7 +589,7 @@ class woo extends woo$1 {
             'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1157,6 +1169,7 @@ class woo extends woo$1 {
                 'algoType': 'POSITIONAL_TP_SL',
                 'childOrders': [],
             };
+            const childOrders = outterOrder['childOrders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeString(stopLoss, 'triggerPrice', stopLoss);
@@ -1167,7 +1180,7 @@ class woo extends woo$1 {
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
-                outterOrder['childOrders'].push(stopLossOrder);
+                childOrders.push(stopLossOrder);
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeString(takeProfit, 'triggerPrice', takeProfit);
@@ -1178,7 +1191,7 @@ class woo extends woo$1 {
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
-                outterOrder['childOrders'].push(takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
             request['childOrders'] = [outterOrder];
         }
@@ -2238,7 +2251,9 @@ class woo extends woo$1 {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -2341,7 +2356,9 @@ class woo extends woo$1 {
         const request = {
             'type': 'BALANCE',
         };
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        const currency = this.safeValue(currencyRows, 0);
+        const rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -2640,7 +2657,7 @@ class woo extends woo$1 {
         };
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
@@ -2954,8 +2971,7 @@ class woo extends woo$1 {
         //     }
         //
         const rows = this.safeList(response, 'rows', []);
-        const result = this.parseFundingRates(rows);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method
@@ -3262,7 +3278,7 @@ class woo extends woo$1 {
         };
         return await this.v1PrivatePostClientIsolatedMargin(this.extend(request, params));
     }
-    async fetchPosition(symbol = undefined, params = {}) {
+    async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

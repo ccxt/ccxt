@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bingx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bingx',
             'name' => 'BingX',
@@ -49,6 +49,7 @@ class bingx extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLossOrder' => true,
                 'createStopOrder' => true,
                 'createTakeProfitOrder' => true,
@@ -392,6 +393,7 @@ class bingx extends Exchange {
                                 'uid' => 1,
                                 'apiKey/query' => 2,
                                 'account/apiPermissions' => 5,
+                                'allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 1,
@@ -510,6 +512,8 @@ class bingx extends Exchange {
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI' => 'OmniCat',
                 'NAP' => '$NAP', // NAP on SOL = SNAP
+                'TRUMP' => 'TRUMPMAGA',
+                'TRUMPSOL' => 'TRUMP',
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -557,7 +561,7 @@ class bingx extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -581,17 +585,20 @@ class bingx extends Exchange {
                         'limit' => 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
@@ -600,15 +607,17 @@ class bingx extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,
@@ -621,19 +630,7 @@ class bingx extends Exchange {
                         'daysBack' => null,
                         'untilDays' => null,
                     ),
-                    'fetchOHLCV' => array(
-                        'limit' => 1440,
-                    ),
                     'fetchOrders' => null,
-                    'fetchClosedOrders' => array(
-                        'marginMode' => false,
-                        'limit' => 1000,
-                        'daysBackClosed' => null,
-                        'daysBackCanceled' => null,
-                        'untilDays' => 7,
-                        'trigger' => false,
-                        'trailing' => false,
-                    ),
                 ),
                 //
                 'spot' => array(
@@ -662,19 +659,23 @@ class bingx extends Exchange {
                         'extends' => 'defaultForInverse',
                     ),
                 ),
+                'defaultForFuture' => array(
+                    'extends' => 'defaultForLinear',
+                    'fetchOrders' => null,
+                ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'defaultForLinear',
+                        'extends' => 'defaultForFuture',
                     ),
                     'inverse' => array(
-                        'extends' => 'defaultForInverse',
+                        'extends' => 'defaultForFuture',
                     ),
                 ),
             ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the bingx server
@@ -824,7 +825,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params): PromiseInterface {
         return Async\async(function () use ($params) {
             $response = Async\await($this->spotV1PublicGetCommonSymbols ($params));
             //
@@ -836,8 +837,8 @@ class bingx extends Exchange {
             //              "symbols" => array(
             //                  array(
             //                    "symbol" => "GEAR-USDT",
-            //                    "minQty" => 735,
-            //                    "maxQty" => 2941177,
+            //                    "minQty" => 735, // deprecated
+            //                    "maxQty" => 2941177, // deprecated.
             //                    "minNotional" => 5,
             //                    "maxNotional" => 20000,
             //                    "status" => 1,
@@ -968,6 +969,10 @@ class bingx extends Exchange {
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
+        $minAmount = null;
+        if (!$spot) {
+            $minAmount = $this->safe_number_2($market, 'minQty', 'tradeMinQuantity');
+        }
         $timeOnline = $this->safe_integer($market, 'timeOnline');
         if ($timeOnline === 0) {
             $timeOnline = null;
@@ -1009,8 +1014,8 @@ class bingx extends Exchange {
                     'max' => null,
                 ),
                 'amount' => array(
-                    'min' => $this->safe_number_2($market, 'minQty', 'tradeMinQuantity'),
-                    'max' => $this->safe_number($market, 'maxQty'),
+                    'min' => $minAmount,
+                    'max' => null,
                 ),
                 'price' => array(
                     'min' => $minTickSize,
@@ -1483,62 +1488,82 @@ class bingx extends Exchange {
             // spot
             //
             //     {
-            //         "code" => 0,
-            //         "data" => {
-            //           "bids" => array(
-            //             array(
-            //               "26324.73",
-            //               "0.37655"
-            //             ),
-            //             array(
-            //               "26324.71",
-            //               "0.31888"
-            //             ),
-            //         ),
-            //         "asks" => array(
-            //             array(
-            //               "26340.30",
-            //               "6.45221"
-            //             ),
-            //             array(
-            //               "26340.15",
-            //               "6.73261"
-            //             ),
-            //         )}
+            //         "code":0,
+            //         "timestamp":1743240504535,
+            //         "data":{
+            //             "bids":[
+            //                 ["83775.39","1.981875"],
+            //                 ["83775.38","0.001076"],
+            //                 ["83775.34","0.254716"],
+            //             ],
+            //             "asks":[
+            //                 ["83985.40","0.000013"],
+            //                 ["83980.00","0.000011"],
+            //                 ["83975.70","0.000061000000000000005"],
+            //             ],
+            //             "ts":1743240504535,
+            //             "lastUpdateId":13565639906
+            //         }
             //     }
             //
-            // swap
+            //
+            // linear swap
             //
             //     {
-            //         "code" => 0,
-            //         "msg" => "",
-            //         "data" => {
-            //           "T" => 1683914263304,
-            //           "bids" => array(
-            //             array(
-            //               "26300.90000000",
-            //               "30408.00000000"
-            //             ),
-            //             array(
-            //               "26300.80000000",
-            //               "50906.00000000"
-            //             ),
-            //         ),
-            //         "asks" => array(
-            //             array(
-            //               "26301.00000000",
-            //               "43616.00000000"
-            //             ),
-            //             array(
-            //               "26301.10000000",
-            //               "49402.00000000"
-            //             ),
-            //         )}
+            //         "code":0,
+            //         "msg":"",
+            //         "data":{
+            //             "T":1743240836255,
+            //             "bids":[
+            //                 ["83760.7","7.0861"],
+            //                 ["83760.6","0.0044"],
+            //                 ["83757.7","1.9526"],
+            //             ],
+            //             "asks":[
+            //                 ["83784.3","8.3531"],
+            //                 ["83782.8","23.7289"],
+            //                 ["83780.1","18.0617"],
+            //             ],
+            //             "bidsCoin":[
+            //                 ["83760.7","0.0007"],
+            //                 ["83760.6","0.0000"],
+            //                 ["83757.7","0.0002"],
+            //             ],
+            //             "asksCoin":[
+            //                 ["83784.3","0.0008"],
+            //                 ["83782.8","0.0024"],
+            //                 ["83780.1","0.0018"],
+            //             ]
+            //         }
+            //     }
+            //
+            // inverse swap
+            //
+            //     {
+            //         "code":0,
+            //         "msg":"",
+            //         "timestamp":1743240979146,
+            //         "data":{
+            //             "T":1743240978691,
+            //             "bids":[
+            //                 ["83611.4","241.0"],
+            //                 ["83611.3","1.0"],
+            //                 ["83602.9","666.0"],
+            //             ],
+            //             "asks":[
+            //                 ["83645.0","4253.0"],
+            //                 ["83640.5","3188.0"],
+            //                 ["83636.0","5540.0"],
+            //             ]
+            //         }
             //     }
             //
             $orderbook = $this->safe_dict($response, 'data', array());
+            $nonce = $this->safe_integer($orderbook, 'lastUpdateId');
             $timestamp = $this->safe_integer_2($orderbook, 'T', 'ts');
-            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
+            $result = $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
+            $result['nonce'] = $nonce;
+            return $result;
         }) ();
     }
 
@@ -1601,8 +1626,7 @@ class bingx extends Exchange {
             $symbols = $this->market_symbols($symbols, 'swap', true);
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($params)));
             $data = $this->safe_list($response, 'data', array());
-            $result = $this->parse_funding_rates($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 
@@ -1648,10 +1672,10 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] $timestamp in ms of the latest funding rate to fetch
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
@@ -1695,23 +1719,26 @@ class bingx extends Exchange {
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
-            $rates = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $marketId = $this->safe_string($entry, 'symbol');
-                $symbolInner = $this->safe_symbol($marketId, $market, '-', 'swap');
-                $timestamp = $this->safe_integer($entry, 'fundingTime');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $symbolInner,
-                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }) ();
+    }
+
+    public function parse_funding_rate_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-USDT",
+        //         "fundingRate" => "0.0001",
+        //         "fundingTime" => 1585684800000
+        //     }
+        //
+        $timestamp = $this->safe_integer($contract, 'fundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($this->safe_string($contract, 'symbol'), $market, '-', 'swap'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -2391,12 +2418,14 @@ class bingx extends Exchange {
         } else {
             $linearSwapData = $this->safe_dict($response, 'data', array());
             $linearSwapBalance = $this->safe_dict($linearSwapData, 'balance');
-            $currencyId = $this->safe_string($linearSwapBalance, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
-            $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
-            $result[$code] = $account;
+            if ($linearSwapBalance) {
+                $currencyId = $this->safe_string($linearSwapBalance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
+                $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -3030,7 +3059,11 @@ class bingx extends Exchange {
                 $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
-            $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
+            $amountReq = $amount;
+            if (!$market['inverse']) {
+                $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            }
+            $request['quantity'] = $amountReq; // precision not available for inverse contracts
         }
         $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
@@ -4708,14 +4741,13 @@ class bingx extends Exchange {
              * @param {boolean} [$params->twap] if fetching twap $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             $type = null;
             $subType = null;
             $standard = null;
@@ -4727,7 +4759,7 @@ class bingx extends Exchange {
                 $response = Async\await($this->contractV1PrivateGetAllOrders ($this->extend($request, $params)));
             } elseif ($type === 'spot') {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['pageSize'] = $limit;
                 }
                 $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params)));
                 //
@@ -5876,7 +5908,7 @@ class bingx extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                'amount' => $this->number_to_string($amount),
+                'amount' => $this->currency_to_precision($code, $amount),
                 'walletType' => $walletType,
             );
             $network = $this->safe_string_upper($params, 'network');
@@ -6560,6 +6592,45 @@ class bingx extends Exchange {
         );
     }
 
+    public function custom_encode($params) {
+        $sortedParams = $this->keysort($params);
+        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        $adjustedValue = null;
+        $result = null;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $sortedParams[$key];
+            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                $arrStr = null;
+                for ($j = 0; $j < count($value); $j++) {
+                    $arrayElement = $value[$j];
+                    $isString = (gettype($arrayElement) === 'string');
+                    if ($isString) {
+                        if ($j > 0) {
+                            $arrStr .= ',' . '"' . (string) $arrayElement . '"';
+                        } else {
+                            $arrStr = '"' . (string) $arrayElement . '"';
+                        }
+                    } else {
+                        if ($j > 0) {
+                            $arrStr .= ',' . (string) $arrayElement;
+                        } else {
+                            $arrStr = (string) $arrayElement;
+                        }
+                    }
+                }
+                $adjustedValue = '[' . $arrStr . ']';
+                $value = $adjustedValue;
+            }
+            if ($i === 0) {
+                $result = $key . '=' . $value;
+            } else {
+                $result .= '&' . $key . '=' . $value;
+            }
+        }
+        return $result;
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
@@ -6593,16 +6664,23 @@ class bingx extends Exchange {
         } elseif ($access === 'private') {
             $this->check_required_credentials();
             $isJsonContentType = ((($type === 'subAccount') || ($type === 'account/transfer')) && ($method === 'POST'));
-            $parsedParams = $this->parse_params($params);
-            $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
+            $parsedParams = null;
+            $encodeRequest = null;
+            if ($isJsonContentType) {
+                $encodeRequest = $this->custom_encode($params);
+            } else {
+                $parsedParams = $this->parse_params($params);
+                $encodeRequest = $this->rawencode($parsedParams);
+            }
+            $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             if ($isJsonContentType) {
                 $headers['Content-Type'] = 'application/json';
-                $parsedParams['signature'] = $signature;
-                $body = $this->json($parsedParams);
+                $params['signature'] = $signature;
+                $body = $this->json($params);
             } else {
                 $query = $this->urlencode($parsedParams);
                 $url .= '?' . $query . '&' . 'signature=' . $signature;

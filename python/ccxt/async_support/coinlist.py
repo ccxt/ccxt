@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class coinlist(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinlist, self).describe(), {
             'id': 'coinlist',
             'name': 'Coinlist',
@@ -220,6 +220,88 @@ class coinlist(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,  # todo implement
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'fees': {
                 'trading': {
                     'feeSide': 'get',
@@ -323,7 +405,7 @@ class coinlist(Exchange, ImplicitAPI):
             return int(math.ceil(length / 2))
         return 1
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -419,7 +501,7 @@ class coinlist(Exchange, ImplicitAPI):
         #     {
         #         "symbols": [
         #             {
-        #                 "symbol": "CQT-USDT",
+        #                 "symbol": "CQT-USDT",  # spot
         #                 "base_currency": "CQT",
         #                 "is_trader_geofenced": False,
         #                 "list_time": "2021-06-15T00:00:00.000Z",
@@ -444,6 +526,62 @@ class coinlist(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
+        # perp
+        #   {
+        #       "symbol":"BTC-PERP",
+        #       "base_currency":"BTC",
+        #       "is_trader_geofenced":false,
+        #       "expiry_name":null,
+        #       "expiry_time":null,
+        #       "list_time":"2024-09-16T00:00:00.000Z",
+        #       "type":"perp-swap",
+        #       "series_code":"BTC",
+        #       "long_name":"Bitcoin",
+        #       "asset_class":"CRYPTO",
+        #       "minimum_price_increment":"0.01",
+        #       "minimum_size_increment":"0.0001",
+        #       "quote_currency":"USDT",
+        #       "multiplier":"1",
+        #       "contract_frequency":"FGHJKMNQUVXZ",
+        #       "index_code":".BTC-USDT",
+        #       "price_band_threshold_market":"0.05",
+        #       "price_band_threshold_limit":"0.25",
+        #       "maintenance_initial_ratio":"0.500000000000000000",
+        #       "liquidation_initial_ratio":"0.500000000000000000",
+        #       "last_price":"75881.36000000",
+        #       "fair_price":"76256.00000000",
+        #       "index_price":"77609.90000000",
+        #       "mark_price":"76237.75000000",
+        #       "mark_price_dollarizer":"0.99950000",
+        #       "funding_interval":{
+        #          "hours":"8"
+        #       },
+        #       "funding_rate_index_code":".BTC-USDT-FR8H",
+        #       "initial_margin_base":"0.200000000000000000",
+        #       "initial_margin_per_contract":"0.160000000000000000",
+        #       "position_limit":"5.0000"
+        #   }
+        # spot
+        #    {
+        #        "symbol": "CQT-USDT",  # spot
+        #        "base_currency": "CQT",
+        #        "is_trader_geofenced": False,
+        #        "list_time": "2021-06-15T00:00:00.000Z",
+        #        "type": "spot",
+        #        "series_code": "CQT-USDT-SPOT",
+        #        "long_name": "Covalent",
+        #        "asset_class": "CRYPTO",
+        #        "minimum_price_increment": "0.0001",
+        #        "minimum_size_increment": "0.0001",
+        #        "quote_currency": "USDT",
+        #        "index_code": null,
+        #        "price_band_threshold_market": "0.05",
+        #        "price_band_threshold_limit": "0.25",
+        #        "last_price": "0.12160000",
+        #        "fair_price": "0.12300000",
+        #        "index_price": null
+        #    }
+        isSwap = self.safe_string(market, 'type') == 'perp-swap'
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
@@ -452,26 +590,40 @@ class coinlist(Exchange, ImplicitAPI):
         amountPrecision = self.safe_string(market, 'minimum_size_increment')
         pricePrecision = self.safe_string(market, 'minimum_price_increment')
         created = self.safe_string(market, 'list_time')
+        settledId = None
+        settled = None
+        linear = None
+        inverse = None
+        contractSize = None
+        symbol = base + '/' + quote
+        if isSwap:
+            contractSize = self.parse_number('1')
+            linear = True
+            inverse = False
+            settledId = quoteId
+            settled = quote
+            symbol = symbol + ':' + quote
+        type = 'swap' if isSwap else 'spot'
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': None,
+            'settle': settled,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
+            'settleId': settledId,
+            'type': type,
+            'spot': not isSwap,
             'margin': False,
-            'swap': False,
+            'swap': isSwap,
             'future': False,
             'option': False,
             'active': True,
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,

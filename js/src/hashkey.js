@@ -372,17 +372,20 @@ export default class hashkey extends Exchange {
                         'limit': 1000,
                         'daysBack': 30,
                         'untilDays': 30,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -1458,9 +1461,15 @@ export default class hashkey extends Exchange {
             side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeBoolN(trade, ['isMaker', 'isMarker', 'ibm']);
+        const isMaker = this.safeBoolN(trade, ['isMaker', 'isMarker']);
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        const isBuyerMaker = this.safeBool(trade, 'ibm');
+        // if public trade
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let feeCost = this.safeString(trade, 'commission');
         let feeCurrncyId = this.safeString(trade, 'commissionAsset');
@@ -3759,8 +3768,7 @@ export default class hashkey extends Exchange {
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        const fundingRates = this.parseFundingRates(response);
-        return this.filterByArray(fundingRates, 'symbol', symbols);
+        return this.parseFundingRates(response, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

@@ -14,7 +14,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class tokocrypto extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',
@@ -596,6 +596,84 @@ export default class tokocrypto extends Exchange {
                     'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true, // todo
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 
@@ -611,12 +689,17 @@ export default class tokocrypto extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetOpenV1CommonTime (params);
         //
+        // {
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
+        // }
         //
-        //
-        return this.safeInteger (response, 'serverTime');
+        return this.safeInteger (response, 'timestamp');
     }
 
     /**
@@ -1600,7 +1683,6 @@ export default class tokocrypto extends Exchange {
      * @name tokocrypto#createOrder
      * @description create a trade order
      * @see https://www.tokocrypto.com/apidocs/#new-order--signed
-     * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1778,7 +1860,7 @@ export default class tokocrypto extends Exchange {
     /**
      * @method
      * @name tokocrypto#fetchOrder
-     * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
+     * @see https://www.tokocrypto.com/apidocs/#query-order-signed
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2353,7 +2435,7 @@ export default class tokocrypto extends Exchange {
 
     /**
      * @method
-     * @name bybit#withdraw
+     * @name tokocrypto#withdraw
      * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
      * @description make a withdrawal
      * @param {string} code unified currency code

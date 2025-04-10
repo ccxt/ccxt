@@ -17,3 +17,6 @@ git checkout HEAD python
 git checkout HEAD php
 git checkout HEAD dist
 git checkout HEAD examples
+git checkout HEAD go/v4/exchange_metadata.go
+git checkout HEAD wiki/Exchange-Markets.md
+git checkout HEAD wiki/Manual.md

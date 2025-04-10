@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinlist extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinlist',
             'name' => 'Coinlist',
@@ -209,6 +209,88 @@ class coinlist extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'fees' => array(
                 'trading' => array(
                     'feeSide' => 'get',
@@ -315,7 +397,7 @@ class coinlist extends Exchange {
         return 1;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -419,7 +501,7 @@ class coinlist extends Exchange {
             //     {
             //         "symbols" => array(
             //             array(
-            //                 "symbol" => "CQT-USDT",
+            //                 "symbol" => "CQT-USDT", // spot
             //                 "base_currency" => "CQT",
             //                 "is_trader_geofenced" => false,
             //                 "list_time" => "2021-06-15T00:00:00.000Z",
@@ -446,6 +528,62 @@ class coinlist extends Exchange {
     }
 
     public function parse_market(array $market): array {
+        // perp
+        //   {
+        //       "symbol":"BTC-PERP",
+        //       "base_currency":"BTC",
+        //       "is_trader_geofenced":false,
+        //       "expiry_name":null,
+        //       "expiry_time":null,
+        //       "list_time":"2024-09-16T00:00:00.000Z",
+        //       "type":"perp-swap",
+        //       "series_code":"BTC",
+        //       "long_name":"Bitcoin",
+        //       "asset_class":"CRYPTO",
+        //       "minimum_price_increment":"0.01",
+        //       "minimum_size_increment":"0.0001",
+        //       "quote_currency":"USDT",
+        //       "multiplier":"1",
+        //       "contract_frequency":"FGHJKMNQUVXZ",
+        //       "index_code":".BTC-USDT",
+        //       "price_band_threshold_market":"0.05",
+        //       "price_band_threshold_limit":"0.25",
+        //       "maintenance_initial_ratio":"0.500000000000000000",
+        //       "liquidation_initial_ratio":"0.500000000000000000",
+        //       "last_price":"75881.36000000",
+        //       "fair_price":"76256.00000000",
+        //       "index_price":"77609.90000000",
+        //       "mark_price":"76237.75000000",
+        //       "mark_price_dollarizer":"0.99950000",
+        //       "funding_interval":array(
+        //          "hours":"8"
+        //       ),
+        //       "funding_rate_index_code":".BTC-USDT-FR8H",
+        //       "initial_margin_base":"0.200000000000000000",
+        //       "initial_margin_per_contract":"0.160000000000000000",
+        //       "position_limit":"5.0000"
+        //   }
+        // spot
+        //    {
+        //        "symbol" => "CQT-USDT", // spot
+        //        "base_currency" => "CQT",
+        //        "is_trader_geofenced" => false,
+        //        "list_time" => "2021-06-15T00:00:00.000Z",
+        //        "type" => "spot",
+        //        "series_code" => "CQT-USDT-SPOT",
+        //        "long_name" => "Covalent",
+        //        "asset_class" => "CRYPTO",
+        //        "minimum_price_increment" => "0.0001",
+        //        "minimum_size_increment" => "0.0001",
+        //        "quote_currency" => "USDT",
+        //        "index_code" => null,
+        //        "price_band_threshold_market" => "0.05",
+        //        "price_band_threshold_limit" => "0.25",
+        //        "last_price" => "0.12160000",
+        //        "fair_price" => "0.12300000",
+        //        "index_price" => null
+        //    }
+        $isSwap = $this->safe_string($market, 'type') === 'perp-swap';
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
@@ -454,26 +592,41 @@ class coinlist extends Exchange {
         $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
         $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
         $created = $this->safe_string($market, 'list_time');
+        $settledId = null;
+        $settled = null;
+        $linear = null;
+        $inverse = null;
+        $contractSize = null;
+        $symbol = $base . '/' . $quote;
+        if ($isSwap) {
+            $contractSize = $this->parse_number('1');
+            $linear = true;
+            $inverse = false;
+            $settledId = $quoteId;
+            $settled = $quote;
+            $symbol = $symbol . ':' . $quote;
+        }
+        $type = $isSwap ? 'swap' : 'spot';
         return array(
             'id' => $id,
-            'symbol' => $base . '/' . $quote,
+            'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
-            'settle' => null,
+            'settle' => $settled,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => null,
-            'type' => 'spot',
-            'spot' => true,
+            'settleId' => $settledId,
+            'type' => $type,
+            'spot' => !$isSwap,
             'margin' => false,
-            'swap' => false,
+            'swap' => $isSwap,
             'future' => false,
             'option' => false,
             'active' => true,
-            'contract' => false,
-            'linear' => null,
-            'inverse' => null,
-            'contractSize' => null,
+            'contract' => $isSwap,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,

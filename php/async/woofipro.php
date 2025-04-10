@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class woofipro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
             'name' => 'WOOFI PRO',
@@ -335,27 +335,31 @@ class woofipro extends Exchange {
                         'limit' => 500,
                         'daysBack' => null,
                         'untilDays' => 100000,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -372,7 +376,7 @@ class woofipro extends Exchange {
                         'attachedStopLossTakeProfit' => array(
                             // todo => implementation needs unification
                             'triggerPriceType' => null,
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                     ),
                 ),
@@ -467,7 +471,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -548,7 +552,7 @@ class woofipro extends Exchange {
             'active' => null,
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'contractSize' => $this->parse_number('1'),
             'expiry' => null,
             'expiryDatetime' => null,
@@ -993,8 +997,7 @@ class woofipro extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', array());
-            $result = $this->parse_funding_rates($rows);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($rows, $symbols);
         }) ();
     }
 
@@ -1452,6 +1455,7 @@ class woofipro extends Exchange {
                 'algo_type' => 'POSITIONAL_TP_SL',
                 'child_orders' => array(),
             );
+            $childOrders = $outterOrder['child_orders'];
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($stopLoss !== null) {
                 $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
@@ -1462,7 +1466,7 @@ class woofipro extends Exchange {
                     'type' => 'LIMIT',
                     'reduce_only' => true,
                 );
-                $outterOrder['child_orders'][] = $stopLossOrder;
+                $childOrders[] = $stopLossOrder;
             }
             if ($takeProfit !== null) {
                 $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
@@ -1473,7 +1477,7 @@ class woofipro extends Exchange {
                     'type' => 'LIMIT',
                     'reduce_only' => true,
                 );
-                $outterOrder['child_orders'][] = $takeProfitOrder;
+                $outterOrder[] = $takeProfitOrder;
             }
             $request['child_orders'] = array( $outterOrder );
         }
@@ -1579,7 +1583,7 @@ class woofipro extends Exchange {
                 $takeProfit = $this->safe_value($orderParams, 'takeProfit');
                 $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
                 if ($isConditional) {
-                    throw new NotSupported($this->id . 'createOrders() only support non-stop order');
+                    throw new NotSupported($this->id . ' createOrders() only support non-stop order');
                 }
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
                 $ordersRequests[] = $orderRequest;
@@ -1884,7 +1888,10 @@ class woofipro extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -2348,7 +2355,9 @@ class woofipro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
-            list($currency, $rows) = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
+            $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
+            $currency = $this->safe_value($currencyRows, 0);
+            $rows = $this->safe_list($currencyRows, 1);
             return $this->parse_ledger($rows, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2453,7 +2462,9 @@ class woofipro extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $request = array();
-            list($currency, $rows) = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
+            $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
+            $currency = $this->safe_value($currencyRows, 0);
+            $rows = $this->safe_list($currencyRows, 1);
             //
             //     {
             //         "rows":array(),
@@ -2521,7 +2532,7 @@ class woofipro extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'withdraw() only support USDC');
+                    throw new NotSupported($this->id . ' withdraw() only support USDC');
                 }
             }
             $currency = $this->currency($code);
@@ -2736,7 +2747,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function fetch_position(?string $symbol = null, $params = array ()) {
+    public function fetch_position(?string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -2878,9 +2889,13 @@ class woofipro extends Exchange {
             $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
+            $apiKey = $this->apiKey;
+            if (mb_strpos($apiKey, 'ed25519:') === false) {
+                $apiKey = 'ed25519:' . $apiKey;
+            }
             $headers = array(
                 'orderly-account-id' => $this->accountId,
-                'orderly-key' => $this->apiKey,
+                'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
             );
             $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;

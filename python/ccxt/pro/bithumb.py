@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, OrderBook, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -13,7 +13,7 @@ from ccxt.base.errors import ExchangeError
 
 class bithumb(ccxt.async_support.bithumb):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bithumb, self).describe(), {
             'has': {
                 'ws': True,

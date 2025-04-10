@@ -109,6 +109,7 @@ class ImplicitAPI:
     private_linear_post_future_user_v1_position_margin = privateLinearPostFutureUserV1PositionMargin = Entry('future/user/v1/position/margin', ['private', 'linear'], 'POST', {'cost': 1})
     private_linear_post_future_user_v1_user_collection_add = privateLinearPostFutureUserV1UserCollectionAdd = Entry('future/user/v1/user/collection/add', ['private', 'linear'], 'POST', {'cost': 1})
     private_linear_post_future_user_v1_user_collection_cancel = privateLinearPostFutureUserV1UserCollectionCancel = Entry('future/user/v1/user/collection/cancel', ['private', 'linear'], 'POST', {'cost': 1})
+    private_linear_post_future_user_v1_position_change_type = privateLinearPostFutureUserV1PositionChangeType = Entry('future/user/v1/position/change-type', ['private', 'linear'], 'POST', {'cost': 1})
     private_inverse_get_future_trade_v1_entrust_plan_detail = privateInverseGetFutureTradeV1EntrustPlanDetail = Entry('future/trade/v1/entrust/plan-detail', ['private', 'inverse'], 'GET', {'cost': 1})
     private_inverse_get_future_trade_v1_entrust_plan_list = privateInverseGetFutureTradeV1EntrustPlanList = Entry('future/trade/v1/entrust/plan-list', ['private', 'inverse'], 'GET', {'cost': 1})
     private_inverse_get_future_trade_v1_entrust_plan_list_history = privateInverseGetFutureTradeV1EntrustPlanListHistory = Entry('future/trade/v1/entrust/plan-list-history', ['private', 'inverse'], 'GET', {'cost': 1})

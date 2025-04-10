@@ -6,8 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, FundingRateHistory, LedgerEntry, FundingHistory } from './base/types.js';
-
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -15,7 +14,7 @@ import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Tra
  * @augments Exchange
  */
 export default class bitmart extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',
             'name': 'BitMart',
@@ -44,6 +43,7 @@ export default class bitmart extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -74,6 +74,7 @@ export default class bitmart extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -98,6 +99,7 @@ export default class bitmart extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawAddresses': true,
                 'fetchWithdrawAddressesByNetwork': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -106,6 +108,7 @@ export default class bitmart extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -160,6 +163,7 @@ export default class bitmart extends Exchange {
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
+                        'contract/public/markprice-kline': 5, // 6 times per 1 second
                     },
                 },
                 'private': {
@@ -180,6 +184,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
+                        'account/v1/withdraw/address/list': 30, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -241,7 +246,7 @@ export default class bitmart extends Exchange {
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         // margin
-                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/submit_order': 1.5, // 20 times per second
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
@@ -257,7 +262,11 @@ export default class bitmart extends Exchange {
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
+                        'contract/private/submit-trail-order': 2.5, // weight is not provided by the exchange, is set as ordinary order
+                        'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -511,7 +520,10 @@ export default class bitmart extends Exchange {
                     '40049': InvalidOrder, // 403, The maximum length of clientOrderId cannot exceed 32
                     '40050': InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
-                'broad': {},
+                'broad': {
+                    'You contract account available balance not enough': InsufficientFunds,
+                    'you contract account available balance not enough': InsufficientFunds,
+                },
             },
             'commonCurrencies': {
                 '$GM': 'GOLDMINER',
@@ -524,10 +536,13 @@ export default class bitmart extends Exchange {
                 'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
-                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'USDT': 'ERC20',
+                    'USDT': 'TRC20',
+                    'BTC': 'BTC',
+                    'ETH': 'ERC20',
                 },
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -566,7 +581,7 @@ export default class bitmart extends Exchange {
                     'KSM': 'KSM',
                     'ZEC': 'ZEC',
                     'NAS': 'NAS',
-                    // 'POLYGON': [ 'MATIC', 'Polygon', 'POLYGON' ], // todo: after unification
+                    'POLYGON': 'MATIC',
                     'HRC20': 'HECO',
                     'XDC': 'XDC',
                     'ONE': 'ONE',
@@ -575,7 +590,7 @@ export default class bitmart extends Exchange {
                     'ICP': 'Computer',
                     'XTZ': 'XTZ',
                     'MINA': 'MINA',
-                    // 'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ], // todo: after unification
+                    'BEP20': 'BSC_BNB',
                     'THETA': 'THETA',
                     'AKT': 'AKT',
                     'AR': 'AR',
@@ -679,6 +694,12 @@ export default class bitmart extends Exchange {
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
                 },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'Ethereum': 'ERC20',
+                    'USDT': 'OMNI', // the default USDT network for bitmart is OMNI
+                    'Bitcoin': 'BTC',
+                },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
@@ -723,27 +744,31 @@ export default class bitmart extends Exchange {
                         'limit': 200,
                         'daysBack': undefined,
                         'untilDays': 99999,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 200,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // variable timespans for recent endpoint, 200 for historical
@@ -768,7 +793,7 @@ export default class bitmart extends Exchange {
                                 'mark': true,
                                 'index': false,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -806,7 +831,7 @@ export default class bitmart extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -839,10 +864,11 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSystemTime (params);
         //
         //     {
@@ -862,6 +888,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchStatus
      * @description the latest known information on the availability of the exchange API
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -924,7 +951,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params = {}): Promise<MarketInterface[]> {
         const response = await this.publicGetSpotV1SymbolsDetails (params);
         //
         //     {
@@ -955,6 +982,7 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
         const result = [];
+        const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
             const id = this.safeString (market, 'symbol');
@@ -968,7 +996,7 @@ export default class bitmart extends Exchange {
             const minSellCost = this.safeString (market, 'min_sell_amount');
             const minCost = Precise.stringMax (minBuyCost, minSellCost);
             const baseMinSize = this.safeNumber (market, 'base_min_size');
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -993,6 +1021,8 @@ export default class bitmart extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': baseMinSize,
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_max_precision'))),
@@ -1017,12 +1047,12 @@ export default class bitmart extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
 
-    async fetchContractMarkets (params = {}) {
+    async fetchContractMarkets (params = {}): Promise<MarketInterface[]> {
         const response = await this.publicGetContractPublicDetails (params);
         //
         //     {
@@ -1066,6 +1096,7 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
         const result = [];
+        const fees = this.fees['trading'];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
             const id = this.safeString (market, 'symbol');
@@ -1083,7 +1114,7 @@ export default class bitmart extends Exchange {
             if (!isFutures && (expiry === 0)) {
                 expiry = undefined;
             }
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': undefined,
                 'symbol': symbol,
@@ -1108,6 +1139,8 @@ export default class bitmart extends Exchange {
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'precision': {
                     'amount': this.safeNumber (market, 'vol_precision'),
                     'price': this.safeNumber (market, 'price_precision'),
@@ -1132,7 +1165,7 @@ export default class bitmart extends Exchange {
                 },
                 'created': this.safeInteger (market, 'open_timestamp'),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1140,12 +1173,16 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchMarkets
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @description retrieves data on all markets for bitmart
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const spot = await this.fetchSpotMarkets (params);
         const contract = await this.fetchContractMarkets (params);
         return this.arrayConcat (spot, contract);
@@ -1155,53 +1192,131 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetSpotV1Currencies (params);
+        const response = await this.publicGetAccountV1Currencies (params);
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
+        //         "data": {
+        //             "currencies": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "name": "Bitcoin",
+        //                     "contract_address": null,
+        //                     "network": "BTC",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
+        //                     "withdraw_minsize": "0.0003",
+        //                     "withdraw_minfee": "9.61",
+        //                     "withdraw_fee_estimate": "9.61",
+        //                     "withdraw_fee": "0.0001"
+        //                 }
         //             ]
         //         }
         //     }
         //
         const data = this.safeDict (response, 'data', {});
         const currencies = this.safeList (data, 'currencies', []);
-        const result: Dict = {};
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeBool (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeBool (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': undefined,
+            const fullId = this.safeString (currency, 'currency');
+            let currencyId = fullId;
+            let networkId = this.safeString (currency, 'network');
+            if (fullId.indexOf ('NFT') < 0) {
+                const parts = fullId.split ('-');
+                currencyId = this.safeString (parts, 0);
+                const second = this.safeString (parts, 1);
+                if (second !== undefined) {
+                    networkId = second.toUpperCase ();
+                }
+            }
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            let entry = this.safeDict (result, currencyCode);
+            if (entry === undefined) {
+                entry = {
+                    'info': currency,
+                    'id': currencyId,
+                    'code': currencyCode,
+                    'precision': undefined,
+                    'name': this.safeString (currency, 'name'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'active': undefined,
+                    'networks': {},
+                };
+            }
+            const networkCode = this.networkIdToCode (networkId);
+            const withdraw = this.safeBool (currency, 'withdraw_enabled');
+            const deposit = this.safeBool (currency, 'deposit_enabled');
+            entry['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'code': networkCode,
+                'withdraw': withdraw,
+                'deposit': deposit,
+                'active': withdraw && deposit,
+                'fee': this.safeNumber (currency, 'withdraw_fee'),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdraw_minsize'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+            result[currencyCode] = entry;
+        }
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = result[key];
+            result[key] = this.safeCurrencyStructure (currency);
         }
         return result;
+    }
+
+    getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {
+        if (networkCode === undefined) {
+            networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
+        }
+        const currency = this.currency (currencyCode);
+        let id = currency['id'];
+        let idFromNetwork: Str = undefined;
+        const networks = this.safeDict (currency, 'networks', {});
+        let networkInfo: Dict = {};
+        if (networkCode === undefined) {
+            // network code is not provided and there is no default network code
+            let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
+            if (network === undefined) {
+                // use the first network in the networks list if there is no network code with the same code as currency
+                const keys = Object.keys (networks);
+                const length = keys.length;
+                if (length > 0) {
+                    network = this.safeValue (networks, keys[0]);
+                }
+            }
+            networkInfo = this.safeDict (network, 'info', {});
+            idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
+        } else {
+            const providedOrDefaultNetwork = this.safeDict (networks, networkCode);
+            if (providedOrDefaultNetwork !== undefined) {
+                networkInfo = this.safeDict (providedOrDefaultNetwork, 'info', {});
+                idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
+            } else {
+                id += '-' + this.networkCodeToId (networkCode, currencyCode); // use concatenated currency id and network code if network is not found
+            }
+        }
+        return (idFromNetwork !== undefined) ? idFromNetwork : id;
     }
 
     /**
@@ -1211,13 +1326,16 @@ export default class bitmart extends Exchange {
      * @description please use fetchDepositWithdrawFee instead
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTransactionFee (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (currency['code'], network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -1270,15 +1388,18 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network code of the currency
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchDepositWithdrawFee (code: string, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -1674,7 +1795,6 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -2024,7 +2144,13 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.publicGetContractPublicKline (this.extend (request, params));
+            const price = this.safeString (params, 'price');
+            if (price === 'mark') {
+                params = this.omit (params, 'price');
+                response = await this.publicGetContractPublicMarkpriceKline (this.extend (request, params));
+            } else {
+                response = await this.publicGetContractPublicKline (this.extend (request, params));
+            }
         } else {
             response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
@@ -2069,7 +2195,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyTrades
      * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2259,11 +2385,10 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -2313,8 +2438,8 @@ export default class bitmart extends Exchange {
         //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
         //         "data":{
         //             "wallet":[
-        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
-        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000","available_usd_valuation":null},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000","available_usd_valuation":null}
         //             ]
         //         }
         //     }
@@ -2410,6 +2535,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTradingFee
      * @description fetch the trading fees for a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -2630,11 +2756,11 @@ export default class bitmart extends Exchange {
      * @name bitmart#createOrder
      * @description create a trade order
      * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -2678,7 +2804,11 @@ export default class bitmart extends Exchange {
             }
         } else {
             const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
-            if (isTriggerOrder) {
+            const activationPrice = this.safeString (swapRequest, 'activation_price');
+            if (activationPrice !== undefined) {
+                // if type is trailing
+                response = await this.privatePostContractPrivateSubmitTrailOrder (swapRequest);
+            } else if (isTriggerOrder) {
                 response = await this.privatePostContractPrivateSubmitPlanOrder (swapRequest);
             } else if (isStopLoss || isTakeProfit) {
                 response = await this.privatePostContractPrivateSubmitTpSlOrder (swapRequest);
@@ -2788,7 +2918,8 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} side 'buy' or 'sell'
@@ -2822,7 +2953,6 @@ export default class bitmart extends Exchange {
         }
         const request: Dict = {
             'symbol': market['id'],
-            'type': type,
             'size': parseInt (this.amountToPrecision (symbol, amount)),
         };
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2852,6 +2982,7 @@ export default class bitmart extends Exchange {
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'trailing' || isTrailingPercentOrder) {
+            type = 'trailing';
             request['callback_rate'] = trailingPercent;
             request['activation_price'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
@@ -2915,6 +3046,9 @@ export default class bitmart extends Exchange {
         } else if (isTriggerOrder) {
             request['leverage'] = '1'; // for plan orders leverage is required, if not available default to 1
         }
+        if (type !== 'trailing') {
+            request['type'] = type;
+        }
         return this.extend (request, params);
     }
 
@@ -2924,8 +3058,8 @@ export default class bitmart extends Exchange {
          * @name bitmart#createSpotOrderRequest
          * @ignore
          * @description create a spot order request
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2998,17 +3132,17 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelOrder
      * @description cancels an open order
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
      * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
+     * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -3032,11 +3166,14 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         } else {
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
+            const trailing = this.safeBool (params, 'trailing');
             params = this.omit (params, [ 'stop', 'trigger' ]);
-            if (!trigger) {
-                response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
-            } else {
+            if (trigger) {
                 response = await this.privatePostContractPrivateCancelPlanOrder (this.extend (request, params));
+            } else if (trailing) {
+                response = await this.privatePostContractPrivateCancelTrailOrder (this.extend (request, params));
+            } else {
+                response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
             }
         }
         // swap
@@ -3096,7 +3233,7 @@ export default class bitmart extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -3151,9 +3288,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3261,8 +3396,8 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchOpenOrders
      * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -3391,7 +3526,6 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchClosedOrders
      * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @description fetches information on multiple closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -3462,7 +3596,6 @@ export default class bitmart extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
@@ -3575,20 +3708,11 @@ export default class bitmart extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
         };
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            networkInner = this.safeString (networks, networkInner, networkInner); // handle ERC20>ETH alias
-            if (networkInner !== undefined) {
-                request['currency'] = request['currency'] + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //    {
@@ -3609,6 +3733,7 @@ export default class bitmart extends Exchange {
 
     parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
         //
+        // fetchDepositAddress
         //    {
         //        currency: 'ETH',
         //        chain: 'Ethereum',
@@ -3616,28 +3741,36 @@ export default class bitmart extends Exchange {
         //        address_memo: ''
         //    }
         //
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const address = this.safeString (depositAddress, 'address');
-        const chain = this.safeString (depositAddress, 'chain');
-        let network = undefined;
-        currency = this.safeCurrency (currencyId, currency);
-        if (chain !== undefined) {
-            const parts = chain.split ('-');
-            const partsLength = parts.length;
-            const networkId = this.safeString (parts, partsLength - 1);
-            if (networkId === this.safeString (currency, 'name')) {
-                network = this.safeString (currency, 'code');
-            } else {
-                network = this.networkIdToCode (networkId);
+        // fetchWithdrawAddress
+        //     {
+        //         "currency": "ETH",
+        //         "network": "ETH",
+        //         "address": "0x1121",
+        //         "memo": "12",
+        //         "remark": "12",
+        //         "addressType": 0,
+        //         "verifyStatus": 0
+        //     }
+        //
+        let currencyId = this.safeString (depositAddress, 'currency');
+        let network = this.safeString2 (depositAddress, 'chain', 'network');
+        if (currencyId.indexOf ('NFT') < 0) {
+            const parts = currencyId.split ('-');
+            currencyId = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
+            if (secondPart !== undefined) {
+                network = secondPart;
             }
         }
+        const address = this.safeString (depositAddress, 'address');
+        currency = this.safeCurrency (currencyId, currency);
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': this.safeString (currency, 'code'),
-            'network': network,
+            'network': this.networkIdToCode (network),
             'address': address,
-            'tag': this.safeString (depositAddress, 'address_memo'),
+            'tag': this.safeString2 (depositAddress, 'address_memo', 'memo'),
         } as DepositAddress;
     }
 
@@ -3645,11 +3778,13 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#withdraw
      * @description make a withdrawal
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-signed
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -3657,25 +3792,16 @@ export default class bitmart extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network: Str = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': currency['id'],
+            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
             'amount': amount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
-        }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] = request['currency'] + '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
         }
         const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
@@ -3700,11 +3826,10 @@ export default class bitmart extends Exchange {
     async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 50; // max 50
+            limit = 1000; // max 1000
         }
         const request: Dict = {
             'operation_type': type, // deposit or withdraw
-            'offset': 1,
             'N': limit,
         };
         let currency = undefined;
@@ -3712,17 +3837,13 @@ export default class bitmart extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeDict (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                currency['code'] = request['currency']; // update currency code to filter
-                params = this.omit (params, 'network');
-            }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //
@@ -3758,6 +3879,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposit
      * @description fetch information on a deposit
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id deposit id
      * @param {string} code not used by bitmart fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3800,6 +3922,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3814,6 +3937,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id withdrawal id
      * @param {string} code not used by bitmart.fetchWithdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3856,6 +3980,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3915,7 +4040,15 @@ export default class bitmart extends Exchange {
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
-        const currencyId = this.safeString (transaction, 'currency');
+        let currencyId = this.safeString (transaction, 'currency');
+        let networkId: Str = undefined;
+        if (currencyId !== undefined) {
+            if (currencyId.indexOf ('NFT') < 0) {
+                const parts = currencyId.split ('-');
+                currencyId = this.safeString (parts, 0);
+                networkId = this.safeString (parts, 1);
+            }
+        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
@@ -3934,7 +4067,7 @@ export default class bitmart extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
@@ -3957,7 +4090,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#repayIsolatedMargin
      * @description repay borrowed margin and interest
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
@@ -3996,7 +4129,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#borrowIsolatedMargin
      * @description create a loan to borrow margin
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
@@ -4206,7 +4339,6 @@ export default class bitmart extends Exchange {
      * @name bitmart#transfer
      * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
      * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -4347,7 +4479,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTransfers
      * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfer structures to retrieve
@@ -4411,7 +4543,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed
      * @param {string} code unified currency code
      * @param {string} symbol unified market symbol when fetch interest in isolated markets
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -4552,7 +4684,6 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
@@ -4622,7 +4753,7 @@ export default class bitmart extends Exchange {
      * @description fetches historical funding rate prices
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
@@ -4713,8 +4844,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4764,8 +4894,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4892,7 +5021,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -5000,6 +5129,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'
@@ -5035,6 +5165,7 @@ export default class bitmart extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const isLimitOrder = (type === 'limit');
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -5105,8 +5236,17 @@ export default class bitmart extends Exchange {
             //         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
             //     }
             //
+        } else if (isLimitOrder) {
+            request['order_id'] = this.parseToInt (id); // reparse id as int this endpoint is the only one requiring it
+            if (amount !== undefined) {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            response = await this.privatePostContractPrivateModifyLimitOrder (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' editOrder() only supports trigger, stop loss and take profit orders');
+            throw new NotSupported (this.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
@@ -5177,6 +5317,7 @@ export default class bitmart extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'asset');
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'time');
         const type = this.safeString (item, 'type');
         return this.safeLedgerEntry ({
@@ -5187,7 +5328,7 @@ export default class bitmart extends Exchange {
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tradeId'),
             'type': this.parseLedgerEntryType (type),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': currency['code'],
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5309,8 +5450,86 @@ export default class bitmart extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit);
     }
 
+    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
+        await this.loadMarkets ();
+        let codes = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            code = currency['code'];
+            codes = [ code ];
+        }
+        const response = await this.privateGetAccountV1WithdrawAddressList (params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "currency": "ETH",
+        //                     "network": "ETH",
+        //                     "address": "0x1121",
+        //                     "memo": "12",
+        //                     "remark": "12",
+        //                     "addressType": 0,
+        //                     "verifyStatus": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const list = this.safeList (data, 'list', []);
+        const allAddresses = this.parseDepositAddresses (list, codes, false);
+        const addresses = [];
+        for (let i = 0; i < allAddresses.length; i++) {
+            const address = allAddresses[i];
+            const noteMatch = (note === undefined) || (address['note'] === note);
+            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            if (noteMatch && networkMatch) {
+                addresses.push (address);
+            }
+        }
+        return addresses;
+    }
+
+    /**
+     * @method
+     * @name bitmart#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let positionMode = undefined;
+        if (hedged) {
+            positionMode = 'hedge_mode';
+        } else {
+            positionMode = 'one_way_mode';
+        }
+        const request: Dict = {
+            'position_mode': positionMode,
+        };
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return await this.privatePostContractPrivateSetPositionMode (this.extend (request, params));
+    }
+
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -5331,7 +5550,7 @@ export default class bitmart extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.nonce ().toString ();
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,
@@ -5361,6 +5580,7 @@ export default class bitmart extends Exchange {
         //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
         //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
         //     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
+        //     {"code":40012,"message":"You contract account available balance not enough.","trace":"..."}
         //
         // contract
         //
@@ -5372,10 +5592,10 @@ export default class bitmart extends Exchange {
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
         if (isErrorCode || isErrorMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;

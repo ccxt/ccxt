@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.hitbtc import hitbtc
+from ccxt.base.types import Any
 
 import ccxt.async_support.hitbtc as hitbtcRest
 
@@ -12,7 +13,7 @@ import ccxt.async_support.bitcoincom as bitcoincomRest
 
 class bitcoincom(hitbtc):
 
-    def describe(self):
+    def describe(self) -> Any:
         # eslint-disable-next-line new-cap
         describeExtended = self.get_describe_for_extended_ws_exchange(bitcoincomRest(), hitbtcRest(), super(bitcoincom, self).describe())
         return self.deep_extend(describeExtended, {
@@ -22,10 +23,7 @@ class bitcoincom(hitbtc):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg',
                 'api': {
-                    'ws': {
-                        'public': 'wss://api.fmfw.io/api/3/ws/public',
-                        'private': 'wss://api.fmfw.io/api/3/ws/trading',
-                    },
+                    'ws': 'wss://api.fmfw.io/api/2/ws',
                 },
             },
             'fees': {

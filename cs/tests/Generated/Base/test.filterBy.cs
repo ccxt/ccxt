@@ -31,26 +31,13 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {
             { "foo", "c" },
         }};
-            try
-            {
-                object currentValue = exchange.filterBy(sampleArray, "foo", "a");
-                object storedValue = new List<object>() {new Dictionary<string, object>() {
+            object currentValue = exchange.filterBy(sampleArray, "foo", "a");
+            object storedValue = new List<object>() {new Dictionary<string, object>() {
             { "foo", "a" },
         }, new Dictionary<string, object>() {
             { "foo", "a" },
             { "bar", "b" },
         }};
-                AssertDeepEqual(exchange, null, "testFilterBy", currentValue, storedValue);
-            } catch(Exception e)
-            {
-                // skip c# , todo
-                if (isTrue(isTrue(isTrue((((object)e).ToString()).Contains("BaseTest.Assert")) || isTrue((((object)e).ToString()).Contains("at System."))) || isTrue((((object)e).ToString()).Contains("at ccxt.Exchange."))))
-                {
-                    return;
-                } else
-                {
-                    throw e;
-                }
-            }
+            AssertDeepEqual(exchange, null, "testFilterBy", currentValue, storedValue);
         }
 }

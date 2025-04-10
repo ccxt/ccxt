@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class poloniexfutures extends \ccxt\async\poloniexfutures {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

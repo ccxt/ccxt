@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class gemini(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
             'name': 'Gemini',
@@ -341,17 +341,20 @@ class gemini(Exchange, ImplicitAPI):
                         'limit': 500,
                         'daysBack': None,
                         'untilDays': None,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': None,  # todo: implement
@@ -1870,7 +1873,7 @@ class gemini(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -1892,6 +1895,7 @@ class gemini(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

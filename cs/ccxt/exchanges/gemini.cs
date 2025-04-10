@@ -303,17 +303,20 @@ public partial class gemini : Exchange
                         { "limit", 500 },
                         { "daysBack", null },
                         { "untilDays", null },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", null },
@@ -2117,6 +2120,7 @@ public partial class gemini : Exchange
             { "currency", code },
             { "address", address },
             { "tag", null },
+            { "network", null },
             { "info", response },
         };
     }

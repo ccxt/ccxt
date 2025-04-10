@@ -6,7 +6,7 @@ import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, Order
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num
  * @augments Exchange
  */
 export default class hollaex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -166,6 +166,84 @@ export default class hollaex extends Exchange {
                         'order/all': 1,
                         'order': 1,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo: no limit in request
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -350,7 +428,7 @@ export default class hollaex extends Exchange {
         //                 "verified":true,
         //                 "allow_deposit":true,
         //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0001,
+        //                 "withdrawal_fee":0.0002,
         //                 "min":0.001,
         //                 "max":100000,
         //                 "increment_unit":0.001,
@@ -427,7 +505,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
-    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
         const response = await this.publicGetOrderbooks (params);
         const result: Dict = {};
@@ -769,13 +847,14 @@ export default class hollaex extends Exchange {
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -785,25 +864,19 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const duration = this.parseTimeframe (timeframe);
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            }
-            const end = this.seconds ();
-            const start = end - duration * limit;
-            request['to'] = end;
-            request['from'] = start;
-        } else {
-            if (limit === undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-                request['to'] = this.seconds ();
-            } else {
-                const start = this.parseToInt (since / 1000);
-                request['from'] = start;
-                request['to'] = this.sum (start, duration * limit);
-            }
+        const until = this.safeInteger (params, 'until');
+        let end = this.seconds ();
+        if (until !== undefined) {
+            end = this.parseToInt (until / 1000);
         }
+        const defaultSpan = 2592000; // 30 days
+        if (since !== undefined) {
+            request['from'] = this.parseToInt (since / 1000);
+        } else {
+            request['from'] = end - defaultSpan;
+        }
+        request['to'] = end;
+        params = this.omit (params, 'until');
         const response = await this.publicGetChart (this.extend (request, params));
         //
         //     [
@@ -1874,7 +1947,7 @@ export default class hollaex extends Exchange {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeList (response, 'coins');
+        const coins = this.safeDict (response, 'coins', {});
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
@@ -1918,6 +1991,7 @@ export default class hollaex extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;
         }
@@ -1925,7 +1999,7 @@ export default class hollaex extends Exchange {
             //
             //  { "message": "Invalid token" }
             //
-            // different errors return the same code eg:
+            // different errors return the same code eg
             //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //

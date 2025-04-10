@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class blofin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
@@ -160,6 +160,9 @@ class blofin extends Exchange {
                 'api' => array(
                     'rest' => 'https://openapi.blofin.com',
                 ),
+                'test' => array(
+                    'rest' => 'https://demo-trading-openapi.blofin.com',
+                ),
                 'referral' => array(
                     'url' => 'https://blofin.com/register?referral_code=f79EsS',
                     'discount' => 0.05,
@@ -198,6 +201,18 @@ class blofin extends Exchange {
                         'trade/orders-tpsl-history' => 1,
                         'user/query-apikey' => 1,
                         'affiliate/basic' => 1,
+                        'copytrading/instruments' => 1,
+                        'copytrading/account/balance' => 1,
+                        'copytrading/account/positions-by-order' => 1,
+                        'copytrading/account/positions-details-by-order' => 1,
+                        'copytrading/account/positions-by-contract' => 1,
+                        'copytrading/account/position-mode' => 1,
+                        'copytrading/account/leverage-info' => 1,
+                        'copytrading/trade/orders-pending' => 1,
+                        'copytrading/trade/pending-tpsl-by-contract' => 1,
+                        'copytrading/trade/position-history-by-order' => 1,
+                        'copytrading/trade/orders-history' => 1,
+                        'copytrading/trade/pending-tpsl-by-order' => 1,
                     ),
                     'post' => array(
                         'trade/order' => 1,
@@ -209,6 +224,16 @@ class blofin extends Exchange {
                         'trade/cancel-tpsl' => 1,
                         'trade/close-position' => 1,
                         'asset/transfer' => 1,
+                        'copytrading/account/set-position-mode' => 1,
+                        'copytrading/account/set-leverage' => 1,
+                        'copytrading/trade/place-order' => 1,
+                        'copytrading/trade/cancel-order' => 1,
+                        'copytrading/trade/place-tpsl-by-contract' => 1,
+                        'copytrading/trade/cancel-tpsl-by-contract' => 1,
+                        'copytrading/trade/place-tpsl-by-order' => 1,
+                        'copytrading/trade/cancel-tpsl-by-order' => 1,
+                        'copytrading/trade/close-position-by-order' => 1,
+                        'copytrading/trade/close-position-by-contract' => 1,
                     ),
                 ),
             ),
@@ -222,6 +247,96 @@ class blofin extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
                 'password' => true,
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'hedged' => false,
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => false, // todo
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => true,
+                        ),
+                        'hedged' => true,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -294,7 +409,6 @@ class blofin extends Exchange {
                     'earn' => 'earn',
                     'spot' => 'spot',
                 ),
-                'sandboxMode' => false,
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
                     'ETH' => 'ERC20',

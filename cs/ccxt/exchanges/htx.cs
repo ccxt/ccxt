@@ -821,6 +821,7 @@ public partial class htx : Exchange
                     { "1041", typeof(InvalidOrder) },
                     { "1047", typeof(InsufficientFunds) },
                     { "1048", typeof(InsufficientFunds) },
+                    { "1061", typeof(OrderNotFound) },
                     { "1051", typeof(InvalidOrder) },
                     { "1066", typeof(BadSymbol) },
                     { "1067", typeof(InvalidOrder) },
@@ -879,6 +880,8 @@ public partial class htx : Exchange
                         { "inverse", true },
                     } },
                 } },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchOHLCV", new Dictionary<string, object>() {
                     { "useHistoricalEndpointForSpot", true },
                 } },
@@ -1169,17 +1172,20 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "daysBack", 120 },
                         { "untilDays", 2 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
                         { "limit", 500 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1188,6 +1194,7 @@ public partial class htx : Exchange
                         { "limit", 500 },
                         { "untilDays", 2 },
                         { "daysBack", 180 },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1195,8 +1202,9 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 500 },
-                        { "daysBackClosed", 180 },
+                        { "daysBack", 180 },
                         { "daysBackCanceled", divide(1, 12) },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1235,7 +1243,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 50 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1706,6 +1714,10 @@ public partial class htx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = null;
         var typesparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "types", new Dictionary<string, object>() {});
         types = ((IList<object>)typesparametersVariable)[0];
@@ -3348,7 +3360,11 @@ public partial class htx : Exchange
                 type = "margin";
             }
         }
-        object marketId = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.marketId(symbol);
+        object marketId = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            marketId = this.marketId(symbol);
+        }
         for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
@@ -7584,12 +7600,19 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "fetchFundingRates", new Dictionary<string, object>() {});
-        object defaultSubType = this.safeString(this.options, "defaultSubType", "inverse");
-        object subType = this.safeString(options, "subType", defaultSubType);
-        subType = this.safeString(parameters, "subType", subType);
+        object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+        object subType = null;
+        var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            object market = this.market(firstSymbol);
+            object isLinear = getValue(market, "linear");
+            subType = ((bool) isTrue(isLinear)) ? "linear" : "inverse";
+        }
         object request = new Dictionary<string, object>() {};
-        parameters = this.omit(parameters, "subType");
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {
@@ -7620,8 +7643,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -7762,6 +7784,11 @@ public partial class htx : Exchange
         };
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -7783,7 +7810,7 @@ public partial class htx : Exchange
             if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
             {
                 this.checkRequiredCredentials();
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
@@ -7876,19 +7903,21 @@ public partial class htx : Exchange
                         }
                     }
                 }
-                object timestamp = this.ymdhms(this.milliseconds(), "T");
+                object timestamp = this.ymdhms(this.nonce(), "T");
                 object request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
+                request = ((object)this.keysort(request));
                 if (isTrue(!isEqual(method, "POST")))
                 {
-                    request = this.extend(request, query);
+                    object sortedQuery = ((object)this.keysort(query));
+                    request = this.extend(request, sortedQuery);
                 }
-                request = ((object)this.keysort(request));
-                object auth = this.urlencode(request);
+                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
@@ -7935,6 +7964,7 @@ public partial class htx : Exchange
         {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             object status = this.safeString(response, "status");
             if (isTrue(isEqual(status, "error")))
@@ -7954,6 +7984,17 @@ public partial class htx : Exchange
             object feedback = add(add(this.id, " "), body);
             object code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        object data = this.safeDict(response, "data");
+        object errorsList = this.safeList(data, "errors");
+        if (isTrue(!isEqual(errorsList, null)))
+        {
+            object first = this.safeDict(errorsList, 0);
+            object errcode = this.safeString(first, "err_code");
+            object errmessage = this.safeString(first, "err_msg");
+            object feedBack = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
         }
         return null;
     }
@@ -8833,8 +8874,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseOpenInterests(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(data, symbols);
     }
 
     /**
