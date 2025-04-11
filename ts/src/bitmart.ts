@@ -86,7 +86,7 @@ export default class bitmart extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -214,6 +214,7 @@ export default class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         // sub-account endpoints
@@ -5526,6 +5527,35 @@ export default class bitmart extends Exchange {
         // }
         //
         return await this.privatePostContractPrivateSetPositionMode (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+     * @param {string} symbol not used
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.privateGetContractPrivateGetPositionMode (params);
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        const positionMode = this.safeString (data, 'position_mode');
+        return {
+            'info': response,
+            'hedged': (positionMode === 'hedge_mode'),
+        };
     }
 
     nonce () {
