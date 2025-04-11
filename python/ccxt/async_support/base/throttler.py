@@ -13,6 +13,7 @@ class Throttler:
             'tokens': 0,
             'maxCapacity': 2000,
             'capacity': 1.0,
+            # maxWeight should be set in config parameter for rolling window algorithm
         }
         self.config.update(config)
         self.queue = collections.deque()
