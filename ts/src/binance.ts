@@ -8661,7 +8661,7 @@ export default class binance extends Exchange {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const network = this.networkIdToCode (this.safeString (transaction, 'network'));
         return {
             'info': transaction,
             'id': id,
@@ -9084,17 +9084,11 @@ export default class binance extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
-        }
+        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false);
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
         //
@@ -9128,9 +9122,14 @@ export default class binance extends Exchange {
         //     }
         //
         const info = this.safeDict (response, 'info', {});
-        const url = this.safeString (info, 'url');
+        let url = this.safeString (info, 'url');
+        if (url === undefined) {
+            // 'info' does not seem to contain 'url' key, however we keep it for backward-compatibility
+            // currently 'response' seems to contain that key
+            url = this.safeString (response, 'url');
+        }
         const address = this.safeString (response, 'address');
-        const currencyId = this.safeString (response, 'currency');
+        const currencyId = this.safeString2 (response, 'currency', 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
@@ -9153,6 +9152,12 @@ export default class binance extends Exchange {
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
+        // actually, we do not need the manually defined implied networks and deriving the networks by them
+        // we can just dynamically find them
+        if (impliedNetwork === undefined) {
+            // so, if value was not changed from hardcoded value
+            impliedNetwork = this.getNetworkCodeByNetworkUrl (code, url);
+        }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
@@ -9165,6 +9170,26 @@ export default class binance extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    getNetworkCodeByNetworkUrl (currencyCode: string, url: Str = undefined): Str {
+        let networkCode = undefined;
+        if (url === undefined) {
+            return networkCode;
+        }
+        const currency = this.currency (currencyCode);
+        const networks = this.safeValue (currency, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        for (let i = 0; i < networkCodes.length; i++) {
+            const currentNetworkCode = networkCodes[i];
+            const network = networks[currentNetworkCode];
+            const info = this.safeDict (network, 'info', {});
+            const networkWebsite = this.safeString (info, 'contractAddressUrl');
+            if (networkWebsite !== undefined && url.startsWith (networkWebsite)) {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
     }
 
     /**
@@ -9426,7 +9451,7 @@ export default class binance extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'coin': currency['id'],
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
@@ -9436,13 +9461,7 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
-        }
+        [ request, params ] = this.handleRequestNetwork (params, request, 'network', code, false);
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
