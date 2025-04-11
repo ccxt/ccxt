@@ -744,6 +744,39 @@ export default class aftermath extends Exchange {
         return this.parseOrders (response);
     }
 
+    async createAccount (params = {}): Promise<Order[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const settleId = this.safeString (params, 'settleId');
+        params = this.omit (params, [ 'settleId' ]);
+        const txRequest = {
+            'metadata': {
+                'sender': this.walletAddress,
+            },
+            'settleId': settleId,
+        };
+        const tx = await this.privatePostBuildCreateAccount (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitCreateAccount (request);
+        //
+        // [
+        //     {
+        //         "id": "0x2238b380cdf548cf9922a76ad8cf41cd886a04c1a68e7d0f99100b84b0b1ee48",
+        //         "type": "primary",
+        //         "code": "USDC",
+        //         "accountNumber": 357
+        //     },
+        //     {
+        //         "id": "0x6048be1c533a25226e2b505f5c7b8c4d731c87e9fb775dc577052c66febf1c93",
+        //         "type": "subaccount",
+        //         "code": "USDC",
+        //         "accountNumber": 357
+        //     }
+        // ]
+        //
+        return response;
+    }
+
     async createSubaccount (params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
