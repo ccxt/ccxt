@@ -509,7 +509,7 @@ class Exchange(object):
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
-            url = proxyUrl + url
+            url = proxyUrl + self.url_encoder_for_proxy_url(url)
         # proxy agents
         proxies = None  # set default
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)

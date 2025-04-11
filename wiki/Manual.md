@@ -6781,7 +6781,7 @@ while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 - `http://your-website.com/sample-script.php?url=`
 - etc
 
-So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
+So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)). To customize the target url, you can also override `urlEncoderForProxyUrl` method of instance.
 
 This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_))[#test-if-your-proxy-works]
 
