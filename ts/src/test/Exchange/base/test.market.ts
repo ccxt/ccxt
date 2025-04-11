@@ -216,7 +216,18 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         const keysLength = precisionKeys.length;
         assert (keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
         for (let i = 0; i < precisionKeys.length; i++) {
-            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
+            const priceOrAmountKey = precisionKeys[i];
+            try {
+                testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
+            } catch (e) {
+                // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+                if (priceOrAmountKey === 'price' && Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey))) {
+                    if (market['baseId'] === 'BTC') {
+                        continue;
+                    }
+                }
+                throw e;
+            }
         }
     }
     const isInactiveMarket = market['active'] === false;
