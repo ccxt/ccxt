@@ -1,151 +1,336 @@
 {
     "BTC": {
+        "info": {
+            "asset_id": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+            "code": "BTC",
+            "name": "Bitcoin",
+            "color": "#F7931A",
+            "sort_index": "100",
+            "exponent": "8",
+            "type": "crypto",
+            "address_regex": "^([13][a-km-zA-HJ-NP-Z1-9]{25,34})|^(bc1[pqzry9x8gf2tvdw0s3jn54khce6mua7l]([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{38}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{58}))$"
+        },
         "id": "BTC",
         "code": "BTC",
-        "info": {},
         "type": "crypto",
+        "name": "Bitcoin",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDT": {
+        "info": {
+            "asset_id": "b26327c1-9a34-51d9-b982-9b29e6012648",
+            "code": "USDT",
+            "name": "Tether",
+            "color": "#22A079",
+            "sort_index": "150",
+            "exponent": "6",
+            "type": "crypto",
+            "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
+        },
         "id": "USDT",
         "code": "USDT",
-        "info": {},
         "type": "crypto",
+        "name": "Tether",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "EUR": {
-        "id": "EUR",
-        "code": "EUR",
         "info": {
             "id": "EUR",
             "name": "Euro",
             "min_size": "0.01"
         },
+        "id": "EUR",
+        "code": "EUR",
         "type": "fiat",
         "name": "Euro",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "INR": {
-        "id": "INR",
-        "code": "INR",
         "info": {
             "id": "INR",
             "name": "Indian Rupee",
             "min_size": "0.01"
         },
+        "id": "INR",
+        "code": "INR",
         "type": "fiat",
         "name": "Indian Rupee",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USD": {
-        "id": "USD",
-        "code": "USD",
         "info": {
             "id": "USD",
             "name": "United States Dollar",
             "min_size": "0.01"
         },
+        "id": "USD",
+        "code": "USD",
         "type": "fiat",
         "name": "United States Dollar",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "KRW": {
-        "id": "KRW",
-        "code": "KRW",
         "info": {
             "id": "KRW",
             "name": "South Korean Won",
             "min_size": "1"
         },
+        "id": "KRW",
+        "code": "KRW",
         "type": "fiat",
         "name": "South Korean Won",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "LTC": {
+        "info": {
+            "asset_id": "c9c24c6e-c045-5fde-98a2-00ea7f520437",
+            "code": "LTC",
+            "name": "Litecoin",
+            "color": "#A6A9AA",
+            "sort_index": "102",
+            "exponent": "8",
+            "type": "crypto",
+            "address_regex": "^((L|M)[a-km-zA-HJ-NP-Z1-9]{25,34})|^(ltc1([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59}))$"
+        },
         "id": "LTC",
         "code": "LTC",
-        "info": {},
         "type": "crypto",
+        "name": "Litecoin",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ETH": {
+        "info": {
+            "asset_id": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+            "code": "ETH",
+            "name": "Ethereum",
+            "color": "#627EEA",
+            "sort_index": "101",
+            "exponent": "8",
+            "type": "crypto",
+            "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
+        },
         "id": "ETH",
         "code": "ETH",
-        "info": {},
         "type": "crypto",
+        "name": "Ethereum",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ADA": {
+        "info": {
+            "asset_id": "63062039-7afb-56ff-8e19-5e3215dc404a",
+            "code": "ADA",
+            "name": "Cardano",
+            "color": "#0033AD",
+            "sort_index": "142",
+            "exponent": "6",
+            "type": "crypto",
+            "address_regex": "(^(addr)1[ac-hj-np-z02-9]{6,}$)|(^(DdzFFz|Ae2td)[1-9A-HJ-NP-Za-km-z]+)"
+        },
         "id": "ADA",
         "code": "ADA",
-        "info": {},
         "type": "crypto",
+        "name": "Cardano",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "XRP": {
+        "info": {
+            "asset_id": "e17a44c8-6ea1-564f-a02c-2a9ca1d8eec4",
+            "code": "XRP",
+            "name": "XRP",
+            "color": "#222222",
+            "sort_index": "109",
+            "exponent": "6",
+            "type": "crypto",
+            "address_regex": "^r[1-9a-km-zA-HJ-NP-Z]{25,35}$",
+            "destination_tag_name": "XRP Tag",
+            "destination_tag_regex": "^\\d{1,10}$"
+        },
         "id": "XRP",
         "code": "XRP",
-        "info": {},
         "type": "crypto",
+        "name": "XRP",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDC": {
+        "info": {
+            "asset_id": "2b92315d-eab7-5bef-84fa-089a131333f5",
+            "code": "USDC",
+            "name": "USDC",
+            "color": "#2775CA",
+            "sort_index": "106",
+            "exponent": "6",
+            "type": "crypto",
+            "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
+        },
         "id": "USDC",
         "code": "USDC",
-        "info": {},
         "type": "crypto",
+        "name": "USDC",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": null,
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     }
 }

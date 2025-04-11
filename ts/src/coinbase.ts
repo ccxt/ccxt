@@ -378,6 +378,7 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
+                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1521,7 +1522,34 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        return result;
+        // remove aliases
+        this.options['aliasCbMarketIds'] = {};
+        const newMarkets = [];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
+            const info = this.safeValue (market, 'info', {});
+            const realMarketIds = this.safeList (info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
+                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
+            } else {
+                newMarkets.push (market);
+            }
+        }
+        return newMarkets;
+    }
+
+    market (symbol: string): MarketInterface {
+        const finalSymbol = this.safeString (this.options['aliasCbMarketIds'], symbol, symbol);
+        return super.market (finalSymbol);
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (marketId in this.options['aliasCbMarketIds']) {
+            return this.market (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
@@ -1936,6 +1964,7 @@ export default class coinbase extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'min_size'),
@@ -2265,10 +2294,11 @@ export default class coinbase extends Exchange {
             askVolume = this.safeNumber (asks[0], 'size');
         }
         const marketId = this.safeString (ticker, 'product_id');
+        market = this.safeMarket (marketId, market);
         const last = this.safeNumber (ticker, 'price');
         const datetime = this.safeString (ticker, 'time');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'bid': bid,
