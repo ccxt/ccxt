@@ -1,0 +1,21 @@
+FROM python:3.12
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY ./python .
+
+# Expose metrics port
+EXPOSE 3003
+
+# Run the benchmark
+CMD ["python", "main.py"]
