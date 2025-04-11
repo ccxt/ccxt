@@ -23,7 +23,7 @@ async function watchExchange (exchangeId, symbols) {
 
 async function main () {
     const streams = {
-        'ftx': [
+        'bybit': [
             'BTC/USDT',
             'ETH/BTC',
         ],
