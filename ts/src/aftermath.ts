@@ -1,6 +1,6 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, Int, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 export default class aftermath extends Exchange {
@@ -39,6 +39,7 @@ export default class aftermath extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -628,6 +629,55 @@ export default class aftermath extends Exchange {
         // ]
         //
         return this.parseOrders (response);
+    }
+
+    /**
+     * @method
+     * @name aftermath#fetchPositions
+     * @description fetch all open positions
+     * @param {string[]} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {Account} [params.accountNumber] account number to query positions for, required
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const accountNumber = this.safeNumber (params, 'accountNumber');
+        const request = {
+            'accountNumber': accountNumber,
+        };
+        params = this.omit (params, 'accountNumber');
+        const response = await this.privatePostPositions (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
+        //         "symbol": "BTC/USD",
+        //         "timestamp": 1744360128358,
+        //         "datetime": "2025-04-11 08:28:48.358 UTC",
+        //         "side": "long",
+        //         "contracts": 0.001,
+        //         "contractSize": 81299.8225,
+        //         "entryPrice": 0.000012292609480106,
+        //         "notional": 81.30326975863777,
+        //         "leverage": 2.091737393826,
+        //         "collateral": 38.918646841955464,
+        //         "initialMargin": 2.0325817439659444,
+        //         "maintenanceMargin": 1.0162908719829722,
+        //         "initialMarginPercentage": 0.025,
+        //         "maintenanceMarginPercentage": 0.0125,
+        //         "unrealizedPnl": -0.0498699,
+        //         "liquidationPrice": 42969.81843916013,
+        //         "marginMode": "isolated",
+        //         "marginRatio": 0.4780714839977587
+        //     }
+        // ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        return this.safePosition (position);
     }
 
     /**
