@@ -1165,6 +1165,7 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
+                        { "historical", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -2400,6 +2401,9 @@ public partial class okx : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100; // default 100, max 100
+        } else
+        {
+            limit = mathMin(limit, 300); // max 100
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2422,6 +2426,7 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
+                limit = mathMin(limit, 100); // max 100 for historical endpoint
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;

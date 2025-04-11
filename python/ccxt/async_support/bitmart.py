@@ -104,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
-                'fetchPositionMode': False,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -126,6 +126,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -231,6 +232,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         # sub-account endpoints
@@ -283,6 +285,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5,  # weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order': 1.5,  # weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -1205,7 +1208,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     {
         #         "message": "OK",
         #         "code": 1000,
-        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
+        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         #         "data": {
         #             "currencies": [
         #                 {
@@ -3847,10 +3850,11 @@ class bitmart(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         networkId: Str = None
-        if currencyId.find('NFT') < 0:
-            parts = currencyId.split('-')
-            currencyId = self.safe_string(parts, 0)
-            networkId = self.safe_string(parts, 1)
+        if currencyId is not None:
+            if currencyId.find('NFT') < 0:
+                parts = currencyId.split('-')
+                currencyId = self.safe_string(parts, 0)
+                networkId = self.safe_string(parts, 1)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number(transaction, 'fee')
@@ -5211,6 +5215,66 @@ class bitmart(Exchange, ImplicitAPI):
             if noteMatch and networkMatch:
                 addresses.append(address)
         return addresses
+
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        positionMode = None
+        if hedged:
+            positionMode = 'hedge_mode'
+        else:
+            positionMode = 'one_way_mode'
+        request: dict = {
+            'position_mode': positionMode,
+        }
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        return await self.privatePostContractPrivateSetPositionMode(self.extend(request, params))
+
+    async def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+
+        :param str symbol: not used
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = await self.privateGetContractPrivateGetPositionMode(params)
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data')
+        positionMode = self.safe_string(data, 'position_mode')
+        return {
+            'info': response,
+            'hedged': (positionMode == 'hedge_mode'),
+        }
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']

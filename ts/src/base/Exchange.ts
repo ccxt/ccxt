@@ -7365,20 +7365,42 @@ export default class Exchange {
     }
 
     removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
-        const uniqueResult = {};
+        const uniqueDic = {};
+        const uniqueResult = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
-            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
-                uniqueResult[uniqValue] = entry;
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = 1;
+                uniqueResult.push (entry);
+            }
+        }
+        const valuesLength = uniqueResult.length;
+        if (valuesLength > 0) {
+            return uniqueResult as any;
+        }
+        return input;
+    }
+
+    removeRepeatedTradesFromArray (input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            let id = this.safeString (entry, 'id');
+            if (id === undefined) {
+                const price = this.safeString (entry, 'price');
+                const amount = this.safeString (entry, 'amount');
+                const timestamp = this.safeString (entry, 'timestamp');
+                const side = this.safeString (entry, 'side');
+                // unique trade identifier
+                id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+            }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values (uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values as any;
-        }
-        return input;
+        return values as any;
     }
 
     handleUntilOption (key: string, request, params, multiplier = 1) {
