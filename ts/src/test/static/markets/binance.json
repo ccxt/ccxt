@@ -3304,5 +3304,150 @@
     "tierBased": false,
     "percentage": true,
     "feeSide": "get"
+  },
+  "SOL/USDT:USDT": {
+    "id": "SOLUSDT",
+    "lowercaseId": "solusdt",
+    "symbol": "SOL/USDT:USDT",
+    "base": "SOL",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "SOL",
+    "quoteId": "USDT",
+    "settleId": "USDT",
+    "type": "swap",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "contractSize": 1,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.01,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 1,
+        "max": 1000000
+      },
+      "price": {
+        "min": 0.42,
+        "max": 6857
+      },
+      "cost": {
+        "min": 5,
+        "max": null
+      },
+      "market": {
+        "min": 1,
+        "max": 5000
+      }
+    },
+    "marginModes": {
+      "cross": true,
+      "isolated": true
+    },
+    "created": 1569398400000,
+    "info": {
+      "symbol": "SOLUSDT",
+      "pair": "SOLUSDT",
+      "contractType": "PERPETUAL",
+      "deliveryDate": "4133404800000",
+      "onboardDate": "1569398400000",
+      "status": "TRADING",
+      "maintMarginPercent": "2.5000",
+      "requiredMarginPercent": "5.0000",
+      "baseAsset": "SOL",
+      "quoteAsset": "USDT",
+      "marginAsset": "USDT",
+      "pricePrecision": "4",
+      "quantityPrecision": "0",
+      "baseAssetPrecision": "8",
+      "quotePrecision": "8",
+      "underlyingType": "COIN",
+      "underlyingSubType": [
+        "Layer-1"
+      ],
+      "triggerProtect": "0.0500",
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.05",
+      "maxMoveOrderLimit": "10000",
+      "filters": [
+        {
+          "filterType": "PRICE_FILTER",
+          "minPrice": "0.4200",
+          "tickSize": "0.0100",
+          "maxPrice": "6857"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "1",
+          "maxQty": "1000000",
+          "stepSize": "1"
+        },
+        {
+          "stepSize": "1",
+          "minQty": "1",
+          "maxQty": "5000",
+          "filterType": "MARKET_LOT_SIZE"
+        },
+        {
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
+        },
+        {
+          "limit": "10",
+          "filterType": "MAX_NUM_ALGO_ORDERS"
+        },
+        {
+          "filterType": "MIN_NOTIONAL",
+          "notional": "5"
+        },
+        {
+          "multiplierUp": "1.0500",
+          "filterType": "PERCENT_PRICE",
+          "multiplierDown": "0.9500",
+          "multiplierDecimal": "4"
+        }
+      ],
+      "orderTypes": [
+        "LIMIT",
+        "MARKET",
+        "STOP",
+        "STOP_MARKET",
+        "TAKE_PROFIT",
+        "TAKE_PROFIT_MARKET",
+        "TRAILING_STOP_MARKET"
+      ],
+      "timeInForce": [
+        "GTC",
+        "IOC",
+        "FOK",
+        "GTX",
+        "GTD"
+      ]
+    },
+    "tierBased": false,
+    "percentage": true,
+    "feeSide": "get"
   }
 }
