@@ -209,25 +209,25 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
 
-
     // check precisions
-    if (!('precision' in skippedProperties)) {
-        const precisionKeys = Object.keys (market['precision']);
-        const keysLength = precisionKeys.length;
-        assert (keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
-        for (let i = 0; i < precisionKeys.length; i++) {
-            const priceOrAmountKey = precisionKeys[i];
-            // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-            const isExclusivePair = market['baseId'] === 'BTC';
-            const isNonSpot = !spot; // such high precision is only allowed in contract markets
-            const isPrice = priceOrAmountKey === 'price';
-            const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
-            if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
-                continue;
-            }
+    const precisionKeys = Object.keys (market['precision']);
+    const precisionKeysLen = precisionKeys.length;
+    assert (precisionKeysLen >= 2, 'precision should have "amount" and "price" keys at least' + logText);
+    for (let i = 0; i < precisionKeys.length; i++) {
+        const priceOrAmountKey = precisionKeys[i];
+        // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        const isExclusivePair = market['baseId'] === 'BTC';
+        const isNonSpot = !spot; // such high precision is only allowed in contract markets
+        const isPrice = priceOrAmountKey === 'price';
+        const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
+        if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
+            continue;
+        }
+        if (!('precision' in skippedProperties)) {
             testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
         }
     }
+
     const isInactiveMarket = market['active'] === false;
     // check limits
     if (!('limits' in skippedProperties)) {
