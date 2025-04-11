@@ -188,6 +188,19 @@
             "watchOrderBook": "complete skip (todo fix) because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
         }
     },
+    "bitflex": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+	    "fetchTrades": {
+                "side": "side is undefined"
+            },
+	    "ticker": {
+                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270053001#L3338"
+            }
+        }
+    },
     "bitflyer": {
         "skipMethods": {
             "loadMarkets": {
