@@ -104,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
-                'fetchPositionMode': False,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -232,6 +232,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         # sub-account endpoints
@@ -5246,6 +5247,34 @@ class bitmart(Exchange, ImplicitAPI):
         # }
         #
         return self.privatePostContractPrivateSetPositionMode(self.extend(request, params))
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+
+        :param str symbol: not used
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.privateGetContractPrivateGetPositionMode(params)
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data')
+        positionMode = self.safe_string(data, 'position_mode')
+        return {
+            'info': response,
+            'hedged': (positionMode == 'hedge_mode'),
+        }
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
