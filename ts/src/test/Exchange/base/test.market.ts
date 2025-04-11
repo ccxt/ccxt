@@ -221,10 +221,12 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
                 testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
             } catch (e) {
                 // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-                if (priceOrAmountKey === 'price' && Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey))) {
-                    if (market['baseId'] === 'BTC') {
-                        continue;
-                    }
+                const isExclusivePair = market['baseId'] === 'BTC';
+                const isNonSpot = !spot; // such high precision is only allowed in contract markets
+                const isPrice = priceOrAmountKey === 'price';
+                const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
+                if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
+                    continue;
                 }
                 throw e;
             }
