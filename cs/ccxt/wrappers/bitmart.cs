@@ -1675,4 +1675,24 @@ public partial class bitmart
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

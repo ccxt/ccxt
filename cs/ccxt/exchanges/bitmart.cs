@@ -76,7 +76,7 @@ public partial class bitmart : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
-                { "fetchPositionMode", false },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -195,6 +195,7 @@ public partial class bitmart : Exchange
                         { "contract/private/affilate/rebate-list", 10 },
                         { "contract/private/affilate/trade-list", 10 },
                         { "contract/private/transaction-history", 10 },
+                        { "contract/private/get-position-mode", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -5756,6 +5757,37 @@ public partial class bitmart : Exchange
         // }
         //
         return await ((Task<object>)callDynamically(this, "privatePostContractPrivateSetPositionMode", new object[] { this.extend(request, parameters) }));
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+     * @param {string} symbol not used
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await ((Task<object>)callDynamically(this, "privateGetContractPrivateGetPositionMode", new object[] { parameters }));
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data");
+        object positionMode = this.safeString(data, "position_mode");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", (isEqual(positionMode, "hedge_mode")) },
+        };
     }
 
     public override object nonce()
