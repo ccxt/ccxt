@@ -219,11 +219,12 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
         }
     }
+
     const isInactiveMarket = market['active'] === false;
     // check limits
     const limitsKeys = Object.keys (market['limits']);
-    const keysLength = limitsKeys.length;
-    assert (keysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+    const limitsKeysLength = limitsKeys.length;
+    assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
     for (let i = 0; i < limitsKeys.length; i++) {
         const key = limitsKeys[i];
         const limitEntry = market['limits'][key];
