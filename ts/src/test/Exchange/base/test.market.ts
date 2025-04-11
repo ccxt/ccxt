@@ -217,18 +217,15 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert (keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
         for (let i = 0; i < precisionKeys.length; i++) {
             const priceOrAmountKey = precisionKeys[i];
-            try {
-                testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
-            } catch (e) {
-                // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-                const isExclusivePair = market['baseId'] === 'BTC';
-                const isNonSpot = !spot; // such high precision is only allowed in contract markets
-                const isPrice = priceOrAmountKey === 'price';
-                const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
-                if (!isNonSpot || !isPrice || !isExclusivePair || !isTickSize5) {
-                    throw e;
-                }
+            // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+            const isExclusivePair = market['baseId'] === 'BTC';
+            const isNonSpot = !spot; // such high precision is only allowed in contract markets
+            const isPrice = priceOrAmountKey === 'price';
+            const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
+            if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
+                continue;
             }
+            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
         }
     }
     const isInactiveMarket = market['active'] === false;
