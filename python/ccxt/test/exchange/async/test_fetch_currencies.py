@@ -20,8 +20,8 @@ async def test_fetch_currencies(exchange, skipped_properties):
     # const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     currencies = await exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-    active_amount = 0
-    minmium_active_currencies_pcnt = 40  # eg. at least X% currencies should be active
+    num_inactive_currencies = 0
+    max_inactive_currencies_percentage = 60  # no more than X% currencies should be inactive
     required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
     if currencies is not None:
         values = list(currencies.values())
@@ -37,13 +37,13 @@ async def test_fetch_currencies(exchange, skipped_properties):
             test_currency(exchange, skipped_properties, method, currency_obj)
             # detailed check for deposit/withdraw
             active = exchange.safe_bool(currency_obj, 'active', False)
-            if active:
-                active_amount = active_amount + 1
+            if active is False:
+                num_inactive_currencies = num_inactive_currencies + 1
             # ensure that major currencies are not disabled for W/D
             code = exchange.safe_string(currency_obj, 'code', None)
             if exchange.in_array(code, required_active_currencies):
                 assert skip_active or (active is False), 'Major currency ' + code + ' should have withdraw and deposit enabled'
         # check at least X% of currencies are active
-        active_currencies_pcnt = (active_amount / currencies_length) * 100
-        assert skip_active or (active_currencies_pcnt >= minmium_active_currencies_pcnt), 'Percentage of active currencies is too low at ' + str(active_currencies_pcnt) + '% that is less than the required minimum of ' + str(minmium_active_currencies_pcnt) + '%'
+        inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
+        assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
     return True
