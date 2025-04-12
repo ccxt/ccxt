@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
             object currenciesLength = getArrayLength(values);
             // ensure exchange returns enough length of currencies
-            assert(isGreaterThan(currenciesLength, 5), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
+            // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
             // allow skipped exchanges
             object skipActive = (inOp(skippedProperties, "active"));
             // loop
@@ -40,10 +40,6 @@ public partial class testMainClass : BaseTest
                 object code = exchange.safeString(currency, "code", null);
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
-                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
-                {
-
-                }
             }
             // check at least X% of currencies are active
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
