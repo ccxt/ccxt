@@ -29,7 +29,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             if (active === false) {
                 numInactiveCurrencies = numInactiveCurrencies + 1;
             }
-            // ensure that major currencies are enabled for deposit and withdrawal
+            // ensure that major currencies are active and enabled for deposit and withdrawal
             const code = exchange.safeString (currency, 'code', undefined);
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
