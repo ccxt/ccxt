@@ -14,12 +14,35 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     $currencies = $exchange->fetch_currencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+    $active_amount = 0;
+    $minmium_active_currencies_pcnt = 40; // eg. at least X% currencies should be active
+    $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
     if ($currencies !== null) {
         $values = is_array($currencies) ? array_values($currencies) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
-        for ($i = 0; $i < count($values); $i++) {
-            test_currency($exchange, $skipped_properties, $method, $values[$i]);
+        $currencies_length = count($values);
+        // ensure exchange returns enough length of currencies
+        assert($currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
+        // allow skipped exchanges
+        $skip_active = (is_array($skipped_properties) && array_key_exists('active', $skipped_properties));
+        // loop
+        for ($i = 0; $i < $currencies_length; $i++) {
+            $currency_obj = $values[$i];
+            test_currency($exchange, $skipped_properties, $method, $currency_obj);
+            // detailed check for deposit/withdraw
+            $active = $exchange->safe_bool($currency_obj, 'active', false);
+            if ($active) {
+                $active_amount = $active_amount + 1;
+            }
+            // ensure that major currencies are not disabled for W/D
+            $code = $exchange->safe_string($currency_obj, 'code', null);
+            if ($exchange->in_array($code, $required_active_currencies)) {
+                assert($skip_active || $active, 'Major currency ' . $code . ' should have withdraw and deposit enabled');
+            }
         }
+        // check at least X% of currencies are active
+        $active_currencies_pcnt = ($active_amount / $currencies_length) * 100;
+        assert($skip_active || ($active_currencies_pcnt >= $minmium_active_currencies_pcnt), 'Percentage of active currencies is too low at ' . ((string) $active_currencies_pcnt) . '% that is less than the required minimum of ' . ((string) $minmium_active_currencies_pcnt) . '%');
     }
     return true;
 }

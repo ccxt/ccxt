@@ -3586,9 +3586,6 @@ class Exchange {
 
     public function safe_currency_structure(array $currency) {
         // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
-        $currencyDeposit = $this->safe_bool($currency, 'deposit');
-        $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
-        $currencyActive = $this->safe_bool($currency, 'active');
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -3597,24 +3594,28 @@ class Exchange {
                 $key = $keys[$i];
                 $network = $networks[$key];
                 $deposit = $this->safe_bool($network, 'deposit');
+                $currencyDeposit = $this->safe_bool($currency, 'deposit');
                 if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
                 }
                 $withdraw = $this->safe_bool($network, 'withdraw');
+                $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
                 }
-                $active = $this->safe_bool($network, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
-                }
                 // set $network 'active' to false if D or W is disabled
-                if ($this->safe_bool($network, 'active') === null) {
+                $active = $this->safe_bool($network, 'active');
+                if ($active === null) {
                     if ($deposit && $withdraw) {
                         $currency['networks'][$key]['active'] = true;
                     } elseif ($deposit !== null && $withdraw !== null) {
                         $currency['networks'][$key]['active'] = false;
                     }
+                }
+                $active = $this->safe_bool($network, 'active');
+                $currencyActive = $this->safe_bool($currency, 'active');
+                if ($currencyActive === null || $active) {
+                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
