@@ -10,7 +10,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
     const currencies = await exchange.fetchCurrencies ();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let activeAmount = 0;
-    const minmiumActiveCurrenciesPcnt = 40; // eg. at least 50% currencies should be active
+    const minmiumActiveCurrenciesPcnt = 40; // eg. at least X% currencies should be active
     const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if (currencies !== undefined) {
         const values = Object.values (currencies);
