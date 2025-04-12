@@ -1860,7 +1860,7 @@ export default class gate extends Exchange {
             const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
             const withdrawEnabled = !this.safeBool (entry, 'withdraw_disabled');
             const depositEnabled = !this.safeBool (entry, 'deposit_disabled');
-            const tradeDisabled = !this.safeBool (entry, 'trade_disabled');
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled');
             const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
             const code = this.safeCurrencyCode (currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
