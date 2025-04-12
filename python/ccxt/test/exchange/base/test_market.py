@@ -149,11 +149,11 @@ def test_market(exchange, skipped_properties, method, market):
             assert linear is not None, 'linear must be defined when "contract" is true' + log_text
             assert linear != inverse, 'linear and inverse must not be the same' + log_text
         # contract size should be defined
-        assert (not ('contractSize' in skipped_properties) or contract_size is not None), '"contractSize" must be defined when "contract" is true' + log_text
+        assert (('contractSize' in skipped_properties) or contract_size is not None), '"contractSize" must be defined when "contract" is true' + log_text
         # contract size should be above zero
-        assert not ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
+        assert ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
         # settle should be defined
-        assert not ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
+        assert ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
     else:
         # linear & inverse needs to be undefined
         assert linear is None and inverse is None and quanto is None, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + log_text

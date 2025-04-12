@@ -2913,9 +2913,6 @@ class Exchange(object):
 
     def safe_currency_structure(self, currency: object):
         # derive data from networks: deposit, withdraw, active, fee, limits, precision
-        currencyDeposit = self.safe_bool(currency, 'deposit')
-        currencyWithdraw = self.safe_bool(currency, 'withdraw')
-        currencyActive = self.safe_bool(currency, 'active')
         networks = self.safe_dict(currency, 'networks', {})
         keys = list(networks.keys())
         length = len(keys)
@@ -2924,20 +2921,24 @@ class Exchange(object):
                 key = keys[i]
                 network = networks[key]
                 deposit = self.safe_bool(network, 'deposit')
+                currencyDeposit = self.safe_bool(currency, 'deposit')
                 if currencyDeposit is None or deposit:
                     currency['deposit'] = deposit
                 withdraw = self.safe_bool(network, 'withdraw')
+                currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
-                active = self.safe_bool(network, 'active')
-                if currencyActive is None or active:
-                    currency['active'] = active
                 # set network 'active' to False if D or W is disabled
-                if self.safe_bool(network, 'active') is None:
+                active = self.safe_bool(network, 'active')
+                if active is None:
                     if deposit and withdraw:
                         currency['networks'][key]['active'] = True
                     elif deposit is not None and withdraw is not None:
                         currency['networks'][key]['active'] = False
+                active = self.safe_bool(network, 'active')
+                currencyActive = self.safe_bool(currency, 'active')
+                if currencyActive is None or active:
+                    currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')

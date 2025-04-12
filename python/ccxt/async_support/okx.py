@@ -1825,31 +1825,31 @@ class okx(Exchange, ImplicitAPI):
             chainsLength = len(chains)
             for j in range(0, chainsLength):
                 chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')  # USDT-BEP20, USDT-Avalance-C, etc
-                if networkId is not None:
-                    idParts = networkId.split('-')
-                    parts = self.array_slice(idParts, 1)
-                    chainPart = '-'.join(parts)
-                    networkCode = self.network_id_to_code(chainPart, currency['code'])
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': None,
-                        'deposit': self.safe_bool(chain, 'canDep'),
-                        'withdraw': self.safe_bool(chain, 'canWd'),
-                        'fee': self.safe_number(chain, 'fee'),
-                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': self.safe_number(chain, 'minWd'),
-                                'max': self.safe_number(chain, 'maxWd'),
-                            },
-                        },
-                        'info': chain,
-                    }
-                else:
-                    # only happens for FIAT currency
+                # allow empty string for rare fiat-currencies, e.g. TRY
+                networkId = self.safe_string(chain, 'chain', '')  # USDT-BEP20, USDT-Avalance-C, etc
+                if networkId == '':
+                    # only happens for fiat 'TRY' currency
                     type = 'fiat'
+                idParts = networkId.split('-')
+                parts = self.array_slice(idParts, 1)
+                chainPart = '-'.join(parts)
+                networkCode = self.network_id_to_code(chainPart, currency['code'])
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'canDep'),
+                    'withdraw': self.safe_bool(chain, 'canWd'),
+                    'fee': self.safe_number(chain, 'fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'minWd'),
+                            'max': self.safe_number(chain, 'maxWd'),
+                        },
+                    },
+                    'info': chain,
+                }
             firstChain = self.safe_dict(chains, 0, {})
             result[code] = self.safe_currency_structure({
                 'info': chains,
