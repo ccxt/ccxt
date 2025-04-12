@@ -1929,7 +1929,7 @@ func  (this *gate) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                 var currencyName interface{} = Ternary(IsTrue(EndsWith(currencyId, "_OLD")), currencyId, partFirst)
                 var withdrawDisabled interface{} = this.SafeBool(entry, "withdraw_disabled", false)
                 var depositDisabled interface{} = this.SafeBool(entry, "deposit_disabled", false)
-                var tradeDisabled interface{} = this.SafeBool(entry, "trade_disabled")
+                var tradeDisabled interface{} = this.SafeBool(entry, "trade_disabled", false)
                 var precision interface{} = this.ParseNumber("0.0001") // temporary safe default, because no value provided from API
                 var code interface{} = this.SafeCurrencyCode(currencyName)
                 // check leveraged tokens (e.g. BTC3S, ETH5L)
