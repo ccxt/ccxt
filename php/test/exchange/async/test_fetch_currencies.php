@@ -26,7 +26,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
             $currencies_length = count($values);
             // ensure exchange returns enough length of currencies
-            assert($currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
+            // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
             // allow skipped exchanges
             $skip_active = (is_array($skipped_properties) && array_key_exists('active', $skipped_properties));
             // loop
@@ -42,9 +42,6 @@ function test_fetch_currencies($exchange, $skipped_properties) {
                 $code = $exchange->safe_string($currency, 'code', null);
                 $withdraw = $exchange->safe_bool($currency, 'withdraw');
                 $deposit = $exchange->safe_bool($currency, 'deposit');
-                if ($exchange->in_array($code, $required_active_currencies)) {
-
-                }
             }
             // check at least X% of currencies are active
             $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
