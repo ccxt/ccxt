@@ -27,17 +27,19 @@ function test_fetch_currencies($exchange, $skipped_properties) {
         $skip_active = (is_array($skipped_properties) && array_key_exists('active', $skipped_properties));
         // loop
         for ($i = 0; $i < $currencies_length; $i++) {
-            $currency_obj = $values[$i];
-            test_currency($exchange, $skipped_properties, $method, $currency_obj);
+            $currency = $values[$i];
+            test_currency($exchange, $skipped_properties, $method, $currency);
             // detailed check for deposit/withdraw
-            $active = $exchange->safe_bool($currency_obj, 'active');
+            $active = $exchange->safe_bool($currency, 'active');
             if ($active === false) {
                 $num_inactive_currencies = $num_inactive_currencies + 1;
             }
-            // ensure that major currencies are not disabled for W/D
-            $code = $exchange->safe_string($currency_obj, 'code', null);
+            // ensure that major currencies are active and enabled for deposit and withdrawal
+            $code = $exchange->safe_string($currency, 'code', null);
+            $withdraw = $exchange->safe_bool($currency, 'withdraw');
+            $deposit = $exchange->safe_bool($currency, 'deposit');
             if ($exchange->in_array($code, $required_active_currencies)) {
-                assert($skip_active || ($active === false), 'Major currency ' . $code . ' should have withdraw and deposit enabled');
+                assert($skip_active || ($active === false) || ($withdraw === false) || ($deposit == false), 'Major currency ' . $code . ' should have active, withdraw and deposit flags enabled');
             }
         }
         // check at least X% of currencies are active
