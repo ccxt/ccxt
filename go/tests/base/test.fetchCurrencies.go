@@ -29,17 +29,19 @@ import "github.com/ccxt/ccxt/go/v4"
                     var skipActive interface{} =         (InOp(skippedProperties, "active"))
                     // loop
                     for i := 0; IsLessThan(i, currenciesLength); i++ {
-                        var currencyObj interface{} = GetValue(values, i)
-                        TestCurrency(exchange, skippedProperties, method, currencyObj)
+                        var currency interface{} = GetValue(values, i)
+                        TestCurrency(exchange, skippedProperties, method, currency)
                         // detailed check for deposit/withdraw
-                        var active interface{} = exchange.SafeBool(currencyObj, "active")
+                        var active interface{} = exchange.SafeBool(currency, "active")
                         if IsTrue(IsEqual(active, false)) {
                             numInactiveCurrencies = Add(numInactiveCurrencies, 1)
                         }
-                        // ensure that major currencies are not disabled for W/D
-                        var code interface{} = exchange.SafeString(currencyObj, "code", nil)
+                        // ensure that major currencies are active and enabled for deposit and withdrawal
+                        var code interface{} = exchange.SafeString(currency, "code", nil)
+                        var withdraw interface{} = exchange.SafeBool(currency, "withdraw")
+                        var deposit interface{} = exchange.SafeBool(currency, "deposit")
                         if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
-                            Assert(IsTrue(skipActive) || IsTrue((IsEqual(active, false))), Add(Add("Major currency ", code), " should have withdraw and deposit enabled"))
+                            Assert(IsTrue(IsTrue(IsTrue(skipActive) || IsTrue((IsEqual(active, false)))) || IsTrue((IsEqual(withdraw, false)))) || IsTrue((IsEqual(deposit, false))), Add(Add("Major currency ", code), " should have active, withdraw and deposit flags enabled"))
                         }
                     }
                     // check at least X% of currencies are active
