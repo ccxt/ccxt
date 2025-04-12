@@ -13,8 +13,8 @@ public partial class testMainClass : BaseTest
         // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
         object currencies = await exchange.fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-        object activeAmount = 0;
-        object minmiumActiveCurrenciesPcnt = 40; // eg. at least X% currencies should be active
+        object numInactiveCurrencies = 0;
+        object maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
         object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         if (isTrue(!isEqual(currencies, null)))
         {
@@ -32,9 +32,9 @@ public partial class testMainClass : BaseTest
                 testCurrency(exchange, skippedProperties, method, currencyObj);
                 // detailed check for deposit/withdraw
                 object active = exchange.safeBool(currencyObj, "active", false);
-                if (isTrue(active))
+                if (isTrue(isEqual(active, false)))
                 {
-                    activeAmount = add(activeAmount, 1);
+                    numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are not disabled for W/D
                 object code = exchange.safeString(currencyObj, "code", null);
@@ -44,8 +44,8 @@ public partial class testMainClass : BaseTest
                 }
             }
             // check at least X% of currencies are active
-            object activeCurrenciesPcnt = multiply((divide(activeAmount, currenciesLength)), 100);
-            assert(isTrue(skipActive) || isTrue((isGreaterThanOrEqual(activeCurrenciesPcnt, minmiumActiveCurrenciesPcnt))), add(add(add(add("Percentage of active currencies is too low at ", ((object)activeCurrenciesPcnt).ToString()), "% that is less than the required minimum of "), ((object)minmiumActiveCurrenciesPcnt).ToString()), "%"));
+            object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
+            assert(isTrue(skipActive) || isTrue((isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
         }
         return true;
     }
