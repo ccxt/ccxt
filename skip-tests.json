@@ -193,6 +193,7 @@
             "loadMarkets": {
                 "contractSize": "not defined when contract",
                 "settle": "set hardcoded, not settleid provided",
+                "settleId": "not provided",
                 "currencyIdAndCode": "messed"
             },
             "orderBook": {
