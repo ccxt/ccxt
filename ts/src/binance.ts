@@ -3115,7 +3115,6 @@ export default class binance extends Exchange {
             const isFiat = this.safeBool (entry, 'isLegalMoney');
             const networkList = this.safeList (entry, 'networkList', []);
             const fees: Dict = {};
-            let fee = undefined;
             const networks: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
@@ -3127,10 +3126,6 @@ export default class binance extends Exchange {
                 const depositEnable = this.safeBool (networkItem, 'depositEnable');
                 const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
                 fees[network] = withdrawFee;
-                const isDefault = this.safeBool (networkItem, 'isDefault');
-                if (isDefault || (fee === undefined)) {
-                    fee = withdrawFee;
-                }
                 // todo: default networks in "setMarkets" overload
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
@@ -3193,7 +3188,7 @@ export default class binance extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'networks': networks,
-                'fee': fee,
+                'fee': undefined,
                 'fees': fees,
                 'limits': this.limits,
                 'margin': this.safeBool (marginEntry, 'isBorrowable'),
