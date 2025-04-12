@@ -151,11 +151,11 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(!IsEqual(linear, inverse), Add("linear and inverse must not be the same", logText))
             }
             // contract size should be defined
-            Assert((!IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(!IsEqual(contractSize, nil))), Add("\"contractSize\" must be defined when \"contract\" is true", logText))
+            Assert((IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(!IsEqual(contractSize, nil))), Add("\"contractSize\" must be defined when \"contract\" is true", logText))
             // contract size should be above zero
-            Assert(!IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(ccxt.Precise.StringGt(contractSize, "0")), Add("\"contractSize\" must be > 0 when \"contract\" is true", logText))
+            Assert(IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(ccxt.Precise.StringGt(contractSize, "0")), Add("\"contractSize\" must be > 0 when \"contract\" is true", logText))
             // settle should be defined
-            Assert(!IsTrue((InOp(skippedProperties, "settle"))) || IsTrue((IsTrue(!IsEqual(GetValue(market, "settle"), nil)) && IsTrue(!IsEqual(GetValue(market, "settleId"), nil)))), Add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText))
+            Assert(IsTrue((InOp(skippedProperties, "settle"))) || IsTrue((IsTrue(!IsEqual(GetValue(market, "settle"), nil)) && IsTrue(!IsEqual(GetValue(market, "settleId"), nil)))), Add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText))
         } else {
             // linear & inverse needs to be undefined
             Assert(IsTrue(IsTrue(IsEqual(linear, nil)) && IsTrue(IsEqual(inverse, nil))) && IsTrue(IsEqual(quanto, nil)), Add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText))

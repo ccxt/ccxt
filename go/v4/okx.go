@@ -1814,13 +1814,17 @@ func  (this *okx) FetchCurrencies(optionalArgs ...interface{}) <- chan interface
                 var chainsLength interface{} =         GetArrayLength(chains)
                 for j := 0; IsLessThan(j, chainsLength); j++ {
                     var chain interface{} = GetValue(chains, j)
-                    var networkId interface{} = this.SafeString(chain, "chain") // USDT-BEP20, USDT-Avalance-C, etc
-                    if IsTrue(!IsEqual(networkId, nil)) {
-                        var idParts interface{} = Split(networkId, "-")
-                        var parts interface{} = this.ArraySlice(idParts, 1)
-                        var chainPart interface{} = Join(parts, "-")
-                        var networkCode interface{} = this.NetworkIdToCode(chainPart, GetValue(currency, "code"))
-                        AddElementToObject(networks, networkCode, map[string]interface{} {
+                    // allow empty string for rare fiat-currencies, e.g. TRY
+                    var networkId interface{} = this.SafeString(chain, "chain", "") // USDT-BEP20, USDT-Avalance-C, etc
+                    if IsTrue(IsEqual(networkId, "")) {
+                        // only happens for fiat 'TRY' currency
+                        typeVar = "fiat"
+                    }
+                    var idParts interface{} = Split(networkId, "-")
+                    var parts interface{} = this.ArraySlice(idParts, 1)
+                    var chainPart interface{} = Join(parts, "-")
+                    var networkCode interface{} = this.NetworkIdToCode(chainPart, GetValue(currency, "code"))
+                    AddElementToObject(networks, networkCode, map[string]interface{} {
             "id": networkId,
             "network": networkCode,
             "active": nil,
@@ -1836,10 +1840,6 @@ func  (this *okx) FetchCurrencies(optionalArgs ...interface{}) <- chan interface
             },
             "info": chain,
         })
-                    } else {
-                        // only happens for FIAT currency
-                        typeVar = "fiat"
-                    }
                 }
                 var firstChain interface{} = this.SafeDict(chains, 0, map[string]interface{} {})
                 AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {

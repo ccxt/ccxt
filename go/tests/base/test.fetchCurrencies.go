@@ -16,12 +16,35 @@ import "github.com/ccxt/ccxt/go/v4"
                 currencies:= (<-exchange.FetchCurrencies())
                 PanicOnError(currencies)
                 // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+                var activeAmount interface{} = 0
+                var minmiumActiveCurrenciesPcnt interface{} = 40 // eg. at least X% currencies should be active
+                var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
-                    for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-                        TestCurrency(exchange, skippedProperties, method, GetValue(values, i))
+                    var currenciesLength interface{} =         GetArrayLength(values)
+                    // ensure exchange returns enough length of currencies
+                    Assert(IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
+                    // allow skipped exchanges
+                    var skipActive interface{} =         (InOp(skippedProperties, "active"))
+                    // loop
+                    for i := 0; IsLessThan(i, currenciesLength); i++ {
+                        var currencyObj interface{} = GetValue(values, i)
+                        TestCurrency(exchange, skippedProperties, method, currencyObj)
+                        // detailed check for deposit/withdraw
+                        var active interface{} = exchange.SafeBool(currencyObj, "active", false)
+                        if IsTrue(active) {
+                            activeAmount = Add(activeAmount, 1)
+                        }
+                        // ensure that major currencies are not disabled for W/D
+                        var code interface{} = exchange.SafeString(currencyObj, "code", nil)
+                        if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
+                            Assert(IsTrue(skipActive) || IsTrue(active), Add(Add("Major currency ", code), " should have withdraw and deposit enabled"))
+                        }
                     }
+                    // check at least X% of currencies are active
+                    var activeCurrenciesPcnt interface{} = Multiply((Divide(activeAmount, currenciesLength)), 100)
+                    Assert(IsTrue(skipActive) || IsTrue((IsGreaterThanOrEqual(activeCurrenciesPcnt, minmiumActiveCurrenciesPcnt))), Add(Add(Add(Add("Percentage of active currencies is too low at ", ToString(activeCurrenciesPcnt)), "% that is less than the required minimum of "), ToString(minmiumActiveCurrenciesPcnt)), "%"))
                 }
             
                 ch <- true
