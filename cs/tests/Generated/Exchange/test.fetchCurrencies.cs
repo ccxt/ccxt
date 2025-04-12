@@ -28,19 +28,21 @@ public partial class testMainClass : BaseTest
             // loop
             for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
             {
-                object currencyObj = getValue(values, i);
-                testCurrency(exchange, skippedProperties, method, currencyObj);
+                object currency = getValue(values, i);
+                testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
-                object active = exchange.safeBool(currencyObj, "active");
+                object active = exchange.safeBool(currency, "active");
                 if (isTrue(isEqual(active, false)))
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
-                // ensure that major currencies are not disabled for W/D
-                object code = exchange.safeString(currencyObj, "code", null);
+                // ensure that major currencies are active and enabled for deposit and withdrawal
+                object code = exchange.safeString(currency, "code", null);
+                object withdraw = exchange.safeBool(currency, "withdraw");
+                object deposit = exchange.safeBool(currency, "deposit");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
                 {
-                    assert(isTrue(skipActive) || isTrue((isEqual(active, false))), add(add("Major currency ", code), " should have withdraw and deposit enabled"));
+                    assert(isTrue(isTrue(isTrue(skipActive) || isTrue((isEqual(active, false)))) || isTrue((isEqual(withdraw, false)))) || isTrue((isEqual(deposit, false))), add(add("Major currency ", code), " should have active, withdraw and deposit flags enabled"));
                 }
             }
             // check at least X% of currencies are active

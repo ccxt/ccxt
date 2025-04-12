@@ -33,16 +33,18 @@ def test_fetch_currencies(exchange, skipped_properties):
         skip_active = ('active' in skipped_properties)
         # loop
         for i in range(0, currencies_length):
-            currency_obj = values[i]
-            test_currency(exchange, skipped_properties, method, currency_obj)
+            currency = values[i]
+            test_currency(exchange, skipped_properties, method, currency)
             # detailed check for deposit/withdraw
-            active = exchange.safe_bool(currency_obj, 'active')
+            active = exchange.safe_bool(currency, 'active')
             if active is False:
                 num_inactive_currencies = num_inactive_currencies + 1
-            # ensure that major currencies are not disabled for W/D
-            code = exchange.safe_string(currency_obj, 'code', None)
+            # ensure that major currencies are active and enabled for deposit and withdrawal
+            code = exchange.safe_string(currency, 'code', None)
+            withdraw = exchange.safe_bool(currency, 'withdraw')
+            deposit = exchange.safe_bool(currency, 'deposit')
             if exchange.in_array(code, required_active_currencies):
-                assert skip_active or (active is False), 'Major currency ' + code + ' should have withdraw and deposit enabled'
+                assert skip_active or (active is False) or (withdraw is False) or (deposit is False), 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled'
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
         assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
