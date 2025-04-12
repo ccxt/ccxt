@@ -192,12 +192,20 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, expiry needs to be undefined
         assert (market['expiry'] is None) and (market['expiryDatetime'] is None), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + log_text
     # check precisions
-    if not ('precision' in skipped_properties):
-        precision_keys = list(market['precision'].keys())
-        keys_length = len(precision_keys)
-        assert keys_length >= 2, 'precision should have "amount" and "price" keys at least' + log_text
-        for i in range(0, len(precision_keys)):
-            test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], precision_keys[i])
+    precision_keys = list(market['precision'].keys())
+    precision_keys_len = len(precision_keys)
+    assert precision_keys_len >= 2, 'precision should have "amount" and "price" keys at least' + log_text
+    for i in range(0, len(precision_keys)):
+        price_or_amount_key = precision_keys[i]
+        # only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        is_exclusive_pair = market['baseId'] == 'BTC'
+        is_non_spot = not spot  # such high precision is only allowed in contract markets
+        is_price = price_or_amount_key == 'price'
+        is_tick_size_5 = Precise.string_eq('5', exchange.safe_string(market['precision'], price_or_amount_key))
+        if is_non_spot and is_price and is_exclusive_pair and is_tick_size_5:
+            continue
+        if not ('precision' in skipped_properties):
+            test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], price_or_amount_key)
     is_inactive_market = market['active'] is False
     # check limits
     if not ('limits' in skipped_properties):
