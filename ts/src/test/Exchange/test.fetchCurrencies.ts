@@ -9,7 +9,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
     // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     const currencies = await exchange.fetchCurrencies ();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-    let inactiveAmount = 0;
+    let numInactiveCurrencies = 0;
     const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
     const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if (currencies !== undefined) {
@@ -27,7 +27,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             // detailed check for deposit/withdraw
             const active = exchange.safeBool (currencyObj, 'active', false);
             if (active === false) {
-                inactiveAmount = inactiveAmount + 1;
+                numInactiveCurrencies = numInactiveCurrencies + 1;
             }
             // ensure that major currencies are not disabled for W/D
             const code = exchange.safeString (currencyObj, 'code', undefined);
@@ -36,7 +36,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             }
         }
         // check at least X% of currencies are active
-        const inactiveCurrenciesPercentage = (inactiveAmount / currenciesLength) * 100;
+        const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
         assert (skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString () + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString () + '%');
     }
     return true;
