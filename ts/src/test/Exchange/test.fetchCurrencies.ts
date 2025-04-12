@@ -32,7 +32,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             // ensure that major currencies are not disabled for W/D
             const code = exchange.safeString (currencyObj, 'code', undefined);
             if (exchange.inArray (code, requiredActiveCurrencies)) {
-                assert (skipActive || active, 'Major currency ' + code + ' should have withdraw and deposit enabled');
+                assert (skipActive || (active === false), 'Major currency ' + code + ' should have withdraw and deposit enabled');
             }
         }
         // check at least X% of currencies are active
