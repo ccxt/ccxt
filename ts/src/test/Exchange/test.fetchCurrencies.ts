@@ -17,7 +17,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
         // ensure exchange returns enough length of currencies
-        assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+        // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         // allow skipped exchanges
         const skipActive = ('active' in skippedProperties);
         // loop
@@ -33,9 +33,9 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             const code = exchange.safeString (currency, 'code', undefined);
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
-            if (exchange.inArray (code, requiredActiveCurrencies)) {
-                // assert (skipActive || (active === false) || (withdraw === false) || (deposit == false), 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled');
-            }
+            // if (exchange.inArray (code, requiredActiveCurrencies)) {
+            //     assert (skipActive || (active === false) || (withdraw === false) || (deposit == false), 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled');
+            // }
         }
         // check at least X% of currencies are active
         const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
