@@ -156,11 +156,11 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             assert($linear !== $inverse, 'linear and inverse must not be the same' . $log_text);
         }
         // contract size should be defined
-        assert((!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || $contract_size !== null), '"contractSize" must be defined when "contract" is true' . $log_text);
+        assert(((is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || $contract_size !== null), '"contractSize" must be defined when "contract" is true' . $log_text);
         // contract size should be above zero
-        assert(!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || Precise::string_gt($contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' . $log_text);
+        assert((is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || Precise::string_gt($contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' . $log_text);
         // settle should be defined
-        assert(!(is_array($skipped_properties) && array_key_exists('settle', $skipped_properties)) || ($market['settle'] !== null && $market['settleId'] !== null), '"settle" & "settleId" must be defined when "contract" is true' . $log_text);
+        assert((is_array($skipped_properties) && array_key_exists('settle', $skipped_properties)) || ($market['settle'] !== null && $market['settleId'] !== null), '"settle" & "settleId" must be defined when "contract" is true' . $log_text);
     } else {
         // linear & inverse needs to be undefined
         assert($linear === null && $inverse === null && $quanto === null, 'market linear and inverse (and quanto) must be undefined when "contract" is false' . $log_text);
