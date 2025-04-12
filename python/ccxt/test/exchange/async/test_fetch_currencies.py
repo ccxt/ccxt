@@ -42,7 +42,7 @@ async def test_fetch_currencies(exchange, skipped_properties):
             # ensure that major currencies are not disabled for W/D
             code = exchange.safe_string(currency_obj, 'code', None)
             if exchange.in_array(code, required_active_currencies):
-                assert skip_active or active, 'Major currency ' + code + ' should have withdraw and deposit enabled'
+                assert skip_active or (active is False), 'Major currency ' + code + ' should have withdraw and deposit enabled'
         # check at least X% of currencies are active
         active_currencies_pcnt = (active_amount / currencies_length) * 100
         assert skip_active or (active_currencies_pcnt >= minmium_active_currencies_pcnt), 'Percentage of active currencies is too low at ' + str(active_currencies_pcnt) + '% that is less than the required minimum of ' + str(minmium_active_currencies_pcnt) + '%'
