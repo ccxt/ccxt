@@ -16,6 +16,8 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         const values = Object.values (currencies);
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
+        // ensure exchange returns enough length of currencies
+        assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         for (let i = 0; i < currenciesLength; i++) {
             const currencyObj = values[i];
             testCurrency (exchange, skippedProperties, method, currencyObj);
@@ -26,12 +28,13 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             if (active) {
                 activeAmount = activeAmount + 1;
             }
-            // check if major currency
+            // ensure that major currencies are not disabled for W/D
             const code = exchange.safeString (currencyObj, 'code', undefined);
             if (exchange.inArray (code, requiredActiveCurrencies)) {
                 assert (withdraw && deposit, 'Major currency ' + code + ' should have withdraw and deposit enabled');
             }
         }
+        // check at least X% of currencies are active
         const activeCurrenciesPcnt = (activeAmount / currenciesLength) * 100;
         assert (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt, 'Active currencies percentage is below the minimum (' + minmiumActiveCurrenciesPcnt.toString () + ') required: ' + activeCurrenciesPcnt.toString () + '%');
     }
