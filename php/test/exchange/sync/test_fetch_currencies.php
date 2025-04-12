@@ -14,8 +14,8 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     $currencies = $exchange->fetch_currencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-    $active_amount = 0;
-    $minmium_active_currencies_pcnt = 40; // eg. at least X% currencies should be active
+    $num_inactive_currencies = 0;
+    $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
     $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
     if ($currencies !== null) {
         $values = is_array($currencies) ? array_values($currencies) : array();
@@ -31,8 +31,8 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             test_currency($exchange, $skipped_properties, $method, $currency_obj);
             // detailed check for deposit/withdraw
             $active = $exchange->safe_bool($currency_obj, 'active', false);
-            if ($active) {
-                $active_amount = $active_amount + 1;
+            if ($active === false) {
+                $num_inactive_currencies = $num_inactive_currencies + 1;
             }
             // ensure that major currencies are not disabled for W/D
             $code = $exchange->safe_string($currency_obj, 'code', null);
@@ -41,8 +41,8 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             }
         }
         // check at least X% of currencies are active
-        $active_currencies_pcnt = ($active_amount / $currencies_length) * 100;
-        assert($skip_active || ($active_currencies_pcnt >= $minmium_active_currencies_pcnt), 'Percentage of active currencies is too low at ' . ((string) $active_currencies_pcnt) . '% that is less than the required minimum of ' . ((string) $minmium_active_currencies_pcnt) . '%');
+        $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
+        assert($skip_active || ($inactive_currencies_percentage < $max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' . ((string) $inactive_currencies_percentage) . '% that is more than the allowed maximum of ' . ((string) $max_inactive_currencies_percentage) . '%');
     }
     return true;
 }
