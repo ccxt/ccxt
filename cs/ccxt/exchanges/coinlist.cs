@@ -472,7 +472,7 @@ public partial class coinlist : Exchange
         //     {
         //         "symbols": [
         //             {
-        //                 "symbol": "CQT-USDT",
+        //                 "symbol": "CQT-USDT", // spot
         //                 "base_currency": "CQT",
         //                 "is_trader_geofenced": false,
         //                 "list_time": "2021-06-15T00:00:00.000Z",
@@ -499,6 +499,62 @@ public partial class coinlist : Exchange
 
     public override object parseMarket(object market)
     {
+        // perp
+        //   {
+        //       "symbol":"BTC-PERP",
+        //       "base_currency":"BTC",
+        //       "is_trader_geofenced":false,
+        //       "expiry_name":null,
+        //       "expiry_time":null,
+        //       "list_time":"2024-09-16T00:00:00.000Z",
+        //       "type":"perp-swap",
+        //       "series_code":"BTC",
+        //       "long_name":"Bitcoin",
+        //       "asset_class":"CRYPTO",
+        //       "minimum_price_increment":"0.01",
+        //       "minimum_size_increment":"0.0001",
+        //       "quote_currency":"USDT",
+        //       "multiplier":"1",
+        //       "contract_frequency":"FGHJKMNQUVXZ",
+        //       "index_code":".BTC-USDT",
+        //       "price_band_threshold_market":"0.05",
+        //       "price_band_threshold_limit":"0.25",
+        //       "maintenance_initial_ratio":"0.500000000000000000",
+        //       "liquidation_initial_ratio":"0.500000000000000000",
+        //       "last_price":"75881.36000000",
+        //       "fair_price":"76256.00000000",
+        //       "index_price":"77609.90000000",
+        //       "mark_price":"76237.75000000",
+        //       "mark_price_dollarizer":"0.99950000",
+        //       "funding_interval":{
+        //          "hours":"8"
+        //       },
+        //       "funding_rate_index_code":".BTC-USDT-FR8H",
+        //       "initial_margin_base":"0.200000000000000000",
+        //       "initial_margin_per_contract":"0.160000000000000000",
+        //       "position_limit":"5.0000"
+        //   }
+        // spot
+        //    {
+        //        "symbol": "CQT-USDT", // spot
+        //        "base_currency": "CQT",
+        //        "is_trader_geofenced": false,
+        //        "list_time": "2021-06-15T00:00:00.000Z",
+        //        "type": "spot",
+        //        "series_code": "CQT-USDT-SPOT",
+        //        "long_name": "Covalent",
+        //        "asset_class": "CRYPTO",
+        //        "minimum_price_increment": "0.0001",
+        //        "minimum_size_increment": "0.0001",
+        //        "quote_currency": "USDT",
+        //        "index_code": null,
+        //        "price_band_threshold_market": "0.05",
+        //        "price_band_threshold_limit": "0.25",
+        //        "last_price": "0.12160000",
+        //        "fair_price": "0.12300000",
+        //        "index_price": null
+        //    }
+        object isSwap = isEqual(this.safeString(market, "type"), "perp-swap");
         object id = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "base_currency");
         object quoteId = this.safeString(market, "quote_currency");
@@ -507,26 +563,42 @@ public partial class coinlist : Exchange
         object amountPrecision = this.safeString(market, "minimum_size_increment");
         object pricePrecision = this.safeString(market, "minimum_price_increment");
         object created = this.safeString(market, "list_time");
+        object settledId = null;
+        object settled = null;
+        object linear = null;
+        object inverse = null;
+        object contractSize = null;
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(isSwap))
+        {
+            contractSize = this.parseNumber("1");
+            linear = true;
+            inverse = false;
+            settledId = quoteId;
+            settled = quote;
+            symbol = add(add(symbol, ":"), quote);
+        }
+        object type = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         return new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", null },
+            { "settle", settled },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", null },
-            { "type", "spot" },
-            { "spot", true },
+            { "settleId", settledId },
+            { "type", type },
+            { "spot", !isTrue(isSwap) },
             { "margin", false },
-            { "swap", false },
+            { "swap", isSwap },
             { "future", false },
             { "option", false },
             { "active", true },
-            { "contract", false },
-            { "linear", null },
-            { "inverse", null },
-            { "contractSize", null },
+            { "contract", isSwap },
+            { "linear", linear },
+            { "inverse", inverse },
+            { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },

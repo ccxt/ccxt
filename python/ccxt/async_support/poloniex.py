@@ -429,6 +429,7 @@ class poloniex(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'trigger': False,
                         'trailing': False,
+                        'symbolRequired': False,
                     },
                     'fetchMyTrades': {
                         'limit': 100,
@@ -2572,7 +2573,7 @@ class poloniex(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

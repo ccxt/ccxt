@@ -616,6 +616,7 @@ class derive extends Exchange {
         $swap = false;
         $option = false;
         $linear = null;
+        $inverse = null;
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
@@ -638,6 +639,7 @@ class derive extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             $swap = true;
             $linear = true;
+            $inverse = false;
             $marketType = 'swap';
         } elseif ($type === 'option') {
             $settleId = 'USDC';
@@ -655,6 +657,8 @@ class derive extends Exchange {
             } else {
                 $optionType = 'call';
             }
+            $linear = true;
+            $inverse = false;
         }
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -674,7 +678,7 @@ class derive extends Exchange {
             'active' => $this->safe_bool($market, 'is_active'),
             'contract' => ($swap || $option),
             'linear' => $linear,
-            'inverse' => null,
+            'inverse' => $inverse,
             'contractSize' => ($spot) ? null : 1,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1912,7 +1916,7 @@ class derive extends Exchange {
         if ($order === null) {
             $order = $rawOrder;
         }
-        $timestamp = $this->safe_integer($rawOrder, 'nonce');
+        $timestamp = $this->safe_integer_2($rawOrder, 'creation_timestamp', 'nonce');
         $orderId = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'instrument_name');
         if ($marketId !== null) {
@@ -2468,17 +2472,20 @@ class derive extends Exchange {
         $result = array(
             'info' => $response,
         );
-        // TODO:
-        // checked multiple subaccounts
-        // checked $balance after open orders / positions
         for ($i = 0; $i < count($response); $i++) {
             $subaccount = $response[$i];
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
                 $balance = $collaterals[$j];
                 $code = $this->safe_currency_code($this->safe_string($balance, 'currency'));
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'amount');
+                $account = $this->safe_dict($result, $code);
+                if ($account === null) {
+                    $account = $this->account();
+                    $account['total'] = $this->safe_string($balance, 'amount');
+                } else {
+                    $amount = $this->safe_string($balance, 'amount');
+                    $account['total'] = Precise::string_add($account['total'], $amount);
+                }
                 $result[$code] = $account;
             }
         }

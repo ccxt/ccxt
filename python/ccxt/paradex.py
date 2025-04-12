@@ -496,6 +496,57 @@ class paradex(Exchange, ImplicitAPI):
         #         "max_tob_spread": "0.2"
         #     }
         #
+        # {
+        #     "symbol":"BTC-USD-96000-C",
+        #     "base_currency":"BTC",
+        #     "quote_currency":"USD",
+        #     "settlement_currency":"USDC",
+        #     "order_size_increment":"0.001",
+        #     "price_tick_size":"0.01",
+        #     "min_notional":"100",
+        #     "open_at":"1736764200000",
+        #     "expiry_at":"0",
+        #     "asset_kind":"PERP_OPTION",
+        #     "market_kind":"cross",
+        #     "position_limit":"10",
+        #     "price_bands_width":"0.05",
+        #     "iv_bands_width":"0.05",
+        #     "max_open_orders":"100",
+        #     "max_funding_rate":"0.02",
+        #     "option_cross_margin_params":{
+        #        "imf":{
+        #           "long_itm":"0.2",
+        #           "short_itm":"0.15",
+        #           "short_otm":"0.1",
+        #           "short_put_cap":"0.5",
+        #           "premium_multiplier":"1"
+        #        },
+        #        "mmf":{
+        #           "long_itm":"0.1",
+        #           "short_itm":"0.075",
+        #           "short_otm":"0.05",
+        #           "short_put_cap":"0.5",
+        #           "premium_multiplier":"0.5"
+        #        }
+        #     },
+        #     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        #     "oracle_ewma_factor":"0.20000046249626113",
+        #     "max_order_size":"2",
+        #     "max_funding_rate_change":"0.02",
+        #     "max_tob_spread":"0.2",
+        #     "interest_rate":"0.0001",
+        #     "clamp_rate":"0.02",
+        #     "option_type":"CALL",
+        #     "strike_price":"96000",
+        #     "funding_period_hours":"24",
+        #     "tags":[
+        #     ]
+        #  }
+        #
+        assetKind = self.safe_string(market, 'asset_kind')
+        isOption = (assetKind == 'PERP_OPTION')
+        type = 'option' if (isOption) else 'swap'
+        isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
         baseId = self.safe_string(market, 'base_currency')
@@ -505,6 +556,13 @@ class paradex(Exchange, ImplicitAPI):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
+        optionType = self.safe_string(market, 'option_type')
+        strikePrice = self.safe_string(market, 'strike_price')
+        if isOption:
+            optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
+            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix
+        else:
+            expiry = None
         takerFee = self.parse_number('0.0003')
         makerFee = self.parse_number('-0.00005')
         return self.safe_market_structure({
@@ -516,23 +574,23 @@ class paradex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': type,
             'spot': False,
             'margin': None,
-            'swap': True,
+            'swap': isSwap,
             'future': False,
-            'option': False,
+            'option': isOption,
             'active': self.safe_bool(market, 'enableTrading'),
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': self.parse_number('1'),
-            'expiry': None if (expiry == 0) else expiry,
+            'expiry': expiry,
             'expiryDatetime': None if (expiry == 0) else self.iso8601(expiry),
-            'strike': None,
-            'optionType': None,
+            'strike': self.parse_number(strikePrice),
+            'optionType': self.safe_string_lower(market, 'option_type'),
             'precision': {
                 'amount': self.safe_number(market, 'order_size_increment'),
                 'price': self.safe_number(market, 'price_tick_size'),

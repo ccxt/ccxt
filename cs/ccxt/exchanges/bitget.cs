@@ -1888,7 +1888,7 @@ public partial class bitget : Exchange
             object priceDecimals = this.safeInteger(market, "pricePlace");
             object amountDecimals = this.safeInteger(market, "volumePlace");
             object priceStep = this.safeString(market, "priceEndStep");
-            object amountStep = this.safeString(market, "minTradeNum");
+            object amountStep = this.safeString(market, "sizeMultiplier");
             var precise = new Precise(priceStep);
             precise.decimals = mathMax(precise.decimals, priceDecimals);
             precise.reduce();
@@ -2460,20 +2460,23 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchWithdrawals", null, since, limit, parameters, "idLessThan", "idLessThan", null, 100);
         }
-        if (isTrue(isEqual(code, null)))
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawals() requires a `code` argument")) ;
+            currency = this.currency(code);
         }
-        object currency = this.currency(code);
         if (isTrue(isEqual(since, null)))
         {
             since = subtract(this.milliseconds(), 7776000000); // 90 days
         }
         object request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
             { "startTime", since },
             { "endTime", this.milliseconds() },
         };
+        if (isTrue(!isEqual(currency, null)))
+        {
+            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
+        }
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];

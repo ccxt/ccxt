@@ -388,6 +388,7 @@ export default class bingx extends Exchange {
                                 'uid': 1,
                                 'apiKey/query': 2,
                                 'account/apiPermissions': 5,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,
@@ -827,7 +828,7 @@ export default class bingx extends Exchange {
         //                  {
         //                    "symbol": "GEAR-USDT",
         //                    "minQty": 735, // deprecated
-        //                    "maxQty": 2941177, // deprecated
+        //                    "maxQty": 2941177, // deprecated.
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,

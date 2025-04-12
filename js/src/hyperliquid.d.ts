@@ -288,6 +288,17 @@ export default class hyperliquid extends Exchange {
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name hyperliquid#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates

@@ -386,6 +386,7 @@ class bingx extends bingx$1 {
                                 'uid': 1,
                                 'apiKey/query': 2,
                                 'account/apiPermissions': 5,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,
@@ -822,7 +823,7 @@ class bingx extends bingx$1 {
         //                  {
         //                    "symbol": "GEAR-USDT",
         //                    "minQty": 735, // deprecated
-        //                    "maxQty": 2941177, // deprecated
+        //                    "maxQty": 2941177, // deprecated.
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -1458,62 +1459,82 @@ class bingx extends bingx$1 {
         // spot
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //           "bids": [
-        //             [
-        //               "26324.73",
-        //               "0.37655"
+        //         "code":0,
+        //         "timestamp":1743240504535,
+        //         "data":{
+        //             "bids":[
+        //                 ["83775.39","1.981875"],
+        //                 ["83775.38","0.001076"],
+        //                 ["83775.34","0.254716"],
         //             ],
-        //             [
-        //               "26324.71",
-        //               "0.31888"
+        //             "asks":[
+        //                 ["83985.40","0.000013"],
+        //                 ["83980.00","0.000011"],
+        //                 ["83975.70","0.000061000000000000005"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26340.30",
-        //               "6.45221"
-        //             ],
-        //             [
-        //               "26340.15",
-        //               "6.73261"
-        //             ],
-        //         ]}
+        //             "ts":1743240504535,
+        //             "lastUpdateId":13565639906
+        //         }
         //     }
         //
-        // swap
+        //
+        // linear swap
         //
         //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //           "T": 1683914263304,
-        //           "bids": [
-        //             [
-        //               "26300.90000000",
-        //               "30408.00000000"
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "T":1743240836255,
+        //             "bids":[
+        //                 ["83760.7","7.0861"],
+        //                 ["83760.6","0.0044"],
+        //                 ["83757.7","1.9526"],
         //             ],
-        //             [
-        //               "26300.80000000",
-        //               "50906.00000000"
+        //             "asks":[
+        //                 ["83784.3","8.3531"],
+        //                 ["83782.8","23.7289"],
+        //                 ["83780.1","18.0617"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26301.00000000",
-        //               "43616.00000000"
+        //             "bidsCoin":[
+        //                 ["83760.7","0.0007"],
+        //                 ["83760.6","0.0000"],
+        //                 ["83757.7","0.0002"],
         //             ],
-        //             [
-        //               "26301.10000000",
-        //               "49402.00000000"
+        //             "asksCoin":[
+        //                 ["83784.3","0.0008"],
+        //                 ["83782.8","0.0024"],
+        //                 ["83780.1","0.0018"],
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "timestamp":1743240979146,
+        //         "data":{
+        //             "T":1743240978691,
+        //             "bids":[
+        //                 ["83611.4","241.0"],
+        //                 ["83611.3","1.0"],
+        //                 ["83602.9","666.0"],
         //             ],
-        //         ]}
+        //             "asks":[
+        //                 ["83645.0","4253.0"],
+        //                 ["83640.5","3188.0"],
+        //                 ["83636.0","5540.0"],
+        //             ]
+        //         }
         //     }
         //
         const orderbook = this.safeDict(response, 'data', {});
+        const nonce = this.safeInteger(orderbook, 'lastUpdateId');
         const timestamp = this.safeInteger2(orderbook, 'T', 'ts');
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+        const result = this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+        result['nonce'] = nonce;
+        return result;
     }
     /**
      * @method

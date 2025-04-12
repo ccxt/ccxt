@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position, CrossBorrowRate } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -193,6 +193,10 @@ export default class whitebit extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -307,6 +311,19 @@ export default class whitebit extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name whitebit#setLeverage
@@ -524,6 +541,24 @@ export default class whitebit extends Exchange {
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
+    /**
+     * @method
+     * @name whitebit#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    parseBorrowRate(info: any, currency?: Currency): {
+        currency: string;
+        rate: number;
+        period: number;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    };
     isFiat(currency: string): boolean;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

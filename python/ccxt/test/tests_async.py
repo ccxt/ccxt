@@ -1156,7 +1156,9 @@ class testMainClass:
 
     async def test_binance(self):
         exchange = self.init_offline_exchange('binance')
-        spot_id = 'x-R4BD3S82'
+        spot_id = 'x-TKT5PX2F'
+        swap_id = 'x-cvBPrNm9'
+        inverse_swap_id = 'x-xcKtGhcu'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
@@ -1165,7 +1167,6 @@ class testMainClass:
         client_order_id = spot_order_request['newClientOrderId']
         spot_id_string = str(spot_id)
         assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
-        swap_id = 'x-xcKtGhcu'
         swap_order_request = None
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
@@ -1176,11 +1177,13 @@ class testMainClass:
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        # linear swap
         client_order_id_swap = swap_order_request['newClientOrderId']
         swap_id_string = str(swap_id)
         assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
+        # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(swap_id_string), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + swap_id_string
+        assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
         create_orders_request = None
         try:
             orders = [{

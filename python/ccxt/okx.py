@@ -1293,6 +1293,7 @@ class okx(Exchange, ImplicitAPI):
                     },
                     'fetchOHLCV': {
                         'limit': 300,
+                        'historical': 100,
                     },
                 },
                 'spot': {
@@ -1623,11 +1624,12 @@ class okx(Exchange, ImplicitAPI):
         optionType = None
         if contract:
             symbol = symbol + ':' + settle
-            expiry = self.safe_integer(market, 'expTime')
             if future:
+                expiry = self.safe_integer(market, 'expTime')
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
             elif option:
+                expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 ymd = self.yymmdd(expiry)
@@ -1818,38 +1820,24 @@ class okx(Exchange, ImplicitAPI):
             code = currency['code']
             chains = dataByCurrencyId[currencyId]
             networks: dict = {}
-            currencyActive = False
-            depositEnabled = False
-            withdrawEnabled = False
-            maxPrecision = None
-            for j in range(0, len(chains)):
+            type = 'crypto'
+            chainsLength = len(chains)
+            for j in range(0, chainsLength):
                 chain = chains[j]
-                canDeposit = self.safe_bool(chain, 'canDep')
-                depositEnabled = canDeposit if (canDeposit) else depositEnabled
-                canWithdraw = self.safe_bool(chain, 'canWd')
-                withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
-                canInternal = self.safe_bool(chain, 'canInternal')
-                active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = active if (active) else currencyActive
-                networkId = self.safe_string(chain, 'chain')
-                if (networkId is not None) and (networkId.find('-') >= 0):
+                networkId = self.safe_string(chain, 'chain')  # USDT-BEP20, USDT-Avalance-C, etc
+                if networkId is not None:
                     idParts = networkId.split('-')
                     parts = self.array_slice(idParts, 1)
                     chainPart = '-'.join(parts)
                     networkCode = self.network_id_to_code(chainPart, currency['code'])
-                    precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
-                    if maxPrecision is None:
-                        maxPrecision = precision
-                    else:
-                        maxPrecision = Precise.string_min(maxPrecision, precision)
                     networks[networkCode] = {
                         'id': networkId,
                         'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
+                        'active': None,
+                        'deposit': self.safe_bool(chain, 'canDep'),
+                        'withdraw': self.safe_bool(chain, 'canWd'),
                         'fee': self.safe_number(chain, 'fee'),
-                        'precision': self.parse_number(precision),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
                         'limits': {
                             'withdraw': {
                                 'min': self.safe_number(chain, 'minWd'),
@@ -1858,25 +1846,29 @@ class okx(Exchange, ImplicitAPI):
                         },
                         'info': chain,
                     }
+                else:
+                    # only happens for FIAT currency
+                    type = 'fiat'
             firstChain = self.safe_dict(chains, 0, {})
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': self.safe_string(firstChain, 'name'),
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
-                'precision': self.parse_number(maxPrecision),
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                 },
+                'type': type,
                 'networks': networks,
-            }
+            })
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -2393,6 +2385,8 @@ class okx(Exchange, ImplicitAPI):
         timezone = self.safe_string(options, 'timezone', 'UTC')
         if limit is None:
             limit = 100  # default 100, max 100
+        else:
+            limit = min(limit, 300)  # max 100
         duration = self.parse_timeframe(timeframe)
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
@@ -2410,6 +2404,7 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
+                limit = min(limit, 100)  # max 100 for historical endpoint
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)

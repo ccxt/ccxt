@@ -490,6 +490,57 @@ class paradex extends Exchange {
         //         "max_tob_spread" => "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":array(
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        ),
+        //        "mmf":array(
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     ),
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":array(
+        //     )
+        //  }
+        //
+        $assetKind = $this->safe_string($market, 'asset_kind');
+        $isOption = ($assetKind === 'PERP_OPTION');
+        $type = ($isOption) ? 'option' : 'swap';
+        $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quote_currency');
         $baseId = $this->safe_string($market, 'base_currency');
@@ -499,6 +550,14 @@ class paradex extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $expiry = $this->safe_integer($market, 'expiry_at');
+        $optionType = $this->safe_string($market, 'option_type');
+        $strikePrice = $this->safe_string($market, 'strike_price');
+        if ($isOption) {
+            $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
+            $symbol = $symbol . '-' . $strikePrice . '-' . $optionTypeSuffix;
+        } else {
+            $expiry = null;
+        }
         $takerFee = $this->parse_number('0.0003');
         $makerFee = $this->parse_number('-0.00005');
         return $this->safe_market_structure(array(
@@ -510,23 +569,23 @@ class paradex extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
-            'type' => 'swap',
+            'type' => $type,
             'spot' => false,
             'margin' => null,
-            'swap' => true,
+            'swap' => $isSwap,
             'future' => false,
-            'option' => false,
+            'option' => $isOption,
             'active' => $this->safe_bool($market, 'enableTrading'),
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $takerFee,
             'maker' => $makerFee,
             'contractSize' => $this->parse_number('1'),
-            'expiry' => ($expiry === 0) ? null : $expiry,
+            'expiry' => $expiry,
             'expiryDatetime' => ($expiry === 0) ? null : $this->iso8601($expiry),
-            'strike' => null,
-            'optionType' => null,
+            'strike' => $this->parse_number($strikePrice),
+            'optionType' => $this->safe_string_lower($market, 'option_type'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'order_size_increment'),
                 'price' => $this->safe_number($market, 'price_tick_size'),

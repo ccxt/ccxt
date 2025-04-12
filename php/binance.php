@@ -1288,12 +1288,13 @@ class binance extends Exchange {
                 ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 'broker' => array(
-                    'spot' => 'x-R4BD3S82',
-                    'margin' => 'x-R4BD3S82',
-                    'future' => 'x-xcKtGhcu',
+                    'spot' => 'x-TKT5PX2F',
+                    'margin' => 'x-TKT5PX2F',
+                    'future' => 'x-cvBPrNm9',
                     'delivery' => 'x-xcKtGhcu',
-                    'swap' => 'x-xcKtGhcu',
+                    'swap' => 'x-cvBPrNm9',
                     'option' => 'x-xcKtGhcu',
+                    'inverse' => 'x-xcKtGhcu',
                 ),
                 'accountsByType' => array(
                     'main' => 'MAIN',
@@ -4139,9 +4140,9 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104562",  // mark price
+        //         "markPrice" => "11793.63104562", // mark price
         //         "indexPrice" => "11781.80495970", // index price
-        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts.
+        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
         //         "nextFundingTime" => 1597392000000,
         //         "interestRate" => "0.00010000",
@@ -5273,7 +5274,7 @@ class binance extends Exchange {
         //             "symbol" => "BTCUSDT",
         //             "orderId" => 16383176297,
         //             "orderListId" => -1,
-        //             "clientOrderId" => "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //             "clientOrderId" => "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //             "transactTime" => 1670891847932,
         //             "price" => "13500.00000000",
         //             "origQty" => "0.00085000",
@@ -5669,7 +5670,7 @@ class binance extends Exchange {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => 16383176297,
         //         "orderListId" => -1,
-        //         "clientOrderId" => "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //         "clientOrderId" => "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //         "transactTime" => 1670891847932,
         //         "price" => "13500.00000000",
         //         "origQty" => "0.00085000",
@@ -5732,7 +5733,7 @@ class binance extends Exchange {
         //       "symbol" => "BTCUSDT",
         //       "orderId" => 5403233939,
         //       "orderListId" => -1,
-        //       "clientOrderId" => "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "clientOrderId" => "x-TKT5PX2F5e669e75b6c14f69a2c43e",
         //       "transactTime" => 1617151923742,
         //       "price" => "0.00000000",
         //       "origQty" => "0.00050000",
@@ -5907,7 +5908,7 @@ class binance extends Exchange {
         // createOrder, cancelAllOrders, cancelOrder => portfolio margin spot margin
         //
         //     {
-        //         "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //         "clientOrderId" => "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //         "cummulativeQuoteQty" => "0.00000000",
         //         "executedQty" => "0.00000000",
         //         "fills" => array(),
@@ -5928,7 +5929,7 @@ class binance extends Exchange {
         //     {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => 24700763749,
-        //         "clientOrderId" => "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "clientOrderId" => "x-TKT5PX2F6f724c2a4af6425f98c7b6",
         //         "price" => "35000.00000000",
         //         "origQty" => "0.00100000",
         //         "executedQty" => "0.00000000",
@@ -6503,8 +6504,12 @@ class binance extends Exchange {
         $clientOrderIdRequest = $isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
         if ($clientOrderId === null) {
             $broker = $this->safe_dict($this->options, 'broker', array());
-            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
+            $idMarketType = 'spot';
+            if ($market['contract']) {
+                $idMarketType = ($market['swap'] && $market['linear']) ? 'swap' : 'inverse';
+            }
+            $brokerId = $this->safe_string($broker, $idMarketType, $defaultId);
             $request[$clientOrderIdRequest] = $brokerId . $this->uuid22();
         } else {
             $request[$clientOrderIdRequest] = $clientOrderId;
@@ -7086,7 +7091,7 @@ class binance extends Exchange {
         //         array(
         //             "symbol" => "BTCUSDT",
         //             "orderId" => 24684460474,
-        //             "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //             "clientOrderId" => "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //             "price" => "35000.00000000",
         //             "origQty" => "0.00100000",
         //             "executedQty" => "0.00000000",
@@ -7746,7 +7751,7 @@ class binance extends Exchange {
             //    array(
             //        {
             //            "symbol" => "ADAUSDT",
-            //            "origClientOrderId" => "x-R4BD3S82662cde7a90114475b86e21",
+            //            "origClientOrderId" => "x-TKT5PX2F662cde7a90114475b86e21",
             //            "orderId" => 3935107,
             //            "orderListId" => -1,
             //            "clientOrderId" => "bqM2w1oTlugfRAjnTIFBE8",
@@ -11915,7 +11920,7 @@ class binance extends Exchange {
                 if ($newClientOrderId === null) {
                     $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
                     $marketType = $isSpotOrMargin ? 'spot' : 'future';
-                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
                     $broker = $this->safe_dict($this->options, 'broker', array());
                     $brokerId = $this->safe_string($broker, $marketType, $defaultId);
                     $params['newClientOrderId'] = $brokerId . $this->uuid22();

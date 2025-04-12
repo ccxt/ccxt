@@ -1696,7 +1696,9 @@ public partial class testMainClass
     public async virtual Task<object> testBinance()
     {
         Exchange exchange = this.initOfflineExchange("binance");
-        object spotId = "x-R4BD3S82";
+        object spotId = "x-TKT5PX2F";
+        object swapId = "x-cvBPrNm9";
+        object inverseSwapId = "x-xcKtGhcu";
         object spotOrderRequest = null;
         try
         {
@@ -1708,7 +1710,6 @@ public partial class testMainClass
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
         object spotIdString = ((object)spotId).ToString();
         assert(((string)clientOrderId).StartsWith(((string)spotIdString)), add(add(add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString));
-        object swapId = "x-xcKtGhcu";
         object swapOrderRequest = null;
         try
         {
@@ -1725,11 +1726,13 @@ public partial class testMainClass
         {
             swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
+        // linear swap
         object clientOrderIdSwap = getValue(swapOrderRequest, "newClientOrderId");
         object swapIdString = ((object)swapId).ToString();
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
+        // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
-        assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
+        assert(((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
         object createOrdersRequest = null;
         try
         {

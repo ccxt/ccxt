@@ -413,6 +413,7 @@ class poloniex extends poloniex$1 {
                         'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchMyTrades': {
                         'limit': 100,

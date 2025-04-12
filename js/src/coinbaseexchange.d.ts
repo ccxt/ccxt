@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseexchange.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class coinbaseexchange
  * @augments Exchange
@@ -322,12 +322,7 @@ export default class coinbaseexchange extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

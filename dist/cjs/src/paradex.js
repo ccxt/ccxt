@@ -492,6 +492,57 @@ class paradex extends paradex$1 {
         //         "max_tob_spread": "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":{
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        },
+        //        "mmf":{
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     },
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":[
+        //     ]
+        //  }
+        //
+        const assetKind = this.safeString(market, 'asset_kind');
+        const isOption = (assetKind === 'PERP_OPTION');
+        const type = (isOption) ? 'option' : 'swap';
+        const isSwap = (type === 'swap');
         const marketId = this.safeString(market, 'symbol');
         const quoteId = this.safeString(market, 'quote_currency');
         const baseId = this.safeString(market, 'base_currency');
@@ -499,8 +550,17 @@ class paradex extends paradex$1 {
         const base = this.safeCurrencyCode(baseId);
         const settleId = this.safeString(market, 'settlement_currency');
         const settle = this.safeCurrencyCode(settleId);
-        const symbol = base + '/' + quote + ':' + settle;
-        const expiry = this.safeInteger(market, 'expiry_at');
+        let symbol = base + '/' + quote + ':' + settle;
+        let expiry = this.safeInteger(market, 'expiry_at');
+        const optionType = this.safeString(market, 'option_type');
+        const strikePrice = this.safeString(market, 'strike_price');
+        if (isOption) {
+            const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
+            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
+        }
+        else {
+            expiry = undefined;
+        }
         const takerFee = this.parseNumber('0.0003');
         const makerFee = this.parseNumber('-0.00005');
         return this.safeMarketStructure({
@@ -512,23 +572,23 @@ class paradex extends paradex$1 {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': type,
             'spot': false,
             'margin': undefined,
-            'swap': true,
+            'swap': isSwap,
             'future': false,
-            'option': false,
+            'option': isOption,
             'active': this.safeBool(market, 'enableTrading'),
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': this.parseNumber('1'),
-            'expiry': (expiry === 0) ? undefined : expiry,
+            'expiry': expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601(expiry),
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': this.parseNumber(strikePrice),
+            'optionType': this.safeStringLower(market, 'option_type'),
             'precision': {
                 'amount': this.safeNumber(market, 'order_size_increment'),
                 'price': this.safeNumber(market, 'price_tick_size'),

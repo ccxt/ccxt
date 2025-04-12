@@ -58,6 +58,7 @@ export default class ascendex extends Exchange {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
@@ -67,10 +68,13 @@ export default class ascendex extends Exchange {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMySettlementHistory': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -79,6 +83,7 @@ export default class ascendex extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -90,6 +95,7 @@ export default class ascendex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -551,7 +557,7 @@ export default class ascendex extends Exchange {
         const ids = Object.keys (dataById);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const currency = dataById[id];
             const code = this.safeCurrencyCode (id);
             const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
@@ -2048,7 +2054,7 @@ export default class ascendex extends Exchange {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty

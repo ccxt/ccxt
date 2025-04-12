@@ -66,7 +66,7 @@ export default class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
+        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
         this.liquidations = {};
         this.orderbooks = {};
@@ -545,7 +545,7 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -2513,7 +2513,8 @@ export default class Exchange {
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
-                const network = networks[keys[i]];
+                const key = keys[i];
+                const network = networks[key];
                 const deposit = this.safeBool(network, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
@@ -2525,6 +2526,15 @@ export default class Exchange {
                 const active = this.safeBool(network, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
+                }
+                // set network 'active' to false if D or W is disabled
+                if (this.safeBool(network, 'active') === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    }
+                    else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
@@ -6706,23 +6716,13 @@ export default class Exchange {
         }
         return result;
     }
-    removeRepeatedElementsFromArray(input) {
+    removeRepeatedElementsFromArray(input, fallbackToTimestamp = true) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString(entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString(uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
-            }
-            else {
-                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString(uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            const uniqValue = fallbackToTimestamp ? this.safeStringN(entry, ['id', 'timestamp', 0]) : this.safeString(entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
+                uniqueResult[uniqValue] = entry;
             }
         }
         const values = Object.values(uniqueResult);
