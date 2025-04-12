@@ -1830,32 +1830,32 @@ export default class okx extends Exchange {
             const chainsLength = chains.length;
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain'); // USDT-BEP20, USDT-Avalance-C, etc
-                if (networkId !== undefined) {
-                    const idParts = networkId.split ('-');
-                    const parts = this.arraySlice (idParts, 1);
-                    const chainPart = parts.join ('-');
-                    const networkCode = this.networkIdToCode (chainPart, currency['code']);
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': this.safeBool (chain, 'canDep'),
-                        'withdraw': this.safeBool (chain, 'canWd'),
-                        'fee': this.safeNumber (chain, 'fee'),
-                        'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
-                        },
-                        'info': chain,
-                    };
-                } else {
-                    // only happens for FIAT currency
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+                if (networkId === '') {
+                    // only happens for fiat 'TRY' currency
                     type = 'fiat';
                 }
+                const idParts = networkId.split ('-');
+                const parts = this.arraySlice (idParts, 1);
+                const chainPart = parts.join ('-');
+                const networkCode = this.networkIdToCode (chainPart, currency['code']);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'canDep'),
+                    'withdraw': this.safeBool (chain, 'canWd'),
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
+                        },
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeDict (chains, 0, {});
             result[code] = this.safeCurrencyStructure ({
