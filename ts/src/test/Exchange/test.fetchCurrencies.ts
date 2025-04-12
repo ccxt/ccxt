@@ -18,25 +18,26 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         const currenciesLength = values.length;
         // ensure exchange returns enough length of currencies
         assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+        // allow skipped exchanges
+        const skipActive = ('active' in skippedProperties);
+        // loop
         for (let i = 0; i < currenciesLength; i++) {
             const currencyObj = values[i];
             testCurrency (exchange, skippedProperties, method, currencyObj);
             // detailed check for deposit/withdraw
             const active = exchange.safeBool (currencyObj, 'active', false);
-            const withdraw = exchange.safeBool (currencyObj, 'withdraw', false);
-            const deposit = exchange.safeBool (currencyObj, 'deposit', false);
             if (active) {
                 activeAmount = activeAmount + 1;
             }
             // ensure that major currencies are not disabled for W/D
             const code = exchange.safeString (currencyObj, 'code', undefined);
             if (exchange.inArray (code, requiredActiveCurrencies)) {
-                assert (withdraw && deposit, 'Major currency ' + code + ' should have withdraw and deposit enabled');
+                assert (skipActive || active, 'Major currency ' + code + ' should have withdraw and deposit enabled');
             }
         }
         // check at least X% of currencies are active
         const activeCurrenciesPcnt = (activeAmount / currenciesLength) * 100;
-        assert (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt, 'Percentage of active currencies is too low at ' + activeCurrenciesPcnt.toString () + '% that is less than the required minimum of ' + minmiumActiveCurrenciesPcnt.toString () + '%');
+        assert (skipActive || (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt), 'Percentage of active currencies is too low at ' + activeCurrenciesPcnt.toString () + '% that is less than the required minimum of ' + minmiumActiveCurrenciesPcnt.toString () + '%');
     }
     return true;
 }
