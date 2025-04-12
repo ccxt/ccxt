@@ -12,8 +12,8 @@ async function testFetchCurrencies(exchange, skippedProperties) {
     // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     const currencies = await exchange.fetchCurrencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-    let activeAmount = 0;
-    const minmiumActiveCurrenciesPcnt = 40; // eg. at least X% currencies should be active
+    let numInactiveCurrencies = 0;
+    const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
     const requiredActiveCurrencies = ['BTC', 'ETH', 'USDT', 'USDC'];
     if (currencies !== undefined) {
         const values = Object.values(currencies);
@@ -29,8 +29,8 @@ async function testFetchCurrencies(exchange, skippedProperties) {
             testCurrency(exchange, skippedProperties, method, currencyObj);
             // detailed check for deposit/withdraw
             const active = exchange.safeBool(currencyObj, 'active', false);
-            if (active) {
-                activeAmount = activeAmount + 1;
+            if (active === false) {
+                numInactiveCurrencies = numInactiveCurrencies + 1;
             }
             // ensure that major currencies are not disabled for W/D
             const code = exchange.safeString(currencyObj, 'code', undefined);
@@ -39,8 +39,8 @@ async function testFetchCurrencies(exchange, skippedProperties) {
             }
         }
         // check at least X% of currencies are active
-        const activeCurrenciesPcnt = (activeAmount / currenciesLength) * 100;
-        assert(skipActive || (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt), 'Percentage of active currencies is too low at ' + activeCurrenciesPcnt.toString() + '% that is less than the required minimum of ' + minmiumActiveCurrenciesPcnt.toString() + '%');
+        const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
+        assert(skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString() + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString() + '%');
     }
     return true;
 }
