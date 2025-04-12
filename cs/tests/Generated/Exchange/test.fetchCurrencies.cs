@@ -40,7 +40,7 @@ public partial class testMainClass : BaseTest
                 object code = exchange.safeString(currencyObj, "code", null);
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
                 {
-                    assert(isTrue(skipActive) || isTrue(active), add(add("Major currency ", code), " should have withdraw and deposit enabled"));
+                    assert(isTrue(skipActive) || isTrue((isEqual(active, false))), add(add("Major currency ", code), " should have withdraw and deposit enabled"));
                 }
             }
             // check at least X% of currencies are active
