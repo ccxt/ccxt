@@ -36,7 +36,7 @@ async def test_fetch_currencies(exchange, skipped_properties):
             currency_obj = values[i]
             test_currency(exchange, skipped_properties, method, currency_obj)
             # detailed check for deposit/withdraw
-            active = exchange.safe_bool(currency_obj, 'active', False)
+            active = exchange.safe_bool(currency_obj, 'active')
             if active is False:
                 num_inactive_currencies = num_inactive_currencies + 1
             # ensure that major currencies are not disabled for W/D

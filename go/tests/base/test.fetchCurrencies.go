@@ -32,7 +32,7 @@ import "github.com/ccxt/ccxt/go/v4"
                         var currencyObj interface{} = GetValue(values, i)
                         TestCurrency(exchange, skippedProperties, method, currencyObj)
                         // detailed check for deposit/withdraw
-                        var active interface{} = exchange.SafeBool(currencyObj, "active", false)
+                        var active interface{} = exchange.SafeBool(currencyObj, "active")
                         if IsTrue(IsEqual(active, false)) {
                             numInactiveCurrencies = Add(numInactiveCurrencies, 1)
                         }
