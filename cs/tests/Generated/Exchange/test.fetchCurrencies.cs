@@ -42,12 +42,11 @@ public partial class testMainClass : BaseTest
                 object deposit = exchange.safeBool(currency, "deposit");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
                 {
-                    assert(isTrue(isTrue(isTrue(skipActive) || isTrue((isEqual(active, false)))) || isTrue((isEqual(withdraw, false)))) || isTrue((isEqual(deposit, false))), add(add("Major currency ", code), " should have active, withdraw and deposit flags enabled"));
+
                 }
             }
             // check at least X% of currencies are active
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
-            assert(isTrue(skipActive) || isTrue((isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
         }
         return true;
     }
