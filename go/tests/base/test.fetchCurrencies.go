@@ -16,8 +16,8 @@ import "github.com/ccxt/ccxt/go/v4"
                 currencies:= (<-exchange.FetchCurrencies())
                 PanicOnError(currencies)
                 // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-                var activeAmount interface{} = 0
-                var minmiumActiveCurrenciesPcnt interface{} = 40 // eg. at least X% currencies should be active
+                var numInactiveCurrencies interface{} = 0
+                var maxInactiveCurrenciesPercentage interface{} = 60 // no more than X% currencies should be inactive
                 var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
@@ -33,8 +33,8 @@ import "github.com/ccxt/ccxt/go/v4"
                         TestCurrency(exchange, skippedProperties, method, currencyObj)
                         // detailed check for deposit/withdraw
                         var active interface{} = exchange.SafeBool(currencyObj, "active", false)
-                        if IsTrue(active) {
-                            activeAmount = Add(activeAmount, 1)
+                        if IsTrue(IsEqual(active, false)) {
+                            numInactiveCurrencies = Add(numInactiveCurrencies, 1)
                         }
                         // ensure that major currencies are not disabled for W/D
                         var code interface{} = exchange.SafeString(currencyObj, "code", nil)
@@ -43,8 +43,8 @@ import "github.com/ccxt/ccxt/go/v4"
                         }
                     }
                     // check at least X% of currencies are active
-                    var activeCurrenciesPcnt interface{} = Multiply((Divide(activeAmount, currenciesLength)), 100)
-                    Assert(IsTrue(skipActive) || IsTrue((IsGreaterThanOrEqual(activeCurrenciesPcnt, minmiumActiveCurrenciesPcnt))), Add(Add(Add(Add("Percentage of active currencies is too low at ", ToString(activeCurrenciesPcnt)), "% that is less than the required minimum of "), ToString(minmiumActiveCurrenciesPcnt)), "%"))
+                    var inactiveCurrenciesPercentage interface{} = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
+                    Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
                 }
             
                 ch <- true
