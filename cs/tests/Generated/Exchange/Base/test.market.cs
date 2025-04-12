@@ -170,11 +170,11 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(linear, inverse), add("linear and inverse must not be the same", logText));
             }
             // contract size should be defined
-            assert((!isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(!isEqual(contractSize, null))), add("\"contractSize\" must be defined when \"contract\" is true", logText));
+            assert((isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(!isEqual(contractSize, null))), add("\"contractSize\" must be defined when \"contract\" is true", logText));
             // contract size should be above zero
-            assert(!isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(Precise.stringGt(contractSize, "0")), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
+            assert(isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(Precise.stringGt(contractSize, "0")), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
             // settle should be defined
-            assert(!isTrue((inOp(skippedProperties, "settle"))) || isTrue((isTrue(!isEqual(getValue(market, "settle"), null)) && isTrue(!isEqual(getValue(market, "settleId"), null)))), add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
+            assert(isTrue((inOp(skippedProperties, "settle"))) || isTrue((isTrue(!isEqual(getValue(market, "settle"), null)) && isTrue(!isEqual(getValue(market, "settleId"), null)))), add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
         } else
         {
             // linear & inverse needs to be undefined

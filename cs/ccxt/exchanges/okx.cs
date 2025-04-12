@@ -1767,34 +1767,33 @@ public partial class okx : Exchange
             for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chain"); // USDT-BEP20, USDT-Avalance-C, etc
-                if (isTrue(!isEqual(networkId, null)))
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                object networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
+                if (isTrue(isEqual(networkId, "")))
                 {
-                    object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object parts = this.arraySlice(idParts, 1);
-                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
-                    object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
-                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                        { "id", networkId },
-                        { "network", networkCode },
-                        { "active", null },
-                        { "deposit", this.safeBool(chain, "canDep") },
-                        { "withdraw", this.safeBool(chain, "canWd") },
-                        { "fee", this.safeNumber(chain, "fee") },
-                        { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", this.safeNumber(chain, "minWd") },
-                                { "max", this.safeNumber(chain, "maxWd") },
-                            } },
-                        } },
-                        { "info", chain },
-                    };
-                } else
-                {
-                    // only happens for FIAT currency
+                    // only happens for fiat 'TRY' currency
                     type = "fiat";
                 }
+                object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                object parts = this.arraySlice(idParts, 1);
+                object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
+                object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "canDep") },
+                    { "withdraw", this.safeBool(chain, "canWd") },
+                    { "fee", this.safeNumber(chain, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "minWd") },
+                            { "max", this.safeNumber(chain, "maxWd") },
+                        } },
+                    } },
+                    { "info", chain },
+                };
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {

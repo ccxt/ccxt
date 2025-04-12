@@ -13,14 +13,39 @@ public partial class testMainClass : BaseTest
         // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
         object currencies = await exchange.fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+        object activeAmount = 0;
+        object minmiumActiveCurrenciesPcnt = 40; // eg. at least X% currencies should be active
+        object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         if (isTrue(!isEqual(currencies, null)))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
-            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+            object currenciesLength = getArrayLength(values);
+            // ensure exchange returns enough length of currencies
+            assert(isGreaterThan(currenciesLength, 5), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
+            // allow skipped exchanges
+            object skipActive = (inOp(skippedProperties, "active"));
+            // loop
+            for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
             {
-                testCurrency(exchange, skippedProperties, method, getValue(values, i));
+                object currencyObj = getValue(values, i);
+                testCurrency(exchange, skippedProperties, method, currencyObj);
+                // detailed check for deposit/withdraw
+                object active = exchange.safeBool(currencyObj, "active", false);
+                if (isTrue(active))
+                {
+                    activeAmount = add(activeAmount, 1);
+                }
+                // ensure that major currencies are not disabled for W/D
+                object code = exchange.safeString(currencyObj, "code", null);
+                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
+                {
+                    assert(isTrue(skipActive) || isTrue(active), add(add("Major currency ", code), " should have withdraw and deposit enabled"));
+                }
             }
+            // check at least X% of currencies are active
+            object activeCurrenciesPcnt = multiply((divide(activeAmount, currenciesLength)), 100);
+            assert(isTrue(skipActive) || isTrue((isGreaterThanOrEqual(activeCurrenciesPcnt, minmiumActiveCurrenciesPcnt))), add(add(add(add("Percentage of active currencies is too low at ", ((object)activeCurrenciesPcnt).ToString()), "% that is less than the required minimum of "), ((object)minmiumActiveCurrenciesPcnt).ToString()), "%"));
         }
         return true;
     }
