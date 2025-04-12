@@ -36,7 +36,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         }
         // check at least X% of currencies are active
         const activeCurrenciesPcnt = (activeAmount / currenciesLength) * 100;
-        assert (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt, 'Active currencies percentage is below the minimum (' + minmiumActiveCurrenciesPcnt.toString () + ') required: ' + activeCurrenciesPcnt.toString () + '%');
+        assert (activeCurrenciesPcnt >= minmiumActiveCurrenciesPcnt, 'Percentage of active currencies is too low at ' + activeCurrenciesPcnt.toString () + '% that is less than the required minimum of ' + minmiumActiveCurrenciesPcnt.toString () + '%');
     }
     return true;
 }
