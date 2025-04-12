@@ -154,6 +154,7 @@ export default class coinlist extends Exchange {
                         'v1/leaderboard': 1,
                         'v1/affiliate/{competition_code}': 1,
                         'v1/competition/{competition_id}': 1,
+                        'v1/symbols/{symbol}/funding': 1,
                     },
                 },
                 'private': {
@@ -177,6 +178,7 @@ export default class coinlist extends Exchange {
                         'v1/credits': 1, // not unified
                         'v1/positions': 1,
                         'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/closedPositions': 1,
                     },
                     'post': {
                         'v1/keys': 1, // not unified
@@ -194,6 +196,9 @@ export default class coinlist extends Exchange {
                     'patch': {
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1, // not unified
+                    },
+                    'put': {
+                        'v1/accounts/{trader_id}/alias': 1,
                     },
                     'delete': {
                         'v1/keys/{key}': 1,  // not unified
