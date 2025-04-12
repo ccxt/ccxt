@@ -1825,7 +1825,7 @@ class gate(Exchange, ImplicitAPI):
             currencyName = currencyId if currencyId.endswith('_OLD') else partFirst
             withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
             depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
-            tradeDisabled = self.safe_bool(entry, 'trade_disabled')
+            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
             precision = self.parse_number('0.0001')  # temporary safe default, because no value provided from API
             code = self.safe_currency_code(currencyName)
             # check leveraged tokens(e.g. BTC3S, ETH5L)
