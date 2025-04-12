@@ -1864,9 +1864,7 @@ export default class gate extends Exchange {
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
             const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
-            const withdrawEnabled = !withdrawDisabled;
             const depositDisabled = this.safeBool (entry, 'deposit_disabled', false)
-            const depositEnabled = !depositDisabled;
             const tradeDisabled = this.safeBool (entry, 'trade_disabled');
             const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
             const code = this.safeCurrencyCode (currencyName);
@@ -1897,8 +1895,8 @@ export default class gate extends Exchange {
                     },
                 },
                 'active': !tradeDisabled,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': !depositDisabled,
+                'withdraw': !withdrawDisabled,
                 'fee': undefined,
                 'precision': precision,
             };
