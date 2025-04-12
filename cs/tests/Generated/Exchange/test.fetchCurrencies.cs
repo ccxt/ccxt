@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
                 object currencyObj = getValue(values, i);
                 testCurrency(exchange, skippedProperties, method, currencyObj);
                 // detailed check for deposit/withdraw
-                object active = exchange.safeBool(currencyObj, "active", false);
+                object active = exchange.safeBool(currencyObj, "active");
                 if (isTrue(isEqual(active, false)))
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
