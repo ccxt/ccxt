@@ -193,6 +193,7 @@
             "loadMarkets": {
                 "contractSize": "not defined when contract",
                 "settle": "set hardcoded, not settleid provided",
+                "settleId": "not provided",
                 "currencyIdAndCode": "messed"
             },
             "orderBook": {
@@ -242,6 +243,9 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "quoteVolume": "incorrect"
+            },
+            "watchOrderBook": {
+                "bid": "bid>ask issue, https://github.com/ccxt/ccxt/actions/runs/14356838751/job/40248419588?pr=25638#step:9:437"
             }
         }
     },
