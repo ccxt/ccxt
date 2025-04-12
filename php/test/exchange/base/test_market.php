@@ -203,12 +203,21 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert(($market['expiry'] === null) && ($market['expiryDatetime'] === null), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' . $log_text);
     }
     // check precisions
-    if (!(is_array($skipped_properties) && array_key_exists('precision', $skipped_properties))) {
-        $precision_keys = is_array($market['precision']) ? array_keys($market['precision']) : array();
-        $keys_length = count($precision_keys);
-        assert($keys_length >= 2, 'precision should have "amount" and "price" keys at least' . $log_text);
-        for ($i = 0; $i < count($precision_keys); $i++) {
-            check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $precision_keys[$i]);
+    $precision_keys = is_array($market['precision']) ? array_keys($market['precision']) : array();
+    $precision_keys_len = count($precision_keys);
+    assert($precision_keys_len >= 2, 'precision should have "amount" and "price" keys at least' . $log_text);
+    for ($i = 0; $i < count($precision_keys); $i++) {
+        $price_or_amount_key = $precision_keys[$i];
+        // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        $is_exclusive_pair = $market['baseId'] === 'BTC';
+        $is_non_spot = !$spot; // such high precision is only allowed in contract markets
+        $is_price = $price_or_amount_key === 'price';
+        $is_tick_size_5 = Precise::string_eq('5', $exchange->safe_string($market['precision'], $price_or_amount_key));
+        if ($is_non_spot && $is_price && $is_exclusive_pair && $is_tick_size_5) {
+            continue;
+        }
+        if (!(is_array($skipped_properties) && array_key_exists('precision', $skipped_properties))) {
+            check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $price_or_amount_key);
         }
     }
     $is_inactive_market = $market['active'] === false;
