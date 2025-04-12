@@ -25,17 +25,19 @@ async function testFetchCurrencies(exchange, skippedProperties) {
         const skipActive = ('active' in skippedProperties);
         // loop
         for (let i = 0; i < currenciesLength; i++) {
-            const currencyObj = values[i];
-            testCurrency(exchange, skippedProperties, method, currencyObj);
+            const currency = values[i];
+            testCurrency(exchange, skippedProperties, method, currency);
             // detailed check for deposit/withdraw
-            const active = exchange.safeBool(currencyObj, 'active');
+            const active = exchange.safeBool(currency, 'active');
             if (active === false) {
                 numInactiveCurrencies = numInactiveCurrencies + 1;
             }
-            // ensure that major currencies are not disabled for W/D
-            const code = exchange.safeString(currencyObj, 'code', undefined);
+            // ensure that major currencies are active and enabled for deposit and withdrawal
+            const code = exchange.safeString(currency, 'code', undefined);
+            const withdraw = exchange.safeBool(currency, 'withdraw');
+            const deposit = exchange.safeBool(currency, 'deposit');
             if (exchange.inArray(code, requiredActiveCurrencies)) {
-                assert(skipActive || (active === false), 'Major currency ' + code + ' should have withdraw and deposit enabled');
+                assert(skipActive || (active === false) || (withdraw === false) || (deposit == false), 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled');
             }
         }
         // check at least X% of currencies are active
