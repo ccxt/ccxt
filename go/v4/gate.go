@@ -1927,9 +1927,9 @@ func  (this *gate) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                 var partFirst interface{} = this.SafeString(parts, 0)
                 // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
                 var currencyName interface{} = Ternary(IsTrue(EndsWith(currencyId, "_OLD")), currencyId, partFirst)
-                var withdrawEnabled interface{} =         !IsTrue(this.SafeBool(entry, "withdraw_disabled"))
-                var depositEnabled interface{} =         !IsTrue(this.SafeBool(entry, "deposit_disabled"))
-                var tradeDisabled interface{} =         !IsTrue(this.SafeBool(entry, "trade_disabled"))
+                var withdrawDisabled interface{} = this.SafeBool(entry, "withdraw_disabled", false)
+                var depositDisabled interface{} = this.SafeBool(entry, "deposit_disabled", false)
+                var tradeDisabled interface{} = this.SafeBool(entry, "trade_disabled")
                 var precision interface{} = this.ParseNumber("0.0001") // temporary safe default, because no value provided from API
                 var code interface{} = this.SafeCurrencyCode(currencyName)
                 // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1959,8 +1959,8 @@ func  (this *gate) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                         },
                     },
                     "active": !IsTrue(tradeDisabled),
-                    "deposit": depositEnabled,
-                    "withdraw": withdrawEnabled,
+                    "deposit": !IsTrue(depositDisabled),
+                    "withdraw": !IsTrue(withdrawDisabled),
                     "fee": nil,
                     "precision": precision,
                 }
