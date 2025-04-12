@@ -39,7 +39,7 @@ import "github.com/ccxt/ccxt/go/v4"
                         // ensure that major currencies are not disabled for W/D
                         var code interface{} = exchange.SafeString(currencyObj, "code", nil)
                         if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
-                            Assert(IsTrue(skipActive) || IsTrue(active), Add(Add("Major currency ", code), " should have withdraw and deposit enabled"))
+                            Assert(IsTrue(skipActive) || IsTrue((IsEqual(active, false))), Add(Add("Major currency ", code), " should have withdraw and deposit enabled"))
                         }
                     }
                     // check at least X% of currencies are active
