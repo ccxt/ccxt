@@ -1851,7 +1851,7 @@ public partial class gate : Exchange
             object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
             object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
             object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
-            object tradeDisabled = this.safeBool(entry, "trade_disabled");
+            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
             object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
             object code = this.safeCurrencyCode(currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
