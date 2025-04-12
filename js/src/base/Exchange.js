@@ -2505,9 +2505,6 @@ export default class Exchange {
     }
     safeCurrencyStructure(currency) {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const currencyDeposit = this.safeBool(currency, 'deposit');
-        const currencyWithdraw = this.safeBool(currency, 'withdraw');
-        const currencyActive = this.safeBool(currency, 'active');
         const networks = this.safeDict(currency, 'networks', {});
         const keys = Object.keys(networks);
         const length = keys.length;
@@ -2516,25 +2513,29 @@ export default class Exchange {
                 const key = keys[i];
                 const network = networks[key];
                 const deposit = this.safeBool(network, 'deposit');
+                const currencyDeposit = this.safeBool(currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
+                const currencyWithdraw = this.safeBool(currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                const active = this.safeBool(network, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
-                }
                 // set network 'active' to false if D or W is disabled
-                if (this.safeBool(network, 'active') === undefined) {
+                let active = this.safeBool(network, 'active');
+                if (active === undefined) {
                     if (deposit && withdraw) {
                         currency['networks'][key]['active'] = true;
                     }
                     else if (deposit !== undefined && withdraw !== undefined) {
                         currency['networks'][key]['active'] = false;
                     }
+                }
+                active = this.safeBool(network, 'active');
+                const currencyActive = this.safeBool(currency, 'active');
+                if (currencyActive === undefined || active) {
+                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
