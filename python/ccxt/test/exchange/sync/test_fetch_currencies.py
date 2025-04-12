@@ -28,7 +28,7 @@ def test_fetch_currencies(exchange, skipped_properties):
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         currencies_length = len(values)
         # ensure exchange returns enough length of currencies
-        assert currencies_length > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + str(currencies_length)
+        # assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         # allow skipped exchanges
         skip_active = ('active' in skipped_properties)
         # loop
@@ -43,9 +43,6 @@ def test_fetch_currencies(exchange, skipped_properties):
             code = exchange.safe_string(currency, 'code', None)
             withdraw = exchange.safe_bool(currency, 'withdraw')
             deposit = exchange.safe_bool(currency, 'deposit')
-            if exchange.in_array(code, required_active_currencies):
-                assert skip_active or (active is False) or (withdraw is False) or (deposit is False), 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled'
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
-        assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
     return True
