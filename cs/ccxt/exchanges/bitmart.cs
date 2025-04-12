@@ -5756,7 +5756,7 @@ public partial class bitmart : Exchange
         //     }
         // }
         //
-        return await ((Task<object>)callDynamically(this, "privatePostContractPrivateSetPositionMode", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostContractPrivateSetPositionMode(this.extend(request, parameters));
     }
 
     /**
@@ -5771,7 +5771,7 @@ public partial class bitmart : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "privateGetContractPrivateGetPositionMode", new object[] { parameters }));
+        object response = await this.privateGetContractPrivateGetPositionMode(parameters);
         //
         // {
         //     "code": 1000,

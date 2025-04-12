@@ -6286,7 +6286,7 @@ func  (this *bitmart) SetPositionMode(hedged interface{}, optionalArgs ...interf
                 "position_mode": positionMode,
             }
         
-                retRes552815 :=  (<-this.callDynamically("privatePostContractPrivateSetPositionMode", this.Extend(request, params)))
+                retRes552815 :=  (<-this.PrivatePostContractPrivateSetPositionMode(this.Extend(request, params)))
                 PanicOnError(retRes552815)
                     //
             // {
@@ -6323,7 +6323,7 @@ func  (this *bitmart) FetchPositionMode(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            response:= (<-this.callDynamically("privateGetContractPrivateGetPositionMode", params))
+            response:= (<-this.PrivateGetContractPrivateGetPositionMode(params))
             PanicOnError(response)
             //
             // {

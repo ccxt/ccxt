@@ -75,6 +75,7 @@ interface Exchange {
     privateGetContractPrivateAffilateRebateList (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAffilateTradeList (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTransactionHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateGetPositionMode (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub (params?: {}): Promise<implicitReturnType>;
@@ -119,6 +120,7 @@ interface Exchange {
     privatePostContractPrivateModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitTrailOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelTrailOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSetPositionMode (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

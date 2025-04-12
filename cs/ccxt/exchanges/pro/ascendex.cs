@@ -490,7 +490,7 @@ public partial class ascendex : ccxt.ascendex
         //
         // {
         //     "m": "balance",
-        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         //     "ac": "CASH",
         //     "data": {
         //         "a" : "USDT",
