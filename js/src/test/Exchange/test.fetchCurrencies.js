@@ -28,7 +28,7 @@ async function testFetchCurrencies(exchange, skippedProperties) {
             const currencyObj = values[i];
             testCurrency(exchange, skippedProperties, method, currencyObj);
             // detailed check for deposit/withdraw
-            const active = exchange.safeBool(currencyObj, 'active', false);
+            const active = exchange.safeBool(currencyObj, 'active');
             if (active === false) {
                 numInactiveCurrencies = numInactiveCurrencies + 1;
             }
