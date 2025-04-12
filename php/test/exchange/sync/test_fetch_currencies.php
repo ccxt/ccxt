@@ -37,7 +37,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             // ensure that major currencies are not disabled for W/D
             $code = $exchange->safe_string($currency_obj, 'code', null);
             if ($exchange->in_array($code, $required_active_currencies)) {
-                assert($skip_active || $active, 'Major currency ' . $code . ' should have withdraw and deposit enabled');
+                assert($skip_active || ($active === false), 'Major currency ' . $code . ' should have withdraw and deposit enabled');
             }
         }
         // check at least X% of currencies are active
