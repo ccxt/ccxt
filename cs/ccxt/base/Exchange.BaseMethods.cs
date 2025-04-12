@@ -1640,9 +1640,6 @@ public partial class Exchange
     public virtual object safeCurrencyStructure(object currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        object currencyDeposit = this.safeBool(currency, "deposit");
-        object currencyWithdraw = this.safeBool(currency, "withdraw");
-        object currencyActive = this.safeBool(currency, "active");
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)networks).Keys);
         object length = getArrayLength(keys);
@@ -1653,22 +1650,20 @@ public partial class Exchange
                 object key = getValue(keys, i);
                 object network = getValue(networks, key);
                 object deposit = this.safeBool(network, "deposit");
+                object currencyDeposit = this.safeBool(currency, "deposit");
                 if (isTrue(isTrue(isEqual(currencyDeposit, null)) || isTrue(deposit)))
                 {
                     ((IDictionary<string,object>)currency)["deposit"] = deposit;
                 }
                 object withdraw = this.safeBool(network, "withdraw");
+                object currencyWithdraw = this.safeBool(currency, "withdraw");
                 if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
                 }
-                object active = this.safeBool(network, "active");
-                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
-                {
-                    ((IDictionary<string,object>)currency)["active"] = active;
-                }
                 // set network 'active' to false if D or W is disabled
-                if (isTrue(isEqual(this.safeBool(network, "active"), null)))
+                object active = this.safeBool(network, "active");
+                if (isTrue(isEqual(active, null)))
                 {
                     if (isTrue(isTrue(deposit) && isTrue(withdraw)))
                     {
@@ -1677,6 +1672,12 @@ public partial class Exchange
                     {
                         ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
                     }
+                }
+                active = this.safeBool(network, "active");
+                object currencyActive = this.safeBool(currency, "active");
+                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
+                {
+                    ((IDictionary<string,object>)currency)["active"] = active;
                 }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");

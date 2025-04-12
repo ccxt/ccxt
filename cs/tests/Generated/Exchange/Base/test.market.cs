@@ -170,11 +170,11 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(linear, inverse), add("linear and inverse must not be the same", logText));
             }
             // contract size should be defined
-            assert((!isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(!isEqual(contractSize, null))), add("\"contractSize\" must be defined when \"contract\" is true", logText));
+            assert((isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(!isEqual(contractSize, null))), add("\"contractSize\" must be defined when \"contract\" is true", logText));
             // contract size should be above zero
-            assert(!isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(Precise.stringGt(contractSize, "0")), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
+            assert(isTrue((inOp(skippedProperties, "contractSize"))) || isTrue(Precise.stringGt(contractSize, "0")), add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
             // settle should be defined
-            assert(!isTrue((inOp(skippedProperties, "settle"))) || isTrue((isTrue(!isEqual(getValue(market, "settle"), null)) && isTrue(!isEqual(getValue(market, "settleId"), null)))), add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
+            assert(isTrue((inOp(skippedProperties, "settle"))) || isTrue((isTrue(!isEqual(getValue(market, "settle"), null)) && isTrue(!isEqual(getValue(market, "settleId"), null)))), add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
         } else
         {
             // linear & inverse needs to be undefined
@@ -225,14 +225,24 @@ public partial class testMainClass : BaseTest
             assert(isTrue((isEqual(getValue(market, "expiry"), null))) && isTrue((isEqual(getValue(market, "expiryDatetime"), null))), add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        if (!isTrue((inOp(skippedProperties, "precision"))))
+        object precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
+        object precisionKeysLen = getArrayLength(precisionKeys);
+        assert(isGreaterThanOrEqual(precisionKeysLen, 2), add("precision should have \"amount\" and \"price\" keys at least", logText));
+        for (object i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
         {
-            object precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
-            object keysLength = getArrayLength(precisionKeys);
-            assert(isGreaterThanOrEqual(keysLength, 2), add("precision should have \"amount\" and \"price\" keys at least", logText));
-            for (object i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
+            object priceOrAmountKey = getValue(precisionKeys, i);
+            // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+            object isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
+            object isNonSpot = !isTrue(spot); // such high precision is only allowed in contract markets
+            object isPrice = isEqual(priceOrAmountKey, "price");
+            object isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
+            if (isTrue(isTrue(isTrue(isTrue(isNonSpot) && isTrue(isPrice)) && isTrue(isExclusivePair)) && isTrue(isTickSize5)))
             {
-                testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, getValue(market, "precision"), getValue(precisionKeys, i));
+                continue;
+            }
+            if (!isTrue((inOp(skippedProperties, "precision"))))
+            {
+                testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, getValue(market, "precision"), priceOrAmountKey);
             }
         }
         object isInactiveMarket = isEqual(getValue(market, "active"), false);
