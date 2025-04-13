@@ -30,7 +30,7 @@ async function watchOrderBook (exchangeId, symbol) {
 async function main () {
     const streams = {
         'binance': 'BTC/USDT',
-        'ftx': 'BTC/USDT',
+        'bybit': 'BTC/USDT',
     };
 
     await Promise.all ([
