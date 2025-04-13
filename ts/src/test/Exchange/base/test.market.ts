@@ -230,17 +230,17 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
 
     const isInactiveMarket = market['active'] === false;
     // check limits
-    if (!('limits' in skippedProperties)) {
-        const limitsKeys = Object.keys (market['limits']);
-        const keysLength = limitsKeys.length;
-        assert (keysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
-        for (let i = 0; i < limitsKeys.length; i++) {
-            const key = limitsKeys[i];
-            const limitEntry = market['limits'][key];
-            if (isInactiveMarket) {
-                // for inactive markets, there might be `0` for min & max values, so we skip
-                continue;
-            }
+    const limitsKeys = Object.keys (market['limits']);
+    const limitsKeysLength = limitsKeys.length;
+    assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+    for (let i = 0; i < limitsKeys.length; i++) {
+        const key = limitsKeys[i];
+        const limitEntry = market['limits'][key];
+        if (isInactiveMarket) {
+            // for inactive markets, there might be `0` for min & max values, so we skip
+            continue;
+        }    // check limits
+        if (!('limits' in skippedProperties)) {
             // min >= 0
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
             // max >= 0
@@ -252,12 +252,11 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             }
         }
     }
-    // check whether valid currency ID and CODE is used
-    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
-    }
+    // check currencies
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
+    // check ts
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {
