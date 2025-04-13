@@ -222,16 +222,16 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     }
     $is_inactive_market = $market['active'] === false;
     // check limits
-    if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
-        $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
-        $keys_length = count($limits_keys);
-        assert($keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' . $log_text);
-        for ($i = 0; $i < count($limits_keys); $i++) {
-            $key = $limits_keys[$i];
-            $limit_entry = $market['limits'][$key];
-            if ($is_inactive_market) {
-                continue;
-            }
+    $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
+    $limits_keys_length = count($limits_keys);
+    assert($limits_keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' . $log_text);
+    for ($i = 0; $i < count($limits_keys); $i++) {
+        $key = $limits_keys[$i];
+        $limit_entry = $market['limits'][$key];
+        if ($is_inactive_market) {
+            continue;
+        } // check limits
+        if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
             // min >= 0
             assert_greater_or_equal($exchange, $skipped_properties, $method, $limit_entry, 'min', '0');
             // max >= 0
@@ -243,12 +243,11 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             }
         }
     }
-    // check whether valid currency ID and CODE is used
-    if (!(is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
-        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
-        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
-        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
-    }
+    // check currencies
+    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
+    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
+    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
+    // check ts
     assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
     // margin modes
     if (!(is_array($skipped_properties) && array_key_exists('marginModes', $skipped_properties))) {
