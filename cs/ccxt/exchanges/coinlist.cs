@@ -148,6 +148,7 @@ public partial class coinlist : Exchange
                         { "v1/leaderboard", 1 },
                         { "v1/affiliate/{competition_code}", 1 },
                         { "v1/competition/{competition_id}", 1 },
+                        { "v1/symbols/{symbol}/funding", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -171,6 +172,7 @@ public partial class coinlist : Exchange
                         { "v1/credits", 1 },
                         { "v1/positions", 1 },
                         { "v1/accounts/{trader_id}/competitions", 1 },
+                        { "v1/closedPositions", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v1/keys", 1 },
@@ -188,6 +190,9 @@ public partial class coinlist : Exchange
                     { "patch", new Dictionary<string, object>() {
                         { "v1/orders/{order_id}", 1 },
                         { "v1/orders/bulk", 1 },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "v1/accounts/{trader_id}/alias", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "v1/keys/{key}", 1 },
