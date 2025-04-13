@@ -217,16 +217,16 @@ import "github.com/ccxt/ccxt/go/v4"
         }
         var isInactiveMarket interface{} = IsEqual(GetValue(market, "active"), false)
         // check limits
-        if !IsTrue((InOp(skippedProperties, "limits"))) {
-            var limitsKeys interface{} = ObjectKeys(GetValue(market, "limits"))
-            var keysLength interface{} =         GetArrayLength(limitsKeys)
-            Assert(IsGreaterThanOrEqual(keysLength, 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
-            for i := 0; IsLessThan(i, GetArrayLength(limitsKeys)); i++ {
-                var key interface{} = GetValue(limitsKeys, i)
-                var limitEntry interface{} = GetValue(GetValue(market, "limits"), key)
-                if IsTrue(isInactiveMarket) {
-                    continue
-                }
+        var limitsKeys interface{} = ObjectKeys(GetValue(market, "limits"))
+        var limitsKeysLength interface{} =     GetArrayLength(limitsKeys)
+        Assert(IsGreaterThanOrEqual(limitsKeysLength, 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
+        for i := 0; IsLessThan(i, GetArrayLength(limitsKeys)); i++ {
+            var key interface{} = GetValue(limitsKeys, i)
+            var limitEntry interface{} = GetValue(GetValue(market, "limits"), key)
+            if IsTrue(isInactiveMarket) {
+                continue
+            } // check limits
+            if !IsTrue((InOp(skippedProperties, "limits"))) {
                 // min >= 0
                 AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0")
                 // max >= 0
@@ -238,12 +238,11 @@ import "github.com/ccxt/ccxt/go/v4"
                 }
             }
         }
-        // check whether valid currency ID and CODE is used
-        if IsTrue(!IsTrue((InOp(skippedProperties, "currency"))) && !IsTrue((InOp(skippedProperties, "currencyIdAndCode")))) {
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "baseId"), GetValue(market, "base"))
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "quoteId"), GetValue(market, "quote"))
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "settleId"), GetValue(market, "settle"))
-        }
+        // check currencies
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "baseId"), GetValue(market, "base"))
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "quoteId"), GetValue(market, "quote"))
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "settleId"), GetValue(market, "settle"))
+        // check ts
         AssertTimestamp(exchange, skippedProperties, method, market, nil, "created")
         // margin modes
         if !IsTrue((InOp(skippedProperties, "marginModes"))) {
