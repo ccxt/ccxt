@@ -320,6 +320,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchL2OrderBook": {
+                "timestamp": "same"
             }
         }
     },
