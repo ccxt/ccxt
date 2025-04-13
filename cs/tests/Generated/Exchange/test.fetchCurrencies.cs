@@ -14,8 +14,8 @@ public partial class testMainClass : BaseTest
         object currencies = await exchange.fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
-        object maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
-        object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
+        // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+        // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
         if (isTrue(!isEqual(currencies, null)))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
             // ensure exchange returns enough length of currencies
             // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
             // allow skipped exchanges
-            object skipActive = (inOp(skippedProperties, "active"));
+            // const skipActive = ('active' in skippedProperties);
             // loop
             for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
             {
@@ -36,13 +36,7 @@ public partial class testMainClass : BaseTest
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
-                // ensure that major currencies are active and enabled for deposit and withdrawal
-                object code = exchange.safeString(currency, "code", null);
-                object withdraw = exchange.safeBool(currency, "withdraw");
-                object deposit = exchange.safeBool(currency, "deposit");
             }
-            // check at least X% of currencies are active
-            object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
         }
         return true;
     }

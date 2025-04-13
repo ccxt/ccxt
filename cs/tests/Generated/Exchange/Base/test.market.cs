@@ -247,19 +247,19 @@ public partial class testMainClass : BaseTest
         }
         object isInactiveMarket = isEqual(getValue(market, "active"), false);
         // check limits
-        if (!isTrue((inOp(skippedProperties, "limits"))))
+        object limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
+        object limitsKeysLength = getArrayLength(limitsKeys);
+        assert(isGreaterThanOrEqual(limitsKeysLength, 3), add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
+        for (object i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
         {
-            object limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
-            object keysLength = getArrayLength(limitsKeys);
-            assert(isGreaterThanOrEqual(keysLength, 3), add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
-            for (object i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
+            object key = getValue(limitsKeys, i);
+            object limitEntry = getValue(getValue(market, "limits"), key);
+            if (isTrue(isInactiveMarket))
             {
-                object key = getValue(limitsKeys, i);
-                object limitEntry = getValue(getValue(market, "limits"), key);
-                if (isTrue(isInactiveMarket))
-                {
-                    continue;
-                }
+                continue;
+            } // check limits
+            if (!isTrue((inOp(skippedProperties, "limits"))))
+            {
                 // min >= 0
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0");
                 // max >= 0
@@ -272,13 +272,11 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        // check whether valid currency ID and CODE is used
-        if (isTrue(!isTrue((inOp(skippedProperties, "currency"))) && !isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
-        {
-            testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
-            testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));
-            testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "settleId"), getValue(market, "settle"));
-        }
+        // check currencies
+        testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
+        testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));
+        testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "settleId"), getValue(market, "settle"));
+        // check ts
         testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, null, "created");
         // margin modes
         if (!isTrue((inOp(skippedProperties, "marginModes"))))

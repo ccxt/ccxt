@@ -78,6 +78,7 @@ export default class upbit extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -89,6 +90,7 @@ export default class upbit extends Exchange {
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
@@ -107,6 +109,7 @@ export default class upbit extends Exchange {
                         'market/all',
                         'candles/{timeframe}',
                         'candles/{timeframe}/{unit}',
+                        'candles/seconds',
                         'candles/minutes/{unit}',
                         'candles/minutes/1',
                         'candles/minutes/3',
@@ -119,9 +122,12 @@ export default class upbit extends Exchange {
                         'candles/days',
                         'candles/weeks',
                         'candles/months',
+                        'candles/years',
                         'trades/ticks',
                         'ticker',
+                        'ticker/all',
                         'orderbook',
+                        'orderbook/supported_levels', // Upbit KR only
                     ],
                 },
                 'private': {
@@ -129,26 +135,36 @@ export default class upbit extends Exchange {
                         'accounts',
                         'orders/chance',
                         'order',
-                        'orders',
                         'orders/closed',
                         'orders/open',
                         'orders/uuids',
                         'withdraws',
                         'withdraw',
                         'withdraws/chance',
+                        'withdraws/coin_addresses',
                         'deposits',
+                        'deposits/chance/coin',
                         'deposit',
                         'deposits/coin_addresses',
                         'deposits/coin_address',
+                        'travel_rule/vasps',
+                        'status/wallet', // Upbit KR only
+                        'api_keys', // Upbit KR only
                     ],
                     'post': [
                         'orders',
+                        'orders/cancel_and_new',
                         'withdraws/coin',
-                        'withdraws/krw',
+                        'withdraws/krw', // Upbit KR only
+                        'deposits/krw', // Upbit KR only
                         'deposits/generate_coin_address',
+                        'travel_rule/deposit/uuid',
+                        'travel_rule/deposit/txid',
                     ],
                     'delete': [
                         'order',
+                        'orders/open',
+                        'orders/uuids',
                     ],
                 },
             },
