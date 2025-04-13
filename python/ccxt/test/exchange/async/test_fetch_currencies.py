@@ -21,8 +21,8 @@ async def test_fetch_currencies(exchange, skipped_properties):
     currencies = await exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     num_inactive_currencies = 0
-    max_inactive_currencies_percentage = 60  # no more than X% currencies should be inactive
-    required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
+    # const maxInactiveCurrenciesPercentage = 60; # no more than X% currencies should be inactive
+    # const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if currencies is not None:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
@@ -30,7 +30,7 @@ async def test_fetch_currencies(exchange, skipped_properties):
         # ensure exchange returns enough length of currencies
         # assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         # allow skipped exchanges
-        skip_active = ('active' in skipped_properties)
+        # const skipActive = ('active' in skippedProperties);
         # loop
         for i in range(0, currencies_length):
             currency = values[i]
@@ -39,10 +39,4 @@ async def test_fetch_currencies(exchange, skipped_properties):
             active = exchange.safe_bool(currency, 'active')
             if active is False:
                 num_inactive_currencies = num_inactive_currencies + 1
-            # ensure that major currencies are active and enabled for deposit and withdrawal
-            code = exchange.safe_string(currency, 'code', None)
-            withdraw = exchange.safe_bool(currency, 'withdraw')
-            deposit = exchange.safe_bool(currency, 'deposit')
-        # check at least X% of currencies are active
-        inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
     return True
