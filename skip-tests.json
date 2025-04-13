@@ -705,6 +705,10 @@
             "loadMarkets": {
                 "currencyIdAndCode":"broken",
                 "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided",
+                "networks": "something implementation glitch"
             }
         }
     },
