@@ -160,6 +160,7 @@ class coinlist extends Exchange {
                         'v1/leaderboard' => 1,
                         'v1/affiliate/{competition_code}' => 1,
                         'v1/competition/{competition_id}' => 1,
+                        'v1/symbols/{symbol}/funding' => 1,
                     ),
                 ),
                 'private' => array(
@@ -183,6 +184,7 @@ class coinlist extends Exchange {
                         'v1/credits' => 1, // not unified
                         'v1/positions' => 1,
                         'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/closedPositions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -200,6 +202,9 @@ class coinlist extends Exchange {
                     'patch' => array(
                         'v1/orders/{order_id}' => 1,
                         'v1/orders/bulk' => 1, // not unified
+                    ),
+                    'put' => array(
+                        'v1/accounts/{trader_id}/alias' => 1,
                     ),
                     'delete' => array(
                         'v1/keys/{key}' => 1,  // not unified

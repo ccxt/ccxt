@@ -15,8 +15,8 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     $currencies = $exchange->fetch_currencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     $num_inactive_currencies = 0;
-    $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
-    $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
+    // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+    // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if ($currencies !== null) {
         $values = is_array($currencies) ? array_values($currencies) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
@@ -24,7 +24,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
         // ensure exchange returns enough length of currencies
         // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         // allow skipped exchanges
-        $skip_active = (is_array($skipped_properties) && array_key_exists('active', $skipped_properties));
+        // const skipActive = ('active' in skippedProperties);
         // loop
         for ($i = 0; $i < $currencies_length; $i++) {
             $currency = $values[$i];
@@ -34,13 +34,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             if ($active === false) {
                 $num_inactive_currencies = $num_inactive_currencies + 1;
             }
-            // ensure that major currencies are active and enabled for deposit and withdrawal
-            $code = $exchange->safe_string($currency, 'code', null);
-            $withdraw = $exchange->safe_bool($currency, 'withdraw');
-            $deposit = $exchange->safe_bool($currency, 'deposit');
         }
-        // check at least X% of currencies are active
-        $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
     }
     return true;
 }
