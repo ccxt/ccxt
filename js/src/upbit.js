@@ -79,6 +79,7 @@ export default class upbit extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -90,6 +91,7 @@ export default class upbit extends Exchange {
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
