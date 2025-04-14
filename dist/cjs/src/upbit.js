@@ -76,6 +76,7 @@ class upbit extends upbit$1 {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -87,6 +88,7 @@ class upbit extends upbit$1 {
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
