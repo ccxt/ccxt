@@ -1335,7 +1335,7 @@ export default class binance extends Exchange {
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                 },
-                // keeping this object for backward-compatibility
+                // keeping this object for backward-compatibility, used only in "parseDepositAddress"
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
@@ -1432,6 +1432,7 @@ export default class binance extends Exchange {
                 },
                 'networksById': {
                     'SOL': 'SOL', // temporary fix for SPL definition
+                    // the below dict is not used anymore, but keeping it for backward-compatibility
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -9153,10 +9154,13 @@ export default class binance extends Exchange {
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
-        // we have a hardcoded "implied networks", but it is possible to dynamically find them
-        if (impliedNetwork === undefined) {
+        // as deposit-address endpoint provides only network url (not network ID/CODE)
+        // we have a hardcoded "reversedNetworks" dictionary, which maps urls to chains
+        // however, we no longer need hardcoded dict, as we can dynamically match them
+        let networkCode = impliedNetwork;
+        if (networkCode === undefined) {
             // so, if value was not changed from hardcoded value
-            impliedNetwork = this.getNetworkCodeByNetworkUrl (code, url);
+            networkCode = this.getNetworkCodeByNetworkUrl (code, url);
         }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
@@ -9166,7 +9170,7 @@ export default class binance extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': impliedNetwork,
+            'network': networkCode,
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -11899,10 +11903,10 @@ export default class binance extends Exchange {
     }
 
     getNetworkCodeByNetworkUrl (currencyCode: string, url: Str = undefined): Str {
-        let networkCode = undefined;
         if (url === undefined) {
-            return networkCode;
+            return undefined;
         }
+        let networkCode = undefined;
         const currency = this.currency (currencyCode);
         const networks = this.safeValue (currency, 'networks', {});
         const networkCodes = Object.keys (networks);
