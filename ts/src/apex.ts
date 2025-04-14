@@ -1188,12 +1188,12 @@ export default class apex extends Exchange {
     parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
-                'PENDING': 'PENDING',
-                'OPEN': 'OPEN',
-                'FILLED': 'FILLED',
-                'CANCELING': 'CANCELING',
-                'CANCELED': 'CANCELED',
-                'UNTRIGGERED': 'UNTRIGGERED',
+                'PENDING': 'open',
+                'OPEN': 'open',
+                'FILLED': 'filled',
+                'CANCELING': 'canceled',
+                'CANCELED': 'canceled',
+                'UNTRIGGERED': 'open',
             };
             return this.safeString (statuses, status, status);
         }
@@ -1285,7 +1285,6 @@ export default class apex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
@@ -1300,6 +1299,9 @@ export default class apex extends Exchange {
         const timeNow = this.milliseconds ();
         // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isMarket = orderType === 'MARKET';
+        if (isMarket && (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
+        }
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         if (timeInForce === undefined) {
@@ -1344,10 +1346,6 @@ export default class apex extends Exchange {
             'clientId': clientOrderId,
             'brokerId': this.safeString (this.options, 'brokerId', '6956'),
         };
-        if (reduceOnly !== undefined) {
-            request['reduceOnly'] = reduceOnly;
-        }
-        params = this.omit (params, 'reduceOnly');
         request['signature'] = signature;
         const response = await this.privatePostV3Order (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
