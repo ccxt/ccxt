@@ -1091,6 +1091,26 @@ class testMainClass:
             sum = exchange.sum(sum, results_length)
         return sum
 
+    def check_if_exchange_is_disabled(self, exchange_name, exchange_data):
+        exchange = init_exchange('Exchange', {})
+        is_disabled_py = exchange.safe_bool(exchange_data, 'disabledPy', False)
+        if is_disabled_py and (self.lang == 'PY'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in python')
+            return True
+        is_disabled_php = exchange.safe_bool(exchange_data, 'disabledPHP', False)
+        if is_disabled_php and (self.lang == 'PHP'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in php')
+            return True
+        is_disabled_c_sharp = exchange.safe_bool(exchange_data, 'disabledCS', False)
+        if is_disabled_c_sharp and (self.lang == 'C#'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in c#')
+            return True
+        is_disabled_go = exchange.safe_bool(exchange_data, 'disabledGO', False)
+        if is_disabled_go and (self.lang == 'GO'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in go')
+            return True
+        return False
+
     def run_static_request_tests(self, target_exchange=None, test_name=None):
         self.run_static_tests('request', target_exchange, test_name)
         return True
@@ -1111,6 +1131,9 @@ class testMainClass:
         for i in range(0, len(exchanges)):
             exchange_name = exchanges[i]
             exchange_data = static_data[exchange_name]
+            disabled = self.check_if_exchange_is_disabled(exchange_name, exchange_data)
+            if disabled:
+                continue
             number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data, test_name)
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
