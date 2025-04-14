@@ -109,6 +109,7 @@ export default class upbit extends Exchange {
                         'market/all',
                         'candles/{timeframe}',
                         'candles/{timeframe}/{unit}',
+                        'candles/seconds',
                         'candles/minutes/{unit}',
                         'candles/minutes/1',
                         'candles/minutes/3',
@@ -121,9 +122,12 @@ export default class upbit extends Exchange {
                         'candles/days',
                         'candles/weeks',
                         'candles/months',
+                        'candles/years',
                         'trades/ticks',
                         'ticker',
+                        'ticker/all',
                         'orderbook',
+                        'orderbook/supported_levels', // Upbit KR only
                     ],
                 },
                 'private': {
