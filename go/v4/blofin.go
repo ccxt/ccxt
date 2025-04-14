@@ -58,7 +58,7 @@ func  (this *blofin) Describe() interface{}  {
             "fetchBorrowRateHistory": false,
             "fetchCanceledOrders": false,
             "fetchClosedOrder": false,
-            "fetchClosedOrders": false,
+            "fetchClosedOrders": true,
             "fetchCrossBorrowRate": false,
             "fetchCrossBorrowRates": false,
             "fetchCurrencies": false,
@@ -3031,6 +3031,6 @@ func  (this *blofin) Sign(path interface{}, optionalArgs ...interface{}) interfa
 
 func (this *blofin) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

@@ -341,6 +341,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privateGetContractPrivateTransactionHistory",parameters);
     }
 
+    public async Task<object> privateGetContractPrivateGetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privateGetContractPrivateGetPositionMode",parameters);
+    }
+
     public async Task<object> privatePostAccountSubAccountMainV1SubToMain (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSubAccountMainV1SubToMain",parameters);
@@ -541,6 +546,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privatePostContractPrivateModifyPresetPlanOrder",parameters);
     }
 
+    public async Task<object> privatePostContractPrivateModifyLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateModifyLimitOrder",parameters);
+    }
+
     public async Task<object> privatePostContractPrivateModifyTpSlOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostContractPrivateModifyTpSlOrder",parameters);
@@ -554,6 +564,11 @@ public partial class bitmart : Exchange
     public async Task<object> privatePostContractPrivateCancelTrailOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostContractPrivateCancelTrailOrder",parameters);
+    }
+
+    public async Task<object> privatePostContractPrivateSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateSetPositionMode",parameters);
     }
 
 }

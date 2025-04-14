@@ -38,6 +38,7 @@ class cex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'fetchAccounts': True,
@@ -327,6 +328,7 @@ class cex(Exchange, ImplicitAPI):
                 'margin': None,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': None,
                 'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {

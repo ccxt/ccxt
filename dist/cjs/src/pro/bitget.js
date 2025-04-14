@@ -11,7 +11,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 /**
  * @class bitget
  * @augments Exchange
- * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 class bitget extends bitget$1 {
     describe() {
@@ -45,6 +45,10 @@ class bitget extends bitget$1 {
                         'public': 'wss://ws.bitget.com/v2/ws/public',
                         'private': 'wss://ws.bitget.com/v2/ws/private',
                     },
+                    'demo': {
+                        'public': 'wss://wspap.bitget.com/v2/ws/public',
+                        'private': 'wss://wspap.bitget.com/v2/ws/private',
+                    },
                 },
             },
             'options': {
@@ -65,6 +69,9 @@ class bitget extends bitget$1 {
                 },
                 'watchOrderBook': {
                     'checksum': true,
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
                 },
             },
             'streaming': {
@@ -783,7 +790,13 @@ class bitget extends bitget$1 {
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     /**
      * @method
@@ -1165,7 +1178,7 @@ class bitget extends bitget$1 {
         else {
             [instType, params] = this.getInstType(market, params);
         }
-        if (type === 'spot') {
+        if (type === 'spot' && (symbol !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
         if (isTrigger) {
@@ -1779,7 +1792,14 @@ class bitget extends bitget$1 {
         client.resolve(this.balance, messageHash);
     }
     async watchPublic(messageHash, args, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString(args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request = {
             'op': 'subscribe',
             'args': [args],
@@ -1788,7 +1808,14 @@ class bitget extends bitget$1 {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async unWatchPublic(messageHash, args, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString(args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request = {
             'op': 'unsubscribe',
             'args': [args],
@@ -1797,7 +1824,15 @@ class bitget extends bitget$1 {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async watchPublicMultiple(messageHashes, argsArray, params = {}) {
-        const url = this.urls['api']['ws']['public'];
+        let url = this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const argsArrayFirst = this.safeDict(argsArray, 0, {});
+            const instType = this.safeString(argsArrayFirst, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['public'];
+            }
+        }
         const request = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1807,7 +1842,7 @@ class bitget extends bitget$1 {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(params, 'url');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const future = client.future(messageHash);
@@ -1834,8 +1869,15 @@ class bitget extends bitget$1 {
         return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
-        await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        let url = this.urls['api']['ws']['private'];
+        const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
+            const instType = this.safeString(args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                url = this.urls['api']['demo']['private'];
+            }
+        }
+        await this.authenticate({ 'url': url });
         const request = {
             'op': 'subscribe',
             'args': [args],

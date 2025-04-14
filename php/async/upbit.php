@@ -78,6 +78,7 @@ class upbit extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
+                '1s' => 'seconds',
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
@@ -89,6 +90,7 @@ class upbit extends Exchange {
                 '1d' => 'days',
                 '1w' => 'weeks',
                 '1M' => 'months',
+                '1y' => 'years',
             ),
             'hostname' => 'api.upbit.com',
             'urls' => array(
@@ -2015,7 +2017,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              *

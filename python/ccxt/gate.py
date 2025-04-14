@@ -1484,6 +1484,10 @@ class gate(Exchange, ImplicitAPI):
         takerPercent = self.safe_string(market, 'taker_fee_rate')
         makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
         isLinear = quote == settle
+        contractSize = self.safe_string(market, 'quanto_multiplier')
+        # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if contractSize == '0':
+            contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         return {
             'id': id,
             'symbol': symbol,
@@ -1505,7 +1509,7 @@ class gate(Exchange, ImplicitAPI):
             'inverse': not isLinear,
             'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
             'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
-            'contractSize': self.safe_number(market, 'quanto_multiplier'),
+            'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': None,
@@ -1818,9 +1822,9 @@ class gate(Exchange, ImplicitAPI):
             partFirst = self.safe_string(parts, 0)
             # if there's an underscore then the second part is always the chain name(except the _OLD suffix)
             currencyName = currencyId if currencyId.endswith('_OLD') else partFirst
-            withdrawEnabled = not self.safe_bool(entry, 'withdraw_disabled')
-            depositEnabled = not self.safe_bool(entry, 'deposit_disabled')
-            tradeDisabled = not self.safe_bool(entry, 'trade_disabled')
+            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
             precision = self.parse_number('0.0001')  # temporary safe default, because no value provided from API
             code = self.safe_currency_code(currencyName)
             # check leveraged tokens(e.g. BTC3S, ETH5L)
@@ -1848,8 +1852,8 @@ class gate(Exchange, ImplicitAPI):
                     },
                 },
                 'active': not tradeDisabled,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': not depositDisabled,
+                'withdraw': not withdrawDisabled,
                 'fee': None,
                 'precision': precision,
             }
@@ -1946,7 +1950,11 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request, query = self.prepare_request(None, 'swap', params)
+        market = None
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+        request, query = self.prepare_request(market, 'swap', params)
         response = self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
         #    [
@@ -6359,6 +6367,9 @@ class gate(Exchange, ImplicitAPI):
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
                     queryString = self.urlencode(query)
+                    # https://github.com/ccxt/ccxt/issues/25570
+                    if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
+                        queryString = queryString.replace('%2C', ',')
                     url += '?' + queryString
                 if method == 'PATCH':
                     body = self.json(query)

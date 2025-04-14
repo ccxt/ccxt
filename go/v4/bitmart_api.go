@@ -1063,6 +1063,22 @@ func (this *bitmart) PrivateGetContractPrivateTransactionHistory (args ...interf
    return ch
 }
 
+func (this *bitmart) PrivateGetContractPrivateGetPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetContractPrivateGetPositionMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bitmart) PrivatePostAccountSubAccountMainV1SubToMain (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1703,6 +1719,22 @@ func (this *bitmart) PrivatePostContractPrivateModifyPresetPlanOrder (args ...in
    return ch
 }
 
+func (this *bitmart) PrivatePostContractPrivateModifyLimitOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostContractPrivateModifyLimitOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bitmart) PrivatePostContractPrivateModifyTpSlOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1746,6 +1778,22 @@ func (this *bitmart) PrivatePostContractPrivateCancelTrailOrder (args ...interfa
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostContractPrivateCancelTrailOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *bitmart) PrivatePostContractPrivateSetPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostContractPrivateSetPositionMode", parameters))
        PanicOnError(ch)
    }()
    return ch

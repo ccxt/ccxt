@@ -72,7 +72,7 @@ class tradeogre extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -90,7 +90,7 @@ class tradeogre extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
@@ -132,11 +132,12 @@ class tradeogre extends Exchange {
                         'orders/{market}' => 1,
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
+                        'chart/{interval}/{market}/{timestamp}' => 1,
+                        'chart/{interval}/{market}' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balance' => 1,
                         'account/balances' => 1,
                         'account/order/{uuid}' => 1,
                     ),
@@ -146,6 +147,7 @@ class tradeogre extends Exchange {
                         'order/cancel' => 1,
                         'orders' => 1,
                         'account/orders' => 1,
+                        'account/balance' => 1,
                     ),
                 ),
             ),
@@ -159,6 +161,14 @@ class tradeogre extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Order not found' => '\\ccxt\\BadRequest',
                 ),
+            ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '15m' => '15m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '1d' => '1d',
+                '1w' => '1w',
             ),
             'options' => array(
             ),
@@ -341,18 +351,76 @@ class tradeogre extends Exchange {
         }) ();
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $request = array();
+            $response = Async\await($this->publicGetMarkets ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "AAVE-USDT" => array(
+            //                 "initialprice" => "177.20325711",
+            //                 "price" => "177.20325711",
+            //                 "high" => "177.20325711",
+            //                 "low" => "177.20325711",
+            //                 "volume" => "0.00000000",
+            //                 "bid" => "160.72768581",
+            //                 "ask" => "348.99999999",
+            //                 "basename" => "Aave"
+            //             }
+            //         ),
+            //         ...
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $marketIdArray = is_array($entry) ? array_keys($entry) : array();
+                $marketId = $this->safe_string($marketIdArray, 0);
+                $market = $this->safe_market($marketId);
+                $data = $entry[$marketId];
+                $ticker = $this->parse_ticker($data, $market);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        }) ();
+    }
+
     public function parse_ticker($ticker, ?array $market = null) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     array(
+        //         "initialprice" => "177.20325711",
+        //         "price" => "177.20325711",
+        //         "high" => "177.20325711",
+        //         "low" => "177.20325711",
+        //         "volume" => "0.00000000",
+        //         "bid" => "160.72768581",
+        //         "ask" => "348.99999999",
+        //         "basename" => "Aave"
+        //     ),
+        //     ...
         //
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -365,17 +433,81 @@ class tradeogre extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
-            'close' => null,
+            'open' => $this->safe_string($ticker, 'initialprice'),
+            'close' => $this->safe_string($ticker, 'price'),
             'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp of the latest candle in ms
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            );
+            $response = null;
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['timestamp'] = $this->parse_to_int($until / 1000);
+                $response = Async\await($this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetChartIntervalMarket ($this->extend($request, $params)));
+            }
+            //
+            //     array(
+            //         array(
+            //             1729130040,
+            //             67581.47235999,
+            //             67581.47235999,
+            //             67338.01,
+            //             67338.01,
+            //             6.72168016
+            //         ),
+            //     )
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
+    }
+
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+        //
+        //     array(
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+        );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -482,10 +614,27 @@ class tradeogre extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->currency] $currency to fetch the balance for
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountBalances ($params));
+            $response = null;
+            $currency = $this->safe_string($params, 'currency');
+            if ($currency !== null) {
+                $response = Async\await($this->privatePostAccountBalance ($params));
+                $singleCurrencyresult = array(
+                    'info' => $response,
+                );
+                $code = $this->safe_currency_code($currency);
+                $account = array(
+                    'total' => $this->safe_number($response, 'balance'),
+                    'free' => $this->safe_number($response, 'available'),
+                );
+                $singleCurrencyresult[$code] = $account;
+                return $this->safe_balance($singleCurrencyresult);
+            } else {
+                $response = Async\await($this->privateGetAccountBalances ($params));
+            }
             $result = $this->safe_dict($response, 'balances', array());
             return $this->parse_balance($result);
         }) ();
@@ -662,11 +811,11 @@ class tradeogre extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
-            'amount' => $this->safe_string($order, 'quantity'),
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($order, 'fulfilled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
             'status' => null,
             'fee' => array(
                 'currency' => null,

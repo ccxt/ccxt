@@ -20,9 +20,23 @@ def test_fetch_currencies(exchange, skipped_properties):
     # const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     currencies = exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+    num_inactive_currencies = 0
+    # const maxInactiveCurrenciesPercentage = 60; # no more than X% currencies should be inactive
+    # const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if currencies is not None:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
-        for i in range(0, len(values)):
-            test_currency(exchange, skipped_properties, method, values[i])
+        currencies_length = len(values)
+        # ensure exchange returns enough length of currencies
+        # assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+        # allow skipped exchanges
+        # const skipActive = ('active' in skippedProperties);
+        # loop
+        for i in range(0, currencies_length):
+            currency = values[i]
+            test_currency(exchange, skipped_properties, method, currency)
+            # detailed check for deposit/withdraw
+            active = exchange.safe_bool(currency, 'active')
+            if active is False:
+                num_inactive_currencies = num_inactive_currencies + 1
     return True

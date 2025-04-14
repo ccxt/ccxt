@@ -12,7 +12,7 @@ public partial class cryptomus : Exchange
             { "name", "Cryptomus" },
             { "countries", new List<object>() {"CA"} },
             { "rateLimit", 100 },
-            { "version", "v1" },
+            { "version", "v2" },
             { "certified", false },
             { "pro", false },
             { "has", new Dictionary<string, object>() {
@@ -94,7 +94,7 @@ public partial class cryptomus : Exchange
                 { "fetchTime", false },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFees", true },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", false },
@@ -215,16 +215,16 @@ public partial class cryptomus : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchMarkets
+     * @description retrieves data on all markets for the exchange
+     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchMarkets
-        * @description retrieves data on all markets for the exchange
-        * @see https://doc.cryptomus.com/personal/market-cap/tickers
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV2UserApiExchangeMarkets(parameters);
         //
@@ -330,16 +330,16 @@ public partial class cryptomus : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://doc.cryptomus.com/personal/market-cap/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://doc.cryptomus.com/personal/market-cap/assets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV1ExchangeMarketAssets(parameters);
         //
@@ -482,17 +482,17 @@ public partial class cryptomus : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://doc.cryptomus.com/personal/market-cap/tickers
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -551,19 +551,19 @@ public partial class cryptomus : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://doc.cryptomus.com/personal/market-cap/orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -600,19 +600,19 @@ public partial class cryptomus : Exchange
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.cryptomus.com/personal/market-cap/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://doc.cryptomus.com/personal/market-cap/trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -671,16 +671,16 @@ public partial class cryptomus : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://doc.cryptomus.com/personal/converts/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://doc.cryptomus.com/personal/converts/balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -725,25 +725,24 @@ public partial class cryptomus : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name cryptomus#createOrder
+     * @description create a trade order
+     * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+     * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or for spot
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#createOrder
-        * @description create a trade order
-        * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-        * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit' or for spot
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -814,18 +813,18 @@ public partial class cryptomus : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name cryptomus#cancelOrder
+     * @description cancels an open limit order
+     * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#cancelOrder
-        * @description cancels an open limit order
-        * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -839,24 +838,24 @@ public partial class cryptomus : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
+     * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
+     * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.direction] order direction 'buy' or 'sell'
+     * @param {string} [params.order_id] order id
+     * @param {string} [params.client_order_id] client order id
+     * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+     * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
-        * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
-        * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
-        * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.direction] order direction 'buy' or 'sell'
-        * @param {string} [params.order_id] order id
-        * @param {string} [params.client_order_id] client order id
-        * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-        * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -920,24 +919,24 @@ public partial class cryptomus : Exchange
         return orders;
     }
 
+    /**
+     * @method
+     * @name cryptomus#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.direction] order direction 'buy' or 'sell'
+     * @param {string} [params.order_id] order id
+     * @param {string} [params.client_order_id] client order id
+     * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+     * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptomus#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.direction] order direction 'buy' or 'sell'
-        * @param {string} [params.order_id] order id
-        * @param {string} [params.client_order_id] client order id
-        * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-        * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1098,6 +1097,112 @@ public partial class cryptomus : Exchange
             { "failed", "failed" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name cryptomus#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.privateGetV2UserApiExchangeAccountTariffs(parameters);
+        //
+        //     {
+        //         result: {
+        //             equivalent_currency_code: 'USD',
+        //             current_tariff_step: {
+        //                 step: '0',
+        //                 from_turnover: '0.00000000',
+        //                 maker_percent: '0.08',
+        //                 taker_percent: '0.1'
+        //             },
+        //             tariff_steps: [
+        //                 {
+        //                     step: '0',
+        //                     from_turnover: '0.00000000',
+        //                     maker_percent: '0.08',
+        //                     taker_percent: '0.1'
+        //                 },
+        //                 {
+        //                     step: '1',
+        //                     from_turnover: '100001.00000000',
+        //                     maker_percent: '0.06',
+        //                     taker_percent: '0.095'
+        //                 },
+        //                 {
+        //                     step: '2',
+        //                     from_turnover: '250001.00000000',
+        //                     maker_percent: '0.055',
+        //                     taker_percent: '0.085'
+        //                 },
+        //                 {
+        //                     step: '3',
+        //                     from_turnover: '500001.00000000',
+        //                     maker_percent: '0.05',
+        //                     taker_percent: '0.075'
+        //                 },
+        //                 {
+        //                     step: '4',
+        //                     from_turnover: '2500001.00000000',
+        //                     maker_percent: '0.04',
+        //                     taker_percent: '0.07'
+        //                 }
+        //             ],
+        //             daily_turnover: '0.00000000',
+        //             monthly_turnover: '77.52062617',
+        //             circulation_funds: '25.48900443'
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object currentFeeTier = this.safeDict(data, "current_tariff_step", new Dictionary<string, object>() {});
+        object makerFee = this.safeString(currentFeeTier, "maker_percent");
+        object takerFee = this.safeString(currentFeeTier, "taker_percent");
+        makerFee = Precise.stringDiv(makerFee, "100");
+        takerFee = Precise.stringDiv(takerFee, "100");
+        object feeTiers = this.safeList(data, "tariff_steps", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        object tiers = this.parseFeeTiers(feeTiers);
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(this.symbols, i);
+            ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
+                { "info", response },
+                { "symbol", symbol },
+                { "maker", this.parseNumber(makerFee) },
+                { "taker", this.parseNumber(takerFee) },
+                { "percentage", true },
+                { "tierBased", true },
+                { "tiers", tiers },
+            };
+        }
+        return result;
+    }
+
+    public virtual object parseFeeTiers(object feeTiers, object market = null)
+    {
+        object takerFees = new List<object>() {};
+        object makerFees = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        {
+            object tier = getValue(feeTiers, i);
+            object turnover = this.safeNumber(tier, "from_turnover");
+            object taker = this.safeString(tier, "taker_percent");
+            object maker = this.safeString(tier, "maker_percent");
+            maker = Precise.stringDiv(maker, "100");
+            taker = Precise.stringDiv(taker, "100");
+            ((IList<object>)makerFees).Add(new List<object>() {turnover, this.parseNumber(maker)});
+            ((IList<object>)takerFees).Add(new List<object>() {turnover, this.parseNumber(taker)});
+        }
+        return new Dictionary<string, object>() {
+            { "maker", makerFees },
+            { "taker", takerFees },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

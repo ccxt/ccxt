@@ -53,6 +53,7 @@ class ascendex extends Exchange {
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
@@ -62,10 +63,13 @@ class ascendex extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -74,6 +78,7 @@ class ascendex extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -85,6 +90,7 @@ class ascendex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -544,7 +550,7 @@ class ascendex extends Exchange {
         $ids = is_array($dataById) ? array_keys($dataById) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+            $id = $this->safe_string($ids, $i);
             $currency = $dataById[$id];
             $code = $this->safe_currency_code($id);
             $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
@@ -2025,7 +2031,7 @@ class ascendex extends Exchange {
         //         "code" => 0,
         //         "data" => array(
         //             array(
-        //                 "avgPx" => "0",         // Average filled price of the $order
+        //                 "avgPx" => "0",        // Average filled price of the $order
         //                 "cumFee" => "0",       // cumulative fee paid for this $order
         //                 "cumFilledQty" => "0", // cumulative filled quantity
         //                 "errorCode" => "",     // error code; could be empty

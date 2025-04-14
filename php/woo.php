@@ -556,6 +556,7 @@ class woo extends Exchange {
         $symbol = $base . '/' . $quote;
         $contractSize = null;
         $linear = null;
+        $inverse = null;
         $margin = true;
         $contract = $swap;
         if ($contract) {
@@ -565,6 +566,7 @@ class woo extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             $contractSize = $this->parse_number('1');
             $linear = true;
+            $inverse = false;
         }
         return array(
             'id' => $marketId,
@@ -584,7 +586,7 @@ class woo extends Exchange {
             'active' => $this->safe_string($market, 'is_trading') === '1',
             'contract' => $contract,
             'linear' => $linear,
-            'inverse' => null,
+            'inverse' => $inverse,
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,

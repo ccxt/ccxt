@@ -314,7 +314,9 @@ class okx extends Exchange {
                         'trade/easy-convert-currency-list' => 20,
                         'trade/easy-convert-history' => 20,
                         'trade/one-click-repay-currency-list' => 20,
+                        'trade/one-click-repay-currency-list-v2' => 20,
                         'trade/one-click-repay-history' => 20,
+                        'trade/one-click-repay-history-v2' => 20,
                         'trade/account-rate-limit' => 1,
                         // asset
                         'asset/currencies' => 5 / 3,
@@ -471,6 +473,7 @@ class okx extends Exchange {
                         'trade/cancel-advance-algos' => 1,
                         'trade/easy-convert' => 20,
                         'trade/one-click-repay' => 20,
+                        'trade/one-click-repay-v2' => 20,
                         'trade/mass-cancel' => 4,
                         'trade/cancel-all-after' => 10,
                         // asset
@@ -992,71 +995,64 @@ class okx extends Exchange {
                 'networks' => array(
                     'BTC' => 'Bitcoin',
                     'BTCLN' => 'Lightning',
+                    'BTCLIGHTNING' => 'Lightning',
                     'BEP20' => 'BSC',
+                    'BRC20' => 'BRC20',
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
-                    // sorted
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
-                    'BHP' => 'BHP',
                     'APT' => 'Aptos',
+                    'SCROLL' => 'Scroll',
                     'ARBONE' => 'Arbitrum One',
                     'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
-                    'ARK' => 'ARK',
+                    'BASE' => 'Base',
+                    'SUI' => 'SUI',
+                    'ZKSYNCERA' => 'zkSync Era',
+                    'LINEA' => 'Linea',
                     'AR' => 'Arweave',
                     'ASTR' => 'Astar',
                     'BCH' => 'BitcoinCash',
                     'BSV' => 'Bitcoin SV',
-                    'BTM' => 'Bytom',
                     'ADA' => 'Cardano',
                     'CSPR' => 'Casper',
                     'CELO' => 'CELO',
                     'XCH' => 'Chia',
-                    'CHZ' => 'Chiliz',
+                    // 'CHZ' => 'Chiliz', TBD => Chiliz 2.0 Chain vs Chiliz Chain
                     'ATOM' => 'Cosmos',
-                    'TRUE' => 'TrueChain',
-                    'DCR' => 'Decred',
                     'DGB' => 'Digibyte',
                     'DOGE' => 'Dogecoin',
-                    'XEC' => 'XEC',
                     'EGLD' => 'Elrond',
+                    'CFX' => 'Conflux', // CFX_EVM is different
                     'EOS' => 'EOS',
+                    'CORE' => 'CORE',
                     'ETC' => 'Ethereum Classic',
                     'ETHW' => 'EthereumPow',
-                    'FTM' => 'Fantom',
+                    // 'FTM' => 'Fantom', 'Sonic' TBD
                     'FIL' => 'Filecoin',
-                    'FLOW' => 'FLOW',
-                    'FSN' => 'Fusion',
                     'ONE' => 'Harmony',
                     'HBAR' => 'Hedera',
-                    'HNT' => 'Helium',
-                    'ZEN' => 'Horizen',
                     'ICX' => 'ICON',
                     'ICP' => 'Dfinity',
                     'IOST' => 'IOST',
                     'IOTA' => 'MIOTA',
-                    'KDA' => 'Kadena',
-                    'KAR' => 'KAR',
                     'KLAY' => 'Klaytn',
                     'KSM' => 'Kusama',
                     'LSK' => 'Lisk',
                     'LTC' => 'Litecoin',
                     'METIS' => 'Metis',
                     'MINA' => 'Mina',
-                    'XMR' => 'Monero',
                     'GLRM' => 'Moonbeam',
                     'MOVR' => 'Moonriver',
                     'NANO' => 'Nano',
                     'NEAR' => 'NEAR',
-                    'NAS' => 'Nebulas',
-                    'NEM' => 'New Economy Movement',
                     'NULS' => 'NULS',
                     'OASYS' => 'OASYS',
-                    'OKC' => 'OKC',
                     'ONT' => 'Ontology',
                     'OPTIMISM' => 'Optimism',
+                    // 'OP' => 'Optimism', or Optimism (V2), TBD
                     'LAT' => 'PlatON',
                     'DOT' => 'Polkadot',
                     'MATIC' => 'Polygon',
@@ -1069,35 +1065,54 @@ class okx extends Exchange {
                     'XTZ' => 'Tezos',
                     'TON' => 'TON',
                     'THETA' => 'Theta',
-                    'VSYS' => 'VSYSTEMS',
-                    'WAVES' => 'WAVES',
                     'WAX' => 'Wax',
-                    'ZEC' => 'Zcash',
                     'ZIL' => 'Zilliqa',
-                    'ZKSYNC' => 'ZKSYNC',
-                    'OMNI' => 'Omni',
-                    // 'NEON3' => 'N3', // tbd
-                    // undetermined : "CELO-TOKEN", "Digital Cash", Khala
-                    // todo => uncomment below after consensus
-                    // 'AELF' => 'AELF',
-                    // 'BITCOINDIAMOND' => 'Bitcoin Diamond',
-                    // 'BITCOINGOLD' => 'BitcoinGold',
-                    // 'YOYOW' => 'YOYOW',
-                    // 'QTUM' => 'Quantum',
-                    // 'INTCHAIN' => 'INTCHAIN',
-                    // 'YOUCHAIN' => 'YOUCHAIN',
-                    // 'RONIN' => 'Ronin',
-                    // 'OEC' => 'OEC',
-                    // 'WAYIKICHAIN' => 'WGRT',
-                    // 'MDNA' => 'DNA',
-                    // 'STEP' => 'Step Network',
-                    // 'EMINER' => 'Eminer',
-                    // 'CYBERMILES' => 'CyberMiles',
-                    // 'HYPERCASH' => 'HyperCash',
-                    // 'CONFLUX' => 'Conflux',
-                    // 'CORTEX' => 'Cortex',
-                    // 'TERRA' => 'Terra',
-                    // 'TERRACLASSIC' => 'Terra Classic',
+                    // non-supported known network => CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    // others:
+                    // "OKTC",
+                    // "X Layer",
+                    // "Polygon (Bridged)",
+                    // "BTCK-OKTC",
+                    // "ETHK-OKTC",
+                    // "Starknet",
+                    // "LTCK-OKTC",
+                    // "XRPK-OKTC",
+                    // "BCHK-OKTC",
+                    // "ETCK-OKTC",
+                    // "Endurance Smart Chain",
+                    // "Berachain",
+                    // "CELO-TOKEN",
+                    // "CFX_EVM",
+                    // "Cortex",
+                    // "DAIK-OKTC",
+                    // "Dora Vota Mainnet",
+                    // "DOTK-OKTC",
+                    // "DYDX",
+                    // "AELF",
+                    // "Enjin Relay Chain",
+                    // "FEVM",
+                    // "FILK-OKTC",
+                    // "Flare",
+                    // "Gravity Alpha Mainnet",
+                    // "INJ",
+                    // "Story",
+                    // "LINKK-OKTC",
+                    // "Terra",
+                    // "Terra Classic",
+                    // "Terra Classic (USTC)",
+                    // "MERLIN Network",
+                    // "Layer 3",
+                    // "PI",
+                    // "Ronin",
+                    // "Quantum",
+                    // "SHIBK-OKTC",
+                    // "SUSHIK-OKTC",
+                    // "Celestia",
+                    // "TRXK-OKTC",
+                    // "UNIK-OKTC",
+                    // "Venom",
+                    // "WBTCK-OKTC",
+                    // "ZetaChain",
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1261,6 +1276,7 @@ class okx extends Exchange {
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,
+                        'historical' => 100,
                     ),
                 ),
                 'spot' => array(
@@ -1620,11 +1636,12 @@ class okx extends Exchange {
         $optionType = null;
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
-            $expiry = $this->safe_integer($market, 'expTime');
             if ($future) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
             } elseif ($option) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $ymd = $this->yymmdd($expiry);
@@ -1826,68 +1843,57 @@ class okx extends Exchange {
                 $code = $currency['code'];
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
-                $currencyActive = false;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $maxPrecision = null;
-                for ($j = 0; $j < count($chains); $j++) {
+                $type = 'crypto';
+                $chainsLength = count($chains);
+                for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
-                    $canDeposit = $this->safe_bool($chain, 'canDep');
-                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                    $canWithdraw = $this->safe_bool($chain, 'canWd');
-                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                    $canInternal = $this->safe_bool($chain, 'canInternal');
-                    $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                    $currencyActive = ($active) ? $active : $currencyActive;
-                    $networkId = $this->safe_string($chain, 'chain');
-                    if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                        $idParts = explode('-', $networkId);
-                        $parts = $this->array_slice($idParts, 1);
-                        $chainPart = implode('-', $parts);
-                        $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
-                        $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
-                        if ($maxPrecision === null) {
-                            $maxPrecision = $precision;
-                        } else {
-                            $maxPrecision = Precise::string_min($maxPrecision, $precision);
-                        }
-                        $networks[$networkCode] = array(
-                            'id' => $networkId,
-                            'network' => $networkCode,
-                            'active' => $active,
-                            'deposit' => $canDeposit,
-                            'withdraw' => $canWithdraw,
-                            'fee' => $this->safe_number($chain, 'fee'),
-                            'precision' => $this->parse_number($precision),
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => $this->safe_number($chain, 'minWd'),
-                                    'max' => $this->safe_number($chain, 'maxWd'),
-                                ),
-                            ),
-                            'info' => $chain,
-                        );
+                    // allow empty string for rare fiat-currencies, e.g. TRY
+                    $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+                    if ($networkId === '') {
+                        // only happens for fiat 'TRY' $currency
+                        $type = 'fiat';
                     }
+                    $idParts = explode('-', $networkId);
+                    $parts = $this->array_slice($idParts, 1);
+                    $chainPart = implode('-', $parts);
+                    $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($chain, 'canDep'),
+                        'withdraw' => $this->safe_bool($chain, 'canWd'),
+                        'fee' => $this->safe_number($chain, 'fee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'minWd'),
+                                'max' => $this->safe_number($chain, 'maxWd'),
+                            ),
+                        ),
+                        'info' => $chain,
+                    );
                 }
                 $firstChain = $this->safe_dict($chains, 0, array());
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $chains,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $this->safe_string($firstChain, 'name'),
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
-                    'precision' => $this->parse_number($maxPrecision),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                     ),
+                    'type' => $type,
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2443,6 +2449,8 @@ class okx extends Exchange {
             $timezone = $this->safe_string($options, 'timezone', 'UTC');
             if ($limit === null) {
                 $limit = 100; // default 100, max 100
+            } else {
+                $limit = min ($limit, 300); // max 100
             }
             $duration = $this->parse_timeframe($timeframe);
             $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2462,6 +2470,7 @@ class okx extends Exchange {
                 $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
+                    $limit = min ($limit, 100); // max 100 for historical endpoint
                 }
                 $startTime = max ($since - 1, 0);
                 $request['before'] = $startTime;
@@ -3193,6 +3202,7 @@ class okx extends Exchange {
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
              * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());

@@ -559,6 +559,7 @@ class woo extends woo$1 {
         let symbol = base + '/' + quote;
         let contractSize = undefined;
         let linear = undefined;
+        let inverse = undefined;
         let margin = true;
         const contract = swap;
         if (contract) {
@@ -568,6 +569,7 @@ class woo extends woo$1 {
             symbol = base + '/' + quote + ':' + settle;
             contractSize = this.parseNumber('1');
             linear = true;
+            inverse = false;
         }
         return {
             'id': marketId,
@@ -587,7 +589,7 @@ class woo extends woo$1 {
             'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,

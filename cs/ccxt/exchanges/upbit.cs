@@ -66,6 +66,7 @@ public partial class upbit : Exchange
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
+                { "1s", "seconds" },
                 { "1m", "minutes" },
                 { "3m", "minutes" },
                 { "5m", "minutes" },
@@ -77,6 +78,7 @@ public partial class upbit : Exchange
                 { "1d", "days" },
                 { "1w", "weeks" },
                 { "1M", "months" },
+                { "1y", "years" },
             } },
             { "hostname", "api.upbit.com" },
             { "urls", new Dictionary<string, object>() {

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.tradeogre import ImplicitAPI
-from ccxt.base.types import Any, IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Ticker
+from ccxt.base.types import Any, IndexType, Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -74,7 +74,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -92,7 +92,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
@@ -134,11 +134,12 @@ class tradeogre(Exchange, ImplicitAPI):
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -148,6 +149,7 @@ class tradeogre(Exchange, ImplicitAPI):
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -161,6 +163,14 @@ class tradeogre(Exchange, ImplicitAPI):
                     'Insufficient funds': InsufficientFunds,
                     'Order not found': BadRequest,
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {
             },
@@ -335,18 +345,72 @@ class tradeogre(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request: dict = {}
+        response = self.publicGetMarkets(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "AAVE-USDT": {
+        #                 "initialprice": "177.20325711",
+        #                 "price": "177.20325711",
+        #                 "high": "177.20325711",
+        #                 "low": "177.20325711",
+        #                 "volume": "0.00000000",
+        #                 "bid": "160.72768581",
+        #                 "ask": "348.99999999",
+        #                 "basename": "Aave"
+        #             }
+        #         },
+        #         ...
+        #     ]
+        #
+        result: dict = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            marketIdArray = list(entry.keys())
+            marketId = self.safe_string(marketIdArray, 0)
+            market = self.safe_market(marketId)
+            data = entry[marketId]
+            ticker = self.parse_ticker(data, market)
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
     def parse_ticker(self, ticker, market: Market = None):
         #
-        #  {
-        #       "success":true,
-        #       "initialprice":"0.02502002",
-        #       "price":"0.02500000",
-        #       "high":"0.03102001",
-        #       "low":"0.02500000",
-        #       "volume":"0.15549958",
-        #       "bid":"0.02420000",
-        #       "ask":"0.02625000"
-        #   }
+        #  fetchTicker:
+        #     {
+        #         "success":true,
+        #         "initialprice":"0.02502002",
+        #         "price":"0.02500000",
+        #         "high":"0.03102001",
+        #         "low":"0.02500000",
+        #         "volume":"0.15549958",
+        #         "bid":"0.02420000",
+        #         "ask":"0.02625000"
+        #     }
+        #
+        #  fetchTickers:
+        #     {
+        #         "initialprice": "177.20325711",
+        #         "price": "177.20325711",
+        #         "high": "177.20325711",
+        #         "low": "177.20325711",
+        #         "volume": "0.00000000",
+        #         "bid": "160.72768581",
+        #         "ask": "348.99999999",
+        #         "basename": "Aave"
+        #     },
+        #     ...
         #
         return self.safe_ticker({
             'symbol': self.safe_string(market, 'symbol'),
@@ -359,17 +423,76 @@ class tradeogre(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
-            'close': None,
+            'open': self.safe_string(ticker, 'initialprice'),
+            'close': self.safe_string(ticker, 'price'),
             'last': None,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
         }, market)
+
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp of the latest candle in ms
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        response = None
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['timestamp'] = self.parse_to_int(until / 1000)
+            response = self.publicGetChartIntervalMarketTimestamp(self.extend(request, params))
+        else:
+            response = self.publicGetChartIntervalMarket(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             1729130040,
+        #             67581.47235999,
+        #             67581.47235999,
+        #             67338.01,
+        #             67338.01,
+        #             6.72168016
+        #         ],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        #     [
+        #         1729130040,
+        #         67581.47235999,
+        #         67581.47235999,
+        #         67338.01,
+        #         67338.01,
+        #         6.72168016
+        #     ]
+        #
+        return [
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+        ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
@@ -465,10 +588,26 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currency]: currency to fetch the balance for
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privateGetAccountBalances(params)
+        response = None
+        currency = self.safe_string(params, 'currency')
+        if currency is not None:
+            response = self.privatePostAccountBalance(params)
+            singleCurrencyresult: dict = {
+                'info': response,
+            }
+            code = self.safe_currency_code(currency)
+            account = {
+                'total': self.safe_number(response, 'balance'),
+                'free': self.safe_number(response, 'available'),
+            }
+            singleCurrencyresult[code] = account
+            return self.safe_balance(singleCurrencyresult)
+        else:
+            response = self.privateGetAccountBalances(params)
         result = self.safe_dict(response, 'balances', {})
         return self.parse_balance(result)
 
@@ -621,11 +760,11 @@ class tradeogre(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
-            'amount': self.safe_string(order, 'quantity'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(order, 'fulfilled'),
-            'remaining': None,
+            'remaining': self.safe_string(order, 'quantity'),
             'status': None,
             'fee': {
                 'currency': None,
