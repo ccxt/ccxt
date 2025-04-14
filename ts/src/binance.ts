@@ -1337,7 +1337,6 @@ export default class binance extends Exchange {
                 },
                 'networksById': {
                     'SOL': 'SOL', // temporary fix for SPL definition
-                    // the below dict is not used anymore, but keeping it for backward-compatibility
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
