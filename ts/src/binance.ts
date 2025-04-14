@@ -9112,14 +9112,9 @@ export default class binance extends Exchange {
         //     }
         //
         const info = this.safeDict (response, 'info', {});
-        let url = this.safeString (info, 'url');
-        if (url === undefined) {
-            // 'info' does not seem to contain 'url' key, however we keep it for backward-compatibility
-            // currently 'response' seems to contain that key
-            url = this.safeString (response, 'url');
-        }
+        const url = this.safeString (info, 'url');
         const address = this.safeString (response, 'address');
-        const currencyId = this.safeString2 (response, 'currency', 'coin');
+        const currencyId = this.safeString (response, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
