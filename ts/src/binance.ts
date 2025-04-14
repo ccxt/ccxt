@@ -9142,12 +9142,6 @@ export default class binance extends Exchange {
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
-        // actually, we do not need the manually defined implied networks and deriving the networks by them
-        // we can just dynamically find them
-        if (impliedNetwork === undefined) {
-            // so, if value was not changed from hardcoded value
-            impliedNetwork = this.getNetworkCodeByNetworkUrl (code, url);
-        }
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
@@ -9160,26 +9154,6 @@ export default class binance extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
-    }
-
-    getNetworkCodeByNetworkUrl (currencyCode: string, url: Str = undefined): Str {
-        let networkCode = undefined;
-        if (url === undefined) {
-            return networkCode;
-        }
-        const currency = this.currency (currencyCode);
-        const networks = this.safeValue (currency, 'networks', {});
-        const networkCodes = Object.keys (networks);
-        for (let i = 0; i < networkCodes.length; i++) {
-            const currentNetworkCode = networkCodes[i];
-            const network = networks[currentNetworkCode];
-            const info = this.safeDict (network, 'info', {});
-            const networkWebsite = this.safeString (info, 'contractAddressUrl');
-            if (networkWebsite !== undefined && url.startsWith (networkWebsite)) {
-                networkCode = currentNetworkCode;
-            }
-        }
-        return networkCode;
     }
 
     /**
