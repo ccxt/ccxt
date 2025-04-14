@@ -25,7 +25,6 @@ var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
-var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
@@ -33,7 +32,6 @@ var bithumb = require('./src/bithumb.js');
 var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
-var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
@@ -129,14 +127,12 @@ var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
-var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
-var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
@@ -196,7 +192,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.72';
+const version = '4.4.75';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -212,7 +208,6 @@ const exchanges = {
     'bit2c': bit2c,
     'bitbank': bitbank,
     'bitbns': bitbns,
-    'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
     'bitflyer': bitflyer,
     'bitget': bitget,
@@ -220,7 +215,6 @@ const exchanges = {
     'bitmart': bitmart,
     'bitmex': bitmex,
     'bitopro': bitopro,
-    'bitpanda': bitpanda,
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
@@ -318,14 +312,12 @@ const pro = {
     'binanceus': binanceus$1,
     'binanceusdm': binanceusdm$1,
     'bingx': bingx$1,
-    'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
     'bitget': bitget$1,
     'bithumb': bithumb$1,
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
-    'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
@@ -446,7 +438,6 @@ exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
 exports.bitbns = bitbns;
-exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
 exports.bitflyer = bitflyer;
 exports.bitget = bitget;
@@ -454,7 +445,6 @@ exports.bithumb = bithumb;
 exports.bitmart = bitmart;
 exports.bitmex = bitmex;
 exports.bitopro = bitopro;
-exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;

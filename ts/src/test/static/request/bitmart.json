@@ -3,6 +3,26 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetchPositionMode",
+                "method": "fetchPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/get-position-mode",
+                "input": [],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode hedged",
+                "method": "setPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/set-position-mode",
+                "input": [
+                    true
+                ],
+                "output": "{\"position_mode\":\"hedge_mode\"}"
+            }
+        ],
         "fetchTransactionFee": [
             {
                 "description": "trx tx fee",

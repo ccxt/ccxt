@@ -1276,6 +1276,7 @@ class okx extends Exchange {
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,
+                        'historical' => 100,
                     ),
                 ),
                 'spot' => array(
@@ -1846,32 +1847,32 @@ class okx extends Exchange {
                 $chainsLength = count($chains);
                 for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'chain'); // USDT-BEP20, USDT-Avalance-C, etc
-                    if ($networkId !== null) {
-                        $idParts = explode('-', $networkId);
-                        $parts = $this->array_slice($idParts, 1);
-                        $chainPart = implode('-', $parts);
-                        $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
-                        $networks[$networkCode] = array(
-                            'id' => $networkId,
-                            'network' => $networkCode,
-                            'active' => null,
-                            'deposit' => $this->safe_bool($chain, 'canDep'),
-                            'withdraw' => $this->safe_bool($chain, 'canWd'),
-                            'fee' => $this->safe_number($chain, 'fee'),
-                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => $this->safe_number($chain, 'minWd'),
-                                    'max' => $this->safe_number($chain, 'maxWd'),
-                                ),
-                            ),
-                            'info' => $chain,
-                        );
-                    } else {
-                        // only happens for FIAT $currency
+                    // allow empty string for rare fiat-currencies, e.g. TRY
+                    $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+                    if ($networkId === '') {
+                        // only happens for fiat 'TRY' $currency
                         $type = 'fiat';
                     }
+                    $idParts = explode('-', $networkId);
+                    $parts = $this->array_slice($idParts, 1);
+                    $chainPart = implode('-', $parts);
+                    $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($chain, 'canDep'),
+                        'withdraw' => $this->safe_bool($chain, 'canWd'),
+                        'fee' => $this->safe_number($chain, 'fee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'minWd'),
+                                'max' => $this->safe_number($chain, 'maxWd'),
+                            ),
+                        ),
+                        'info' => $chain,
+                    );
                 }
                 $firstChain = $this->safe_dict($chains, 0, array());
                 $result[$code] = $this->safe_currency_structure(array(
@@ -2448,6 +2449,8 @@ class okx extends Exchange {
             $timezone = $this->safe_string($options, 'timezone', 'UTC');
             if ($limit === null) {
                 $limit = 100; // default 100, max 100
+            } else {
+                $limit = min ($limit, 300); // max 100
             }
             $duration = $this->parse_timeframe($timeframe);
             $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2467,6 +2470,7 @@ class okx extends Exchange {
                 $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
+                    $limit = min ($limit, 100); // max 100 for historical endpoint
                 }
                 $startTime = max ($since - 1, 0);
                 $request['before'] = $startTime;

@@ -545,7 +545,7 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -2505,9 +2505,6 @@ export default class Exchange {
     }
     safeCurrencyStructure(currency) {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const currencyDeposit = this.safeBool(currency, 'deposit');
-        const currencyWithdraw = this.safeBool(currency, 'withdraw');
-        const currencyActive = this.safeBool(currency, 'active');
         const networks = this.safeDict(currency, 'networks', {});
         const keys = Object.keys(networks);
         const length = keys.length;
@@ -2516,25 +2513,29 @@ export default class Exchange {
                 const key = keys[i];
                 const network = networks[key];
                 const deposit = this.safeBool(network, 'deposit');
+                const currencyDeposit = this.safeBool(currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
+                const currencyWithdraw = this.safeBool(currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                const active = this.safeBool(network, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
-                }
                 // set network 'active' to false if D or W is disabled
-                if (this.safeBool(network, 'active') === undefined) {
+                let active = this.safeBool(network, 'active');
+                if (active === undefined) {
                     if (deposit && withdraw) {
                         currency['networks'][key]['active'] = true;
                     }
                     else if (deposit !== undefined && withdraw !== undefined) {
                         currency['networks'][key]['active'] = false;
                     }
+                }
+                active = this.safeBool(network, 'active');
+                const currencyActive = this.safeBool(currency, 'active');
+                if (currencyActive === undefined || active) {
+                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
@@ -6716,31 +6717,42 @@ export default class Exchange {
         }
         return result;
     }
-    removeRepeatedElementsFromArray(input) {
+    removeRepeatedElementsFromArray(input, fallbackToTimestamp = true) {
+        const uniqueDic = {};
+        const uniqueResult = [];
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const uniqValue = fallbackToTimestamp ? this.safeStringN(entry, ['id', 'timestamp', 0]) : this.safeString(entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = 1;
+                uniqueResult.push(entry);
+            }
+        }
+        const valuesLength = uniqueResult.length;
+        if (valuesLength > 0) {
+            return uniqueResult;
+        }
+        return input;
+    }
+    removeRepeatedTradesFromArray(input) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString(entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString(uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
+            let id = this.safeString(entry, 'id');
+            if (id === undefined) {
+                const price = this.safeString(entry, 'price');
+                const amount = this.safeString(entry, 'amount');
+                const timestamp = this.safeString(entry, 'timestamp');
+                const side = this.safeString(entry, 'side');
+                // unique trade identifier
+                id = 't_' + timestamp.toString() + '_' + side + '_' + price + '_' + amount;
             }
-            else {
-                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString(uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values(uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values;
-        }
-        return input;
+        return values;
     }
     handleUntilOption(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
