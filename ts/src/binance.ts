@@ -8939,8 +8939,8 @@ export default class binance extends Exchange {
         const address = this.safeString (response, 'address');
         const currencyId = this.safeString (response, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        // as deposit-address endpoint provides only network url (not network ID/CODE)
-        // we should map the url to network (their data is inside currencies)
+        // deposit-address endpoint provides only network url (not network ID/CODE)
+        // so we should map the url to network (their data is inside currencies)
         const networkCode = this.getNetworkCodeByNetworkUrl (code, url);
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
