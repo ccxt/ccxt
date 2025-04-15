@@ -39,7 +39,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         if (currencyType === 'crypto' || !('withdrawForNonCrypto' in skippedProperties)) {
             emptyAllowedFor.push ('withdraw');
         }
-        if (currencyType === 'leverage' || currencyType === 'other') {
+        if (currencyType === 'leveraged' || currencyType === 'other') {
             emptyAllowedFor.push ('precision');
         }
     }
