@@ -614,7 +614,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': None,
+            'order': self.safe_string(trade, 'oid'),
             'type': None,
             'side': side,
             'takerOrMaker': None,

@@ -1353,194 +1353,8 @@ public partial class binance : Exchange
                     { "SPL", "SOL" },
                     { "SOL", "SOL" },
                 } },
-                { "reverseNetworks", new Dictionary<string, object>() {
-                    { "tronscan.org", "TRC20" },
-                    { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
-                    { "explorer.binance.org", "BEP2" },
-                    { "bithomp.com", "XRP" },
-                    { "bloks.io", "EOS" },
-                    { "stellar.expert", "XLM" },
-                    { "blockchair.com/bitcoin", "BTC" },
-                    { "blockchair.com/bitcoin-cash", "BCH" },
-                    { "blockchair.com/ecash", "XEC" },
-                    { "explorer.litecoin.net", "LTC" },
-                    { "explorer.avax.network", "AVAX" },
-                    { "solscan.io", "SOL" },
-                    { "polkadot.subscan.io", "DOT" },
-                    { "dashboard.internetcomputer.org", "ICP" },
-                    { "explorer.chiliz.com", "CHZ" },
-                    { "cardanoscan.io", "ADA" },
-                    { "mainnet.theoan.com", "AION" },
-                    { "algoexplorer.io", "ALGO" },
-                    { "explorer.ambrosus.com", "AMB" },
-                    { "viewblock.io/zilliqa", "ZIL" },
-                    { "viewblock.io/arweave", "AR" },
-                    { "explorer.ark.io", "ARK" },
-                    { "atomscan.com", "ATOM" },
-                    { "www.mintscan.io", "CTK" },
-                    { "explorer.bitcoindiamond.org", "BCD" },
-                    { "btgexplorer.com", "BTG" },
-                    { "bts.ai", "BTS" },
-                    { "explorer.celo.org", "CELO" },
-                    { "explorer.nervos.org", "CKB" },
-                    { "cerebro.cortexlabs.ai", "CTXC" },
-                    { "chainz.cryptoid.info", "VIA" },
-                    { "explorer.dcrdata.org", "DCR" },
-                    { "digiexplorer.info", "DGB" },
-                    { "dock.subscan.io", "DOCK" },
-                    { "dogechain.info", "DOGE" },
-                    { "explorer.elrond.com", "EGLD" },
-                    { "blockscout.com", "ETC" },
-                    { "explore-fetchhub.fetch.ai", "FET" },
-                    { "filfox.info", "FIL" },
-                    { "fio.bloks.io", "FIO" },
-                    { "explorer.firo.org", "FIRO" },
-                    { "neoscan.io", "NEO" },
-                    { "ftmscan.com", "FTM" },
-                    { "explorer.gochain.io", "GO" },
-                    { "block.gxb.io", "GXS" },
-                    { "hash-hash.info", "HBAR" },
-                    { "www.hiveblockexplorer.com", "HIVE" },
-                    { "explorer.helium.com", "HNT" },
-                    { "tracker.icon.foundation", "ICX" },
-                    { "www.iostabc.com", "IOST" },
-                    { "explorer.iota.org", "IOTA" },
-                    { "iotexscan.io", "IOTX" },
-                    { "irishub.iobscan.io", "IRIS" },
-                    { "kava.mintscan.io", "KAVA" },
-                    { "scope.klaytn.com", "KLAY" },
-                    { "kmdexplorer.io", "KMD" },
-                    { "kusama.subscan.io", "KSM" },
-                    { "explorer.lto.network", "LTO" },
-                    { "polygonscan.com", "POLYGON" },
-                    { "explorer.ont.io", "ONT" },
-                    { "minaexplorer.com", "MINA" },
-                    { "nanolooker.com", "NANO" },
-                    { "explorer.nebulas.io", "NAS" },
-                    { "explorer.nbs.plus", "NBS" },
-                    { "explorer.nebl.io", "NEBL" },
-                    { "nulscan.io", "NULS" },
-                    { "nxscan.com", "NXS" },
-                    { "explorer.harmony.one", "ONE" },
-                    { "explorer.poa.network", "POA" },
-                    { "qtum.info", "QTUM" },
-                    { "explorer.rsk.co", "RSK" },
-                    { "www.oasisscan.com", "ROSE" },
-                    { "ravencoin.network", "RVN" },
-                    { "sc.tokenview.com", "SC" },
-                    { "secretnodes.com", "SCRT" },
-                    { "explorer.skycoin.com", "SKY" },
-                    { "steemscan.com", "STEEM" },
-                    { "explorer.stacks.co", "STX" },
-                    { "www.thetascan.io", "THETA" },
-                    { "scan.tomochain.com", "TOMO" },
-                    { "explore.vechain.org", "VET" },
-                    { "explorer.vite.net", "VITE" },
-                    { "www.wanscan.org", "WAN" },
-                    { "wavesexplorer.com", "WAVES" },
-                    { "wax.eosx.io", "WAXP" },
-                    { "waltonchain.pro", "WTC" },
-                    { "chain.nem.ninja", "XEM" },
-                    { "verge-blockchain.info", "XVG" },
-                    { "explorer.yoyow.org", "YOYOW" },
-                    { "explorer.zcha.in", "ZEC" },
-                    { "explorer.zensystem.io", "ZEN" },
-                } },
                 { "networksById", new Dictionary<string, object>() {
                     { "SOL", "SOL" },
-                    { "tronscan.org", "TRC20" },
-                    { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
-                    { "explorer.binance.org", "BEP2" },
-                    { "bithomp.com", "XRP" },
-                    { "bloks.io", "EOS" },
-                    { "stellar.expert", "XLM" },
-                    { "blockchair.com/bitcoin", "BTC" },
-                    { "blockchair.com/bitcoin-cash", "BCH" },
-                    { "blockchair.com/ecash", "XEC" },
-                    { "explorer.litecoin.net", "LTC" },
-                    { "explorer.avax.network", "AVAX" },
-                    { "solscan.io", "SOL" },
-                    { "polkadot.subscan.io", "DOT" },
-                    { "dashboard.internetcomputer.org", "ICP" },
-                    { "explorer.chiliz.com", "CHZ" },
-                    { "cardanoscan.io", "ADA" },
-                    { "mainnet.theoan.com", "AION" },
-                    { "algoexplorer.io", "ALGO" },
-                    { "explorer.ambrosus.com", "AMB" },
-                    { "viewblock.io/zilliqa", "ZIL" },
-                    { "viewblock.io/arweave", "AR" },
-                    { "explorer.ark.io", "ARK" },
-                    { "atomscan.com", "ATOM" },
-                    { "www.mintscan.io", "CTK" },
-                    { "explorer.bitcoindiamond.org", "BCD" },
-                    { "btgexplorer.com", "BTG" },
-                    { "bts.ai", "BTS" },
-                    { "explorer.celo.org", "CELO" },
-                    { "explorer.nervos.org", "CKB" },
-                    { "cerebro.cortexlabs.ai", "CTXC" },
-                    { "chainz.cryptoid.info", "VIA" },
-                    { "explorer.dcrdata.org", "DCR" },
-                    { "digiexplorer.info", "DGB" },
-                    { "dock.subscan.io", "DOCK" },
-                    { "dogechain.info", "DOGE" },
-                    { "explorer.elrond.com", "EGLD" },
-                    { "blockscout.com", "ETC" },
-                    { "explore-fetchhub.fetch.ai", "FET" },
-                    { "filfox.info", "FIL" },
-                    { "fio.bloks.io", "FIO" },
-                    { "explorer.firo.org", "FIRO" },
-                    { "neoscan.io", "NEO" },
-                    { "ftmscan.com", "FTM" },
-                    { "explorer.gochain.io", "GO" },
-                    { "block.gxb.io", "GXS" },
-                    { "hash-hash.info", "HBAR" },
-                    { "www.hiveblockexplorer.com", "HIVE" },
-                    { "explorer.helium.com", "HNT" },
-                    { "tracker.icon.foundation", "ICX" },
-                    { "www.iostabc.com", "IOST" },
-                    { "explorer.iota.org", "IOTA" },
-                    { "iotexscan.io", "IOTX" },
-                    { "irishub.iobscan.io", "IRIS" },
-                    { "kava.mintscan.io", "KAVA" },
-                    { "scope.klaytn.com", "KLAY" },
-                    { "kmdexplorer.io", "KMD" },
-                    { "kusama.subscan.io", "KSM" },
-                    { "explorer.lto.network", "LTO" },
-                    { "polygonscan.com", "POLYGON" },
-                    { "explorer.ont.io", "ONT" },
-                    { "minaexplorer.com", "MINA" },
-                    { "nanolooker.com", "NANO" },
-                    { "explorer.nebulas.io", "NAS" },
-                    { "explorer.nbs.plus", "NBS" },
-                    { "explorer.nebl.io", "NEBL" },
-                    { "nulscan.io", "NULS" },
-                    { "nxscan.com", "NXS" },
-                    { "explorer.harmony.one", "ONE" },
-                    { "explorer.poa.network", "POA" },
-                    { "qtum.info", "QTUM" },
-                    { "explorer.rsk.co", "RSK" },
-                    { "www.oasisscan.com", "ROSE" },
-                    { "ravencoin.network", "RVN" },
-                    { "sc.tokenview.com", "SC" },
-                    { "secretnodes.com", "SCRT" },
-                    { "explorer.skycoin.com", "SKY" },
-                    { "steemscan.com", "STEEM" },
-                    { "explorer.stacks.co", "STX" },
-                    { "www.thetascan.io", "THETA" },
-                    { "scan.tomochain.com", "TOMO" },
-                    { "explore.vechain.org", "VET" },
-                    { "explorer.vite.net", "VITE" },
-                    { "www.wanscan.org", "WAN" },
-                    { "wavesexplorer.com", "WAVES" },
-                    { "wax.eosx.io", "WAXP" },
-                    { "waltonchain.pro", "WTC" },
-                    { "chain.nem.ninja", "XEM" },
-                    { "verge-blockchain.info", "XVG" },
-                    { "explorer.yoyow.org", "YOYOW" },
-                    { "explorer.zcha.in", "ZEC" },
-                    { "explorer.zensystem.io", "ZEN" },
                 } },
                 { "impliedNetworks", new Dictionary<string, object>() {
                     { "ETH", new Dictionary<string, object>() {
@@ -9492,51 +9306,19 @@ public partial class binance : Exchange
     {
         //
         //     {
-        //         "currency": "XRP",
+        //         "coin": "XRP",
         //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         //         "tag": "108618262",
-        //         "info": {
-        //             "coin": "XRP",
-        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        //             "tag": "108618262",
-        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        //         }
+        //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        object info = this.safeDict(response, "info", new Dictionary<string, object>() {});
-        object url = this.safeString(info, "url");
+        object url = this.safeString(response, "url");
         object address = this.safeString(response, "address");
         object currencyId = this.safeString(response, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object impliedNetwork = null;
-        if (isTrue(!isEqual(url, null)))
-        {
-            object reverseNetworks = this.safeDict(this.options, "reverseNetworks", new Dictionary<string, object>() {});
-            object parts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            object topLevel = this.safeString(parts, 2);
-            if (isTrue(isTrue((isEqual(topLevel, "blockchair.com"))) || isTrue((isEqual(topLevel, "viewblock.io")))))
-            {
-                object subLevel = this.safeString(parts, 3);
-                if (isTrue(!isEqual(subLevel, null)))
-                {
-                    topLevel = add(add(topLevel, "/"), subLevel);
-                }
-            }
-            impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            object impliedNetworks = this.safeDict(this.options, "impliedNetworks", new Dictionary<string, object>() {
-                { "ETH", new Dictionary<string, object>() {
-                    { "ERC20", "ETH" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                } },
-            });
-            if (isTrue(inOp(impliedNetworks, code)))
-            {
-                object conversion = this.safeDict(impliedNetworks, code, new Dictionary<string, object>() {});
-                impliedNetwork = this.safeString(conversion, impliedNetwork, impliedNetwork);
-            }
-        }
+        // deposit-address endpoint provides only network url (not network ID/CODE)
+        // so we should map the url to network (their data is inside currencies)
+        object networkCode = this.getNetworkCodeByNetworkUrl(code, url);
         object tag = this.safeString(response, "tag", "");
         if (isTrue(isEqual(((string)tag).Length, 0)))
         {
@@ -9546,7 +9328,7 @@ public partial class binance : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", impliedNetwork },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
         };
@@ -12546,6 +12328,51 @@ public partial class binance : Exchange
             { "COMMISSION", "commission" },
         };
         return this.safeString(ledgerType, type, type);
+    }
+
+    public virtual object getNetworkCodeByNetworkUrl(object currencyCode, object depositUrl = null)
+    {
+        // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if (isTrue(isEqual(depositUrl, null)))
+        {
+            return null;
+        }
+        object networkCode = null;
+        object currency = this.currency(currencyCode);
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        object networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
+        {
+            object currentNetworkCode = getValue(networkCodes, i);
+            object info = this.safeDict(getValue(networks, currentNetworkCode), "info", new Dictionary<string, object>() {});
+            object siteUrl = this.safeString(info, "contractAddressUrl");
+            // check if url matches the field's value
+            if (isTrue(isTrue(!isEqual(siteUrl, null)) && isTrue(((string)depositUrl).StartsWith(((string)this.getBaseDomainFromUrl(siteUrl))))))
+            {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
+    }
+
+    public virtual object getBaseDomainFromUrl(object url)
+    {
+        if (isTrue(isEqual(url, null)))
+        {
+            return null;
+        }
+        object urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        object scheme = this.safeString(urlParts, 0);
+        if (isTrue(isEqual(scheme, null)))
+        {
+            return null;
+        }
+        object domain = this.safeString(urlParts, 2);
+        if (isTrue(isEqual(domain, null)))
+        {
+            return null;
+        }
+        return add(add(add(scheme, "//"), domain), "/");
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
