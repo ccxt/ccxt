@@ -2756,6 +2756,13 @@ class Exchange {
         return $proxyUrl;
     }
 
+    public function url_encoder_for_proxy_url(string $targetUrl) {
+        // to be overriden
+        $includesQuery = mb_strpos($targetUrl, '?') !== false;
+        $finalUrl = $includesQuery ? $this->encode_uri_component($targetUrl) : $targetUrl;
+        return $finalUrl;
+    }
+
     public function check_proxy_settings(?string $url = null, ?string $method = null, $headers = null, $body = null) {
         $usedProxies = array();
         $httpProxy = null;
