@@ -33,10 +33,10 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         format['type'] = 'crypto'; // crypto, fiat, leverage, other
         testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'leveraged', 'other', undefined ]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType === 'crypto' || !('depositForNonCrypto' in skippedProperties)) {
+        if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
             emptyAllowedFor.push ('deposit');
         }
-        if (currencyType === 'crypto' || !('withdrawForNonCrypto' in skippedProperties)) {
+        if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
             emptyAllowedFor.push ('withdraw');
         }
         if (currencyType === 'leveraged' || currencyType === 'other') {
