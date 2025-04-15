@@ -3287,7 +3287,7 @@ export default class bitget extends Exchange {
             }
         }
         else {
-            request['businessType'] = 'contract';
+            request['businessType'] = 'mix';
         }
         const response = await this.privateCommonGetV2CommonTradeRate(this.extend(request, params));
         //
