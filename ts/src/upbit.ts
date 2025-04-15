@@ -154,9 +154,13 @@ export default class upbit extends Exchange {
                     ],
                     'post': [
                         'orders',
+                        'orders/cancel_and_new',
                         'withdraws/coin',
-                        'withdraws/krw',
+                        'withdraws/krw', // Upbit KR only
+                        'deposits/krw', // Upbit KR only
                         'deposits/generate_coin_address',
+                        'travel_rule/deposit/uuid',
+                        'travel_rule/deposit/txid',
                     ],
                     'delete': [
                         'order',
