@@ -559,6 +559,14 @@ public partial class Exchange
         return proxyUrl;
     }
 
+    public virtual object urlEncoderForProxyUrl(object targetUrl)
+    {
+        // to be overriden
+        object includesQuery = isGreaterThanOrEqual(getIndexOf(targetUrl, "?"), 0);
+        object finalUrl = ((bool) isTrue(includesQuery)) ? this.encodeURIComponent(targetUrl) : targetUrl;
+        return finalUrl;
+    }
+
     public virtual object checkProxySettings(object url = null, object method = null, object headers = null, object body = null)
     {
         object usedProxies = new List<object>() {};
