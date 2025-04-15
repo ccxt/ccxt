@@ -3124,11 +3124,12 @@ export default class binance extends Exchange {
             const networkList = this.safeList (entry, 'networkList', []);
             const fees: Dict = {};
             const networks: Dict = {};
+            let isETF = false;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString (networkItem, 'network');
                 const networkCode = this.networkIdToCode (network);
-                const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
+                isETF = (network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool (networkItem, 'depositEnable');
@@ -3181,11 +3182,19 @@ export default class binance extends Exchange {
             //         userMinRepay: "0",
             //     }
             //
+            let type: Str = undefined;
+            if (isETF) {
+                type = 'etf';
+            } else if (isFiat) {
+                type = 'fiat';
+            } else {
+                type = 'crypto';
+            }
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
+                'type': type,
                 'precision': undefined,
                 'info': entry,
                 'active': this.safeBool (entry, 'trading'),
