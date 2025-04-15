@@ -34,7 +34,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
             if (exchange.inArray (code, requiredActiveCurrencies)) {
-                assert (skipMajorCurrencyCheck || active || withdraw || deposit, 'Major currency ' + code + ' should have active, withdraw and deposit flags enabled');
+                assert (skipMajorCurrencyCheck || (withdraw && deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled');
             }
         }
         // check at least X% of currencies are active
