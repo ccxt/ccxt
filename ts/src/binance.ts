@@ -3108,7 +3108,7 @@ export default class binance extends Exchange {
             //        ]
             //    }
             //
-            //     some coins (e.g. BIGTIME) return extra fields under network entry
+            //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
             //
             //                "specialTips": "",
             //                "specialWithdrawTips": "",
@@ -3139,7 +3139,7 @@ export default class binance extends Exchange {
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
-                let withdrawPrecision = this.omitZero (this.safeString (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
+                let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
                 // avoid zero values, which are mostly from fiat or leveraged(ETF) tokens: https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (withdrawPrecision === undefined) {
                     if (isFiat) {
@@ -3184,7 +3184,7 @@ export default class binance extends Exchange {
             //
             let type: Str = undefined;
             if (isETF) {
-                type = 'etf';
+                type = 'leveraged';
             } else if (isFiat) {
                 type = 'fiat';
             } else {
