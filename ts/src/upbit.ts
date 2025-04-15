@@ -142,10 +142,15 @@ export default class upbit extends Exchange {
                         'withdraws',
                         'withdraw',
                         'withdraws/chance',
+                        'withdraws/coin_addresses',
                         'deposits',
+                        'deposits/chance/coin',
                         'deposit',
                         'deposits/coin_addresses',
                         'deposits/coin_address',
+                        'travel_rule/vasps',
+                        'status/wallet', // Upbit KR only
+                        'api_keys', // Upbit KR only
                     ],
                     'post': [
                         'orders',
