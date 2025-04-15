@@ -3108,6 +3108,14 @@ export default class binance extends Exchange {
             //        ]
             //    }
             //
+            //     some coins (e.g. BIGTIME) return extra fields under network entry
+            //
+            //                "specialTips": "",
+            //                "specialWithdrawTips": "",
+            //                "withdrawInternalMin": "0",
+            //                "contractAddressUrl": "https://etherscan.io/address/",
+            //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+            //
             const entry = responseCurrencies[i];
             const id = this.safeString (entry, 'coin');
             const name = this.safeString (entry, 'name');
@@ -3130,19 +3138,16 @@ export default class binance extends Exchange {
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
-                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                let withdrawPrecision = precisionTick;
-                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin');
+                let withdrawPrecision = this.omitZero (precisionTick);
+                // avoid zero values, which are mostly from fiat or leveraged(ETF) tokens: https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 if (Precise.stringEq (precisionTick, '0')) {
-                    if (!isFiat && !isETF) {
-                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
-                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
-                        withdrawPrecision = this.omitZero (this.safeString (networkItem, 'withdrawInternalMin'));
-                        if (withdrawPrecision === undefined) {
-                            withdrawPrecision = this.safeString (this.options, 'defaultWithdrawPrecision');
-                        }
-                    } else if (isFiat) {
+                    if (isFiat) {
                         withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
+                    } else if (!isETF) {
+                        // for regular cryptocurrencies (other than ETF), there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                        withdrawPrecision = this.safeString (this.options, 'defaultWithdrawPrecision');
                     }
                 }
                 networks[networkCode] = {
