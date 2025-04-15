@@ -164,6 +164,8 @@ export default class upbit extends Exchange {
                     ],
                     'delete': [
                         'order',
+                        'orders/open',
+                        'orders/uuids',
                     ],
                 },
             },
