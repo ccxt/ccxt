@@ -208,15 +208,15 @@ def test_market(exchange, skipped_properties, method, market):
             test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], price_or_amount_key)
     is_inactive_market = market['active'] is False
     # check limits
-    if not ('limits' in skipped_properties):
-        limits_keys = list(market['limits'].keys())
-        keys_length = len(limits_keys)
-        assert keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + log_text
-        for i in range(0, len(limits_keys)):
-            key = limits_keys[i]
-            limit_entry = market['limits'][key]
-            if is_inactive_market:
-                continue
+    limits_keys = list(market['limits'].keys())
+    limits_keys_length = len(limits_keys)
+    assert limits_keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + log_text
+    for i in range(0, len(limits_keys)):
+        key = limits_keys[i]
+        limit_entry = market['limits'][key]
+        if is_inactive_market:
+            continue  # check limits
+        if not ('limits' in skipped_properties):
             # min >= 0
             test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'min', '0')
             # max >= 0
@@ -225,11 +225,11 @@ def test_market(exchange, skipped_properties, method, market):
             min_string = exchange.safe_string(limit_entry, 'min')
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
-    # check whether valid currency ID and CODE is used
-    if not ('currency' in skipped_properties) and not ('currencyIdAndCode' in skipped_properties):
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    # check currencies
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    # check ts
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')
     # margin modes
     if not ('marginModes' in skipped_properties):

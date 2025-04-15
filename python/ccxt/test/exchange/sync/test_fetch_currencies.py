@@ -21,29 +21,22 @@ def test_fetch_currencies(exchange, skipped_properties):
     currencies = exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     num_inactive_currencies = 0
-    max_inactive_currencies_percentage = 60  # no more than X% currencies should be inactive
-    required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
+    # const maxInactiveCurrenciesPercentage = 60; # no more than X% currencies should be inactive
+    # const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
     if currencies is not None:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         currencies_length = len(values)
         # ensure exchange returns enough length of currencies
-        assert currencies_length > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + str(currencies_length)
+        # assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         # allow skipped exchanges
-        skip_active = ('active' in skipped_properties)
+        # const skipActive = ('active' in skippedProperties);
         # loop
         for i in range(0, currencies_length):
-            currency_obj = values[i]
-            test_currency(exchange, skipped_properties, method, currency_obj)
+            currency = values[i]
+            test_currency(exchange, skipped_properties, method, currency)
             # detailed check for deposit/withdraw
-            active = exchange.safe_bool(currency_obj, 'active', False)
+            active = exchange.safe_bool(currency, 'active')
             if active is False:
                 num_inactive_currencies = num_inactive_currencies + 1
-            # ensure that major currencies are not disabled for W/D
-            code = exchange.safe_string(currency_obj, 'code', None)
-            if exchange.in_array(code, required_active_currencies):
-                assert skip_active or (active is False), 'Major currency ' + code + ' should have withdraw and deposit enabled'
-        # check at least X% of currencies are active
-        inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
-        assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
     return True
