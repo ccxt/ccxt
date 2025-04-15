@@ -1356,195 +1356,8 @@ class binance(Exchange, ImplicitAPI):
                     'SPL': 'SOL',  # temporarily keep support for SPL(old name)
                     'SOL': 'SOL',  # we shouldn't rename SOL
                 },
-                # keeping self object for backward-compatibility
-                'reverseNetworks': {
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
-                },
                 'networksById': {
                     'SOL': 'SOL',  # temporary fix for SPL definition
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
                 },
                 'impliedNetworks': {
                     'ETH': {'ERC20': 'ETH'},
@@ -8706,39 +8519,19 @@ class binance(Exchange, ImplicitAPI):
     def parse_deposit_address(self, response, currency: Currency = None) -> DepositAddress:
         #
         #     {
-        #         "currency": "XRP",
+        #         "coin": "XRP",
         #         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         #         "tag": "108618262",
-        #         "info": {
-        #             "coin": "XRP",
-        #             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        #             "tag": "108618262",
-        #             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        #         }
+        #         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         #     }
         #
-        info = self.safe_dict(response, 'info', {})
-        url = self.safe_string(info, 'url')
+        url = self.safe_string(response, 'url')
         address = self.safe_string(response, 'address')
         currencyId = self.safe_string(response, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        impliedNetwork = None
-        if url is not None:
-            reverseNetworks = self.safe_dict(self.options, 'reverseNetworks', {})
-            parts = url.split('/')
-            topLevel = self.safe_string(parts, 2)
-            if (topLevel == 'blockchair.com') or (topLevel == 'viewblock.io'):
-                subLevel = self.safe_string(parts, 3)
-                if subLevel is not None:
-                    topLevel = topLevel + '/' + subLevel
-            impliedNetwork = self.safe_string(reverseNetworks, topLevel)
-            impliedNetworks = self.safe_dict(self.options, 'impliedNetworks', {
-                'ETH': {'ERC20': 'ETH'},
-                'TRX': {'TRC20': 'TRX'},
-            })
-            if code in impliedNetworks:
-                conversion = self.safe_dict(impliedNetworks, code, {})
-                impliedNetwork = self.safe_string(conversion, impliedNetwork, impliedNetwork)
+        # deposit-address endpoint provides only network url(not network ID/CODE)
+        # so we should map the url to network(their data is inside currencies)
+        networkCode = self.get_network_code_by_network_url(code, url)
         tag = self.safe_string(response, 'tag', '')
         if len(tag) == 0:
             tag = None
@@ -8746,7 +8539,7 @@ class binance(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': impliedNetwork,
+            'network': networkCode,
             'address': address,
             'tag': tag,
         }
@@ -11293,6 +11086,35 @@ class binance(Exchange, ImplicitAPI):
             'COMMISSION': 'commission',
         }
         return self.safe_string(ledgerType, type, type)
+
+    def get_network_code_by_network_url(self, currencyCode: str, depositUrl: Str = None) -> Str:
+        # depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if depositUrl is None:
+            return None
+        networkCode = None
+        currency = self.currency(currencyCode)
+        networks = self.safe_dict(currency, 'networks', {})
+        networkCodes = list(networks.keys())
+        for i in range(0, len(networkCodes)):
+            currentNetworkCode = networkCodes[i]
+            info = self.safe_dict(networks[currentNetworkCode], 'info', {})
+            siteUrl = self.safe_string(info, 'contractAddressUrl')
+            # check if url matches the field's value
+            if siteUrl is not None and depositUrl.startswith(self.get_base_domain_from_url(siteUrl)):
+                networkCode = currentNetworkCode
+        return networkCode
+
+    def get_base_domain_from_url(self, url: Str) -> Str:
+        if url is None:
+            return None
+        urlParts = url.split('/')
+        scheme = self.safe_string(urlParts, 0)
+        if scheme is None:
+            return None
+        domain = self.safe_string(urlParts, 2)
+        if domain is None:
+            return None
+        return scheme + '//' + domain + '/'
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         urls = self.urls

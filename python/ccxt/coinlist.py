@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -79,7 +79,7 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
@@ -2404,6 +2404,89 @@ class coinlist(Exchange, ImplicitAPI):
             'withdrawal': 'transfer',
         }
         return self.safe_string(types, type, type)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetV1SymbolsSymbolFunding(self.extend(request, params))
+        #
+        #     {
+        #         "last": {
+        #             "funding_rate": "-0.00043841",
+        #             "funding_time": "2025-04-15T04:00:00.000Z"
+        #         },
+        #         "next": {
+        #             "funding_rate": "-0.00046952",
+        #             "funding_time": "2025-04-15T12:00:00.000Z"
+        #         },
+        #         "indicative": {
+        #             "funding_rate": "-0.00042517",
+        #             "funding_time": "2025-04-15T20:00:00.000Z"
+        #         },
+        #         "timestamp": "2025-04-15T07:01:15.219Z"
+        #     }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "last": {
+        #             "funding_rate": "-0.00043841",
+        #             "funding_time": "2025-04-15T04:00:00.000Z"
+        #         },
+        #         "next": {
+        #             "funding_rate": "-0.00046952",
+        #             "funding_time": "2025-04-15T12:00:00.000Z"
+        #         },
+        #         "indicative": {
+        #             "funding_rate": "-0.00042517",
+        #             "funding_time": "2025-04-15T20:00:00.000Z"
+        #         },
+        #         "timestamp": "2025-04-15T07:01:15.219Z"
+        #     }
+        #
+        previous = self.safe_dict(contract, 'last', {})
+        current = self.safe_dict(contract, 'next', {})
+        next = self.safe_dict(contract, 'indicative', {})
+        previousDatetime = self.safe_string(previous, 'funding_time')
+        currentDatetime = self.safe_string(current, 'funding_time')
+        nextDatetime = self.safe_string(next, 'funding_time')
+        datetime = self.safe_string(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(current, 'funding_rate'),
+            'fundingTimestamp': self.parse8601(currentDatetime),
+            'fundingDatetime': currentDatetime,
+            'nextFundingRate': self.safe_number(next, 'funding_rate'),
+            'nextFundingTimestamp': self.parse8601(nextDatetime),
+            'nextFundingDatetime': nextDatetime,
+            'previousFundingRate': self.safe_number(previous, 'funding_rate'),
+            'previousFundingTimestamp': self.parse8601(previousDatetime),
+            'previousFundingDatetime': previousDatetime,
+            'interval': '8h',
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.omit(params, self.extract_params(path))
