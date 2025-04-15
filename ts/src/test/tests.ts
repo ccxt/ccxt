@@ -1432,6 +1432,31 @@ class testMainClass {
         return sum;
     }
 
+    checkIfExchangeIsDisabled (exchangeName: string, exchangeData: object) {
+        const exchange = initExchange ('Exchange', {});
+        const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
+        if (isDisabledPy && (this.lang === 'PY')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
+            return true;
+        }
+        const isDisabledPHP = exchange.safeBool (exchangeData, 'disabledPHP', false);
+        if (isDisabledPHP && (this.lang === 'PHP')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
+            return true;
+        }
+        const isDisabledCSharp = exchange.safeBool (exchangeData, 'disabledCS', false);
+        if (isDisabledCSharp && (this.lang === 'C#')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
+            return true;
+        }
+        const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
+        if (isDisabledGO && (this.lang === 'GO')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
+
     async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
         await this.runStaticTests ('request', targetExchange, testName);
         return true;
@@ -1456,6 +1481,10 @@ class testMainClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
+            const disabled = this.checkIfExchangeIsDisabled (exchangeName, exchangeData);
+            if (disabled) {
+                continue;
+            }
             const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData, testName);
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
