@@ -66,7 +66,7 @@ func  (this *coinlist) Describe() interface{}  {
             "fetchDepositWithdrawFee": false,
             "fetchDepositWithdrawFees": false,
             "fetchFundingHistory": false,
-            "fetchFundingRate": false,
+            "fetchFundingRate": true,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
             "fetchIndexOHLCV": false,
@@ -2932,6 +2932,107 @@ func  (this *coinlist) ParseLedgerEntryType(typeVar interface{}) interface{}  {
         "withdrawal": "transfer",
     }
     return this.SafeString(types, typeVar, typeVar)
+}
+/**
+ * @method
+ * @name coinlist#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func  (this *coinlist) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes25048 := (<-this.LoadMarkets())
+            PanicOnError(retRes25048)
+            var market interface{} = this.Market(symbol)
+            if !IsTrue(GetValue(market, "swap")) {
+                panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
+            }
+            var request interface{} = map[string]interface{} {
+                "symbol": GetValue(market, "id"),
+            }
+        
+            response:= (<-this.PublicGetV1SymbolsSymbolFunding(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
+            //     {
+            //         "last": {
+            //             "funding_rate": "-0.00043841",
+            //             "funding_time": "2025-04-15T04:00:00.000Z"
+            //         },
+            //         "next": {
+            //             "funding_rate": "-0.00046952",
+            //             "funding_time": "2025-04-15T12:00:00.000Z"
+            //         },
+            //         "indicative": {
+            //             "funding_rate": "-0.00042517",
+            //             "funding_time": "2025-04-15T20:00:00.000Z"
+            //         },
+            //         "timestamp": "2025-04-15T07:01:15.219Z"
+            //     }
+            //
+        ch <- this.ParseFundingRate(response, market)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *coinlist) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     {
+    //         "last": {
+    //             "funding_rate": "-0.00043841",
+    //             "funding_time": "2025-04-15T04:00:00.000Z"
+    //         },
+    //         "next": {
+    //             "funding_rate": "-0.00046952",
+    //             "funding_time": "2025-04-15T12:00:00.000Z"
+    //         },
+    //         "indicative": {
+    //             "funding_rate": "-0.00042517",
+    //             "funding_time": "2025-04-15T20:00:00.000Z"
+    //         },
+    //         "timestamp": "2025-04-15T07:01:15.219Z"
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var previous interface{} = this.SafeDict(contract, "last", map[string]interface{} {})
+    var current interface{} = this.SafeDict(contract, "next", map[string]interface{} {})
+    var next interface{} = this.SafeDict(contract, "indicative", map[string]interface{} {})
+    var previousDatetime interface{} = this.SafeString(previous, "funding_time")
+    var currentDatetime interface{} = this.SafeString(current, "funding_time")
+    var nextDatetime interface{} = this.SafeString(next, "funding_time")
+    var datetime interface{} = this.SafeString(contract, "timestamp")
+    return map[string]interface{} {
+        "info": contract,
+        "symbol": this.SafeSymbol(nil, market),
+        "markPrice": nil,
+        "indexPrice": nil,
+        "interestRate": nil,
+        "estimatedSettlePrice": nil,
+        "timestamp": this.Parse8601(datetime),
+        "datetime": datetime,
+        "fundingRate": this.SafeNumber(current, "funding_rate"),
+        "fundingTimestamp": this.Parse8601(currentDatetime),
+        "fundingDatetime": currentDatetime,
+        "nextFundingRate": this.SafeNumber(next, "funding_rate"),
+        "nextFundingTimestamp": this.Parse8601(nextDatetime),
+        "nextFundingDatetime": nextDatetime,
+        "previousFundingRate": this.SafeNumber(previous, "funding_rate"),
+        "previousFundingTimestamp": this.Parse8601(previousDatetime),
+        "previousFundingDatetime": previousDatetime,
+        "interval": "8h",
+    }
 }
 func  (this *coinlist) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
     api := GetArg(optionalArgs, 0, "public")
