@@ -3138,10 +3138,9 @@ export default class binance extends Exchange {
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
-                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin');
-                let withdrawPrecision = this.omitZero (precisionTick);
+                let withdrawPrecision = this.omitZero (this.safeString (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
                 // avoid zero values, which are mostly from fiat or leveraged(ETF) tokens: https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                if (Precise.stringEq (precisionTick, '0')) {
+                if (withdrawPrecision === undefined) {
                     if (isFiat) {
                         withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
                     } else if (!isETF) {
