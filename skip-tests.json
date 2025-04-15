@@ -251,9 +251,12 @@
     },
     "bitmex": {
         "skipMethods": {
-            "loadMarkets": "some market types are out of expected market-types",
-            "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
-            "watchOHLCV": "same as above, needs key fix",
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "created": "weird int values https://github.com/ccxt/ccxt/actions/runs/14245991901/job/39927051434?pr=25629#step:10:27"
+            },
+            "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",	
+            "watchOHLCV": "same as above, needs key fix",	
             "ticker": {
                 "average": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4030",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",
@@ -303,10 +306,7 @@
                 "currency": "undefined",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchTransactions": "skip",
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4458"
-            }
+            "fetchTransactions": "skip"
         }
     },
     "bitopro": {
