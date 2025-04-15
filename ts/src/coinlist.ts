@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, LedgerEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, LedgerEntry, Position } from './base/types.js';
 
 /**
  * @class coinlist
@@ -85,8 +85,8 @@ export default class coinlist extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': false,
-                'fetchPositionHistory': false,
+                'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
@@ -2490,6 +2490,93 @@ export default class coinlist extends Exchange {
             'withdrawal': 'transfer',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name coinlist#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://trade-docs.coinlist.co/#list-closed-positions
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'contract_code': market['id'],
+        };
+        const response = await this.privateGetV1ClosedPositions (this.extend (request, params));
+        //
+        //
+        const records = this.safeList (response, 'closed_positions', []);
+        const positions = this.parsePositions (records);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinlist#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://trade-docs.coinlist.co/#list-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchPosition() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV1Positions (this.extend (request, params));
+        //
+        //
+        const data = this.safeList (response, 'positions', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parsePosition (first, market);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //
+        const marketId = this.safeString2 (position, 'symbol', 'contract_code');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'transaction_id'),
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber (position, 'est_liquidation_price'),
+            'entryPrice': this.safeNumber (position, 'average_entry_price'),
+            'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber (position, 'pnl'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'quantity'),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber (position, 'marking_price'),
+            'lastPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
