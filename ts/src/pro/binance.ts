@@ -2751,9 +2751,6 @@ export default class binance extends binanceRest {
 
     useLogon (type: string, portfolioMargin: boolean): boolean {
         const isEd25519 = this.isEd25519 ();
-        if (type === 'margin') {
-            type = 'spot';
-        }
         if (isEd25519 && !portfolioMargin && (type === 'spot' || type === 'margin')) {
             return true;
         }
@@ -2761,11 +2758,11 @@ export default class binance extends binanceRest {
     }
 
     getUrl (type: string, isPortfolioMargin: boolean): string {
-        if (this.useLogon (type, isPortfolioMargin)) {
-            return this.urls['api']['ws']['ws-api'][type];
-        }
         if (type === 'margin') {
             type = 'spot';
+        }
+        if (this.useLogon (type, isPortfolioMargin)) {
+            return this.urls['api']['ws']['ws-api'][type];
         }
         const urlType = isPortfolioMargin ? 'papi' : type;
         return this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
@@ -4641,10 +4638,14 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         await this.authenticate (params);
         const marketType = this.getMarketType ('subscribeUserDataStream', undefined, params);
-        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery' && marketType !== 'margin') {
             throw new BadRequest (this.id + ' subscribeUserDataStream only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        let urlType = marketType;
+        if (marketType === 'margin') {
+            urlType = 'spot';
+        }
+        const url = this.urls['api']['ws']['ws-api'][urlType];
         const client = this.client (url);
         const isSubscribed = this.safeBool (client.subscriptions, 'userDataStream', false);
         if (isSubscribed === true) {
@@ -4675,9 +4676,6 @@ export default class binance extends binanceRest {
      */
     async loginSession (type:string, isPortfolioMargin = false, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
-            throw new BadRequest (this.id + ' loginSession only supports spot or swap markets');
-        }
         const url = this.getUrl (type, isPortfolioMargin);
         const client = this.client (url);
         const isLoggedIn = this.safeBool (client.subscriptions, 'logon', false);
