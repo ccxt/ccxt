@@ -11704,9 +11704,18 @@ export default class binance extends Exchange {
     }
 
     getBaseDomainFromUrl (url: Str): Str {
+        if (url === undefined) {
+            return undefined;
+        }
         const urlParts = url.split ('/');
         const scheme = this.safeString (urlParts, 0);
+        if (scheme === undefined) {
+            return undefined;
+        }
         const domain = this.safeString (urlParts, 2);
+        if (domain === undefined) {
+            return undefined;
+        }
         return scheme + '//' + domain + '/';
     }
 
