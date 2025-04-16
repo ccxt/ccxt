@@ -1,2 +1,2 @@
 python setup.py sdist bdist_wheel
-twine upload dist/* -u __token__ -p ${PYPI_TOKEN}
+echo "TOKEN ${PYPI_TOKEN:0:10}"

@@ -10,10 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: xyz
+    - name: Deploy Python
       env:
-        TOKEN1: ${{ secrets.NUGET_TOKEN }}
-      run: |
-          token_value=${{ env.TOKEN1 }}
-          first_10_chars=${token_value:0:10}
-          echo "First 10 chars: $first_10_chars"
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: cd python && ./deploy.sh && cd ..;
