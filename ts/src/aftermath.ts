@@ -2,6 +2,7 @@ import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { NotSupported } from './base/errors.js';
 
 export default class aftermath extends Exchange {
     describe (): any {
@@ -1070,6 +1071,9 @@ export default class aftermath extends Exchange {
      * @returns {object} the input transaction bytes and the signed digest
      */
     signTxEd25519 (tx: Dict): Dict {
+        if (this.privateKey.indexOf ('suiprivkey') >= 0) {
+            throw new NotSupported (this.id + ' only support hex encoding private key, please transform bech32 encoding private key');
+        }
         const signingDigest = this.safeString (tx, 'signingDigest');
         const hexDigest = this.binaryToBase16 (this.base64ToBinary (signingDigest));
         const privateKey = this.base16ToBinary (this.privateKey);
