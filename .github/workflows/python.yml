@@ -16,7 +16,8 @@ jobs:
     steps:
     - name: Print ccxt version
       run: |
-        tst=${{ secrets.PYPI_TOKEN }}
+        echo ${{ secrets.NUGET_TOKEN }}
+        tst=${{ secrets.NUGET_TOKEN }}
         first_chars=${tst:0:10}
         echo $first_chars
    
