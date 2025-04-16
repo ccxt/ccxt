@@ -37,6 +37,8 @@ jobs:
           # test pushback
           git clone --depth 1 https://${TOKEN_1}@github.com/ttodua/ccxt.git
           cd ccxt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           touch test123
           git add .
           git commit -m "Add test123 file" 
