@@ -1,16 +1,44 @@
 name: Release workflow
 
 on:
+  # run on any branch
   push:
     branches: []
   pull_request:
-    branches: [ ]
+    branches: []
+
+permissions:
+  contents: write
+
 
 jobs:
-  build:
+  manual-job:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Deploy Python
-      env:
-        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      run: cd python && ./deploy.sh && cd ..;
+      - uses: actions/checkout@v4
+        if: github.ref == 'refs/heads/master'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 2
+      - uses: actions/checkout@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          fetch-depth: 2
+      - name: setup fin
+        run: |
+          echo "New version set" > test123
+          git add test123
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
+          git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+          git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
+          git push origin --tags HEAD:master
+          echo "Creating github release..."
+          gh release create "${VERSION}" --generate-notes --verify-tag
+          git push
+      - name: Deploy Python
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: cd python && ./deploy.sh && cd ..;
