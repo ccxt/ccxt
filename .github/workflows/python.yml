@@ -35,8 +35,11 @@ jobs:
           TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # test pushback
+          git clone --depth 1 https://${TOKEN_1}@github.com/ttodua/ccxt.git
+          cd ccxt
           touch test123
           git add .
+          git commit -m "Add test123 file" 
           echo "pushing changes to remote"
           git push origin HEAD:master
   
