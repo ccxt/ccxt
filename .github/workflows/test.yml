@@ -20,3 +20,4 @@ jobs:
           echo "running py setup"
           echo "TOKEN 1 ${TOKEN_1:0:10}"
           echo "TOKEN 2 ${TOKEN_2:0:10}"
+          echo "TOKEN 3 ${TOKEN_3:0:10}"
