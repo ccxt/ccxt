@@ -15,5 +15,5 @@ jobs:
         env:
           GITHUB_TOKEN1: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN2: ${{ secrets.GH_TOKEN }}
-        run: cd python && ./deploy.sh && cd ..;
+        run: dir && cd ./../../python && ./deploy.sh && cd ..;
    
