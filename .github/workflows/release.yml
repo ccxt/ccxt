@@ -3,9 +3,7 @@ name: Release workflow
 on:
   # run on any branch
   push:
-    branches: []
   pull_request:
-    branches: []
   workflow_dispatch:
 
 
