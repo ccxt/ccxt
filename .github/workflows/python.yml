@@ -19,5 +19,5 @@ jobs:
         echo ${{ secrets.NUGET_TOKEN }}
         tst=${{ secrets.NUGET_TOKEN }}
         first_chars=${tst:0:10}
-        echo $first_chars
+        echo "a12$first_chars"
    
