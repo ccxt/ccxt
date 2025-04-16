@@ -25,16 +25,16 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
-      - name: setup fin
-        run: |
-          echo "New version set" > test123
-          git add test123
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "[Automated changes 123]"
-          git push origin --tags HEAD:master
-          git push
       - name: Deploy Python
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: cd python && ./deploy.sh && cd ..;
+      - name: setup fin
+        run: |
+          echo "New version set" > test123
+          git add test123
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "[Automated changes 123]"
+          git push origin --tags HEAD:master
+          git push
