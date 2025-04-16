@@ -558,7 +558,6 @@ export default class aftermath extends Exchange {
      * @returns {Array} a list of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#accounts}
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request = {
             'address': this.walletAddress,
@@ -691,7 +690,6 @@ export default class aftermath extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const ordersRequest = [];
         for (let i = 0; i < orders.length; i++) {
@@ -755,7 +753,6 @@ export default class aftermath extends Exchange {
      * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString (params, 'account');
@@ -795,7 +792,6 @@ export default class aftermath extends Exchange {
     }
 
     async createAccount (params = {}): Promise<Order[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const settleId = this.safeString (params, 'settleId');
         params = this.omit (params, [ 'settleId' ]);
@@ -828,7 +824,6 @@ export default class aftermath extends Exchange {
     }
 
     async createSubaccount (params = {}): Promise<Order[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const account = this.safeString2 (params, 'account', 'primary');
         params = this.omit (params, [ 'account', 'primary' ]);
@@ -863,7 +858,6 @@ export default class aftermath extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString2 (params, 'account', 'accountId');
@@ -910,7 +904,6 @@ export default class aftermath extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const account = this.safeString2 (params, 'account', 'accountId');
@@ -958,7 +951,6 @@ export default class aftermath extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
         const txRequest = {
@@ -1014,7 +1006,6 @@ export default class aftermath extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
         const subaccount = this.safeString (params, 'subaccount');
@@ -1096,6 +1087,9 @@ export default class aftermath extends Exchange {
 
     sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'] + '/' + path;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+        }
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
