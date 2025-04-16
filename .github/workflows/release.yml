@@ -4,13 +4,13 @@ on:
   push:
     branches: []
   pull_request:
-    branches: []
+    branches: [ main, test-r1 ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Print ccxt version
+    - name: xyz
       env:
         TOKEN1: ${{ secrets.NUGET_TOKEN }}
       run: |
