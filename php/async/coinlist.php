@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\coinlist as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadSymbol;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
 use \React\Async;
@@ -68,7 +69,7 @@ class coinlist extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
@@ -2552,6 +2553,94 @@ class coinlist extends Exchange {
             'withdrawal' => 'transfer',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             *
+             * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetV1SymbolsSymbolFunding ($this->extend($request, $params)));
+            //
+            //     {
+            //         "last" => array(
+            //             "funding_rate" => "-0.00043841",
+            //             "funding_time" => "2025-04-15T04:00:00.000Z"
+            //         ),
+            //         "next" => array(
+            //             "funding_rate" => "-0.00046952",
+            //             "funding_time" => "2025-04-15T12:00:00.000Z"
+            //         ),
+            //         "indicative" => array(
+            //             "funding_rate" => "-0.00042517",
+            //             "funding_time" => "2025-04-15T20:00:00.000Z"
+            //         ),
+            //         "timestamp" => "2025-04-15T07:01:15.219Z"
+            //     }
+            //
+            return $this->parse_funding_rate($response, $market);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //     {
+        //         "last" => array(
+        //             "funding_rate" => "-0.00043841",
+        //             "funding_time" => "2025-04-15T04:00:00.000Z"
+        //         ),
+        //         "next" => array(
+        //             "funding_rate" => "-0.00046952",
+        //             "funding_time" => "2025-04-15T12:00:00.000Z"
+        //         ),
+        //         "indicative" => array(
+        //             "funding_rate" => "-0.00042517",
+        //             "funding_time" => "2025-04-15T20:00:00.000Z"
+        //         ),
+        //         "timestamp" => "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        $previous = $this->safe_dict($contract, 'last', array());
+        $current = $this->safe_dict($contract, 'next', array());
+        $next = $this->safe_dict($contract, 'indicative', array());
+        $previousDatetime = $this->safe_string($previous, 'funding_time');
+        $currentDatetime = $this->safe_string($current, 'funding_time');
+        $nextDatetime = $this->safe_string($next, 'funding_time');
+        $datetime = $this->safe_string($contract, 'timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'fundingRate' => $this->safe_number($current, 'funding_rate'),
+            'fundingTimestamp' => $this->parse8601($currentDatetime),
+            'fundingDatetime' => $currentDatetime,
+            'nextFundingRate' => $this->safe_number($next, 'funding_rate'),
+            'nextFundingTimestamp' => $this->parse8601($nextDatetime),
+            'nextFundingDatetime' => $nextDatetime,
+            'previousFundingRate' => $this->safe_number($previous, 'funding_rate'),
+            'previousFundingTimestamp' => $this->parse8601($previousDatetime),
+            'previousFundingDatetime' => $previousDatetime,
+            'interval' => '8h',
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

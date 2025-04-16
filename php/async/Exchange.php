@@ -133,7 +133,7 @@ class Exchange extends \ccxt\Exchange {
             $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
             if ($proxyUrl !== null) {
                 $headers['Origin'] = $this->origin;
-                $url = $proxyUrl . $url;
+                $url = $proxyUrl . $this->url_encoder_for_proxy_url($url);
             }
             // proxy agents
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
@@ -846,6 +846,13 @@ class Exchange extends \ccxt\Exchange {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return $proxyUrl;
+    }
+
+    public function url_encoder_for_proxy_url(string $targetUrl) {
+        // to be overriden
+        $includesQuery = mb_strpos($targetUrl, '?') !== false;
+        $finalUrl = $includesQuery ? $this->encode_uri_component($targetUrl) : $targetUrl;
+        return $finalUrl;
     }
 
     public function check_proxy_settings(?string $url = null, ?string $method = null, $headers = null, $body = null) {

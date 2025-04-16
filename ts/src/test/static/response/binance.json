@@ -200,6 +200,125 @@
         }
     },
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "with code",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "coin": "USDT",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": "",
+                    "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                    "isDefault": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                        "tag": "",
+                        "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                        "isDefault": "0"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": null
+                }
+            },
+            {
+                "description": "with network ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "coin": "USDT",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": "",
+                    "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                    "isDefault": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                        "tag": "",
+                        "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                        "isDefault": "0"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": null
+                }
+            },
+            {
+                "description": "with networkCode",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "coin": "USDT",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": "",
+                    "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                    "isDefault": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                        "tag": "",
+                        "url": "https://etherscan.io/address/0x437ef27bace760782226ba15217735b05a2edc811",
+                        "isDefault": "0"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0x437ef27bace760782226ba15217735b05a2edc811",
+                    "tag": null
+                }
+            },
+            {
+                "description": "with network TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "coin": "USDT",
+                    "address": "TGC4Fq6Mum7kE2eEHkt8RudZY1o8oqkvBu",
+                    "tag": "",
+                    "url": "https://tronscan.org/#/address/TGC4Fq6Mum7kE2eEHkt8RudZY1o8oqkvBu",
+                    "isDefault": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "address": "TGC4Fq6Mum7kE2eEHkt8RudZY1o8oqkvBu",
+                        "tag": "",
+                        "url": "https://tronscan.org/#/address/TGC4Fq6Mum7kE2eEHkt8RudZY1o8oqkvBu",
+                        "isDefault": "0"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TGC4Fq6Mum7kE2eEHkt8RudZY1o8oqkvBu",
+                    "tag": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot +selfTradePrevention +iceberg",

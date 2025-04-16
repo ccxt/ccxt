@@ -1471,6 +1471,15 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "swap trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=mix&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch trading fee spot",
                 "method": "fetchTradingFee",
                 "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=spot&symbol=BTCUSDT",

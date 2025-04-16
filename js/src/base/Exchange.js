@@ -553,7 +553,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + url;
+            url = proxyUrl + this.urlEncoderForProxyUrl(url);
         }
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
@@ -1756,6 +1756,12 @@ export default class Exchange {
             throw new InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+    urlEncoderForProxyUrl(targetUrl) {
+        // to be overriden
+        const includesQuery = targetUrl.indexOf('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
+        return finalUrl;
     }
     checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
