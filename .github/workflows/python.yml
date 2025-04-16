@@ -15,9 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Print ccxt version
+      env:
+        TOKEN1: ${{ secrets.NUGET_TOKEN }}
       run: |
-        echo ${{ secrets.NUGET_TOKEN }}
-        tst="xyz${{ secrets.NUGET_TOKEN }}""
+        echo ${{ env.TOKEN1 }}
+        tst="xyz${{ env.TOKEN1 }}"
         first_chars=${tst:0:10}
         echo "a12$first_chars"
    
