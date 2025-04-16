@@ -1,14 +1,11 @@
 name: Python
 
 on:
-  workflow_dispatch:
+  # run on any branch
   push:
-    branches: [ main, master ]
+    branches: []
   pull_request:
-    branches: [ main, master ]
-
-permissions:
-  contents: read
+    branches: []
 
 jobs:
   build:
