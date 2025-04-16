@@ -11,12 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Print ccxt version
-      env:
-        TOKEN1: ${{ secrets.NUGET_TOKEN }}
-      run: |
-        echo ${{ env.TOKEN1 }}
-        tst="xyz${{ env.TOKEN1 }}"
-        first_chars=${tst:0:10}
-        echo "a12$first_chars"
+      - name: Push Python changes to master	
+        env:
+          GITHUB_TOKEN1: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN2: ${{ secrets.GH_TOKEN }}
+        run: cd python && ./deploy.sh && cd ..;
    
