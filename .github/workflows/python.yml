@@ -27,20 +27,6 @@ jobs:
 
           # env
 
-      - name: test pushback
-        env:
-          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # test pushback
-          mkdir test1
-          cd test1
-          git clone --depth 1 https://${TOKEN_1}@github.com/ccxt/ccxt.git
-          cd ccxt
-          touch test123
-          git add .
-          echo "pushing changes to remote"
-          git push origin HEAD:master         
-
       - name: test pushback2
         env:
           TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
@@ -55,3 +41,16 @@ jobs:
           echo "pushing changes to remote"
           git push origin HEAD:master
   
+      - name: test pushback
+        env:
+          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # test pushback
+          mkdir test1
+          cd test1
+          git clone --depth 1 https://${TOKEN_1}@github.com/ccxt/ccxt.git
+          cd ccxt
+          touch test123
+          git add .
+          echo "pushing changes to remote"
+          git push origin HEAD:master         
