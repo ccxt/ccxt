@@ -7,9 +7,6 @@ on:
   pull_request:
     branches: []
 
-permissions:
-  contents: write
-
 
 jobs:
   manual-job:
@@ -18,11 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-      - uses: actions/checkout@v4
         if: github.ref != 'refs/heads/master'
-        with:
+          # token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
       - name: Deploy Python
         env:
