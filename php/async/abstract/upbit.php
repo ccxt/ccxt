@@ -16,6 +16,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function public_get_candles_timeframe_unit($params = array()) {
         return $this->request('candles/{timeframe}/{unit}', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_candles_seconds($params = array()) {
+        return $this->request('candles/seconds', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_candles_minutes_unit($params = array()) {
         return $this->request('candles/minutes/{unit}', 'public', 'GET', $params, null, null, array());
     }
@@ -52,14 +55,23 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function public_get_candles_months($params = array()) {
         return $this->request('candles/months', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_candles_years($params = array()) {
+        return $this->request('candles/years', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_trades_ticks($params = array()) {
         return $this->request('trades/ticks', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_ticker_all($params = array()) {
+        return $this->request('ticker/all', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_orderbook_supported_levels($params = array()) {
+        return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array());
     }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array());
@@ -69,9 +81,6 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function private_get_order($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_orders($params = array()) {
-        return $this->request('orders', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_orders_closed($params = array()) {
         return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
@@ -91,8 +100,14 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function private_get_withdraws_chance($params = array()) {
         return $this->request('withdraws/chance', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_withdraws_coin_addresses($params = array()) {
+        return $this->request('withdraws/coin_addresses', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_deposits($params = array()) {
         return $this->request('deposits', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_deposits_chance_coin($params = array()) {
+        return $this->request('deposits/chance/coin', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_deposit($params = array()) {
         return $this->request('deposit', 'private', 'GET', $params, null, null, array());
@@ -103,8 +118,20 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function private_get_deposits_coin_address($params = array()) {
         return $this->request('deposits/coin_address', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_travel_rule_vasps($params = array()) {
+        return $this->request('travel_rule/vasps', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_status_wallet($params = array()) {
+        return $this->request('status/wallet', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_api_keys($params = array()) {
+        return $this->request('api_keys', 'private', 'GET', $params, null, null, array());
+    }
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_orders_cancel_and_new($params = array()) {
+        return $this->request('orders/cancel_and_new', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_withdraws_coin($params = array()) {
         return $this->request('withdraws/coin', 'private', 'POST', $params, null, null, array());
@@ -112,11 +139,26 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function private_post_withdraws_krw($params = array()) {
         return $this->request('withdraws/krw', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_deposits_krw($params = array()) {
+        return $this->request('deposits/krw', 'private', 'POST', $params, null, null, array());
+    }
     public function private_post_deposits_generate_coin_address($params = array()) {
         return $this->request('deposits/generate_coin_address', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_travel_rule_deposit_uuid($params = array()) {
+        return $this->request('travel_rule/deposit/uuid', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_travel_rule_deposit_txid($params = array()) {
+        return $this->request('travel_rule/deposit/txid', 'private', 'POST', $params, null, null, array());
+    }
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function private_delete_orders_open($params = array()) {
+        return $this->request('orders/open', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function private_delete_orders_uuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'DELETE', $params, null, null, array());
     }
     public function publicGetMarketAll($params = array()) {
         return $this->request('market/all', 'public', 'GET', $params, null, null, array());
@@ -126,6 +168,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function publicGetCandlesTimeframeUnit($params = array()) {
         return $this->request('candles/{timeframe}/{unit}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetCandlesSeconds($params = array()) {
+        return $this->request('candles/seconds', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetCandlesMinutesUnit($params = array()) {
         return $this->request('candles/minutes/{unit}', 'public', 'GET', $params, null, null, array());
@@ -163,14 +208,23 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function publicGetCandlesMonths($params = array()) {
         return $this->request('candles/months', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetCandlesYears($params = array()) {
+        return $this->request('candles/years', 'public', 'GET', $params, null, null, array());
+    }
     public function publicGetTradesTicks($params = array()) {
         return $this->request('trades/ticks', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetTickerAll($params = array()) {
+        return $this->request('ticker/all', 'public', 'GET', $params, null, null, array());
+    }
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetOrderbookSupportedLevels($params = array()) {
+        return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array());
@@ -180,9 +234,6 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function privateGetOrder($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetOrders($params = array()) {
-        return $this->request('orders', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetOrdersClosed($params = array()) {
         return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
@@ -202,8 +253,14 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function privateGetWithdrawsChance($params = array()) {
         return $this->request('withdraws/chance', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetWithdrawsCoinAddresses($params = array()) {
+        return $this->request('withdraws/coin_addresses', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetDeposits($params = array()) {
         return $this->request('deposits', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetDepositsChanceCoin($params = array()) {
+        return $this->request('deposits/chance/coin', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetDeposit($params = array()) {
         return $this->request('deposit', 'private', 'GET', $params, null, null, array());
@@ -214,8 +271,20 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function privateGetDepositsCoinAddress($params = array()) {
         return $this->request('deposits/coin_address', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetTravelRuleVasps($params = array()) {
+        return $this->request('travel_rule/vasps', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetStatusWallet($params = array()) {
+        return $this->request('status/wallet', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetApiKeys($params = array()) {
+        return $this->request('api_keys', 'private', 'GET', $params, null, null, array());
+    }
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostOrdersCancelAndNew($params = array()) {
+        return $this->request('orders/cancel_and_new', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostWithdrawsCoin($params = array()) {
         return $this->request('withdraws/coin', 'private', 'POST', $params, null, null, array());
@@ -223,10 +292,25 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function privatePostWithdrawsKrw($params = array()) {
         return $this->request('withdraws/krw', 'private', 'POST', $params, null, null, array());
     }
+    public function privatePostDepositsKrw($params = array()) {
+        return $this->request('deposits/krw', 'private', 'POST', $params, null, null, array());
+    }
     public function privatePostDepositsGenerateCoinAddress($params = array()) {
         return $this->request('deposits/generate_coin_address', 'private', 'POST', $params, null, null, array());
     }
+    public function privatePostTravelRuleDepositUuid($params = array()) {
+        return $this->request('travel_rule/deposit/uuid', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostTravelRuleDepositTxid($params = array()) {
+        return $this->request('travel_rule/deposit/txid', 'private', 'POST', $params, null, null, array());
+    }
     public function privateDeleteOrder($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function privateDeleteOrdersOpen($params = array()) {
+        return $this->request('orders/open', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function privateDeleteOrdersUuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'DELETE', $params, null, null, array());
     }
 }
