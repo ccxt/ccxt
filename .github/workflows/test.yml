@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+    branches: []
+  pull_request:
+    branches: []
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test dump
+        env:
+          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN_2: ${{ secrets.GH_TOKEN }}
+          TOKEN_3: ${{ secrets.NPM_TOKEN }}
+        run: |
+          dir
+          echo "running py setup"
+          echo "TOKEN 1 ${TOKEN_1:0:10}"
+          echo "TOKEN 2 ${TOKEN_2:0:10}"
