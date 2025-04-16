@@ -11,33 +11,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: test dump
-        env:
-          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
-          TOKEN_2: ${{ secrets.GH_TOKEN }}
-          TOKEN_3: ${{ secrets.NPM_TOKEN }}
-          TOKEN_4: ${{ secrets.NUGET_TOKEN }}
-          TOKEN_5: ${{ secrets.PYPI_TOKEN }}
-          TOKEN_6: ${{ secrets.SECRET_KEY }}
-        run: |
-          dir
-          echo "running py setup"
-          echo "TOKEN 1 ${TOKEN_1:0:10}"
-          echo "TOKEN 2 ${TOKEN_2:0:10}"
-          env
-          
-          
-      # - name: test pushback
+      # - name: test dump
       #   env:
       #     TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
+      #     TOKEN_2: ${{ secrets.GH_TOKEN }}
+      #     TOKEN_3: ${{ secrets.NPM_TOKEN }}
+      #     TOKEN_4: ${{ secrets.NUGET_TOKEN }}
+      #     TOKEN_5: ${{ secrets.PYPI_TOKEN }}
+      #     TOKEN_6: ${{ secrets.SECRET_KEY }}
       #   run: |
-      #     # test pushback
-      #     mkdir test1
-      #     cd test1
-      #     git clone --depth 1 https://${TOKEN_1}@github.com/ccxt/ccxt.git
-      #     cd ccxt
-      #     touch test123
-      #     git add .
-      #     echo "pushing changes to remote"
-      #     git push origin HEAD:master
-   
+      #     dir
+      #     echo "running py setup"
+      #     echo "TOKEN 1 ${TOKEN_1:0:10}"
+      #     echo "TOKEN 2 ${TOKEN_2:0:10}"
+
+          # env
+
+      - name: test pushback
+        env:
+          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # test pushback
+          mkdir test1
+          cd test1
+          git clone --depth 1 https://${TOKEN_1}@github.com/ccxt/ccxt.git
+          cd ccxt
+          touch test123
+          git add .
+          echo "pushing changes to remote"
+          git push origin HEAD:master         
+
+      - name: test pushback2
+        env:
+          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # test pushback
+          mkdir test1
+          cd test1
+          git clone --depth 1 https://${TOKEN_1}@github.com/ttodua/ccxt.git
+          cd ccxt
+          touch test123
+          git add .
+          echo "pushing changes to remote"
+          git push origin HEAD:master
+  
