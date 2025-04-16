@@ -1070,28 +1070,16 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetchOHLCV using a timestamp that is 1439 candles in the past so that the history endpoint is used",
+                "description": "historical endpoint instead of recent",
                 "method": "fetchOHLCV",
-                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1701011781033",
+                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1700291781033",
                 "input": [
                     "BTC/USDT",
                     "1h",
                     1699931781033,
-                    300
-                ]
-            },
-            {
-                "description": "fetchOHLCV using a timestamp that is 1438 candles in the past so that the current endpoint is used",
-                "method": "fetchOHLCV",
-                "disabled": true,
-                "reason": "relies on the current timestamp, which is not deterministic",
-                "url": "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1H&limit=300&before=1699935566969&after=1701015566969",
-                "input": [
-                    "BTC/USDT",
-                    "1h",
-                    1699935566969,
-                    300
-                ]
+                    500
+                ],
+                "output": null
             },
             {
                 "description": "spot ohlcv",

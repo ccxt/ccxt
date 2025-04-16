@@ -16,11 +16,26 @@ import "github.com/ccxt/ccxt/go/v4"
                 currencies:= (<-exchange.FetchCurrencies())
                 PanicOnError(currencies)
                 // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+                var numInactiveCurrencies interface{} = 0
+                // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+                // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
-                    for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-                        TestCurrency(exchange, skippedProperties, method, GetValue(values, i))
+                    var currenciesLength interface{} =         GetArrayLength(values)
+                    // ensure exchange returns enough length of currencies
+                    // Assert (currenciesLength > 5, exchange.Getid() + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+                    // allow skipped exchanges
+                    // const skipActive = ('active' in skippedProperties);
+                    // loop
+                    for i := 0; IsLessThan(i, currenciesLength); i++ {
+                        var currency interface{} = GetValue(values, i)
+                        TestCurrency(exchange, skippedProperties, method, currency)
+                        // detailed check for deposit/withdraw
+                        var active interface{} = exchange.SafeBool(currency, "active")
+                        if IsTrue(IsEqual(active, false)) {
+                            numInactiveCurrencies = Add(numInactiveCurrencies, 1)
+                        }
                     }
                 }
             

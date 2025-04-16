@@ -604,6 +604,7 @@ export default class derive extends Exchange {
         let swap = false;
         let option = false;
         let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -626,6 +627,7 @@ export default class derive extends Exchange {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             linear = true;
+            inverse = false;
             marketType = 'swap';
         } else if (type === 'option') {
             settleId = 'USDC';
@@ -643,6 +645,8 @@ export default class derive extends Exchange {
             } else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure ({
             'id': marketId,
@@ -662,7 +666,7 @@ export default class derive extends Exchange {
             'active': this.safeBool (market, 'is_active'),
             'contract': (swap || option),
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': (spot) ? undefined : 1,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),

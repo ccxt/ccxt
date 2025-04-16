@@ -66,6 +66,7 @@ public partial class upbit : Exchange
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
+                { "1s", "seconds" },
                 { "1m", "minutes" },
                 { "3m", "minutes" },
                 { "5m", "minutes" },
@@ -77,6 +78,7 @@ public partial class upbit : Exchange
                 { "1d", "days" },
                 { "1w", "weeks" },
                 { "1M", "months" },
+                { "1y", "years" },
             } },
             { "hostname", "api.upbit.com" },
             { "urls", new Dictionary<string, object>() {
@@ -91,12 +93,12 @@ public partial class upbit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
+                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/seconds", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "candles/years", "trades/ticks", "ticker", "ticker/all", "orderbook", "orderbook/supported_levels"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders", "orders/closed", "orders/open", "orders/uuids", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"} },
-                    { "post", new List<object>() {"orders", "withdraws/coin", "withdraws/krw", "deposits/generate_coin_address"} },
-                    { "delete", new List<object>() {"order"} },
+                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders/closed", "orders/open", "orders/uuids", "withdraws", "withdraw", "withdraws/chance", "withdraws/coin_addresses", "deposits", "deposits/chance/coin", "deposit", "deposits/coin_addresses", "deposits/coin_address", "travel_rule/vasps", "status/wallet", "api_keys"} },
+                    { "post", new List<object>() {"orders", "orders/cancel_and_new", "withdraws/coin", "withdraws/krw", "deposits/krw", "deposits/generate_coin_address", "travel_rule/deposit/uuid", "travel_rule/deposit/txid"} },
+                    { "delete", new List<object>() {"order", "orders/open", "orders/uuids"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

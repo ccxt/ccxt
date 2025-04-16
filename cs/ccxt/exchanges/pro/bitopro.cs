@@ -393,15 +393,16 @@ public partial class bitopro : ccxt.bitopro
         //     }
         //
         object marketId = this.safeString(message, "pair");
-        object market = this.safeMarket(marketId, null, "_");
+        // market-ids are lowercase in REST API and uppercase in WS API
+        object market = this.safeMarket(((string)marketId).ToLower(), null, "_");
         object symbol = getValue(market, "symbol");
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
-        object result = this.parseTicker(message);
+        object result = this.parseTicker(message, market);
+        ((IDictionary<string,object>)result)["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         object timestamp = this.safeInteger(message, "timestamp");
-        object datetime = this.safeString(message, "datetime");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)result)["datetime"] = datetime;
+        ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
     }

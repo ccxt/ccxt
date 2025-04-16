@@ -1711,3 +1711,68 @@ func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdra
     }
     return res.([]map[string]interface{}), nil
 }
+/**
+ * @method
+ * @name bitmart#setPositionMode
+ * @description set hedged to true or false for a market
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+ * @param {bool} hedged set to true to use dualSidePosition
+ * @param {string} symbol not used by bingx setPositionMode ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Bitmart) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := SetPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetPositionMode(hedged, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name bitmart#fetchPositionMode
+ * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+ * @param {string} symbol not used
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an object detailing whether the market is in hedged or one-way mode
+ */
+func (this *Bitmart) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := FetchPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionMode(symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}

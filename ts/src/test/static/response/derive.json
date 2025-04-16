@@ -1627,6 +1627,7 @@
             {
                 "description": "fetchWithdrawals",
                 "method": "fetchWithdrawals",
+                "disabledGO": true,
                 "input": [],
                 "httpResponse": {
                     "result": {

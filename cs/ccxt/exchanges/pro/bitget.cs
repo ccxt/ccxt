@@ -63,6 +63,9 @@ public partial class bitget : ccxt.bitget
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "checksum", true },
                 } },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -877,7 +880,14 @@ public partial class bitget : ccxt.bitget
             object tradeSymbol = this.safeString(first, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
     }
 
     /**

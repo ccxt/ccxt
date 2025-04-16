@@ -1507,6 +1507,7 @@ func  (this *yobit) CreateDepositAddress(code interface{}, optionalArgs ...inter
                 "currency": code,
                 "address": address,
                 "tag": nil,
+                "network": nil,
                 "info": GetValue(response, "info"),
             }
             return nil
@@ -1531,8 +1532,8 @@ func  (this *yobit) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes12958 := (<-this.LoadMarkets())
-            PanicOnError(retRes12958)
+            retRes12968 := (<-this.LoadMarkets())
+            PanicOnError(retRes12968)
             var currency interface{} = this.Currency(code)
             var currencyId interface{} = GetValue(currency, "id")
             var networks interface{} = this.SafeDict(this.Options, "networks", map[string]interface{} {})
@@ -1592,8 +1593,8 @@ func  (this *yobit) Withdraw(code interface{}, amount interface{}, address inter
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes13388 := (<-this.LoadMarkets())
-            PanicOnError(retRes13388)
+            retRes13398 := (<-this.LoadMarkets())
+            PanicOnError(retRes13398)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coinName": GetValue(currency, "id"),

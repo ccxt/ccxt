@@ -1091,6 +1091,26 @@ class testMainClass:
             sum = exchange.sum(sum, results_length)
         return sum
 
+    def check_if_exchange_is_disabled(self, exchange_name, exchange_data):
+        exchange = init_exchange('Exchange', {})
+        is_disabled_py = exchange.safe_bool(exchange_data, 'disabledPy', False)
+        if is_disabled_py and (self.lang == 'PY'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in python')
+            return True
+        is_disabled_php = exchange.safe_bool(exchange_data, 'disabledPHP', False)
+        if is_disabled_php and (self.lang == 'PHP'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in php')
+            return True
+        is_disabled_c_sharp = exchange.safe_bool(exchange_data, 'disabledCS', False)
+        if is_disabled_c_sharp and (self.lang == 'C#'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in c#')
+            return True
+        is_disabled_go = exchange.safe_bool(exchange_data, 'disabledGO', False)
+        if is_disabled_go and (self.lang == 'GO'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in go')
+            return True
+        return False
+
     def run_static_request_tests(self, target_exchange=None, test_name=None):
         self.run_static_tests('request', target_exchange, test_name)
         return True
@@ -1111,6 +1131,9 @@ class testMainClass:
         for i in range(0, len(exchanges)):
             exchange_name = exchanges[i]
             exchange_data = static_data[exchange_name]
+            disabled = self.check_if_exchange_is_disabled(exchange_name, exchange_data)
+            if disabled:
+                continue
             number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data, test_name)
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
@@ -1153,7 +1176,9 @@ class testMainClass:
 
     def test_binance(self):
         exchange = self.init_offline_exchange('binance')
-        spot_id = 'x-R4BD3S82'
+        spot_id = 'x-TKT5PX2F'
+        swap_id = 'x-cvBPrNm9'
+        inverse_swap_id = 'x-xcKtGhcu'
         spot_order_request = None
         try:
             exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
@@ -1162,7 +1187,6 @@ class testMainClass:
         client_order_id = spot_order_request['newClientOrderId']
         spot_id_string = str(spot_id)
         assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
-        swap_id = 'x-xcKtGhcu'
         swap_order_request = None
         try:
             exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
@@ -1173,11 +1197,13 @@ class testMainClass:
             exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+        # linear swap
         client_order_id_swap = swap_order_request['newClientOrderId']
         swap_id_string = str(swap_id)
         assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
+        # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(swap_id_string), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + swap_id_string
+        assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
         create_orders_request = None
         try:
             orders = [{

@@ -1509,6 +1509,11 @@ class gate extends Exchange {
         $takerPercent = $this->safe_string($market, 'taker_fee_rate');
         $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
         $isLinear = $quote === $settle;
+        $contractSize = $this->safe_string($market, 'quanto_multiplier');
+        // exception only for one $market => https://api.gateio.ws/api/v4/futures/btc/contracts
+        if ($contractSize === '0') {
+            $contractSize = '1'; // 1 USD in WEB => https://i.imgur.com/MBBUI04.png
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1530,7 +1535,7 @@ class gate extends Exchange {
             'inverse' => !$isLinear,
             'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
             'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
-            'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
+            'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
@@ -1875,9 +1880,9 @@ class gate extends Exchange {
                 $partFirst = $this->safe_string($parts, 0);
                 // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
                 $currencyName = str_ends_with($currencyId, '_OLD') ? $currencyId : $partFirst;
-                $withdrawEnabled = !$this->safe_bool($entry, 'withdraw_disabled');
-                $depositEnabled = !$this->safe_bool($entry, 'deposit_disabled');
-                $tradeDisabled = !$this->safe_bool($entry, 'trade_disabled');
+                $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
+                $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
+                $tradeDisabled = $this->safe_bool($entry, 'trade_disabled', false);
                 $precision = $this->parse_number('0.0001'); // temporary safe default, because no value provided from API
                 $code = $this->safe_currency_code($currencyName);
                 // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1907,8 +1912,8 @@ class gate extends Exchange {
                         ),
                     ),
                     'active' => !$tradeDisabled,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'deposit' => !$depositDisabled,
+                    'withdraw' => !$withdrawDisabled,
                     'fee' => null,
                     'precision' => $precision,
                 );
@@ -6834,7 +6839,7 @@ class gate extends Exchange {
                     $queryString = $this->urlencode($query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
-                        $queryString = str_replace('%2', ',', $queryString);
+                        $queryString = str_replace('%2C', ',', $queryString);
                     }
                     $url .= '?' . $queryString;
                 }

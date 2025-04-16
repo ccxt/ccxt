@@ -493,6 +493,7 @@ public partial class derive : Exchange
         object swap = false;
         object option = false;
         object linear = null;
+        object inverse = null;
         object baseId = this.safeString(market, "base_currency");
         object quoteId = this.safeString(market, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -517,6 +518,7 @@ public partial class derive : Exchange
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             swap = true;
             linear = true;
+            inverse = false;
             marketType = "swap";
         } else if (isTrue(isEqual(type, "option")))
         {
@@ -537,6 +539,8 @@ public partial class derive : Exchange
             {
                 optionType = "call";
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -556,7 +560,7 @@ public partial class derive : Exchange
             { "active", this.safeBool(market, "is_active") },
             { "contract", (isTrue(swap) || isTrue(option)) },
             { "linear", linear },
-            { "inverse", null },
+            { "inverse", inverse },
             { "contractSize", ((bool) isTrue((spot))) ? null : 1 },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },

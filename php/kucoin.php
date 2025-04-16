@@ -1980,7 +1980,7 @@ class kucoin extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          *
          * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-

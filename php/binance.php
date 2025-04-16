@@ -1288,12 +1288,13 @@ class binance extends Exchange {
                 ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 'broker' => array(
-                    'spot' => 'x-R4BD3S82',
-                    'margin' => 'x-R4BD3S82',
-                    'future' => 'x-xcKtGhcu',
+                    'spot' => 'x-TKT5PX2F',
+                    'margin' => 'x-TKT5PX2F',
+                    'future' => 'x-cvBPrNm9',
                     'delivery' => 'x-xcKtGhcu',
-                    'swap' => 'x-xcKtGhcu',
+                    'swap' => 'x-cvBPrNm9',
                     'option' => 'x-xcKtGhcu',
+                    'inverse' => 'x-xcKtGhcu',
                 ),
                 'accountsByType' => array(
                     'main' => 'MAIN',
@@ -1326,195 +1327,8 @@ class binance extends Exchange {
                     'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
                 ),
-                // keeping this object for backward-compatibility
-                'reverseNetworks' => array(
-                    'tronscan.org' => 'TRC20',
-                    'etherscan.io' => 'ERC20',
-                    'bscscan.com' => 'BSC',
-                    'explorer.binance.org' => 'BEP2',
-                    'bithomp.com' => 'XRP',
-                    'bloks.io' => 'EOS',
-                    'stellar.expert' => 'XLM',
-                    'blockchair.com/bitcoin' => 'BTC',
-                    'blockchair.com/bitcoin-cash' => 'BCH',
-                    'blockchair.com/ecash' => 'XEC',
-                    'explorer.litecoin.net' => 'LTC',
-                    'explorer.avax.network' => 'AVAX',
-                    'solscan.io' => 'SOL',
-                    'polkadot.subscan.io' => 'DOT',
-                    'dashboard.internetcomputer.org' => 'ICP',
-                    'explorer.chiliz.com' => 'CHZ',
-                    'cardanoscan.io' => 'ADA',
-                    'mainnet.theoan.com' => 'AION',
-                    'algoexplorer.io' => 'ALGO',
-                    'explorer.ambrosus.com' => 'AMB',
-                    'viewblock.io/zilliqa' => 'ZIL',
-                    'viewblock.io/arweave' => 'AR',
-                    'explorer.ark.io' => 'ARK',
-                    'atomscan.com' => 'ATOM',
-                    'www.mintscan.io' => 'CTK',
-                    'explorer.bitcoindiamond.org' => 'BCD',
-                    'btgexplorer.com' => 'BTG',
-                    'bts.ai' => 'BTS',
-                    'explorer.celo.org' => 'CELO',
-                    'explorer.nervos.org' => 'CKB',
-                    'cerebro.cortexlabs.ai' => 'CTXC',
-                    'chainz.cryptoid.info' => 'VIA',
-                    'explorer.dcrdata.org' => 'DCR',
-                    'digiexplorer.info' => 'DGB',
-                    'dock.subscan.io' => 'DOCK',
-                    'dogechain.info' => 'DOGE',
-                    'explorer.elrond.com' => 'EGLD',
-                    'blockscout.com' => 'ETC',
-                    'explore-fetchhub.fetch.ai' => 'FET',
-                    'filfox.info' => 'FIL',
-                    'fio.bloks.io' => 'FIO',
-                    'explorer.firo.org' => 'FIRO',
-                    'neoscan.io' => 'NEO',
-                    'ftmscan.com' => 'FTM',
-                    'explorer.gochain.io' => 'GO',
-                    'block.gxb.io' => 'GXS',
-                    'hash-hash.info' => 'HBAR',
-                    'www.hiveblockexplorer.com' => 'HIVE',
-                    'explorer.helium.com' => 'HNT',
-                    'tracker.icon.foundation' => 'ICX',
-                    'www.iostabc.com' => 'IOST',
-                    'explorer.iota.org' => 'IOTA',
-                    'iotexscan.io' => 'IOTX',
-                    'irishub.iobscan.io' => 'IRIS',
-                    'kava.mintscan.io' => 'KAVA',
-                    'scope.klaytn.com' => 'KLAY',
-                    'kmdexplorer.io' => 'KMD',
-                    'kusama.subscan.io' => 'KSM',
-                    'explorer.lto.network' => 'LTO',
-                    'polygonscan.com' => 'POLYGON',
-                    'explorer.ont.io' => 'ONT',
-                    'minaexplorer.com' => 'MINA',
-                    'nanolooker.com' => 'NANO',
-                    'explorer.nebulas.io' => 'NAS',
-                    'explorer.nbs.plus' => 'NBS',
-                    'explorer.nebl.io' => 'NEBL',
-                    'nulscan.io' => 'NULS',
-                    'nxscan.com' => 'NXS',
-                    'explorer.harmony.one' => 'ONE',
-                    'explorer.poa.network' => 'POA',
-                    'qtum.info' => 'QTUM',
-                    'explorer.rsk.co' => 'RSK',
-                    'www.oasisscan.com' => 'ROSE',
-                    'ravencoin.network' => 'RVN',
-                    'sc.tokenview.com' => 'SC',
-                    'secretnodes.com' => 'SCRT',
-                    'explorer.skycoin.com' => 'SKY',
-                    'steemscan.com' => 'STEEM',
-                    'explorer.stacks.co' => 'STX',
-                    'www.thetascan.io' => 'THETA',
-                    'scan.tomochain.com' => 'TOMO',
-                    'explore.vechain.org' => 'VET',
-                    'explorer.vite.net' => 'VITE',
-                    'www.wanscan.org' => 'WAN',
-                    'wavesexplorer.com' => 'WAVES',
-                    'wax.eosx.io' => 'WAXP',
-                    'waltonchain.pro' => 'WTC',
-                    'chain.nem.ninja' => 'XEM',
-                    'verge-blockchain.info' => 'XVG',
-                    'explorer.yoyow.org' => 'YOYOW',
-                    'explorer.zcha.in' => 'ZEC',
-                    'explorer.zensystem.io' => 'ZEN',
-                ),
                 'networksById' => array(
                     'SOL' => 'SOL', // temporary fix for SPL definition
-                    'tronscan.org' => 'TRC20',
-                    'etherscan.io' => 'ERC20',
-                    'bscscan.com' => 'BSC',
-                    'explorer.binance.org' => 'BEP2',
-                    'bithomp.com' => 'XRP',
-                    'bloks.io' => 'EOS',
-                    'stellar.expert' => 'XLM',
-                    'blockchair.com/bitcoin' => 'BTC',
-                    'blockchair.com/bitcoin-cash' => 'BCH',
-                    'blockchair.com/ecash' => 'XEC',
-                    'explorer.litecoin.net' => 'LTC',
-                    'explorer.avax.network' => 'AVAX',
-                    'solscan.io' => 'SOL',
-                    'polkadot.subscan.io' => 'DOT',
-                    'dashboard.internetcomputer.org' => 'ICP',
-                    'explorer.chiliz.com' => 'CHZ',
-                    'cardanoscan.io' => 'ADA',
-                    'mainnet.theoan.com' => 'AION',
-                    'algoexplorer.io' => 'ALGO',
-                    'explorer.ambrosus.com' => 'AMB',
-                    'viewblock.io/zilliqa' => 'ZIL',
-                    'viewblock.io/arweave' => 'AR',
-                    'explorer.ark.io' => 'ARK',
-                    'atomscan.com' => 'ATOM',
-                    'www.mintscan.io' => 'CTK',
-                    'explorer.bitcoindiamond.org' => 'BCD',
-                    'btgexplorer.com' => 'BTG',
-                    'bts.ai' => 'BTS',
-                    'explorer.celo.org' => 'CELO',
-                    'explorer.nervos.org' => 'CKB',
-                    'cerebro.cortexlabs.ai' => 'CTXC',
-                    'chainz.cryptoid.info' => 'VIA',
-                    'explorer.dcrdata.org' => 'DCR',
-                    'digiexplorer.info' => 'DGB',
-                    'dock.subscan.io' => 'DOCK',
-                    'dogechain.info' => 'DOGE',
-                    'explorer.elrond.com' => 'EGLD',
-                    'blockscout.com' => 'ETC',
-                    'explore-fetchhub.fetch.ai' => 'FET',
-                    'filfox.info' => 'FIL',
-                    'fio.bloks.io' => 'FIO',
-                    'explorer.firo.org' => 'FIRO',
-                    'neoscan.io' => 'NEO',
-                    'ftmscan.com' => 'FTM',
-                    'explorer.gochain.io' => 'GO',
-                    'block.gxb.io' => 'GXS',
-                    'hash-hash.info' => 'HBAR',
-                    'www.hiveblockexplorer.com' => 'HIVE',
-                    'explorer.helium.com' => 'HNT',
-                    'tracker.icon.foundation' => 'ICX',
-                    'www.iostabc.com' => 'IOST',
-                    'explorer.iota.org' => 'IOTA',
-                    'iotexscan.io' => 'IOTX',
-                    'irishub.iobscan.io' => 'IRIS',
-                    'kava.mintscan.io' => 'KAVA',
-                    'scope.klaytn.com' => 'KLAY',
-                    'kmdexplorer.io' => 'KMD',
-                    'kusama.subscan.io' => 'KSM',
-                    'explorer.lto.network' => 'LTO',
-                    'polygonscan.com' => 'POLYGON',
-                    'explorer.ont.io' => 'ONT',
-                    'minaexplorer.com' => 'MINA',
-                    'nanolooker.com' => 'NANO',
-                    'explorer.nebulas.io' => 'NAS',
-                    'explorer.nbs.plus' => 'NBS',
-                    'explorer.nebl.io' => 'NEBL',
-                    'nulscan.io' => 'NULS',
-                    'nxscan.com' => 'NXS',
-                    'explorer.harmony.one' => 'ONE',
-                    'explorer.poa.network' => 'POA',
-                    'qtum.info' => 'QTUM',
-                    'explorer.rsk.co' => 'RSK',
-                    'www.oasisscan.com' => 'ROSE',
-                    'ravencoin.network' => 'RVN',
-                    'sc.tokenview.com' => 'SC',
-                    'secretnodes.com' => 'SCRT',
-                    'explorer.skycoin.com' => 'SKY',
-                    'steemscan.com' => 'STEEM',
-                    'explorer.stacks.co' => 'STX',
-                    'www.thetascan.io' => 'THETA',
-                    'scan.tomochain.com' => 'TOMO',
-                    'explore.vechain.org' => 'VET',
-                    'explorer.vite.net' => 'VITE',
-                    'www.wanscan.org' => 'WAN',
-                    'wavesexplorer.com' => 'WAVES',
-                    'wax.eosx.io' => 'WAXP',
-                    'waltonchain.pro' => 'WTC',
-                    'chain.nem.ninja' => 'XEM',
-                    'verge-blockchain.info' => 'XVG',
-                    'explorer.yoyow.org' => 'YOYOW',
-                    'explorer.zcha.in' => 'ZEC',
-                    'explorer.zensystem.io' => 'ZEN',
                 ),
                 'impliedNetworks' => array(
                     'ETH' => array( 'ERC20' => 'ETH' ),
@@ -4139,9 +3953,9 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104562",  // mark price
+        //         "markPrice" => "11793.63104562", // mark price
         //         "indexPrice" => "11781.80495970", // index price
-        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts.
+        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
         //         "nextFundingTime" => 1597392000000,
         //         "interestRate" => "0.00010000",
@@ -5273,7 +5087,7 @@ class binance extends Exchange {
         //             "symbol" => "BTCUSDT",
         //             "orderId" => 16383176297,
         //             "orderListId" => -1,
-        //             "clientOrderId" => "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //             "clientOrderId" => "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //             "transactTime" => 1670891847932,
         //             "price" => "13500.00000000",
         //             "origQty" => "0.00085000",
@@ -5669,7 +5483,7 @@ class binance extends Exchange {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => 16383176297,
         //         "orderListId" => -1,
-        //         "clientOrderId" => "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //         "clientOrderId" => "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //         "transactTime" => 1670891847932,
         //         "price" => "13500.00000000",
         //         "origQty" => "0.00085000",
@@ -5732,7 +5546,7 @@ class binance extends Exchange {
         //       "symbol" => "BTCUSDT",
         //       "orderId" => 5403233939,
         //       "orderListId" => -1,
-        //       "clientOrderId" => "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "clientOrderId" => "x-TKT5PX2F5e669e75b6c14f69a2c43e",
         //       "transactTime" => 1617151923742,
         //       "price" => "0.00000000",
         //       "origQty" => "0.00050000",
@@ -5907,7 +5721,7 @@ class binance extends Exchange {
         // createOrder, cancelAllOrders, cancelOrder => portfolio margin spot margin
         //
         //     {
-        //         "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //         "clientOrderId" => "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //         "cummulativeQuoteQty" => "0.00000000",
         //         "executedQty" => "0.00000000",
         //         "fills" => array(),
@@ -5928,7 +5742,7 @@ class binance extends Exchange {
         //     {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => 24700763749,
-        //         "clientOrderId" => "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "clientOrderId" => "x-TKT5PX2F6f724c2a4af6425f98c7b6",
         //         "price" => "35000.00000000",
         //         "origQty" => "0.00100000",
         //         "executedQty" => "0.00000000",
@@ -6503,8 +6317,12 @@ class binance extends Exchange {
         $clientOrderIdRequest = $isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
         if ($clientOrderId === null) {
             $broker = $this->safe_dict($this->options, 'broker', array());
-            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
+            $idMarketType = 'spot';
+            if ($market['contract']) {
+                $idMarketType = ($market['swap'] && $market['linear']) ? 'swap' : 'inverse';
+            }
+            $brokerId = $this->safe_string($broker, $idMarketType, $defaultId);
             $request[$clientOrderIdRequest] = $brokerId . $this->uuid22();
         } else {
             $request[$clientOrderIdRequest] = $clientOrderId;
@@ -7086,7 +6904,7 @@ class binance extends Exchange {
         //         array(
         //             "symbol" => "BTCUSDT",
         //             "orderId" => 24684460474,
-        //             "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //             "clientOrderId" => "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //             "price" => "35000.00000000",
         //             "origQty" => "0.00100000",
         //             "executedQty" => "0.00000000",
@@ -7746,7 +7564,7 @@ class binance extends Exchange {
             //    array(
             //        {
             //            "symbol" => "ADAUSDT",
-            //            "origClientOrderId" => "x-R4BD3S82662cde7a90114475b86e21",
+            //            "origClientOrderId" => "x-TKT5PX2F662cde7a90114475b86e21",
             //            "orderId" => 3935107,
             //            "orderListId" => -1,
             //            "clientOrderId" => "bqM2w1oTlugfRAjnTIFBE8",
@@ -9101,43 +8919,19 @@ class binance extends Exchange {
     public function parse_deposit_address($response, ?array $currency = null): array {
         //
         //     {
-        //         "currency" => "XRP",
+        //         "coin" => "XRP",
         //         "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         //         "tag" => "108618262",
-        //         "info" => {
-        //             "coin" => "XRP",
-        //             "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        //             "tag" => "108618262",
-        //             "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        //         }
+        //         "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        $info = $this->safe_dict($response, 'info', array());
-        $url = $this->safe_string($info, 'url');
+        $url = $this->safe_string($response, 'url');
         $address = $this->safe_string($response, 'address');
         $currencyId = $this->safe_string($response, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $impliedNetwork = null;
-        if ($url !== null) {
-            $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
-            $parts = explode('/', $url);
-            $topLevel = $this->safe_string($parts, 2);
-            if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
-                $subLevel = $this->safe_string($parts, 3);
-                if ($subLevel !== null) {
-                    $topLevel = $topLevel . '/' . $subLevel;
-                }
-            }
-            $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
-            $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
-                'ETH' => array( 'ERC20' => 'ETH' ),
-                'TRX' => array( 'TRC20' => 'TRX' ),
-            ));
-            if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
-                $conversion = $this->safe_dict($impliedNetworks, $code, array());
-                $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
-            }
-        }
+        // deposit-$address endpoint provides only network $url (not network ID/CODE)
+        // so we should map the $url to network (their data is inside currencies)
+        $networkCode = $this->get_network_code_by_network_url($code, $url);
         $tag = $this->safe_string($response, 'tag', '');
         if (strlen($tag) === 0) {
             $tag = null;
@@ -9146,7 +8940,7 @@ class binance extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $impliedNetwork,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
         );
@@ -11877,6 +11671,43 @@ class binance extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
+    public function get_network_code_by_network_url(string $currencyCode, ?string $depositUrl = null): ?string {
+        // $depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if ($depositUrl === null) {
+            return null;
+        }
+        $networkCode = null;
+        $currency = $this->currency($currencyCode);
+        $networks = $this->safe_dict($currency, 'networks', array());
+        $networkCodes = is_array($networks) ? array_keys($networks) : array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $currentNetworkCode = $networkCodes[$i];
+            $info = $this->safe_dict($networks[$currentNetworkCode], 'info', array());
+            $siteUrl = $this->safe_string($info, 'contractAddressUrl');
+            // check if url matches the field's value
+            if ($siteUrl !== null && str_starts_with($depositUrl, $this->get_base_domain_from_url($siteUrl))) {
+                $networkCode = $currentNetworkCode;
+            }
+        }
+        return $networkCode;
+    }
+
+    public function get_base_domain_from_url(?string $url): ?string {
+        if ($url === null) {
+            return null;
+        }
+        $urlParts = explode('/', $url);
+        $scheme = $this->safe_string($urlParts, 0);
+        if ($scheme === null) {
+            return null;
+        }
+        $domain = $this->safe_string($urlParts, 2);
+        if ($domain === null) {
+            return null;
+        }
+        return $scheme . '//' . $domain . '/';
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
@@ -11915,7 +11746,7 @@ class binance extends Exchange {
                 if ($newClientOrderId === null) {
                     $isSpotOrMargin = (mb_strpos($api, 'sapi') > -1 || $api === 'private');
                     $marketType = $isSpotOrMargin ? 'spot' : 'future';
-                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    $defaultId = (!$isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
                     $broker = $this->safe_dict($this->options, 'broker', array());
                     $brokerId = $this->safe_string($broker, $marketType, $defaultId);
                     $params['newClientOrderId'] = $brokerId . $this->uuid22();
