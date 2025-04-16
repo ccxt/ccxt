@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Push Python changes to master	
         env:
-          #GITHUB_TOKEN1: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          GITHUB_TOKEN1: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN2: ${{ secrets.GH_TOKEN }}
         run: |
           dir
           echo "running py setup"
