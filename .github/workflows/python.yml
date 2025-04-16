@@ -27,7 +27,7 @@ jobs:
 
           mkdir test1
           cd test1
-          git clone https://${GITHUB_TOKEN1}@github.com/ccxt/ccxt.git
+          git clone --depth 1 https://${GITHUB_TOKEN1}@github.com/ccxt/ccxt.git
           touch test123
           git add .
           echo "pushing changes to remote"
