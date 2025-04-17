@@ -703,14 +703,9 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
-        if symbols is not None:
-            if isinstance(symbols, list):
-                request['market'] = self.market_id(symbols[0])
-            else:
-                request['market'] = self.market_id(symbols)
-        else:
-            request['market'] = 'ALL'
+        request: dict = {
+            'market': 'ALL',
+        }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
         #
         #     {

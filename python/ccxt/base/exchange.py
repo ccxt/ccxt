@@ -2254,6 +2254,12 @@ class Exchange(object):
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
+    def url_encoder_for_proxy_url(self, targetUrl: str):
+        # to be overriden
+        includesQuery = targetUrl.find('?') >= 0
+        finalUrl = self.encode_uri_component(targetUrl) if includesQuery else targetUrl
+        return finalUrl
+
     def check_proxy_settings(self, url: Str = None, method: Str = None, headers=None, body=None):
         usedProxies = []
         httpProxy = None
