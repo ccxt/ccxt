@@ -3219,7 +3219,7 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 request['businessType'] = 'spot'
         else:
-            request['businessType'] = 'contract'
+            request['businessType'] = 'mix'
         response = await self.privateCommonGetV2CommonTradeRate(self.extend(request, params))
         #
         #     {
