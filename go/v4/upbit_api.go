@@ -55,6 +55,22 @@ func (this *upbit) PublicGetCandlesTimeframeUnit (args ...interface{}) <-chan in
    return ch
 }
 
+func (this *upbit) PublicGetCandlesSeconds (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetCandlesSeconds", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PublicGetCandlesMinutesUnit (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -247,6 +263,22 @@ func (this *upbit) PublicGetCandlesMonths (args ...interface{}) <-chan interface
    return ch
 }
 
+func (this *upbit) PublicGetCandlesYears (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetCandlesYears", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PublicGetTradesTicks (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -279,6 +311,22 @@ func (this *upbit) PublicGetTicker (args ...interface{}) <-chan interface{} {
    return ch
 }
 
+func (this *upbit) PublicGetTickerAll (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetTickerAll", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -290,6 +338,22 @@ func (this *upbit) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PublicGetOrderbookSupportedLevels (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetOrderbookSupportedLevels", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -338,22 +402,6 @@ func (this *upbit) PrivateGetOrder (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *upbit) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -455,6 +503,22 @@ func (this *upbit) PrivateGetWithdrawsChance (args ...interface{}) <-chan interf
    return ch
 }
 
+func (this *upbit) PrivateGetWithdrawsCoinAddresses (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetWithdrawsCoinAddresses", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -466,6 +530,22 @@ func (this *upbit) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetDeposits", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivateGetDepositsChanceCoin (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetDepositsChanceCoin", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -519,6 +599,54 @@ func (this *upbit) PrivateGetDepositsCoinAddress (args ...interface{}) <-chan in
    return ch
 }
 
+func (this *upbit) PrivateGetTravelRuleVasps (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetTravelRuleVasps", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivateGetStatusWallet (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetStatusWallet", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivateGetApiKeys (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetApiKeys", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PrivatePostOrders (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -530,6 +658,22 @@ func (this *upbit) PrivatePostOrders (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivatePostOrdersCancelAndNew (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostOrdersCancelAndNew", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -567,6 +711,22 @@ func (this *upbit) PrivatePostWithdrawsKrw (args ...interface{}) <-chan interfac
    return ch
 }
 
+func (this *upbit) PrivatePostDepositsKrw (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostDepositsKrw", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PrivatePostDepositsGenerateCoinAddress (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -583,6 +743,38 @@ func (this *upbit) PrivatePostDepositsGenerateCoinAddress (args ...interface{}) 
    return ch
 }
 
+func (this *upbit) PrivatePostTravelRuleDepositUuid (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostTravelRuleDepositUuid", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivatePostTravelRuleDepositTxid (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostTravelRuleDepositTxid", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *upbit) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -594,6 +786,38 @@ func (this *upbit) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("privateDeleteOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivateDeleteOrdersOpen (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateDeleteOrdersOpen", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *upbit) PrivateDeleteOrdersUuids (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateDeleteOrdersUuids", parameters))
        PanicOnError(ch)
    }()
    return ch
