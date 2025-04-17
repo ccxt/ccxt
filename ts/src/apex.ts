@@ -1241,7 +1241,8 @@ export default class apex extends Exchange {
 
     addHyphenBeforeUsdt (symbol: string) {
         const index = symbol.toUpperCase ().indexOf ('USDT');
-        if (index > 0 && symbol[index - 1] !== '-') {
+        const symbolChar = this.safeString (symbol, index - 1);
+        if (index > 0 && symbolChar !== '-') {
             return symbol.slice (0, index) + '-' + symbol.slice (index);
         }
         return symbol;
@@ -1595,7 +1596,7 @@ export default class apex extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const response = await this.privateGetV3OpenOrders ();
+        const response = await this.privateGetV3OpenOrders (params);
         const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, undefined, since, limit);
     }
@@ -1630,10 +1631,6 @@ export default class apex extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const page = this.safeInteger (params, 'page');
-        if (page !== undefined) {
-            request['page'] = page;
         }
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
@@ -1703,22 +1700,10 @@ export default class apex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const page = this.safeInteger (params, 'page');
-        if (page !== undefined) {
-            request['page'] = page;
-        }
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
             params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
-        }
-        const side = this.safeString (params, 'side');
-        if (side !== undefined) {
-            request['side'] = side;
-        }
-        const orderType = this.safeString (params, 'orderType');
-        if (orderType !== undefined) {
-            request['orderType'] = orderType;
         }
         const response = await this.privateGetV3Fills (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1754,18 +1739,10 @@ export default class apex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const page = this.safeInteger (params, 'page');
-        if (page !== undefined) {
-            request['page'] = page;
-        }
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
             request['endTimeExclusive'] = endTimeExclusive;
-        }
-        const side = this.safeString (params, 'side');
-        if (side !== undefined) {
-            request['side'] = side;
         }
         const response = await this.privateGetV3Funding (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
