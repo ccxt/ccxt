@@ -1,0 +1,282 @@
+{
+    "BTC/BRL": {
+        "id": "btcbrl",
+        "symbol": "BTC/BRL",
+        "base": "BTC",
+        "quote": "BRL",
+        "baseId": "btc",
+        "quoteId": "brl",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.005,
+        "maker": 0.0025,
+        "precision": {
+            "price": 2,
+            "amount": 8,
+            "cost": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00000165
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "name": "Bitcoin",
+                "precision": "8",
+                "symbol": "btc",
+                "type": "CRYPTO"
+            },
+            "quote": {
+                "name": "Real",
+                "precision": "2",
+                "symbol": "brl",
+                "type": "FIAT"
+            },
+            "symbol": "btcbrl",
+            "quantity_min": "0.00000165",
+            "quantity_increment": "0.00000001",
+            "quantity_precision": "8",
+            "price_min": "0.0001",
+            "price_increment": "1.0",
+            "price_precision": "0",
+            "default_fees": {
+                "maker": "0.0025",
+                "taker": "0.005"
+            },
+            "order_type": [
+                "MARKET",
+                "LIMIT",
+                "INSTANT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    },
+    "ETH/BRL": {
+        "id": "ethbrl",
+        "symbol": "ETH/BRL",
+        "base": "ETH",
+        "quote": "BRL",
+        "baseId": "eth",
+        "quoteId": "brl",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.005,
+        "maker": 0.0025,
+        "precision": {
+            "price": 2,
+            "amount": 8,
+            "cost": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00008311
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "name": "Ethereum",
+                "precision": "8",
+                "symbol": "eth",
+                "type": "CRYPTO"
+            },
+            "quote": {
+                "name": "Real",
+                "precision": "2",
+                "symbol": "brl",
+                "type": "FIAT"
+            },
+            "symbol": "ethbrl",
+            "quantity_min": "0.00008311",
+            "quantity_increment": "0.00000001",
+            "quantity_precision": "8",
+            "price_min": "0.0001",
+            "price_increment": "1.0",
+            "price_precision": "0",
+            "default_fees": {
+                "maker": "0.0025",
+                "taker": "0.005"
+            },
+            "order_type": [
+                "MARKET",
+                "LIMIT",
+                "INSTANT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    },
+    "USDT/BRL": {
+        "id": "usdtbrl",
+        "symbol": "USDT/BRL",
+        "base": "USDT",
+        "quote": "BRL",
+        "baseId": "usdt",
+        "quoteId": "brl",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.005,
+        "maker": 0.0025,
+        "precision": {
+            "price": 2,
+            "amount": 8,
+            "cost": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.13547611
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "name": "Tether",
+                "precision": "8",
+                "symbol": "usdt",
+                "type": "CRYPTO"
+            },
+            "quote": {
+                "name": "Real",
+                "precision": "2",
+                "symbol": "brl",
+                "type": "FIAT"
+            },
+            "symbol": "usdtbrl",
+            "quantity_min": "0.13547611",
+            "quantity_increment": "0.00000001",
+            "quantity_precision": "8",
+            "price_min": "0.0001",
+            "price_increment": "0.0001",
+            "price_precision": "4",
+            "default_fees": {
+                "maker": "0.0025",
+                "taker": "0.005"
+            },
+            "order_type": [
+                "MARKET",
+                "LIMIT",
+                "INSTANT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    },
+    "BTC/USDT": {
+        "id": "btcusdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.005,
+        "maker": 0.0025,
+        "precision": {
+            "price": 8,
+            "amount": 8,
+            "cost": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00000956
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "base": {
+                "name": "Bitcoin",
+                "precision": "8",
+                "symbol": "btc",
+                "type": "CRYPTO"
+            },
+            "quote": {
+                "name": "Tether",
+                "precision": "8",
+                "symbol": "usdt",
+                "type": "CRYPTO"
+            },
+            "symbol": "btcusdt",
+            "quantity_min": "0.00000956",
+            "quantity_increment": "0.00000001",
+            "quantity_precision": "8",
+            "price_min": "0.0001",
+            "price_increment": "1.0",
+            "price_precision": "0",
+            "default_fees": {
+                "maker": "0.0025",
+                "taker": "0.005"
+            },
+            "order_type": [
+                "MARKET",
+                "LIMIT",
+                "INSTANT",
+                "STOP_MARKET",
+                "STOP_LIMIT"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    }
+}
