@@ -156,17 +156,17 @@ export default class upbit extends Exchange {
                     'post': {
                         'orders': 2.5, // RPS: 8
                         'orders/cancel_and_new': 2.5, // RPS: 8
-                        'withdraws/coin': 0.67, // RPS: 30
-                        'withdraws/krw': 0.67, // Upbit KR only. RPS: 30
-                        'deposits/krw': 0.67, // Upbit KR only. // RPS: 30
-                        'deposits/generate_coin_address': 0.67, // RPS: 30
+                        'withdraws/coin': 0.67,
+                        'withdraws/krw': 0.67, // Upbit KR only.
+                        'deposits/krw': 0.67, // Upbit KR only.
+                        'deposits/generate_coin_address': 0.67,
                         'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
-                        'order': 0.67, // RPS: 30
+                        'order': 0.67,
                         'orders/open': 40, // RPS: 0.5
-                        'orders/uuids': 0.67, // RPS: 30
+                        'orders/uuids': 0.67,
                     },
                 },
             },
