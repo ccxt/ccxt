@@ -20,7 +20,7 @@ export default class apex extends Exchange {
             'countries': [],
             'version': 'v3',
             'rateLimit': 20, // 600 requests per minute, 10 request per second
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'has': {
