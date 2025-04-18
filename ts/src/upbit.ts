@@ -734,8 +734,6 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  }
         //
-        const bids = this.safeList (ticker, 'bids', []);
-        const asks = this.safeList (ticker, 'asks', []);
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
         const marketId = this.safeString2 (ticker, 'market', 'code');
         market = this.safeMarket (marketId, market, '-');
@@ -746,10 +744,10 @@ export default class upbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high_price'),
             'low': this.safeString (ticker, 'low_price'),
-            'bid': this.safeFloat (bids, 0),
-            'bidVolume': this.safeFloat (bids, 1),
-            'ask': this.safeFloat (asks, 0),
-            'askVolume': this.safeFloat (asks, 1),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString (ticker, 'opening_price'),
             'close': last,
@@ -791,7 +789,6 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'markets': ids,
         };
-        const fetchOrderbooksResponse = await this.publicGetOrderbook (this.extend (request, params));
         const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     [ {                market: "BTC-ETH",
@@ -823,14 +820,6 @@ export default class upbit extends Exchange {
         //
         const result: Dict = {};
         for (let t = 0; t < response.length; t++) {
-            // added orderbook, and modify parseTicker
-            const orderbook = fetchOrderbooksResponse[t];
-            const bids = this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true);
-            const asks = this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0);
-            const bid = this.safeValue (bids, 0, []);
-            const ask = this.safeValue (asks, 0, []);
-            response[t]['bids'] = bid;
-            response[t]['asks'] = ask;
             const ticker = this.parseTicker (response[t]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
