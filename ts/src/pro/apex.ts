@@ -12,7 +12,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 
 export default class apex extends apexRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -841,7 +841,7 @@ export default class apex extends apexRest {
         const timestamp = this.milliseconds ().toString ();
         const request_path = '/ws/accounts';
         const http_method = 'GET';
-        const messageString: string = (timestamp + http_method + request_path);
+        const messageString = (timestamp + http_method + request_path);
         const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client (url);
