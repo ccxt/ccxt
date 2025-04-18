@@ -1056,7 +1056,7 @@ export default class coinex extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': this.safeString(),
+            'quoteVolume': this.safeString (ticker, 'value'),
             'markPrice': this.safeString (ticker, 'mark_price'),
             'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,
