@@ -133,7 +133,7 @@ export default class apex extends Exchange {
             },
             'hostname': 'omni.apex.exchange',
             'urls': {
-                'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
+                'logo': 'https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
