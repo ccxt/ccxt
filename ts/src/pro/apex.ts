@@ -855,7 +855,7 @@ export default class apex extends apexRest {
                 'httpMethod': http_method,
                 'requestPath': request_path,
                 'apiKey': this.apiKey,
-                'passphrase': this.safeString (this.options, 'passphrase'),
+                'passphrase': this.password,
                 'timestamp': timestamp,
                 'signature': signature,
             };
