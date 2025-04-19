@@ -46,7 +46,7 @@ export default class xt extends Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -233,6 +233,9 @@ export default class xt extends Exchange {
                             'open-order': 1,
                             'order/{orderId}': 1,
                         },
+                        'put': {
+                            'order/{orderId}': 1,
+                        },
                     },
                     'linear': {
                         'get': {
@@ -267,6 +270,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -310,6 +314,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -4886,6 +4891,66 @@ export default class xt extends Exchange {
         // }
         //
         return response; // unify return type
+    }
+
+    /**
+     * @method
+     * @name xt#editOrder
+     * @description cancels an order and places a new order
+     * @see https://doc.xt.com/#orderorderUpdate
+     * @see https://doc.xt.com/#futures_orderupdate
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'price': this.priceToPrecision (symbol, price),
+        };
+        let response = undefined;
+        if (market['swap']) {
+            request['origQty'] = this.amountToPrecision (symbol, amount);
+            const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
+            const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
+            params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+            if (stopLoss !== undefined) {
+                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
+            } else if (takeProfit !== undefined) {
+                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
+            }
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('editOrder', market, params);
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, params));
+                //
+                //
+            } else {
+                response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, params));
+                //
+                //
+            }
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            response = await this.privateSpotPutOrderOrderId (this.extend (request, params));
+            //
+            //
+        }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
