@@ -287,7 +287,7 @@ export default class apex extends apexRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (message, 'ts');
+        const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
@@ -414,7 +414,7 @@ export default class apex extends apexRest {
             const merged = this.extend (rawTicker, data);
             parsed = this.parseTicker (merged);
         }
-        const timestamp = this.safeInteger (message, 'ts');
+        const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = parsed;
