@@ -4937,10 +4937,22 @@ export default class xt extends Exchange {
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, params));
                 //
+                //     {
+                //         "returnCode": 0,
+                //         "msgInfo": "success",
+                //         "error": null,
+                //         "result": "483869474947826752"
+                //     }
                 //
             } else {
                 response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, params));
                 //
+                //     {
+                //         "returnCode": 0,
+                //         "msgInfo": "success",
+                //         "error": null,
+                //         "result": "483869474947826752"
+                //     }
                 //
             }
         } else {
@@ -4949,8 +4961,7 @@ export default class xt extends Exchange {
             //
             //
         }
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.parseOrder (response, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

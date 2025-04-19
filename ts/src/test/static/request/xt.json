@@ -244,6 +244,22 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Linear swap edit an order",
+                "method": "editOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/update",
+                "input": [
+                  "483869393976071040",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  2,
+                  54000
+                ],
+                "output": "{\"orderId\":\"483869393976071040\",\"price\":\"54000\",\"origQty\":\"2\"}"
+            }
         ]
     }
 }

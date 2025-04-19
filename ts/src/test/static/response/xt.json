@@ -593,6 +593,65 @@
           }
         ]
       }
+    ],
+    "editOrder": [
+      {
+        "description": "linear swap edit an order",
+        "method": "editOrder",
+        "input": [
+          "483869393976071040",
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          2,
+          54000
+        ],
+        "httpResponse": "{\"returnCode\":0,\"msgInfo\":\"success\",\"error\":null,\"result\":\"483870626049393728\"}",
+        "parsedResponse": {
+          "info": {
+            "returnCode": "0",
+            "msgInfo": "success",
+            "error": null,
+            "result": "483870626049393728"
+          },
+          "id": "483870626049393728",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      }
     ]
   }
 }
