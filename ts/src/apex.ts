@@ -1404,7 +1404,7 @@ export default class apex extends Exchange {
             }
         }
         const tokenId = this.safeString (currency, 'tokenId', '');
-        const amountNumber = this.parseToInt (amount * (10 ** this.safeNumber (currency, 'decimals', 0)));
+        const amountNumber = this.parseToInt (amount * (Math.pow (10, this.safeNumber (currency, 'decimals', 0))));
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
