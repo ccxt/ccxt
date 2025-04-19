@@ -6231,6 +6231,7 @@ export default class binance extends Exchange {
          */
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
+        const isSpotMargin = this.isSpotMargin (params, 'createOrder', market);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -6245,7 +6246,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
-            if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+            if (isSpotMargin) {
                 params = this.omit (params, 'reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
@@ -6340,7 +6341,7 @@ export default class binance extends Exchange {
         let postOnly = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || marketType === 'margin') {
+            if (market['spot'] || isSpotMargin) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
                     uppercaseType = 'LIMIT_MAKER';
@@ -6360,7 +6361,7 @@ export default class binance extends Exchange {
             }
         }
         // handle newOrderRespType response type
-        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+        if (((marketType === 'spot') || isSpotMargin) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // swap, futures and options
