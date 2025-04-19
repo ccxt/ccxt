@@ -1136,6 +1136,12 @@ public partial class Exchange
         throw new Exception("Apex currently does not support create order in C# language");
     }
 
+    public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+
 }
 
 public static class BoolExtensions
