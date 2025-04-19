@@ -42,7 +42,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1min to renew the token)
+                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -85,6 +85,9 @@ class bingx(ccxt.async_support.bingx):
                 'watchOrderBookForSymbols': {
                     'depth': 100,  # 5, 10, 20, 50, 100
                     'interval': 500,  # 100, 200, 500, 1000
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
                 },
             },
             'streaming': {
@@ -468,7 +471,12 @@ class bingx(ccxt.async_support.bingx):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     def handle_trades(self, client: Client, message):
         #

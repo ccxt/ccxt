@@ -1969,6 +1969,7 @@ public partial class coinbaseexchange : Exchange
         return new Dictionary<string, object>() {
             { "currency", code },
             { "address", this.checkAddress(address) },
+            { "network", null },
             { "tag", tag },
             { "info", response },
         };

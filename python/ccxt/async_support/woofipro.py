@@ -548,7 +548,7 @@ class woofipro(Exchange, ImplicitAPI):
             'active': None,
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'contractSize': self.parse_number('1'),
             'expiry': None,
             'expiryDatetime': None,

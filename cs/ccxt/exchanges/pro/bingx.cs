@@ -78,6 +78,9 @@ public partial class bingx : ccxt.bingx
                     { "depth", 100 },
                     { "interval", 500 },
                 } },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "keepAlive", 1800000 },
@@ -578,7 +581,14 @@ public partial class bingx : ccxt.bingx
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)

@@ -13,13 +13,29 @@ public partial class testMainClass : BaseTest
         // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
         object currencies = await exchange.fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+        object numInactiveCurrencies = 0;
+        // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+        // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
         if (isTrue(!isEqual(currencies, null)))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
-            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+            object currenciesLength = getArrayLength(values);
+            // ensure exchange returns enough length of currencies
+            // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+            // allow skipped exchanges
+            // const skipActive = ('active' in skippedProperties);
+            // loop
+            for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
             {
-                testCurrency(exchange, skippedProperties, method, getValue(values, i));
+                object currency = getValue(values, i);
+                testCurrency(exchange, skippedProperties, method, currency);
+                // detailed check for deposit/withdraw
+                object active = exchange.safeBool(currency, "active");
+                if (isTrue(isEqual(active, false)))
+                {
+                    numInactiveCurrencies = add(numInactiveCurrencies, 1);
+                }
             }
         }
         return true;

@@ -735,7 +735,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -803,6 +803,7 @@ class coinbase(Exchange, ImplicitAPI):
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': None,
             'info': response,
         }
 
@@ -2301,7 +2302,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "ending_before":null,
         #             "starting_after":null,
         #             "previous_ending_before":null,
-        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         #             "limit":100,
         #             "order":"desc",
         #             "previous_uri":null,

@@ -1960,7 +1960,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
         https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-

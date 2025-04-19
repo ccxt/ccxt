@@ -665,7 +665,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
-            'order' => null,
+            'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,

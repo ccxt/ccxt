@@ -801,6 +801,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }

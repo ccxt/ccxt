@@ -2900,7 +2900,7 @@ class kraken(Exchange, ImplicitAPI):
             data[dataLength - 1] = last
         return data
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

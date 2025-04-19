@@ -1428,6 +1428,12 @@ public partial class gate : Exchange
         object takerPercent = this.safeString(market, "taker_fee_rate");
         object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
         object isLinear = isEqual(quote, settle);
+        object contractSize = this.safeString(market, "quanto_multiplier");
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if (isTrue(isEqual(contractSize, "0")))
+        {
+            contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1449,7 +1455,7 @@ public partial class gate : Exchange
             { "inverse", !isTrue(isLinear) },
             { "taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")) },
             { "maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")) },
-            { "contractSize", this.safeNumber(market, "quanto_multiplier") },
+            { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
             { "strike", null },
@@ -1843,9 +1849,9 @@ public partial class gate : Exchange
             object partFirst = this.safeString(parts, 0);
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
-            object withdrawEnabled = !isTrue(this.safeBool(entry, "withdraw_disabled"));
-            object depositEnabled = !isTrue(this.safeBool(entry, "deposit_disabled"));
-            object tradeDisabled = !isTrue(this.safeBool(entry, "trade_disabled"));
+            object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
+            object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
+            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
             object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
             object code = this.safeCurrencyCode(currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1877,8 +1883,8 @@ public partial class gate : Exchange
                     } },
                 } },
                 { "active", !isTrue(tradeDisabled) },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "deposit", !isTrue(depositDisabled) },
+                { "withdraw", !isTrue(withdrawDisabled) },
                 { "fee", null },
                 { "precision", precision },
             };
@@ -7274,7 +7280,7 @@ public partial class gate : Exchange
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "currencies="), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "%2C"), 0))))
                     {
-                        queryString = ((string)queryString).Replace((string)"%2", (string)",");
+                        queryString = ((string)queryString).Replace((string)"%2C", (string)",");
                     }
                     url = add(url, add("?", queryString));
                 }

@@ -1165,6 +1165,7 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
+                        { "historical", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -1546,13 +1547,14 @@ public partial class okx : Exchange
         if (isTrue(contract))
         {
             symbol = add(add(symbol, ":"), settle);
-            expiry = this.safeInteger(market, "expTime");
             if (isTrue(future))
             {
+                expiry = this.safeInteger(market, "expTime");
                 object ymd = this.yymmdd(expiry);
                 symbol = add(add(symbol, "-"), ymd);
             } else if (isTrue(option))
             {
+                expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
                 object ymd = this.yymmdd(expiry);
@@ -1760,72 +1762,59 @@ public partial class okx : Exchange
             object code = getValue(currency, "code");
             object chains = getValue(dataByCurrencyId, currencyId);
             object networks = new Dictionary<string, object>() {};
-            object currencyActive = false;
-            object depositEnabled = false;
-            object withdrawEnabled = false;
-            object maxPrecision = null;
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object type = "crypto";
+            object chainsLength = getArrayLength(chains);
+            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object canDeposit = this.safeBool(chain, "canDep");
-                depositEnabled = ((bool) isTrue((canDeposit))) ? canDeposit : depositEnabled;
-                object canWithdraw = this.safeBool(chain, "canWd");
-                withdrawEnabled = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdrawEnabled;
-                object canInternal = this.safeBool(chain, "canInternal");
-                object active = ((bool) isTrue((isTrue(isTrue(canDeposit) && isTrue(canWithdraw)) && isTrue(canInternal)))) ? true : false;
-                currencyActive = ((bool) isTrue((active))) ? active : currencyActive;
-                object networkId = this.safeString(chain, "chain");
-                if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                object networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
+                if (isTrue(isEqual(networkId, "")))
                 {
-                    object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object parts = this.arraySlice(idParts, 1);
-                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
-                    object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
-                    object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
-                    if (isTrue(isEqual(maxPrecision, null)))
-                    {
-                        maxPrecision = precision;
-                    } else
-                    {
-                        maxPrecision = Precise.stringMin(maxPrecision, precision);
-                    }
-                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                        { "id", networkId },
-                        { "network", networkCode },
-                        { "active", active },
-                        { "deposit", canDeposit },
-                        { "withdraw", canWithdraw },
-                        { "fee", this.safeNumber(chain, "fee") },
-                        { "precision", this.parseNumber(precision) },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", this.safeNumber(chain, "minWd") },
-                                { "max", this.safeNumber(chain, "maxWd") },
-                            } },
-                        } },
-                        { "info", chain },
-                    };
+                    // only happens for fiat 'TRY' currency
+                    type = "fiat";
                 }
+                object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                object parts = this.arraySlice(idParts, 1);
+                object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
+                object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "canDep") },
+                    { "withdraw", this.safeBool(chain, "canWd") },
+                    { "fee", this.safeNumber(chain, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "minWd") },
+                            { "max", this.safeNumber(chain, "maxWd") },
+                        } },
+                    } },
+                    { "info", chain },
+                };
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
-                { "active", currencyActive },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
-                { "precision", this.parseNumber(maxPrecision) },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                 } },
+                { "type", type },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -2411,6 +2400,9 @@ public partial class okx : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100; // default 100, max 100
+        } else
+        {
+            limit = mathMin(limit, 300); // max 100
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2433,6 +2425,7 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
+                limit = mathMin(limit, 100); // max 100 for historical endpoint
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;

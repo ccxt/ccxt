@@ -2572,7 +2572,7 @@ class poloniex(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 

@@ -1270,6 +1270,7 @@ export default class okx extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 300,
+                        'historical': 100,
                     },
                 },
                 'spot': {
@@ -1621,11 +1622,12 @@ export default class okx extends Exchange {
         let optionType = undefined;
         if (contract) {
             symbol = symbol + ':' + settle;
-            expiry = this.safeInteger (market, 'expTime');
             if (future) {
+                expiry = this.safeInteger (market, 'expTime');
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             } else if (option) {
+                expiry = this.safeInteger (market, 'expTime');
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
                 const ymd = this.yymmdd (expiry);
@@ -1824,68 +1826,57 @@ export default class okx extends Exchange {
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks: Dict = {};
-            let currencyActive = false;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            let maxPrecision = undefined;
-            for (let j = 0; j < chains.length; j++) {
+            let type = 'crypto';
+            const chainsLength = chains.length;
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeBool (chain, 'canDep');
-                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeBool (chain, 'canWd');
-                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeBool (chain, 'canInternal');
-                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const idParts = networkId.split ('-');
-                    const parts = this.arraySlice (idParts, 1);
-                    const chainPart = parts.join ('-');
-                    const networkCode = this.networkIdToCode (chainPart, currency['code']);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'fee'),
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
-                        },
-                        'info': chain,
-                    };
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+                if (networkId === '') {
+                    // only happens for fiat 'TRY' currency
+                    type = 'fiat';
                 }
+                const idParts = networkId.split ('-');
+                const parts = this.arraySlice (idParts, 1);
+                const chainPart = parts.join ('-');
+                const networkCode = this.networkIdToCode (chainPart, currency['code']);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'canDep'),
+                    'withdraw': this.safeBool (chain, 'canWd'),
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
+                        },
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeDict (chains, 0, {});
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString (firstChain, 'name'),
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber (maxPrecision),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'type': type,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -2427,6 +2418,8 @@ export default class okx extends Exchange {
         const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
+        } else {
+            limit = Math.min (limit, 300); // max 100
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
@@ -2446,6 +2439,7 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
+                limit = Math.min (limit, 100); // max 100 for historical endpoint
             }
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;

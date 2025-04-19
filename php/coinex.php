@@ -747,6 +747,9 @@ class coinex extends Exchange {
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
+                if ($networkId === null) {
+                    continue;
+                }
                 $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
                 $feeString = $this->safe_string($chain, 'withdrawal_fee');
                 $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
@@ -3803,7 +3806,7 @@ class coinex extends Exchange {
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
          *

@@ -600,6 +600,7 @@ class derive(Exchange, ImplicitAPI):
         swap = False
         option = False
         linear: Bool = None
+        inverse: Bool = None
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -622,6 +623,7 @@ class derive(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             swap = True
             linear = True
+            inverse = False
             marketType = 'swap'
         elif type == 'option':
             settleId = 'USDC'
@@ -638,6 +640,8 @@ class derive(Exchange, ImplicitAPI):
                 optionType = 'put'
             else:
                 optionType = 'call'
+            linear = True
+            inverse = False
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -656,7 +660,7 @@ class derive(Exchange, ImplicitAPI):
             'active': self.safe_bool(market, 'is_active'),
             'contract': (swap or option),
             'linear': linear,
-            'inverse': None,
+            'inverse': inverse,
             'contractSize': None if (spot) else 1,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1811,7 +1815,7 @@ class derive(Exchange, ImplicitAPI):
         order = self.safe_dict(rawOrder, 'data')
         if order is None:
             order = rawOrder
-        timestamp = self.safe_integer(rawOrder, 'nonce')
+        timestamp = self.safe_integer_2(rawOrder, 'creation_timestamp', 'nonce')
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
         if marketId is not None:
@@ -2328,17 +2332,19 @@ class derive(Exchange, ImplicitAPI):
         result: dict = {
             'info': response,
         }
-        # TODO:
-        # checked multiple subaccounts
-        # checked balance after open orders / positions
         for i in range(0, len(response)):
             subaccount = response[i]
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
                 balance = collaterals[j]
                 code = self.safe_currency_code(self.safe_string(balance, 'currency'))
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'amount')
+                account = self.safe_dict(result, code)
+                if account is None:
+                    account = self.account()
+                    account['total'] = self.safe_string(balance, 'amount')
+                else:
+                    amount = self.safe_string(balance, 'amount')
+                    account['total'] = Precise.string_add(account['total'], amount)
                 result[code] = account
         return self.safe_balance(result)
 

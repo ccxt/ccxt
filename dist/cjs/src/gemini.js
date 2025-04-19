@@ -1968,6 +1968,7 @@ class gemini extends gemini$1 {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

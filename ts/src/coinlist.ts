@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, LedgerEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, LedgerEntry, FundingRate } from './base/types.js';
 
 /**
  * @class coinlist
@@ -62,7 +62,7 @@ export default class coinlist extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -154,6 +154,7 @@ export default class coinlist extends Exchange {
                         'v1/leaderboard': 1,
                         'v1/affiliate/{competition_code}': 1,
                         'v1/competition/{competition_id}': 1,
+                        'v1/symbols/{symbol}/funding': 1,
                     },
                 },
                 'private': {
@@ -177,6 +178,7 @@ export default class coinlist extends Exchange {
                         'v1/credits': 1, // not unified
                         'v1/positions': 1,
                         'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/closedPositions': 1,
                     },
                     'post': {
                         'v1/keys': 1, // not unified
@@ -194,6 +196,9 @@ export default class coinlist extends Exchange {
                     'patch': {
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1, // not unified
+                    },
+                    'put': {
+                        'v1/accounts/{trader_id}/alias': 1,
                     },
                     'delete': {
                         'v1/keys/{key}': 1,  // not unified
@@ -490,7 +495,7 @@ export default class coinlist extends Exchange {
         //     {
         //         "symbols": [
         //             {
-        //                 "symbol": "CQT-USDT",
+        //                 "symbol": "CQT-USDT", // spot
         //                 "base_currency": "CQT",
         //                 "is_trader_geofenced": false,
         //                 "list_time": "2021-06-15T00:00:00.000Z",
@@ -516,6 +521,62 @@ export default class coinlist extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
+        // perp
+        //   {
+        //       "symbol":"BTC-PERP",
+        //       "base_currency":"BTC",
+        //       "is_trader_geofenced":false,
+        //       "expiry_name":null,
+        //       "expiry_time":null,
+        //       "list_time":"2024-09-16T00:00:00.000Z",
+        //       "type":"perp-swap",
+        //       "series_code":"BTC",
+        //       "long_name":"Bitcoin",
+        //       "asset_class":"CRYPTO",
+        //       "minimum_price_increment":"0.01",
+        //       "minimum_size_increment":"0.0001",
+        //       "quote_currency":"USDT",
+        //       "multiplier":"1",
+        //       "contract_frequency":"FGHJKMNQUVXZ",
+        //       "index_code":".BTC-USDT",
+        //       "price_band_threshold_market":"0.05",
+        //       "price_band_threshold_limit":"0.25",
+        //       "maintenance_initial_ratio":"0.500000000000000000",
+        //       "liquidation_initial_ratio":"0.500000000000000000",
+        //       "last_price":"75881.36000000",
+        //       "fair_price":"76256.00000000",
+        //       "index_price":"77609.90000000",
+        //       "mark_price":"76237.75000000",
+        //       "mark_price_dollarizer":"0.99950000",
+        //       "funding_interval":{
+        //          "hours":"8"
+        //       },
+        //       "funding_rate_index_code":".BTC-USDT-FR8H",
+        //       "initial_margin_base":"0.200000000000000000",
+        //       "initial_margin_per_contract":"0.160000000000000000",
+        //       "position_limit":"5.0000"
+        //   }
+        // spot
+        //    {
+        //        "symbol": "CQT-USDT", // spot
+        //        "base_currency": "CQT",
+        //        "is_trader_geofenced": false,
+        //        "list_time": "2021-06-15T00:00:00.000Z",
+        //        "type": "spot",
+        //        "series_code": "CQT-USDT-SPOT",
+        //        "long_name": "Covalent",
+        //        "asset_class": "CRYPTO",
+        //        "minimum_price_increment": "0.0001",
+        //        "minimum_size_increment": "0.0001",
+        //        "quote_currency": "USDT",
+        //        "index_code": null,
+        //        "price_band_threshold_market": "0.05",
+        //        "price_band_threshold_limit": "0.25",
+        //        "last_price": "0.12160000",
+        //        "fair_price": "0.12300000",
+        //        "index_price": null
+        //    }
+        const isSwap = this.safeString (market, 'type') === 'perp-swap';
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');
@@ -524,26 +585,41 @@ export default class coinlist extends Exchange {
         const amountPrecision = this.safeString (market, 'minimum_size_increment');
         const pricePrecision = this.safeString (market, 'minimum_price_increment');
         const created = this.safeString (market, 'list_time');
+        let settledId = undefined;
+        let settled = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        let contractSize = undefined;
+        let symbol = base + '/' + quote;
+        if (isSwap) {
+            contractSize = this.parseNumber ('1');
+            linear = true;
+            inverse = false;
+            settledId = quoteId;
+            settled = quote;
+            symbol = symbol + ':' + quote;
+        }
+        const type = isSwap ? 'swap' : 'spot';
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settled,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'settleId': settledId,
+            'type': type,
+            'spot': !isSwap,
             'margin': false,
-            'swap': false,
+            'swap': isSwap,
             'future': false,
             'option': false,
             'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -2414,6 +2490,92 @@ export default class coinlist extends Exchange {
             'withdrawal': 'transfer',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name coinlist#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1SymbolsSymbolFunding (this.extend (request, params));
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        return this.parseFundingRate (response, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        const previous = this.safeDict (contract, 'last', {});
+        const current = this.safeDict (contract, 'next', {});
+        const next = this.safeDict (contract, 'indicative', {});
+        const previousDatetime = this.safeString (previous, 'funding_time');
+        const currentDatetime = this.safeString (current, 'funding_time');
+        const nextDatetime = this.safeString (next, 'funding_time');
+        const datetime = this.safeString (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber (current, 'funding_rate'),
+            'fundingTimestamp': this.parse8601 (currentDatetime),
+            'fundingDatetime': currentDatetime,
+            'nextFundingRate': this.safeNumber (next, 'funding_rate'),
+            'nextFundingTimestamp': this.parse8601 (nextDatetime),
+            'nextFundingDatetime': nextDatetime,
+            'previousFundingRate': this.safeNumber (previous, 'funding_rate'),
+            'previousFundingTimestamp': this.parse8601 (previousDatetime),
+            'previousFundingDatetime': previousDatetime,
+            'interval': '8h',
+        } as FundingRate;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

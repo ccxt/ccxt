@@ -21,21 +21,8 @@ const skipExchanges = [
 ]
 
 const skipMethodsPerExchange = {
-    'bitfinex1': [
-        'fetchPositions',
-    ],
     'bitflyer': [
         'fetchPositions',
-    ],
-    'kraken': [
-        'fetchPositions',
-    ],
-    'okcoin': [
-        'fetchPositions',
-        'fetchPosition'
-    ],
-    'btctradeua': [
-        'createOrder'
     ],
     'coinspot': [
         'createOrder'

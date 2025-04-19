@@ -48,7 +48,6 @@ async function vssEverything () {
     log.bright ('New version: '.cyan, version)
 
     vss ('./ts/ccxt.ts',                                 "const version = '{version}'",                            version)
-    vss ('./js/ccxt.js',                                 "const version = '{version}'",                            version)
     vss ('./dist/ccxt.browser.js',                       "const version = '{version}'",                            version)
     vss ('./dist/ccxt.browser.min.js',                   "const ps=\"{version}\"",                                 version)
     vss ('./dist/cjs/ccxt.js',                           "const version = '{version}'",                            version)

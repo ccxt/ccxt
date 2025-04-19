@@ -18,5 +18,23 @@ function test_fetch_markets($exchange, $skipped_properties) {
     for ($i = 0; $i < count($market_values); $i++) {
         test_market($exchange, $skipped_properties, $method, $market_values[$i]);
     }
+    detect_market_conflicts($exchange, $markets);
+    return true;
+}
+
+
+function detect_market_conflicts($exchange, $market_values) {
+    // detect if there are markets with different ids for the same symbol
+    $ids = array();
+    for ($i = 0; $i < count($market_values); $i++) {
+        $market = $market_values[$i];
+        $symbol = $market['symbol'];
+        if (!(is_array($ids) && array_key_exists($symbol, $ids))) {
+            $ids[$symbol] = $market['id'];
+        } else {
+            $is_different = $ids[$symbol] !== $market['id'];
+            assert(!$is_different, $exchange->id . ' fetchMarkets() has different ids for the same symbol: ' . $symbol . ' ' . $ids[$symbol] . ' ' . $market['id']);
+        }
+    }
     return true;
 }
