@@ -1748,5 +1748,12 @@
                 "active":"is undefined"
             }
         }
+    },
+    "apex": {
+        "skipMethods": {
+            "watchTrades": {
+                "timestamp": "order is messed"
+            }
+        }
     }
 }

@@ -167,8 +167,10 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
+import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1526,6 +1528,61 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign (hash.replace ('0x', ''), pri.slice (-64));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    async getZKContractSignatureObj (seed, params = {}) {
+        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'slotId')), sha256, 'hex'))).toString ();
+        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'nonce')), sha256, 'hex'))).toString ();
+        const formattedUint64 = '18446744073709551615';
+        const formattedUint32 = '4294967295';
+        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32), 10);
+        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32), 10);
+        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let tx_builder = new zklink.ContractBuilder (accountId, 0, slotId, nonce,
+            this.safeInteger (params, 'pairId'),
+            Precise.stringMul (this.safeString(params, 'size'), '1e18'),
+            Precise.stringMul (this.safeString(params, 'price'), '1e18'),
+            this.safeString (params, 'direction') === 'BUY',
+            parseInt (Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')),
+            parseInt (Precise.stringMul(this.safeString (params, 'takerFeeRate'), '10000')), false);
+        let contractor = zklink.newContract (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+
+    async getZKTransferSignatureObj (seed, params = {}) {
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let nonce = this.safeString (params, 'nonce', '0')
+        if (this.safeBool(params, 'isContract') === true){
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
+            nonce = Precise.stringMod (formattedNonce, formattedUint32);
+        }
+        let tx_builder = new zklink.TransferBuilder (this.safeNumber (params, 'zkAccountId', 0),
+            this.safeString (params, 'receiverAddress'),
+            this.safeNumber (params, 'subAccountId', 0),
+            this.safeNumber (params, 'receiverSubAccountId', 0),
+            this.safeNumber (params, 'tokenId', 0),
+            this.safeString (params, 'fee','0'),
+            this.safeString (params, 'amount','0'),
+            this.parseToInt(nonce),
+            this.safeNumber (params, 'timestampSeconds', 0));
+        let contractor = zklink.newTransfer (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
     }
 
     intToBase16(elem): string {
