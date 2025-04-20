@@ -4,8 +4,6 @@ name: Python
 on:
   push:
     branches: []
-  pull_request:
-    branches: []
 
 jobs:
   this_job_doesnt_use_env:
@@ -29,6 +27,7 @@ jobs:
 
   this_job_uses_env:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     environment: test-environment
     steps:
       - name: test dump
@@ -41,8 +40,8 @@ jobs:
         run: |
           dir
           echo "DUMP TEST"
-          echo "GITHUB_TOKEN 1 ${GITHUB_TOKEN:0:10}"
-          echo "GH_TOKEN 2 ${GH_TOKEN:0:7}"
-          echo "PYPI_TOKEN 3 ${PYPI_TOKEN:0:7}"
-          echo "NPM_TOKEN 4 ${NPM_TOKEN:0:7}"
-          echo "ENV_NOT_GH_TOKEN 5 ${ENV_NOT_GH_TOKEN:0:7}"
+          echo "GITHUB_TOKEN ${GITHUB_TOKEN:0:10}"
+          echo "GH_TOKEN ${GH_TOKEN:0:7}"
+          echo "PYPI_TOKEN ${PYPI_TOKEN:0:7}"
+          echo "NPM_TOKEN ${NPM_TOKEN:0:7}"
+          echo "ENV_NOT_GH_TOKEN ${ENV_NOT_GH_TOKEN:0:7}"
