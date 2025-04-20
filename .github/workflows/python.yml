@@ -10,17 +10,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: test-environment1
     steps:
       - name: test dump
         env:
-          TOKEN_1: ${{ secrets.GITHUB_TOKEN }}
-          TOKEN_2: ${{ secrets.GH_TOKEN }}
-          TOKEN_3: ${{ secrets.PYPI_TOKEN }}
-          TOKEN_4: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENV_GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           dir
-          echo "running py setup"
-          echo "TOKEN 1 ${TOKEN_1:0:10}"
-          echo "TOKEN 2 ${TOKEN_2:0:7}"
-          echo "TOKEN 3 ${TOKEN_3:0:7}"
-          echo "TOKEN 4 ${TOKEN_4:0:7}"
+          echo "DUMP TEST"
+          echo "GITHUB_TOKEN 1 ${GITHUB_TOKEN:0:10}"
+          echo "GH_TOKEN 2 ${GH_TOKEN:0:7}"
+          echo "PYPI_TOKEN 3 ${PYPI_TOKEN:0:7}"
+          echo "NPM_TOKEN 4 ${NPM_TOKEN:0:7}"
+          echo "ENV_GH_TOKEN 5 ${ENV_GH_TOKEN:0:7}"
