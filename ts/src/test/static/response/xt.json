@@ -606,7 +606,7 @@
           2,
           54000
         ],
-        "httpResponse": "{\"returnCode\":0,\"msgInfo\":\"success\",\"error\":null,\"result\":\"483870626049393728\"}",
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"483870626049393728"},
         "parsedResponse": {
           "info": {
             "returnCode": "0",
@@ -663,7 +663,7 @@
           0.002,
           52000
         ],
-        "httpResponse": "{\"rc\":0,\"mc\":\"SUCCESS\",\"ma\":[],\"result\":{\"orderId\":\"484203027161892224\",\"modifyId\":\"484205800137559104\",\"clientModifyId\":null}}",
+        "httpResponse": {"rc":0,"mc":"SUCCESS","ma":[],"result":{"orderId":"484203027161892224","modifyId":"484205800137559104","clientModifyId":null}},
         "parsedResponse": {
           "info": {
             "orderId": "484203027161892224",
