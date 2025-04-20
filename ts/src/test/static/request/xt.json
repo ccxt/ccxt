@@ -244,6 +244,70 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Linear swap edit an order",
+                "method": "editOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/update",
+                "input": [
+                  "483869393976071040",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  2,
+                  54000
+                ],
+                "output": "{\"orderId\":\"483869393976071040\",\"price\":\"54000\",\"origQty\":\"2\"}"
+            },
+            {
+                "description": "Spot edit an order",
+                "method": "editOrder",
+                "url": "https://sapi.xt.com/v4/order/484203027161892224",
+                "input": [
+                  "484203027161892224",
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.002,
+                  52000
+                ],
+                "output": "{\"price\":\"52000\",\"quantity\":\"0.002\"}"
+            },
+            {
+                "description": "edit a stoploss order",
+                "method": "editOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/update-profit-stop",
+                "input": [
+                  "484221817085868800",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  2,
+                  null,
+                  {
+                    "stopLoss": 68000
+                  }
+                ],
+                "output": "{\"profitId\":\"484221817085868800\",\"triggerStopPrice\":\"68000\"}"
+            },
+            {
+                "description": "edit a takeProfit order",
+                "method": "editOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/update-profit-stop",
+                "input": [
+                  "484222823387497216",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  2,
+                  null,
+                  {
+                    "takeProfit": 98000
+                  }
+                ],
+                "output": "{\"profitId\":\"484222823387497216\",\"triggerProfitPrice\":\"98000\"}"
+            }
         ]
     }
 }
