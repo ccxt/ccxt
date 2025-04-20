@@ -4907,6 +4907,7 @@ export default class xt extends Exchange {
      * @description cancels an order and places a new order
      * @see https://doc.xt.com/#orderorderUpdate
      * @see https://doc.xt.com/#futures_orderupdate
+     * @see https://doc.xt.com/#futures_entrustupdateProfit
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -4914,6 +4915,8 @@ export default class xt extends Exchange {
      * @param {float} amount how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -4922,35 +4925,57 @@ export default class xt extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'orderId': id,
-            'price': this.priceToPrecision (symbol, price),
-        };
+        const request = {};
+        const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
+        const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
+        params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+        const isStopLoss = (stopLoss !== undefined);
+        const isTakeProfit = (takeProfit !== undefined);
+        if (isStopLoss || isTakeProfit) {
+            request['profitId'] = id;
+        } else {
+            request['orderId'] = id;
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = undefined;
         if (market['swap']) {
-            request['origQty'] = this.amountToPrecision (symbol, amount);
+            if (isStopLoss) {
+                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
+            } else if (takeProfit !== undefined) {
+                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
+            } else {
+                request['origQty'] = this.amountToPrecision (symbol, amount);
+            }
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('editOrder', market, params);
             if (subType === 'inverse') {
-                response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, params));
-                //
-                //     {
-                //         "returnCode": 0,
-                //         "msgInfo": "success",
-                //         "error": null,
-                //         "result": "483869474947826752"
-                //     }
-                //
+                if (isStopLoss || isTakeProfit) {
+                    response = await this.privateInversePostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, params));
+                } else {
+                    response = await this.privateInversePostFutureTradeV1OrderUpdate (this.extend (request, params));
+                    //
+                    //     {
+                    //         "returnCode": 0,
+                    //         "msgInfo": "success",
+                    //         "error": null,
+                    //         "result": "483869474947826752"
+                    //     }
+                    //
+                }
             } else {
-                response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, params));
-                //
-                //     {
-                //         "returnCode": 0,
-                //         "msgInfo": "success",
-                //         "error": null,
-                //         "result": "483869474947826752"
-                //     }
-                //
+                if (isStopLoss || isTakeProfit) {
+                    response = await this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop (this.extend (request, params));
+                } else {
+                    response = await this.privateLinearPostFutureTradeV1OrderUpdate (this.extend (request, params));
+                    //
+                    //     {
+                    //         "returnCode": 0,
+                    //         "msgInfo": "success",
+                    //         "error": null,
+                    //         "result": "483869474947826752"
+                    //     }
+                    //
+                }
             }
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
