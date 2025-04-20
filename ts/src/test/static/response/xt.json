@@ -609,7 +609,7 @@
         "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"483870626049393728"},
         "parsedResponse": {
           "info": {
-            "returnCode": "0",
+            "returnCode": 0,
             "msgInfo": "success",
             "error": null,
             "result": "483870626049393728"
