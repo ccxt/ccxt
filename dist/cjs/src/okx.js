@@ -372,6 +372,7 @@ class okx extends okx$1 {
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
                         'account/subaccount/interest-limits': 4,
+                        'users/subaccount/apikey': 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
@@ -504,6 +505,9 @@ class okx extends okx$1 {
                         'asset/subaccount/transfer': 10,
                         'users/subaccount/set-transfer-out': 10,
                         'account/subaccount/set-loan-allocation': 4,
+                        'users/subaccount/create-subaccount': 10,
+                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/delete-apikey': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
@@ -914,6 +918,11 @@ class okx extends okx$1 {
                     '59506': errors.ExchangeError,
                     '59507': errors.ExchangeError,
                     '59508': errors.AccountSuspended,
+                    '59515': errors.ExchangeError,
+                    '59516': errors.ExchangeError,
+                    '59517': errors.ExchangeError,
+                    '59518': errors.ExchangeError,
+                    '59519': errors.ExchangeError,
                     '59642': errors.BadRequest,
                     '59643': errors.ExchangeError,
                     // WebSocket error Codes from 60000-63999

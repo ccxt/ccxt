@@ -375,6 +375,7 @@ export default class okx extends Exchange {
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
                         'account/subaccount/interest-limits': 4,
+                        'users/subaccount/apikey': 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
@@ -507,6 +508,9 @@ export default class okx extends Exchange {
                         'asset/subaccount/transfer': 10,
                         'users/subaccount/set-transfer-out': 10,
                         'account/subaccount/set-loan-allocation': 4,
+                        'users/subaccount/create-subaccount': 10,
+                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/delete-apikey': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
@@ -917,6 +921,11 @@ export default class okx extends Exchange {
                     '59506': ExchangeError,
                     '59507': ExchangeError,
                     '59508': AccountSuspended,
+                    '59515': ExchangeError,
+                    '59516': ExchangeError,
+                    '59517': ExchangeError,
+                    '59518': ExchangeError,
+                    '59519': ExchangeError,
                     '59642': BadRequest,
                     '59643': ExchangeError,
                     // WebSocket error Codes from 60000-63999
