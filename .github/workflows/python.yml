@@ -8,7 +8,26 @@ on:
     branches: []
 
 jobs:
-  build:
+  this_job_doesnt_use_env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test dump
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          ENV_NOT_GH_TOKEN: ${{ secrets.NOT_GH_TOKEN }}
+        run: |
+          dir
+          echo "DUMP TEST"
+          echo "GITHUB_TOKEN 1 ${GITHUB_TOKEN:0:10}"
+          echo "GH_TOKEN 2 ${GH_TOKEN:0:7}"
+          echo "PYPI_TOKEN 3 ${PYPI_TOKEN:0:7}"
+          echo "NPM_TOKEN 4 ${NPM_TOKEN:0:7}"
+          echo "ENV_NOT_GH_TOKEN 5 ${ENV_NOT_GH_TOKEN:0:7}"
+
+  this_job_uses_env:
     runs-on: ubuntu-latest
     environment: test-environment
     steps:
