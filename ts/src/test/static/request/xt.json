@@ -259,6 +259,20 @@
                   54000
                 ],
                 "output": "{\"orderId\":\"483869393976071040\",\"price\":\"54000\",\"origQty\":\"2\"}"
+            },
+            {
+                "description": "Spot edit an order",
+                "method": "editOrder",
+                "url": "https://sapi.xt.com/v4/order/484203027161892224",
+                "input": [
+                  "484203027161892224",
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.002,
+                  52000
+                ],
+                "output": "{\"price\":\"52000\",\"quantity\":\"0.002\"}"
             }
         ]
     }

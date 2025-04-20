@@ -3474,7 +3474,7 @@ export default class xt extends Exchange {
         //         "cancelId": "208322474307982720"
         //     }
         //
-        // swap and future: createOrder, cancelOrder
+        // swap and future: createOrder, cancelOrder, editOrder
         //
         //     {
         //         "returnCode": 0,
@@ -3579,6 +3579,14 @@ export default class xt extends Exchange {
         //         "createdTime": 1681273420039
         //     }
         //
+        // spot editOrder
+        //
+        //     {
+        //         "orderId": "484203027161892224",
+        //         "modifyId": "484203544105344000",
+        //         "clientModifyId": null
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
@@ -3592,7 +3600,7 @@ export default class xt extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': this.safeStringN (order, [ 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' ]),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastUpdatedTimestamp,
@@ -4906,9 +4914,6 @@ export default class xt extends Exchange {
      * @param {float} amount how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
-     * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -4924,14 +4929,6 @@ export default class xt extends Exchange {
         let response = undefined;
         if (market['swap']) {
             request['origQty'] = this.amountToPrecision (symbol, amount);
-            const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
-            const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
-            params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
-            if (stopLoss !== undefined) {
-                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
-            } else if (takeProfit !== undefined) {
-                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
-            }
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('editOrder', market, params);
             if (subType === 'inverse') {
@@ -4959,9 +4956,20 @@ export default class xt extends Exchange {
             request['quantity'] = this.amountToPrecision (symbol, amount);
             response = await this.privateSpotPutOrderOrderId (this.extend (request, params));
             //
+            //     {
+            //         "rc": 0,
+            //         "mc": "SUCCESS",
+            //         "ma": [],
+            //         "result": {
+            //             "orderId": "484203027161892224",
+            //             "modifyId": "484203544105344000",
+            //             "clientModifyId": null
+            //         }
+            //     }
             //
         }
-        return this.parseOrder (response, market);
+        const result = (market['swap']) ? response : this.safeDict (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -5066,7 +5074,10 @@ export default class xt extends Exchange {
                     body['media'] = id;
                 }
             }
-            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
+            let isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
+            if ((method === 'PUT') && (endpoint === 'spot')) {
+                isUndefinedBody = false;
+            }
             body = isUndefinedBody ? undefined : this.json (body);
             let payloadString = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {
