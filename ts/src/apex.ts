@@ -238,14 +238,14 @@ export default class apex extends Exchange {
                         'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
+                            'IOC': true,
+                            'FOK': true,
                             'PO': true,
-                            'GTD': false,
+                            'GTD': true,
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': false,
+                        'trailing': true, // todo unify
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -254,6 +254,9 @@ export default class apex extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -269,17 +272,17 @@ export default class apex extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': {
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
-                    'fetchClosedOrders': {
                         'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
+                    'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
+                        'limit': 200,
                     },
                 },
                 'swap': {
@@ -1652,7 +1655,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrders
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
