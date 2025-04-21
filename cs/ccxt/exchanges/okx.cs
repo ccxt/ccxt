@@ -1536,8 +1536,8 @@ public partial class okx : Exchange
         object swap = (isEqual(type, "swap"));
         object option = (isEqual(type, "option"));
         object contract = isTrue(isTrue(swap) || isTrue(future)) || isTrue(option);
-        object baseId = this.safeString(market, "baseCcy");
-        object quoteId = this.safeString(market, "quoteCcy");
+        object baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
+        object quoteId = this.safeString(market, "quoteCcy", "");
         object settleId = this.safeString(market, "settleCcy");
         object settle = this.safeCurrencyCode(settleId);
         object underlying = this.safeString(market, "uly");
@@ -1555,20 +1555,29 @@ public partial class okx : Exchange
         object optionType = null;
         if (isTrue(contract))
         {
-            symbol = add(add(symbol, ":"), settle);
+            if (isTrue(!isEqual(settle, null)))
+            {
+                symbol = add(add(symbol, ":"), settle);
+            }
             if (isTrue(future))
             {
                 expiry = this.safeInteger(market, "expTime");
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(symbol, "-"), ymd);
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(symbol, "-"), ymd);
+                }
             } else if (isTrue(option))
             {
                 expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
-                optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
+                    optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                }
             }
         }
         object tickSize = this.safeString(market, "tickSz");
