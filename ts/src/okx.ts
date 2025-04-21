@@ -1622,9 +1622,8 @@ export default class okx extends Exchange {
         let optionType = undefined;
         if (contract) {
             if (settle !== undefined) {
-                
+                symbol = symbol + ':' + settle;
             }
-            symbol = symbol + ':' + settle;
             if (future) {
                 expiry = this.safeInteger (market, 'expTime');
                 if (expiry !== undefined) {
