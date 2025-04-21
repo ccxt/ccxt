@@ -1139,7 +1139,7 @@ func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 // func (this *Exchange) Init(userConfig map[string]interface{}) {
 // }
 
-func RandNumber(size interface{}) int64 {
+func (this *Exchange) RandNumber(size interface{}) int64 {
 	// Try casting interface{} to int
 	intSize, ok := size.(int)
 	if !ok {
