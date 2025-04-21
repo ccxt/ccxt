@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _assert = require('./_assert.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // HMAC (RFC 2104)
 class HMAC extends utils.Hash {
     constructor(hash, _key) {

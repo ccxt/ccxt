@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coincatch extends coincatch$1 {
     describe() {
