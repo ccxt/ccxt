@@ -363,9 +363,9 @@ export default class apex extends Exchange {
     }
 
     parseAccount (account: Dict): Account {
-        this.accountId = this.safeString (account, 'id', '0');
+        const accountId = this.safeString (account, 'id', '0');
         return {
-            'id': this.accountId,
+            'id': accountId,
             'type': undefined,
             'code': undefined,
             'info': account,

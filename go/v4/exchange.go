@@ -6,6 +6,7 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
+	random2 "math/rand"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -1137,6 +1138,31 @@ func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 
 // func (this *Exchange) Init(userConfig map[string]interface{}) {
 // }
+
+func RandNumber(size interface{}) int64 {
+	// Try casting interface{} to int
+	intSize, ok := size.(int)
+	if !ok {
+		fmt.Println("Invalid size type; expected int")
+		return 0
+	}
+
+	random2.Seed(time.Now().UnixNano())
+	number := ""
+
+	for i := 0; i < intSize; i++ {
+		digit := random2.Intn(10) // Random digit 0-9
+		number += strconv.Itoa(digit)
+	}
+
+	result, err := strconv.ParseInt(number, 10, 64)
+	if err != nil {
+		fmt.Println("Error converting string to int64:", err)
+		return 0
+	}
+
+	return result
+}
 
 func (this *Exchange) UpdateProxySettings() {
 	proxyUrl := this.CheckProxyUrlSettings(nil, nil, nil, nil)
