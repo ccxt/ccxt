@@ -1292,7 +1292,8 @@ export default class apex extends Exchange {
     }
 
     addHyphenBeforeUsdt (symbol: string) {
-        const index = symbol.toUpperCase ().indexOf ('USDT');
+        const uppercaseSymbol = symbol.toUpperCase ();
+        const index = uppercaseSymbol.indexOf ('USDT');
         const symbolChar = this.safeString (symbol, index - 1);
         if (index > 0 && symbolChar !== '-') {
             return symbol.slice (0, index) + '-' + symbol.slice (index);
