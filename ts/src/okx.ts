@@ -1606,7 +1606,7 @@ export default class okx extends Exchange {
         const contract = swap || future || option;
         let baseId = this.safeString (market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
         let quoteId = this.safeString (market, 'quoteCcy', '');
-        const settleId = this.safeString (market, 'settleCcy', '');
+        const settleId = this.safeString (market, 'settleCcy');
         const settle = this.safeCurrencyCode (settleId);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
@@ -1621,6 +1621,9 @@ export default class okx extends Exchange {
         let strikePrice = undefined;
         let optionType = undefined;
         if (contract) {
+            if (settle !== undefined) {
+                
+            }
             symbol = symbol + ':' + settle;
             if (future) {
                 expiry = this.safeInteger (market, 'expTime');
