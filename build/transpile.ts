@@ -141,6 +141,9 @@ class Transpiler {
             [ /\.parsePositionRisk /g, '.parse_position_risk'],
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
+            [ /\.addWatchFunction /g, '.add_watch_function'],
+            [ /\.activeWatchFunctions/g, '.active_watch_functions'],
+            [ /\.streamOHLCVS/g, '.stream_ohlcvs'],
             [ /\.describeData /g, '.describe_data'],
             [ /\.removeRepeatedElementsFromArray/g, '.remove_repeated_elements_from_array'],
             [ /\.initThrottler /g, '.init_throttler'],
@@ -351,6 +354,7 @@ class Transpiler {
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
             [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /\.\.\.([^\s]+)/g, "*$1"], // spread indicator
         ])
     }
 
@@ -566,6 +570,7 @@ class Transpiler {
             [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
+            [ /\.\.\.(?=[a-zA-Z])/g, '...$'], // spread indicator
         ])
     }
 
@@ -851,6 +856,7 @@ class Transpiler {
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'ConsumerFunction': /: ConsumerFunction =/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
@@ -1605,8 +1611,11 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
+                'OHLCVC': 'list',
                 'Dictionary<any>': 'dict',
-                'Dict': 'dict'
+                'Dict': 'dict',
+                'Topic': 'str',
+                'ConsumerFunction': 'Any',
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1635,6 +1644,8 @@ class Transpiler {
                     'OrderSide': 'string',
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
+                    'Topic': 'string',
+                    'ConsumerFunction': 'mixed',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
 
