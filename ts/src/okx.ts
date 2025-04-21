@@ -1604,9 +1604,9 @@ export default class okx extends Exchange {
         const swap = (type === 'swap');
         const option = (type === 'option');
         const contract = swap || future || option;
-        let baseId = this.safeString (market, 'baseCcy');
-        let quoteId = this.safeString (market, 'quoteCcy');
-        const settleId = this.safeString (market, 'settleCcy');
+        let baseId = this.safeString (market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
+        let quoteId = this.safeString (market, 'quoteCcy', '');
+        const settleId = this.safeString (market, 'settleCcy', '');
         const settle = this.safeCurrencyCode (settleId);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
@@ -1624,15 +1624,19 @@ export default class okx extends Exchange {
             symbol = symbol + ':' + settle;
             if (future) {
                 expiry = this.safeInteger (market, 'expTime');
-                const ymd = this.yymmdd (expiry);
-                symbol = symbol + '-' + ymd;
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd (expiry);
+                    symbol = symbol + '-' + ymd;
+                }
             } else if (option) {
                 expiry = this.safeInteger (market, 'expTime');
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
-                const ymd = this.yymmdd (expiry);
-                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
-                optionType = (optionType === 'P') ? 'put' : 'call';
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd (expiry);
+                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
+                    optionType = (optionType === 'P') ? 'put' : 'call';
+                }
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
