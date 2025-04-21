@@ -1,6 +1,5 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
-
 import * as functions from './functions.js'
 const {
     isNode
