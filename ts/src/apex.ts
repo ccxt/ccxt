@@ -223,7 +223,6 @@ export default class apex extends Exchange {
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
-                'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'brokerId': '6956',
             },
@@ -291,11 +290,6 @@ export default class apex extends Exchange {
                 },
             },
         });
-    }
-
-    setSandboxMode (enabled) {
-        super.setSandboxMode (enabled);
-        this.options['sandboxMode'] = enabled;
     }
 
     /**
