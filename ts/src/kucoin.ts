@@ -1995,7 +1995,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.network] the blockchain network name
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2317,8 +2317,10 @@ export default class kucoin extends Exchange {
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
     }
 
     /**

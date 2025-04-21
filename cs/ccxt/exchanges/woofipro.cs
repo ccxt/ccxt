@@ -539,7 +539,7 @@ public partial class woofipro : Exchange
             { "active", null },
             { "contract", true },
             { "linear", true },
-            { "inverse", null },
+            { "inverse", false },
             { "contractSize", this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },

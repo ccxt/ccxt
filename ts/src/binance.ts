@@ -482,6 +482,7 @@ export default class binance extends Exchange {
                         'portfolio/margin-asset-leverage': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
+                        'portfolio/pmloan-history': 5,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -1295,12 +1296,13 @@ export default class binance extends Exchange {
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
-                    'spot': 'x-R4BD3S82',
-                    'margin': 'x-R4BD3S82',
-                    'future': 'x-xcKtGhcu',
+                    'spot': 'x-TKT5PX2F',
+                    'margin': 'x-TKT5PX2F',
+                    'future': 'x-cvBPrNm9',
                     'delivery': 'x-xcKtGhcu',
-                    'swap': 'x-xcKtGhcu',
+                    'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
+                    'inverse': 'x-xcKtGhcu',
                 },
                 'accountsByType': {
                     'main': 'MAIN',
@@ -1333,195 +1335,8 @@ export default class binance extends Exchange {
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
                 },
-                // keeping this object for backward-compatibility
-                'reverseNetworks': {
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
-                },
                 'networksById': {
                     'SOL': 'SOL', // temporary fix for SPL definition
-                    'tronscan.org': 'TRC20',
-                    'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
-                    'explorer.binance.org': 'BEP2',
-                    'bithomp.com': 'XRP',
-                    'bloks.io': 'EOS',
-                    'stellar.expert': 'XLM',
-                    'blockchair.com/bitcoin': 'BTC',
-                    'blockchair.com/bitcoin-cash': 'BCH',
-                    'blockchair.com/ecash': 'XEC',
-                    'explorer.litecoin.net': 'LTC',
-                    'explorer.avax.network': 'AVAX',
-                    'solscan.io': 'SOL',
-                    'polkadot.subscan.io': 'DOT',
-                    'dashboard.internetcomputer.org': 'ICP',
-                    'explorer.chiliz.com': 'CHZ',
-                    'cardanoscan.io': 'ADA',
-                    'mainnet.theoan.com': 'AION',
-                    'algoexplorer.io': 'ALGO',
-                    'explorer.ambrosus.com': 'AMB',
-                    'viewblock.io/zilliqa': 'ZIL',
-                    'viewblock.io/arweave': 'AR',
-                    'explorer.ark.io': 'ARK',
-                    'atomscan.com': 'ATOM',
-                    'www.mintscan.io': 'CTK',
-                    'explorer.bitcoindiamond.org': 'BCD',
-                    'btgexplorer.com': 'BTG',
-                    'bts.ai': 'BTS',
-                    'explorer.celo.org': 'CELO',
-                    'explorer.nervos.org': 'CKB',
-                    'cerebro.cortexlabs.ai': 'CTXC',
-                    'chainz.cryptoid.info': 'VIA',
-                    'explorer.dcrdata.org': 'DCR',
-                    'digiexplorer.info': 'DGB',
-                    'dock.subscan.io': 'DOCK',
-                    'dogechain.info': 'DOGE',
-                    'explorer.elrond.com': 'EGLD',
-                    'blockscout.com': 'ETC',
-                    'explore-fetchhub.fetch.ai': 'FET',
-                    'filfox.info': 'FIL',
-                    'fio.bloks.io': 'FIO',
-                    'explorer.firo.org': 'FIRO',
-                    'neoscan.io': 'NEO',
-                    'ftmscan.com': 'FTM',
-                    'explorer.gochain.io': 'GO',
-                    'block.gxb.io': 'GXS',
-                    'hash-hash.info': 'HBAR',
-                    'www.hiveblockexplorer.com': 'HIVE',
-                    'explorer.helium.com': 'HNT',
-                    'tracker.icon.foundation': 'ICX',
-                    'www.iostabc.com': 'IOST',
-                    'explorer.iota.org': 'IOTA',
-                    'iotexscan.io': 'IOTX',
-                    'irishub.iobscan.io': 'IRIS',
-                    'kava.mintscan.io': 'KAVA',
-                    'scope.klaytn.com': 'KLAY',
-                    'kmdexplorer.io': 'KMD',
-                    'kusama.subscan.io': 'KSM',
-                    'explorer.lto.network': 'LTO',
-                    'polygonscan.com': 'POLYGON',
-                    'explorer.ont.io': 'ONT',
-                    'minaexplorer.com': 'MINA',
-                    'nanolooker.com': 'NANO',
-                    'explorer.nebulas.io': 'NAS',
-                    'explorer.nbs.plus': 'NBS',
-                    'explorer.nebl.io': 'NEBL',
-                    'nulscan.io': 'NULS',
-                    'nxscan.com': 'NXS',
-                    'explorer.harmony.one': 'ONE',
-                    'explorer.poa.network': 'POA',
-                    'qtum.info': 'QTUM',
-                    'explorer.rsk.co': 'RSK',
-                    'www.oasisscan.com': 'ROSE',
-                    'ravencoin.network': 'RVN',
-                    'sc.tokenview.com': 'SC',
-                    'secretnodes.com': 'SCRT',
-                    'explorer.skycoin.com': 'SKY',
-                    'steemscan.com': 'STEEM',
-                    'explorer.stacks.co': 'STX',
-                    'www.thetascan.io': 'THETA',
-                    'scan.tomochain.com': 'TOMO',
-                    'explore.vechain.org': 'VET',
-                    'explorer.vite.net': 'VITE',
-                    'www.wanscan.org': 'WAN',
-                    'wavesexplorer.com': 'WAVES',
-                    'wax.eosx.io': 'WAXP',
-                    'waltonchain.pro': 'WTC',
-                    'chain.nem.ninja': 'XEM',
-                    'verge-blockchain.info': 'XVG',
-                    'explorer.yoyow.org': 'YOYOW',
-                    'explorer.zcha.in': 'ZEC',
-                    'explorer.zensystem.io': 'ZEN',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -2946,9 +2761,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -3210,12 +3025,12 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarkets
      * @description retrieves data on all markets for binance
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -3806,12 +3621,12 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
      * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
      * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
      * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
      * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4071,9 +3886,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -4146,9 +3961,9 @@ export default class binance extends Exchange {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562",  // mark price
+        //         "markPrice": "11793.63104562", // mark price
         //         "indexPrice": "11781.80495970", // index price
-        //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+        //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
         //         "nextFundingTime": 1597392000000,
         //         "interestRate": "0.00010000",
@@ -4336,10 +4151,10 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4379,9 +4194,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4416,9 +4231,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchLastPrices
      * @description fetches the last price for multiple markets
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4519,9 +4334,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4560,8 +4375,8 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarkPrice
      * @description fetches mark price for the market
-     * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4595,8 +4410,8 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarkPrices
      * @description fetches mark prices for multiple markets
-     * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4689,16 +4504,16 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -5090,17 +4905,17 @@ export default class binance extends Exchange {
      * @name binance#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * Default fetchTradesMethod
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
      * Other fetchTradesMethod
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
@@ -5234,7 +5049,7 @@ export default class binance extends Exchange {
      * @name binance#editSpotOrder
      * @ignore
      * @description edit a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -5278,7 +5093,7 @@ export default class binance extends Exchange {
         //             "symbol": "BTCUSDT",
         //             "orderId": 16383176297,
         //             "orderListId": -1,
-        //             "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //             "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //             "transactTime": 1670891847932,
         //             "price": "13500.00000000",
         //             "origQty": "0.00085000",
@@ -5450,7 +5265,7 @@ export default class binance extends Exchange {
      * @name binance#editContractOrder
      * @description edit a trade order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
      * @param {string} id cancel order id
@@ -5522,9 +5337,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#editOrder
      * @description edit a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -5552,7 +5367,7 @@ export default class binance extends Exchange {
      * @name binance#editOrders
      * @description edit a list of trade orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -5676,7 +5491,7 @@ export default class binance extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "orderId": 16383176297,
         //         "orderListId": -1,
-        //         "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //         "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
         //         "transactTime": 1670891847932,
         //         "price": "13500.00000000",
         //         "origQty": "0.00085000",
@@ -5739,7 +5554,7 @@ export default class binance extends Exchange {
         //       "symbol": "BTCUSDT",
         //       "orderId": 5403233939,
         //       "orderListId": -1,
-        //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "clientOrderId": "x-TKT5PX2F5e669e75b6c14f69a2c43e",
         //       "transactTime": 1617151923742,
         //       "price": "0.00000000",
         //       "origQty": "0.00050000",
@@ -5914,7 +5729,7 @@ export default class binance extends Exchange {
         // createOrder, cancelAllOrders, cancelOrder: portfolio margin spot margin
         //
         //     {
-        //         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //         "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //         "cummulativeQuoteQty": "0.00000000",
         //         "executedQty": "0.00000000",
         //         "fills": [],
@@ -5935,7 +5750,7 @@ export default class binance extends Exchange {
         //     {
         //         "symbol": "BTCUSDT",
         //         "orderId": 24700763749,
-        //         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "clientOrderId": "x-TKT5PX2F6f724c2a4af6425f98c7b6",
         //         "price": "35000.00000000",
         //         "origQty": "0.00100000",
         //         "executedQty": "0.00000000",
@@ -6216,7 +6031,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -6298,12 +6113,12 @@ export default class binance extends Exchange {
      * @name binance#createOrder
      * @description create a trade order
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
      * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
@@ -6335,11 +6150,11 @@ export default class binance extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // don't handle/omit params here, omitting happens inside createOrderRequest
         const marketType = this.safeString (params, 'type', market['type']);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const marginMode = this.safeString (params, 'marginMode');
+        const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -6351,9 +6166,9 @@ export default class binance extends Exchange {
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, [ 'sor', 'SOR', 'test' ]);
-        if (isPortfolioMargin) {
-            params['portfolioMargin'] = isPortfolioMargin;
-        }
+        // if (isPortfolioMargin) {
+        //     params['portfolioMargin'] = isPortfolioMargin;
+        // }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['option']) {
@@ -6512,8 +6327,12 @@ export default class binance extends Exchange {
         const clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
         if (clientOrderId === undefined) {
             const broker = this.safeDict (this.options, 'broker', {});
-            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-            const brokerId = this.safeString (broker, marketType, defaultId);
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
+            let idMarketType = 'spot';
+            if (market['contract']) {
+                idMarketType = (market['swap'] && market['linear']) ? 'swap' : 'inverse';
+            }
+            const brokerId = this.safeString (broker, idMarketType, defaultId);
             request[clientOrderIdRequest] = brokerId + this.uuid22 ();
         } else {
             request[clientOrderIdRequest] = clientOrderId;
@@ -6713,7 +6532,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#createMarketOrderWithCost
      * @description create a market order by providing the symbol, side and cost
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -6726,15 +6545,17 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
     }
 
     /**
      * @method
      * @name binance#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6746,15 +6567,17 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
      * @method
      * @name binance#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6774,9 +6597,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
@@ -6848,9 +6671,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7091,7 +6914,7 @@ export default class binance extends Exchange {
         //         {
         //             "symbol": "BTCUSDT",
         //             "orderId": 24684460474,
-        //             "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //             "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
         //             "price": "35000.00000000",
         //             "origQty": "0.00100000",
         //             "executedQty": "0.00000000",
@@ -7119,9 +6942,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
@@ -7215,7 +7038,7 @@ export default class binance extends Exchange {
      * @name binance#fetchOpenOrder
      * @description fetch an open order by the id
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
@@ -7426,9 +7249,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7457,9 +7280,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7488,9 +7311,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchCanceledAndClosedOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7522,9 +7345,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#cancelOrder
      * @description cancels an open order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
      * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
      * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
@@ -7616,8 +7439,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
      * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
@@ -7750,7 +7574,7 @@ export default class binance extends Exchange {
             //    [
             //        {
             //            "symbol": "ADAUSDT",
-            //            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            //            "origClientOrderId": "x-TKT5PX2F662cde7a90114475b86e21",
             //            "orderId": 3935107,
             //            "orderListId": -1,
             //            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
@@ -7784,7 +7608,7 @@ export default class binance extends Exchange {
      * @name binance#cancelOrders
      * @description cancel multiple orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7855,9 +7679,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
      * @param {string} id order id
      * @param {string} symbol unified market symbol
@@ -7887,9 +7711,9 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
      * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
@@ -8648,7 +8472,7 @@ export default class binance extends Exchange {
         const internalInteger = this.safeInteger (transaction, 'transferType');
         let internal = undefined;
         if (internalInteger !== undefined) {
-            internal = internalInteger ? true : false;
+            internal = (internalInteger !== 0) ? true : false;
         }
         const network = this.safeString (transaction, 'network');
         return {
@@ -9105,43 +8929,19 @@ export default class binance extends Exchange {
     parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
         //
         //     {
-        //         "currency": "XRP",
+        //         "coin": "XRP",
         //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         //         "tag": "108618262",
-        //         "info": {
-        //             "coin": "XRP",
-        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        //             "tag": "108618262",
-        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        //         }
+        //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        const info = this.safeDict (response, 'info', {});
-        const url = this.safeString (info, 'url');
+        const url = this.safeString (response, 'url');
         const address = this.safeString (response, 'address');
         const currencyId = this.safeString (response, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let impliedNetwork = undefined;
-        if (url !== undefined) {
-            const reverseNetworks = this.safeDict (this.options, 'reverseNetworks', {});
-            const parts = url.split ('/');
-            let topLevel = this.safeString (parts, 2);
-            if ((topLevel === 'blockchair.com') || (topLevel === 'viewblock.io')) {
-                const subLevel = this.safeString (parts, 3);
-                if (subLevel !== undefined) {
-                    topLevel = topLevel + '/' + subLevel;
-                }
-            }
-            impliedNetwork = this.safeString (reverseNetworks, topLevel);
-            const impliedNetworks = this.safeDict (this.options, 'impliedNetworks', {
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-            });
-            if (code in impliedNetworks) {
-                const conversion = this.safeDict (impliedNetworks, code, {});
-                impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
-            }
-        }
+        // deposit-address endpoint provides only network url (not network ID/CODE)
+        // so we should map the url to network (their data is inside currencies)
+        const networkCode = this.getNetworkCodeByNetworkUrl (code, url);
         let tag = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
@@ -9150,7 +8950,7 @@ export default class binance extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': impliedNetwork,
+            'network': networkCode,
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -9473,7 +9273,7 @@ export default class binance extends Exchange {
      * @description fetch the trading fees for a market
      * @see https://developers.binance.com/docs/wallet/asset/trade-fee
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
      * @param {string} symbol unified market symbol
@@ -9543,7 +9343,7 @@ export default class binance extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://developers.binance.com/docs/wallet/asset/trade-fee
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -9752,7 +9552,7 @@ export default class binance extends Exchange {
      * @name binance#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -9794,7 +9594,7 @@ export default class binance extends Exchange {
      * @name binance#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -9876,7 +9676,7 @@ export default class binance extends Exchange {
      * @name binance#fetchFundingRates
      * @description fetch the funding rate for multiple markets
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -10543,7 +10343,7 @@ export default class binance extends Exchange {
      * @name binance#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
      * @param {string[]|undefined} symbols list of unified market symbols
@@ -10827,9 +10627,9 @@ export default class binance extends Exchange {
      * @name binance#fetchPositions
      * @description fetch all open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
      * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10866,9 +10666,9 @@ export default class binance extends Exchange {
      * @ignore
      * @description fetch account positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10994,7 +10794,7 @@ export default class binance extends Exchange {
      * @ignore
      * @description fetch positions risk
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
@@ -11169,7 +10969,7 @@ export default class binance extends Exchange {
      * @name binance#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
      * @param {string} symbol unified market symbol
@@ -11232,7 +11032,7 @@ export default class binance extends Exchange {
      * @name binance#setLeverage
      * @description set the level of leverage for a market
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
      * @param {float} leverage the rate of leverage
@@ -11282,7 +11082,7 @@ export default class binance extends Exchange {
      * @name binance#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -11346,7 +11146,7 @@ export default class binance extends Exchange {
      * @name binance#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
@@ -11403,7 +11203,7 @@ export default class binance extends Exchange {
      * @name binance#fetchLeverages
      * @description fetch the set leverage for all markets
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
@@ -11707,7 +11507,7 @@ export default class binance extends Exchange {
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
      * @param {string} [code] unified currency code
@@ -11882,6 +11682,43 @@ export default class binance extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
+    getNetworkCodeByNetworkUrl (currencyCode: string, depositUrl: Str = undefined): Str {
+        // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if (depositUrl === undefined) {
+            return undefined;
+        }
+        let networkCode = undefined;
+        const currency = this.currency (currencyCode);
+        const networks = this.safeDict (currency, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        for (let i = 0; i < networkCodes.length; i++) {
+            const currentNetworkCode = networkCodes[i];
+            const info = this.safeDict (networks[currentNetworkCode], 'info', {});
+            const siteUrl = this.safeString (info, 'contractAddressUrl');
+            // check if url matches the field's value
+            if (siteUrl !== undefined && depositUrl.startsWith (this.getBaseDomainFromUrl (siteUrl))) {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
+    }
+
+    getBaseDomainFromUrl (url: Str): Str {
+        if (url === undefined) {
+            return undefined;
+        }
+        const urlParts = url.split ('/');
+        const scheme = this.safeString (urlParts, 0);
+        if (scheme === undefined) {
+            return undefined;
+        }
+        const domain = this.safeString (urlParts, 2);
+        if (domain === undefined) {
+            return undefined;
+        }
+        return scheme + '//' + domain + '/';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
@@ -11920,7 +11757,7 @@ export default class binance extends Exchange {
                 if (newClientOrderId === undefined) {
                     const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
-                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
                     const broker = this.safeDict (this.options, 'broker', {});
                     const brokerId = this.safeString (broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22 ();
@@ -11929,8 +11766,25 @@ export default class binance extends Exchange {
             let query = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeValue (params, 'batchOrders');
-                const queryBatch = (this.json (batchOrders));
+                const batchOrders = this.safeList (params, 'batchOrders');
+                let checkedBatchOrders = batchOrders;
+                if (method === 'POST' && api === 'fapiPrivate') {
+                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                    checkedBatchOrders = [];
+                    for (let i = 0; i < batchOrders.length; i++) {
+                        const batchOrder = batchOrders[i];
+                        let newClientOrderId = this.safeString (batchOrder, 'newClientOrderId');
+                        if (newClientOrderId === undefined) {
+                            const defaultId = 'x-xcKtGhcu'; // batchOrders can not be spot or margin
+                            const broker = this.safeDict (this.options, 'broker', {});
+                            const brokerId = this.safeString (broker, 'future', defaultId);
+                            newClientOrderId = brokerId + this.uuid22 ();
+                            batchOrder['newClientOrderId'] = newClientOrderId;
+                        }
+                        checkedBatchOrders.push (batchOrder);
+                    }
+                }
+                const queryBatch = (this.json (checkedBatchOrders));
                 params['batchOrders'] = queryBatch;
             }
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -12224,7 +12078,7 @@ export default class binance extends Exchange {
      * @name binance#reduceMargin
      * @description remove margin from a position
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12239,7 +12093,7 @@ export default class binance extends Exchange {
      * @name binance#addMargin
      * @description add margin
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12839,7 +12693,7 @@ export default class binance extends Exchange {
      * @name binance#fetchOpenInterestHistory
      * @description Retrieves the open interest history of a currency
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
      * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -12911,7 +12765,7 @@ export default class binance extends Exchange {
      * @name binance#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
@@ -13008,7 +12862,7 @@ export default class binance extends Exchange {
      * @description retrieves the users liquidated positions
      * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
      * @param {string} [symbol] unified CCXT market symbol
@@ -13343,7 +13197,7 @@ export default class binance extends Exchange {
      * @name binance#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -13380,7 +13234,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarginModes
      * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
      * @param {string[]} symbols unified market symbols
@@ -13476,7 +13330,7 @@ export default class binance extends Exchange {
      * @name binance#fetchMarginMode
      * @description fetches the margin mode of a specific symbol
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -13627,7 +13481,7 @@ export default class binance extends Exchange {
      * @name binance#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
      * @param {string} symbol unified market symbol
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
@@ -14098,8 +13952,8 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -14142,7 +13996,7 @@ export default class binance extends Exchange {
      * @name binance#fetchLongShortRatioHistory
      * @description fetches the long short ratio history for a unified market symbol
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
      * @param {string} symbol unified symbol of the market to fetch the long short ratio for
      * @param {string} [timeframe] the period for the ratio, default is 24 hours
      * @param {int} [since] the earliest time in ms to fetch ratios for

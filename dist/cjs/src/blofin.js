@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class blofin
@@ -57,7 +57,7 @@ class blofin extends blofin$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,

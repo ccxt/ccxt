@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -30,6 +30,7 @@ class cex extends cex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
@@ -319,6 +320,7 @@ class cex extends cex$1 {
                 'margin': undefined,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': undefined,
                 'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {

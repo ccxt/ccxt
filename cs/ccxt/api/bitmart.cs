@@ -141,6 +141,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("publicGetAccountV1Currencies",parameters);
     }
 
+    public async Task<object> publicGetContractPublicMarkpriceKline (object parameters = null)
+    {
+        return await this.callAsync ("publicGetContractPublicMarkpriceKline",parameters);
+    }
+
     public async Task<object> privateGetAccountSubAccountV1TransferList (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountSubAccountV1TransferList",parameters);
@@ -209,6 +214,11 @@ public partial class bitmart : Exchange
     public async Task<object> privateGetAccountV1DepositWithdrawDetail (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountV1DepositWithdrawDetail",parameters);
+    }
+
+    public async Task<object> privateGetAccountV1WithdrawAddressList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountV1WithdrawAddressList",parameters);
     }
 
     public async Task<object> privateGetSpotV1OrderDetail (object parameters = null)
@@ -329,6 +339,11 @@ public partial class bitmart : Exchange
     public async Task<object> privateGetContractPrivateTransactionHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetContractPrivateTransactionHistory",parameters);
+    }
+
+    public async Task<object> privateGetContractPrivateGetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privateGetContractPrivateGetPositionMode",parameters);
     }
 
     public async Task<object> privatePostAccountSubAccountMainV1SubToMain (object parameters = null)
@@ -531,9 +546,29 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privatePostContractPrivateModifyPresetPlanOrder",parameters);
     }
 
+    public async Task<object> privatePostContractPrivateModifyLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateModifyLimitOrder",parameters);
+    }
+
     public async Task<object> privatePostContractPrivateModifyTpSlOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostContractPrivateModifyTpSlOrder",parameters);
+    }
+
+    public async Task<object> privatePostContractPrivateSubmitTrailOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateSubmitTrailOrder",parameters);
+    }
+
+    public async Task<object> privatePostContractPrivateCancelTrailOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateCancelTrailOrder",parameters);
+    }
+
+    public async Task<object> privatePostContractPrivateSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostContractPrivateSetPositionMode",parameters);
     }
 
 }

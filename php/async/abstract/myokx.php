@@ -322,8 +322,14 @@ abstract class myokx extends \ccxt\async\okx {
     public function private_get_trade_one_click_repay_currency_list($params = array()) {
         return $this->request('trade/one-click-repay-currency-list', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_trade_one_click_repay_currency_list_v2($params = array()) {
+        return $this->request('trade/one-click-repay-currency-list-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_trade_one_click_repay_history($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_trade_one_click_repay_history_v2($params = array()) {
+        return $this->request('trade/one-click-repay-history-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_trade_account_rate_limit($params = array()) {
         return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -501,6 +507,9 @@ abstract class myokx extends \ccxt\async\okx {
     }
     public function private_get_account_subaccount_interest_limits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_users_subaccount_apikey($params = array()) {
+        return $this->request('users/subaccount/apikey', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_tradingbot_grid_orders_algo_pending($params = array()) {
         return $this->request('tradingBot/grid/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -751,6 +760,9 @@ abstract class myokx extends \ccxt\async\okx {
     public function private_post_trade_one_click_repay($params = array()) {
         return $this->request('trade/one-click-repay', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function private_post_trade_one_click_repay_v2($params = array()) {
+        return $this->request('trade/one-click-repay-v2', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function private_post_trade_mass_cancel($params = array()) {
         return $this->request('trade/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -852,6 +864,15 @@ abstract class myokx extends \ccxt\async\okx {
     }
     public function private_post_account_subaccount_set_loan_allocation($params = array()) {
         return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_users_subaccount_create_subaccount($params = array()) {
+        return $this->request('users/subaccount/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_users_subaccount_subaccount_apikey($params = array()) {
+        return $this->request('users/subaccount/subaccount-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_users_subaccount_delete_apikey($params = array()) {
+        return $this->request('users/subaccount/delete-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_post_tradingbot_grid_order_algo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1330,8 +1351,14 @@ abstract class myokx extends \ccxt\async\okx {
     public function privateGetTradeOneClickRepayCurrencyList($params = array()) {
         return $this->request('trade/one-click-repay-currency-list', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetTradeOneClickRepayCurrencyListV2($params = array()) {
+        return $this->request('trade/one-click-repay-currency-list-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetTradeOneClickRepayHistory($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetTradeOneClickRepayHistoryV2($params = array()) {
+        return $this->request('trade/one-click-repay-history-v2', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetTradeAccountRateLimit($params = array()) {
         return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1509,6 +1536,9 @@ abstract class myokx extends \ccxt\async\okx {
     }
     public function privateGetAccountSubaccountInterestLimits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetUsersSubaccountApikey($params = array()) {
+        return $this->request('users/subaccount/apikey', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetTradingBotGridOrdersAlgoPending($params = array()) {
         return $this->request('tradingBot/grid/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1759,6 +1789,9 @@ abstract class myokx extends \ccxt\async\okx {
     public function privatePostTradeOneClickRepay($params = array()) {
         return $this->request('trade/one-click-repay', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function privatePostTradeOneClickRepayV2($params = array()) {
+        return $this->request('trade/one-click-repay-v2', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function privatePostTradeMassCancel($params = array()) {
         return $this->request('trade/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1860,6 +1893,15 @@ abstract class myokx extends \ccxt\async\okx {
     }
     public function privatePostAccountSubaccountSetLoanAllocation($params = array()) {
         return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostUsersSubaccountCreateSubaccount($params = array()) {
+        return $this->request('users/subaccount/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostUsersSubaccountSubaccountApikey($params = array()) {
+        return $this->request('users/subaccount/subaccount-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostUsersSubaccountDeleteApikey($params = array()) {
+        return $this->request('users/subaccount/delete-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostTradingBotGridOrderAlgo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));

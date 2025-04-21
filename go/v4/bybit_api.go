@@ -871,6 +871,22 @@ func (this *bybit) PublicGetV5InsLoanEnsureTokensConvert (args ...interface{}) <
    return ch
 }
 
+func (this *bybit) PublicGetV5EarnProduct (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetV5EarnProduct", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bybit) PrivateGetV5MarketInstrumentsInfo (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -3047,6 +3063,38 @@ func (this *bybit) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord (args ...i
    return ch
 }
 
+func (this *bybit) PrivateGetV5EarnOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetV5EarnOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *bybit) PrivateGetV5EarnPosition (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetV5EarnPosition", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bybit) PrivatePostSpotV3PrivateOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -4882,6 +4930,22 @@ func (this *bybit) PrivatePostV5BrokerAwardDistributionRecord (args ...interface
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostV5BrokerAwardDistributionRecord", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *bybit) PrivatePostV5EarnPlaceOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostV5EarnPlaceOrder", parameters))
        PanicOnError(ch)
    }()
    return ch

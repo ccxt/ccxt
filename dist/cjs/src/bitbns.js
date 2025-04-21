@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbns
@@ -312,7 +312,7 @@ class bitbns extends bitbns$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool(market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

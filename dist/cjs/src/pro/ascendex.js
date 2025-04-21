@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class ascendex extends ascendex$1 {
     describe() {
@@ -423,7 +423,7 @@ class ascendex extends ascendex$1 {
         //
         // {
         //     "m": "balance",
-        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         //     "ac": "CASH",
         //     "data": {
         //         "a" : "USDT",

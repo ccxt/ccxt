@@ -1,0 +1,405 @@
+{
+    "exchange": "derive",
+    "walletAddress": "0x0000000000000000000000000000000000000000",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
+    "skipKeys": [
+        "nonce",
+        "signer",
+        "signature_expiry_sec",
+        "signature",
+        "referral_code"
+    ],
+    "options": {
+        "deriveWalletAddress": "0x0000000000000000000000000000000000000000"
+    },
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.lyra.finance/public/get_time",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.lyra.finance/public/get_all_currencies",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.lyra.finance/public/get_ticker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.lyra.finance/public/get_trade_history",
+                "input": [
+                    "BTC/USD:USDC",
+                    1736155500128,
+                    1,
+                    {
+                        "until": 1736155703134
+                    }
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"page_size\":1,\"from_timestamp\":1736155500128,\"to_timestamp\":1736155703134}"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.lyra.finance/public/get_funding_rate_history",
+                "input": [
+                    "BTC/USD:USDC",
+                    1736155500128,
+                    1,
+                    {
+                        "until": 1736165703134
+                    }
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"start_timestamp\":1736155500128,\"to_timestamp\":1736165703134}"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.lyra.finance/public/get_funding_rate_history",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://api-demo.lyra.finance/private/order",
+                "input": [
+                    "LBTC/USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10000,
+                    {
+                        "subaccount_id":130837,
+                        "max_fee":219
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914910057,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":\"219\",\"subaccount_id\":130837,\"signature_expiry_sec\":1746690910,\"signer\":\"0x0000000000000000000000000000000000000000\",\"signature\":\"0x6a38b1fac6dff00b66feff564f8b6a1f59c80687e2a2bfbd0be93af99541d78b2ce7efc212af77bcce8b9b8366bdb8d35a8b795661e9761b9fb5b6dc9d1588ee1b\",\"referral_code\":\"\"}"
+            },
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://api-demo.lyra.finance/private/order",
+                "input": [
+                    "BTC/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10000,
+                    {
+                        "subaccount_id":130837,
+                        "max_fee":219,
+                        "postOnly":true,
+                        "reduceOnly":false,
+                        "clientOrderId":"test1234",
+                        "stopLoss":{
+                            "triggerPrice":102800
+                        }
+                    }
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738914735356,\"amount\":\"0.01\",\"limit_price\":\"10000\",\"max_fee\":\"219\",\"subaccount_id\":130837,\"signature_expiry_sec\":1746690735,\"signer\":\"0x0000000000000000000000000000000000000000\",\"reduce_only\":false,\"time_in_force\":\"post_only\",\"trigger_price\":\"102800\",\"trigger_type\":\"stoploss\",\"trigger_price_type\":\"mark\",\"label\":\"test1234\",\"signature\":\"0x4d621920bb2d11e1a910b88c5cbe0d9ea73b114ee6197409eab18170381e257962245bf86149962cae510863cf587662548d383bb1b3408d9c26a6627ffad3df1b\",\"referral_code\":\"\"}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "editOrder",
+                "method": "editOrder",
+                "url": "https://api-demo.lyra.finance/private/replace",
+                "input": [
+                    "cfc66623-f38c-4bdd-9898-8c9a72a42f6f",
+                    "LBTC/USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10500,
+                    {
+                        "subaccount_id":130837,
+                        "max_fee":211,
+                        "clientOrderId":"test1234"
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"order_id_to_cancel\":\"cfc66623-f38c-4bdd-9898-8c9a72a42f6f\",\"direction\":\"buy\",\"order_type\":\"limit\",\"nonce\":1738919573524,\"amount\":\"0.01\",\"limit_price\":\"10500\",\"max_fee\":211,\"subaccount_id\":130837,\"signature_expiry_sec\":1746695573,\"signer\":\"0x30CB7B06AdD6749BbE146A6827502B8f2a79269A\",\"label\":\"test1234\",\"signature\":\"0x24e265a17041bc3fd1adab0c5997e0ee9a2447cd692d544b1855d4441954d74771c2ebb1aa6aff2c82edb4cf11de7446027eea3dc3911f7150f8011f21cea5921b\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api-demo.lyra.finance/private/cancel",
+                "input": [
+                    "df3879a6-5421-41ba-bd91-68d7a36edd3d",
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"order_id\":\"df3879a6-5421-41ba-bd91-68d7a36edd3d\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api-demo.lyra.finance/private/cancel_by_instrument",
+                "input": [
+                    "LBTC/USDC",
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api-demo.lyra.finance/private/cancel_all",
+                "input": [
+                    null,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    null,
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"status\":\"open\"}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"status\":\"filled\"}"
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-demo.lyra.finance/private/get_orders",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837,\"status\":\"cancelled\"}"
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"order_id\":\"30c48194-8d48-43ac-ad00-0d5ba29eddc9\",\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+                    null,
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"order_id\":\"30c48194-8d48-43ac-ad00-0d5ba29eddc9\",\"page_size\":10,\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    "LBTC/USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"LBTC-USDC\",\"subaccount_id\":130837}"
+            },
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api-demo.lyra.finance/private/get_trade_history",
+                "input": [
+                    null,
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://api-demo.lyra.finance/private/get_positions",
+                "input": [
+                    null,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://api-demo.lyra.finance/private/get_funding_history",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    10,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"page_size\":10,\"instrument_name\":\"BTC-PERP\",\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api-demo.lyra.finance/private/get_all_portfolios",
+                "input": [
+                ],
+                "output": "{\"wallet\":\"0x0000000000000000000000000000000000000000\"}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api-demo.lyra.finance/private/get_deposit_history",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"subaccount_id\":130837}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-demo.lyra.finance/private/get_withdrawal_history",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subaccount_id":130837
+                    }
+                ],
+                "output": "{\"subaccount_id\":130837}"
+            }
+        ]
+    }
+}

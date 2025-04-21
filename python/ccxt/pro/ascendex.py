@@ -412,7 +412,7 @@ class ascendex(ccxt.async_support.ascendex):
         #
         # {
         #     "m": "balance",
-        #     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        #     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         #     "ac": "CASH",
         #     "data": {
         #         "a" : "USDT",

@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class defx
@@ -610,7 +610,7 @@ class defx extends defx$1 {
             'active': this.safeString(market, 'status', '') === 'active',
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': this.safeNumber(fees, 'taker'),
             'maker': this.safeNumber(fees, 'maker'),
             'contractSize': this.parseNumber('1'),

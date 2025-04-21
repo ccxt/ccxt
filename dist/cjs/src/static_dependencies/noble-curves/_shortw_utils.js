@@ -6,7 +6,7 @@ var hmac = require('../noble-hashes/hmac.js');
 var utils = require('../noble-hashes/utils.js');
 var weierstrass = require('./abstract/weierstrass.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 // connects noble-curves to noble-hashes
 function getHash(hash) {
     return {

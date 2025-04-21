@@ -192,6 +192,10 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Transport: transport,
 	}
 
+	if IsTrue(IsTrue(this.SafeBool(userConfig, "sandbox")) || IsTrue(this.SafeBool(userConfig, "testnet"))) {
+		this.SetSandboxMode(true)
+	}
+
 	// fmt.Println(this.TransformedApi)
 }
 
@@ -402,6 +406,10 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
+func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
+	return ParseInt(data)
+}
+
 // error related functions
 
 type ErrorType string
@@ -502,6 +510,14 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 
 func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
+}
+
+func (this *Exchange) CreateSafeDictionary() interface{} {
+	return map[string]interface{}{}
+}
+
+func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
+	return data
 }
 
 func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
@@ -850,6 +866,26 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
 	return ch
+}
+
+func (this *Exchange) BinaryLength(binary interface{}) int {
+	return this.binaryLength(binary)
+}
+
+func (this *Exchange) binaryLength(binary interface{}) int {
+	var length int
+
+	// Handle different types for the length parameter
+	switch v := binary.(type) {
+	case []byte:
+		length = len(v)
+	case string:
+		length = len(v)
+	default:
+		panic(fmt.Sprintf("unsupported binary: %v", reflect.TypeOf(binary)))
+	}
+
+	return length
 }
 
 func (this *Exchange) RandomBytes(length interface{}) string {

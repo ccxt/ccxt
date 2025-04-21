@@ -54,7 +54,7 @@ class blofin extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
@@ -1958,7 +1958,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array ()): Position {
+    public function fetch_position(string $symbol, $params = array ()): array {
         /**
          * fetch $data on a single open contract trade $position
          *

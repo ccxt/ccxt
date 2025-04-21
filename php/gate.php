@@ -1487,6 +1487,11 @@ class gate extends Exchange {
         $takerPercent = $this->safe_string($market, 'taker_fee_rate');
         $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
         $isLinear = $quote === $settle;
+        $contractSize = $this->safe_string($market, 'quanto_multiplier');
+        // exception only for one $market => https://api.gateio.ws/api/v4/futures/btc/contracts
+        if ($contractSize === '0') {
+            $contractSize = '1'; // 1 USD in WEB => https://i.imgur.com/MBBUI04.png
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1508,7 +1513,7 @@ class gate extends Exchange {
             'inverse' => !$isLinear,
             'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
             'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
-            'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
+            'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
@@ -1826,103 +1831,83 @@ class gate extends Exchange {
         }
         $response = $this->publicSpotGetCurrencies ($params);
         //
-        //    {
-        //        "currency" => "BCN",
-        //        "delisted" => false,
-        //        "withdraw_disabled" => true,
-        //        "withdraw_delayed" => false,
-        //        "deposit_disabled" => true,
-        //        "trade_disabled" => false
-        //    }
+        //  array(
+        //   array(
+        //       "currency" => "USDT_ETH",
+        //       "name" => "Tether",
+        //       "delisted" => false,
+        //       "withdraw_disabled" => false,
+        //       "withdraw_delayed" => false,
+        //       "deposit_disabled" => false,
+        //       "trade_disabled" => true,
+        //       "chain" => "ETH"
+        //    ),
+        //  )
         //
-        //    {
-        //        "currency":"USDT_ETH",
-        //        "delisted":false,
-        //        "withdraw_disabled":false,
-        //        "withdraw_delayed":false,
-        //        "deposit_disabled":false,
-        //        "trade_disabled":false,
-        //        "chain":"ETH"
-        //    }
-        //
+        $indexedCurrencies = $this->index_by($response, 'currency');
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
-            $currencyIdLower = $this->safe_string_lower($entry, 'currency');
             $parts = explode('_', $currencyId);
-            $currency = $parts[0];
-            $code = $this->safe_currency_code($currency);
-            $networkId = $this->safe_string($entry, 'chain');
-            $networkCode = null;
-            if ($networkId !== null) {
-                $networkCode = $this->network_id_to_code($networkId, $code);
-            }
-            $delisted = $this->safe_value($entry, 'delisted');
+            $partFirst = $this->safe_string($parts, 0);
+            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
+            $currencyName = str_ends_with($currencyId, '_OLD') ? $currencyId : $partFirst;
             $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
             $tradeDisabled = $this->safe_bool($entry, 'trade_disabled', false);
-            $withdrawEnabled = !$withdrawDisabled;
-            $depositEnabled = !$depositDisabled;
-            $tradeEnabled = !$tradeDisabled;
-            $listed = !$delisted;
-            $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
-            if ($this->safe_value($result, $code) === null) {
+            $precision = $this->parse_number('0.0001'); // temporary safe default, because no value provided from API
+            $code = $this->safe_currency_code($currencyName);
+            // check leveraged tokens (e.g. BTC3S, ETH5L)
+            $isLeveragedToken = false;
+            if (str_ends_with($currencyId, '3S') || str_ends_with($currencyId, '3L') || str_ends_with($currencyId, '5S') || str_ends_with($currencyId, '5L')) {
+                $realCurrencyId = mb_substr($currencyId, 0, -2 - 0);
+                if (is_array($indexedCurrencies) && array_key_exists($realCurrencyId, $indexedCurrencies)) {
+                    $isLeveragedToken = true;
+                }
+            }
+            $type = $isLeveragedToken ? 'leveraged' : 'crypto';
+            // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their $networkId to their tokenname
+            $networkId = $this->safe_string($entry, 'chain', $currencyId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkEntry = array(
+                'info' => $entry,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'active' => !$tradeDisabled,
+                'deposit' => !$depositDisabled,
+                'withdraw' => !$withdrawDisabled,
+                'fee' => null,
+                'precision' => $precision,
+            );
+            // check if first $entry for the specific currency
+            if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = array(
-                    'id' => $currency,
+                    'id' => $currencyName,
+                    'lowerCaseId' => strtolower($currencyName),
                     'code' => $code,
-                    'info' => null,
-                    'name' => null,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => null,
-                    'fees' => array(),
-                    'precision' => $this->parse_number('1e-4'),
+                    'type' => $type,
+                    'precision' => $precision,
                     'limits' => $this->limits,
                     'networks' => array(),
+                    'info' => array(), // will be filled below
                 );
             }
-            $depositAvailable = $this->safe_value($result[$code], 'deposit');
-            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
-            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
-            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
-            $networks = $this->safe_value($result[$code], 'networks', array());
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'currencyId' => $currencyId,
-                    'lowerCaseCurrencyId' => $currencyIdLower,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => null,
-                    'precision' => $this->parse_number('1e-4'),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code]['networks'] = $networks;
-            $info = $this->safe_value($result[$code], 'info', array());
+            $result[$code]['networks'][$networkCode] = $networkEntry;
+            $info = $this->safe_list($result[$code], 'info', array());
             $info[] = $entry;
             $result[$code]['info'] = $info;
-            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
-            $result[$code]['deposit'] = $depositAvailable;
-            $result[$code]['withdraw'] = $withdrawAvailable;
+            $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network $entry
         }
         return $result;
     }
@@ -1997,13 +1982,18 @@ class gate extends Exchange {
          *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          *
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        list($request, $query) = $this->prepare_request(null, 'swap', $params);
+        $market = null;
+        if ($symbols !== null) {
+            $firstSymbol = $this->safe_string($symbols, 0);
+            $market = $this->market($firstSymbol);
+        }
+        list($request, $query) = $this->prepare_request($market, 'swap', $params);
         $response = $this->publicFuturesGetSettleContracts ($this->extend($request, $query));
         //
         //    array(
@@ -2177,84 +2167,65 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
-         * fetch the deposit $address for a $currency associated with this account
-         *
-         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
-         *
-         * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] unified $network $code (not used directly by gate.io but used by ccxt to filter the $response)
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * fetch a dictionary of addresses for a $currency, indexed by network
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} [$params] extra parameters specific to the api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $rawNetwork = $this->safe_string_upper($params, 'network');
-        $params = $this->omit($params, 'network');
         $request = array(
-            'currency' => $currency['id'], // todo => currencies have $network-junctions
+            'currency' => $currency['id'],
         );
         $response = $this->privateWalletGetDepositAddress ($this->extend($request, $params));
-        //
-        //    {
-        //        "currency" => "XRP",
-        //        "address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        //        "multichain_addresses" => array(
-        //            {
-        //                "chain" => "XRP",
-        //                "address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        //                "payment_id" => "391331007",
-        //                "payment_name" => "Tag",
-        //                "obtain_failed" => 0
-        //            }
-        //        )
-        //    }
-        //
+        $chains = $this->safe_value($response, 'multichain_addresses', array());
         $currencyId = $this->safe_string($response, 'currency');
-        $code = $this->safe_currency_code($currencyId);
-        $networkId = $this->network_code_to_id($rawNetwork, $code);
-        $network = null;
-        $tag = null;
-        $address = null;
-        if ($networkId !== null) {
-            $addresses = $this->safe_value($response, 'multichain_addresses');
-            for ($i = 0; $i < count($addresses); $i++) {
-                $entry = $addresses[$i];
-                $entryNetwork = $this->safe_string($entry, 'chain');
-                if ($networkId === $entryNetwork) {
-                    $obtainFailed = $this->safe_integer($entry, 'obtain_failed');
-                    if ($obtainFailed) {
-                        break;
-                    }
-                    $address = $this->safe_string($entry, 'address');
-                    $tag = $this->safe_string($entry, 'payment_id');
-                    $network = $this->network_id_to_code($networkId, $code);
-                    break;
-                }
-            }
-        } else {
-            $addressField = $this->safe_string($response, 'address');
-            if ($addressField !== null) {
-                if (mb_strpos($addressField, 'New $address is being generated for you, please wait') !== false) {
-                    throw new BadResponse($this->id . ' ' . 'New $address is being generated for you, please wait a few seconds and try again to get the $address->');
-                }
-                if (mb_strpos($addressField, ' ') !== false) {
-                    $splitted = explode(' ', $addressField);
-                    $address = $splitted[0];
-                    $tag = $splitted[1];
-                } else {
-                    $address = $addressField;
-                }
-            }
-        }
+        $currency = $this->safe_currency($currencyId, $currency);
+        $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
+            'currency' => $currency['id'],
+        ));
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()): array {
+        /**
+         * fetch the deposit address for a currency associated with this account
+         *
+         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+         *
+         * @param {string} $code unified currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] unified network $code (not used directly by gate.io but used by ccxt to filter the response)
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $chainsIndexedById = $this->fetch_deposit_addresses_by_network($code, $params);
+        $selectedNetworkId = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
+        return $chainsIndexedById[$selectedNetworkId];
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         chain => "BTC",
+        //         $address => "1Nxu.......Ys",
+        //         payment_id => "",
+        //         payment_name => "",
+        //         obtain_failed => "0",
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
-            'info' => $response,
-            'currency' => $code,
-            'network' => $network,
+            'info' => $depositAddress,
+            'currency' => $this->safe_string($currency, 'code'),
             'address' => $address,
-            'tag' => $tag,
+            'tag' => $this->safe_string($depositAddress, 'payment_id'),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain')),
         );
     }
 
@@ -3964,21 +3935,17 @@ class gate extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => $currency['id'], // todo => currencies have $network-junctions
+            'currency' => $currency['id'], // todo => currencies have network-junctions
             'address' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
         }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
-        if ($network !== null) {
-            $request['chain'] = $network;
-            $params = $this->omit($params, 'network');
-        } else {
-            $request['chain'] = $currency['id']; // todo => currencies have $network-junctions
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['chain'] = $this->network_code_to_id($networkCode);
         }
         $response = $this->privateWithdrawalsPostWithdrawals ($this->extend($request, $params));
         //
@@ -6750,6 +6717,10 @@ class gate extends Exchange {
             if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding || ($method === 'PATCH')) {
                 if ($query) {
                     $queryString = $this->urlencode($query);
+                    // https://github.com/ccxt/ccxt/issues/25570
+                    if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
+                        $queryString = str_replace('%2C', ',', $queryString);
+                    }
                     $url .= '?' . $queryString;
                 }
                 if ($method === 'PATCH') {

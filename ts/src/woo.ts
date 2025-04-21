@@ -562,6 +562,7 @@ export default class woo extends Exchange {
         let symbol = base + '/' + quote;
         let contractSize: Num = undefined;
         let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         let margin = true;
         const contract = swap;
         if (contract) {
@@ -571,6 +572,7 @@ export default class woo extends Exchange {
             symbol = base + '/' + quote + ':' + settle;
             contractSize = this.parseNumber ('1');
             linear = true;
+            inverse = false;
         }
         return {
             'id': marketId,
@@ -590,7 +592,7 @@ export default class woo extends Exchange {
             'active': this.safeString (market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,

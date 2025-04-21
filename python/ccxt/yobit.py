@@ -1216,7 +1216,7 @@ class yobit(Exchange, ImplicitAPI):
             result.append(trade)
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
         https://yobit.net/en/api
@@ -1236,6 +1236,7 @@ class yobit(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response['info'],
         }
 

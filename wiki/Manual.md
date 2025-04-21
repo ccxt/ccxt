@@ -73,9 +73,9 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
-| logo                                                                                                                                                                                          | id                    | name                                                                                         | ver                                                                                                                                              | type                                                                                                   | certified                                                                                                                   | pro                                                                          |
+|logo                                                                                                                                                                                           |id                     |name                                                                                          |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                           |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | [![ace](https://github.com/user-attachments/assets/115f1e4a-0fd0-4b76-85d5-a49ebf64d1c8)](https://ace.io/)                                                                                    | ace                   | [ACE](https://ace.io/)                                                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/ace-exchange/ace-offical-api-docs)                               | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![alpaca](https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b)](https://alpaca.markets)                                                                          | alpaca                | [Alpaca](https://alpaca.markets)                                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -125,10 +125,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![coinsph](https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg)](https://coins.ph/)                                                         | coinsph               | [Coins.ph](https://coins.ph/)                                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coins-docs.github.io/rest-api)                                              | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                          | coinspot              | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.coinspot.com.au/api)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![cryptocom](https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg)](https://crypto.com/exch/kdacthrnxt)                                     | cryptocom             | [Crypto.com](https://crypto.com/exch/kdacthrnxt)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html)                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)            | currencycom           | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://currency.com/api)                                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![cryptomus](https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7)](https://app.cryptomus.com/signup/?ref=JRP4yj)                                                 | cryptomus             | [Cryptomus](https://app.cryptomus.com/signup/?ref=JRP4yj)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.cryptomus.com/personal)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![defx](https://github.com/user-attachments/assets/4e92bace-d7a9-45ea-92be-122168dc87e4)](https://app.defx.com/join/6I2CZ7)                                                                  | defx                  | [Defx X](https://app.defx.com/join/6I2CZ7)                                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.defx.com/docs)                                                         | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                              |
 | [![delta](https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg)](https://www.delta.exchange/app/signup/?code=IULYNB)                           | delta                 | [Delta Exchange](https://www.delta.exchange/app/signup/?code=IULYNB)                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.delta.exchange)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                      | deribit               | [Deribit](https://www.deribit.com/reg-1189.4038)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![derive](https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c)](https://www.derive.xyz/invite/3VB0B)                                                             | derive                | [derive](https://www.derive.xyz/invite/3VB0B)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.derive.xyz/docs/)                                                      | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![digifinex](https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg)](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)          | digifinex             | [DigiFinex](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.digifinex.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![ellipx](https://github.com/user-attachments/assets/e07c3f40-281c-4cdf-bacf-fa1c58218a2c)](https://www.ellipx.com)                                                                          | ellipx                | [Ellipx](https://www.ellipx.com)                                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM)    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)](https://exmo.me/?ref=131685)                                                   | exmo                  | [EXMO](https://exmo.me/?ref=131685)                                                          | [![API Version 1.1](https://img.shields.io/badge/1.1-lightgray)](https://exmo.me/en/api_doc?ref=131685)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
@@ -1001,56 +1002,51 @@ Note: the `false` value for the `active` property doesn't always guarantee that 
 
 ## Precision And Limits
 
-**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of `0.01` does not necessarily mean that a minimum limit for market is `0.01`. The opposite is also true: a min limit of `0.01` does not necessarily mean a precision is `0.01`.
 
 Examples:
 
-1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
-
-  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
+1.
+```
+market['limits']['amount']['min'] == 0.05 &&
+market['precision']['amount'] == 0.0001 &&
+market['precision']['price'] == 0.01
+```
 
   - The *amount value* should be >= 0.05:
     ```diff
     + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
     - bad: 0.04, 0.049, 0.0499
     ```
-  - *Precision of the amount* should be up to 4 decimal digits:
+  - *Precision of the amount* should be up to 4 digits after dot (0.0001):
     ```diff
-    + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
+    + good: 0.05, 0.0501, ..., 0.06, ..., 0.0719, ...
     - bad: 0.05001, 0.05000, 0.06001
     ```
-
-2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
-
-  In this example the **price** of any order placed on the market **must satisfy both conditions**:
-
-  - The *price value* should be >= 0.019:
+  - *Precision of the price* should be up to 2 digits after dot (0.01):
     ```diff
-    + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
-    - bad: 0.016, ..., 0.01699
+    + good: 1.6, 1.61, 123.01, ..., 1234.56, ...
+    - bad: 1.601, ..., 123.012, ..., 1234.567
     ```
-  - *Precision of price* should be 5 decimal digits or less:
-    ```diff
-    + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
-    - bad: 0.017000, 0.017001, ...
-    ```
+  - 
 
-3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
+2. `(market['precision']['amount'] == -1)`
 
-  In this example **both conditions must be satisfied**:
-
-  - The *amount value* should be greater than or equal to 50:
+    A negative *precision* might only theoretically happen if exchange's `precisionMode` is `SIGNIFICANT_DIGIT` or `DECIMAL_PRECISION`. It means that the amount should be an integer multiple of 10 (to the absolute power specified):
     ```diff
-    + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
-    - bad: 1, 2, 3, ..., 9
-    ```
-  - A negative *amount precision* means that the amount should be an integer multiple of 10 (to the absolute power specified):
-    ```diff
-    + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
+    + good: 10, 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
     - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
     ```
+    In case of `-2` the acceptable values would be multiple of `100` (e.g. 100, 200, ... ), and so on.
 
-*The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
+
+#### Precision Mode
+
+Supported precision modes in `exchange['precisionMode']` are:
+
+- `TICK_SIZE` – almost all exchanges use this precision mode. In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+- `DECIMAL_PLACES` (**DEPRECATED, CCXT no longer uses this mode anywhere**) – counts all digits. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
 
 ### Notes On Precision And Limits
 
@@ -1077,14 +1073,6 @@ Supported rounding modes are:
 - `TRUNCATE`– will cut off the digits after certain precision
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
-
-#### Precision Mode
-
-Supported precision modes in `exchange['precisionMode']` are:
-
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 
 #### Padding Mode
 
@@ -4804,62 +4792,40 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 12.34, // at what price it will trigger
+        'price': 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
+        // similar params here
     }
 }
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+const order = await exchange.createOrder ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **Python**
 ```python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'buy'
-amount = 123.45  # your amount
-price = 115.321  # your price
 params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
-        'price': 100.33,  # limit price for a limit stop loss order
+        'triggerPrice': 12.34,  # at what price it will trigger
+        'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
-        # no limit price for a market take profit order
-        # 'price': 160.33,  # this field is not necessary for a market take profit order
+        # similar params here
     }
 }
-order = exchange.create_order (symbol, type, side, amount, price, params)
+order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **PHP**
 ```php
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'buy';
-$amount = 123.45; // your amount
-$price = 115.321; // your price
-$params = {
-    'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
-    },
-    'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
-    }
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+$params = [
+    'stopLoss': [
+        'triggerPrice'=> 12.34, // at what price it will trigger
+        'price'=> 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+    ],
+    'takeProfit'=> [
+        // similar params here
+    ]
+]
+$order = $exchange->create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, $params);
 ```
 <!-- tabs:end -->
 
@@ -6791,6 +6757,14 @@ In some specific cases you may want a proxy, when:
 
 However, beware that each added intermediary might add some latency to requests.
 
+**Note for Go users:** After setting any proxy property, you must call `UpdateProxySettings()` to apply the changes:
+```go
+exchange := ccxt.NewBinance(nil)
+exchange.ProxyUrl = "http://your-proxy-url:8080"
+exchange.UpdateProxySettings()  // Required in Go to apply proxy settings
+```
+However be aware that each added intermediary might add some latency to requests.
+
 ### Supported proxy types
 CCXT supports the following proxy types (note, each of them also have [callback support](#using-proxy-callbacks)):
 
@@ -6807,7 +6781,7 @@ while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 - `http://your-website.com/sample-script.php?url=`
 - etc
 
-So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
+So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)). To customize the target url, you can also override `urlEncoderForProxyUrl` method of instance.
 
 This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_))[#test-if-your-proxy-works]
 
