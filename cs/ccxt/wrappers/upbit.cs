@@ -215,6 +215,25 @@ public partial class upbit
         return new TradingFeeInterface(res);
     }
     /// <summary>
+    /// fetch the trading fees for markets
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
