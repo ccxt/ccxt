@@ -91,7 +91,7 @@ class bitmart extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
-                'fetchPositionMode' => false,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -113,6 +113,7 @@ class bitmart extends Exchange {
                 'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -218,6 +219,7 @@ class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list' => 10,
                         'contract/private/affilate/trade-list' => 10,
                         'contract/private/transaction-history' => 10,
+                        'contract/private/get-position-mode' => 1,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -270,6 +272,7 @@ class bitmart extends Exchange {
                         'contract/private/modify-tp-sl-order' => 2.5,
                         'contract/private/submit-trail-order' => 2.5, // weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order' => 1.5, // weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode' => 1,
                     ),
                 ),
             ),
@@ -5592,6 +5595,73 @@ class bitmart extends Exchange {
                 }
             }
             return $addresses;
+        }) ();
+    }
+
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+             *
+             * @param {bool} $hedged set to true to use dualSidePosition
+             * @param {string} $symbol not used by bingx setPositionMode ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} response from the exchange
+             */
+            Async\await($this->load_markets());
+            $positionMode = null;
+            if ($hedged) {
+                $positionMode = 'hedge_mode';
+            } else {
+                $positionMode = 'one_way_mode';
+            }
+            $request = array(
+                'position_mode' => $positionMode,
+            );
+            //
+            // {
+            //     "code" => 1000,
+            //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+            //     "message" => "Ok",
+            //     "data" => {
+            //       "position_mode":"one_way_mode"
+            //     }
+            // }
+            //
+            return Async\await($this->privatePostContractPrivateSetPositionMode ($this->extend($request, $params)));
+        }) ();
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+             *
+             * @param {string} $symbol not used
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
+            $response = Async\await($this->privateGetContractPrivateGetPositionMode ($params));
+            //
+            // {
+            //     "code" => 1000,
+            //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+            //     "message" => "Ok",
+            //     "data" => {
+            //       "position_mode":"one_way_mode"
+            //     }
+            // }
+            //
+            $data = $this->safe_dict($response, 'data');
+            $positionMode = $this->safe_string($data, 'position_mode');
+            return array(
+                'info' => $response,
+                'hedged' => ($positionMode === 'hedge_mode'),
+            );
         }) ();
     }
 

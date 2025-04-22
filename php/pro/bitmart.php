@@ -68,6 +68,9 @@ class bitmart extends \ccxt\async\bitmart {
                 'watchOrderBookForSymbols' => array(
                     'depth' => 'depth/increase100',
                 ),
+                'watchTrades' => array(
+                    'ignoreDuplicates' => true,
+                ),
                 'ws' => array(
                     'inflate' => true,
                 ),
@@ -329,7 +332,13 @@ class bitmart extends \ccxt\async\bitmart {
                 $tradeSymbol = $this->safe_string($first, 'symbol');
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+                $filtered = $this->remove_repeated_trades_from_array($result);
+                $filtered = $this->sort_by($filtered, 'timestamp');
+                return $filtered;
+            }
+            return $result;
         }) ();
     }
 

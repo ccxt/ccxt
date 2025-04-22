@@ -14,13 +14,16 @@ import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
-import { capitalize } from '../js/src/base/functions.js'
 
 const { keys, values, entries, fromEntries } = Object
 
 ansi.nice
 
 const unlimitedLog = log.unlimited;
+
+const capitalize = (s) => {
+    return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
+};
 
 function cloneGitHubWiki (gitWikiPath) {
 

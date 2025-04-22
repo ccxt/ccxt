@@ -160,11 +160,11 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             assert (linear !== inverse, 'linear and inverse must not be the same' + logText);
         }
         // contract size should be defined
-        assert ((!('contractSize' in skippedProperties) || contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
+        assert ((('contractSize' in skippedProperties) || contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
         // contract size should be above zero
-        assert (!('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        assert (('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
         // settle should be defined
-        assert (!('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+        assert (('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
         assert (linear === undefined && inverse === undefined && quanto === undefined, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + logText);
@@ -209,29 +209,38 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
 
-
     // check precisions
-    if (!('precision' in skippedProperties)) {
-        const precisionKeys = Object.keys (market['precision']);
-        const keysLength = precisionKeys.length;
-        assert (keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
-        for (let i = 0; i < precisionKeys.length; i++) {
-            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
+    const precisionKeys = Object.keys (market['precision']);
+    const precisionKeysLen = precisionKeys.length;
+    assert (precisionKeysLen >= 2, 'precision should have "amount" and "price" keys at least' + logText);
+    for (let i = 0; i < precisionKeys.length; i++) {
+        const priceOrAmountKey = precisionKeys[i];
+        // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        const isExclusivePair = market['baseId'] === 'BTC';
+        const isNonSpot = !spot; // such high precision is only allowed in contract markets
+        const isPrice = priceOrAmountKey === 'price';
+        const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
+        if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
+            continue;
+        }
+        if (!('precision' in skippedProperties)) {
+            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
         }
     }
+
     const isInactiveMarket = market['active'] === false;
     // check limits
-    if (!('limits' in skippedProperties)) {
-        const limitsKeys = Object.keys (market['limits']);
-        const keysLength = limitsKeys.length;
-        assert (keysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
-        for (let i = 0; i < limitsKeys.length; i++) {
-            const key = limitsKeys[i];
-            const limitEntry = market['limits'][key];
-            if (isInactiveMarket) {
-                // for inactive markets, there might be `0` for min & max values, so we skip
-                continue;
-            }
+    const limitsKeys = Object.keys (market['limits']);
+    const limitsKeysLength = limitsKeys.length;
+    assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+    for (let i = 0; i < limitsKeys.length; i++) {
+        const key = limitsKeys[i];
+        const limitEntry = market['limits'][key];
+        if (isInactiveMarket) {
+            // for inactive markets, there might be `0` for min & max values, so we skip
+            continue;
+        }    // check limits
+        if (!('limits' in skippedProperties)) {
             // min >= 0
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
             // max >= 0
@@ -243,12 +252,11 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             }
         }
     }
-    // check whether valid currency ID and CODE is used
-    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
-    }
+    // check currencies
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
+    // check ts
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {

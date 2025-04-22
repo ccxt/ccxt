@@ -16,7 +16,7 @@ class upbit extends Exchange {
             'name' => 'Upbit',
             'countries' => array( 'KR' ),
             'version' => 'v1',
-            'rateLimit' => 1000,
+            'rateLimit' => 50,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -63,7 +63,7 @@ class upbit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -71,6 +71,7 @@ class upbit extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
+                '1s' => 'seconds',
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
@@ -82,6 +83,7 @@ class upbit extends Exchange {
                 '1d' => 'days',
                 '1w' => 'weeks',
                 '1M' => 'months',
+                '1y' => 'years',
             ),
             'hostname' => 'api.upbit.com',
             'urls' => array(
@@ -95,53 +97,69 @@ class upbit extends Exchange {
                 'fees' => 'https://upbit.com/service_center/guide',
             ),
             'api' => array(
+                // 'endpoint','API Cost'
+                // cost = 1000 / (rateLimit * RPS)
                 'public' => array(
                     'get' => array(
-                        'market/all',
-                        'candles/{timeframe}',
-                        'candles/{timeframe}/{unit}',
-                        'candles/minutes/{unit}',
-                        'candles/minutes/1',
-                        'candles/minutes/3',
-                        'candles/minutes/5',
-                        'candles/minutes/10',
-                        'candles/minutes/15',
-                        'candles/minutes/30',
-                        'candles/minutes/60',
-                        'candles/minutes/240',
-                        'candles/days',
-                        'candles/weeks',
-                        'candles/months',
-                        'trades/ticks',
-                        'ticker',
-                        'orderbook',
+                        'market/all' => 2, // RPS => 10
+                        'candles/{timeframe}' => 2,
+                        'candles/{timeframe}/{unit}' => 2,
+                        'candles/seconds' => 2,
+                        'candles/minutes/{unit}' => 2,
+                        'candles/minutes/1' => 2,
+                        'candles/minutes/3' => 2,
+                        'candles/minutes/5' => 2,
+                        'candles/minutes/10' => 2,
+                        'candles/minutes/15' => 2,
+                        'candles/minutes/30' => 2,
+                        'candles/minutes/60' => 2,
+                        'candles/minutes/240' => 2,
+                        'candles/days' => 2,
+                        'candles/weeks' => 2,
+                        'candles/months' => 2,
+                        'candles/years' => 2,
+                        'trades/ticks' => 2,
+                        'ticker' => 2,
+                        'ticker/all' => 2,
+                        'orderbook' => 2,
+                        'orderbook/supported_levels' => 2, // Upbit KR only
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts',
-                        'orders/chance',
-                        'order',
-                        'orders',
-                        'orders/closed',
-                        'orders/open',
-                        'orders/uuids',
-                        'withdraws',
-                        'withdraw',
-                        'withdraws/chance',
-                        'deposits',
-                        'deposit',
-                        'deposits/coin_addresses',
-                        'deposits/coin_address',
+                        'accounts' => 0.67, // RPS => 30
+                        'orders/chance' => 0.67,
+                        'order' => 0.67,
+                        'orders/closed' => 0.67,
+                        'orders/open' => 0.67,
+                        'orders/uuids' => 0.67,
+                        'withdraws' => 0.67,
+                        'withdraw' => 0.67,
+                        'withdraws/chance' => 0.67,
+                        'withdraws/coin_addresses' => 0.67,
+                        'deposits' => 0.67,
+                        'deposits/chance/coin' => 0.67,
+                        'deposit' => 0.67,
+                        'deposits/coin_addresses' => 0.67,
+                        'deposits/coin_address' => 0.67,
+                        'travel_rule/vasps' => 0.67,
+                        'status/wallet' => 0.67, // Upbit KR only
+                        'api_keys' => 0.67, // Upbit KR only
                     ),
                     'post' => array(
-                        'orders',
-                        'withdraws/coin',
-                        'withdraws/krw',
-                        'deposits/generate_coin_address',
+                        'orders' => 2.5, // RPS => 8
+                        'orders/cancel_and_new' => 2.5, // RPS => 8
+                        'withdraws/coin' => 0.67,
+                        'withdraws/krw' => 0.67, // Upbit KR only.
+                        'deposits/krw' => 0.67, // Upbit KR only.
+                        'deposits/generate_coin_address' => 0.67,
+                        'travel_rule/deposit/uuid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid' => 0.67, // RPS => 30, but each deposit can only be queried once every 10 minutes
                     ),
                     'delete' => array(
-                        'order',
+                        'order' => 0.67,
+                        'orders/open' => 40, // RPS => 0.5
+                        'orders/uuids' => 0.67,
                     ),
                 ),
             ),
@@ -752,11 +770,11 @@ class upbit extends Exchange {
         $ids = null;
         if ($symbols === null) {
             $ids = implode(',', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            // if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+            //     $numIds = count($this->ids);
+            //     throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+            // }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode(',', $ids);
@@ -999,6 +1017,28 @@ class upbit extends Exchange {
             'percentage' => true,
             'tierBased' => false,
         );
+    }
+
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         * fetch the trading fees for markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=trading-fee-structure trading fee structure~
+         */
+        $this->load_markets();
+        $fetchMarketResponse = $this->fetch_markets($params);
+        $response = array();
+        for ($i = 0; $i < count($fetchMarketResponse); $i++) {
+            $element = array();
+            $element['maker'] = $this->safe_number($fetchMarketResponse[$i], 'maker');
+            $element['taker'] = $this->safe_number($fetchMarketResponse[$i], 'taker');
+            $element['symbol'] = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['percentage'] = true;
+            $element['tierBased'] = false;
+            $element['info'] = $fetchMarketResponse[$i];
+            $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+        }
+        return $response;
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

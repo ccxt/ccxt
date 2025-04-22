@@ -1849,9 +1849,9 @@ public partial class gate : Exchange
             object partFirst = this.safeString(parts, 0);
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
-            object withdrawEnabled = !isTrue(this.safeBool(entry, "withdraw_disabled"));
-            object depositEnabled = !isTrue(this.safeBool(entry, "deposit_disabled"));
-            object tradeDisabled = !isTrue(this.safeBool(entry, "trade_disabled"));
+            object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
+            object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
+            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
             object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
             object code = this.safeCurrencyCode(currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1883,8 +1883,8 @@ public partial class gate : Exchange
                     } },
                 } },
                 { "active", !isTrue(tradeDisabled) },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "deposit", !isTrue(depositDisabled) },
+                { "withdraw", !isTrue(withdrawDisabled) },
                 { "fee", null },
                 { "precision", precision },
             };

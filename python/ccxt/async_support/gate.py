@@ -1823,9 +1823,9 @@ class gate(Exchange, ImplicitAPI):
             partFirst = self.safe_string(parts, 0)
             # if there's an underscore then the second part is always the chain name(except the _OLD suffix)
             currencyName = currencyId if currencyId.endswith('_OLD') else partFirst
-            withdrawEnabled = not self.safe_bool(entry, 'withdraw_disabled')
-            depositEnabled = not self.safe_bool(entry, 'deposit_disabled')
-            tradeDisabled = not self.safe_bool(entry, 'trade_disabled')
+            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
             precision = self.parse_number('0.0001')  # temporary safe default, because no value provided from API
             code = self.safe_currency_code(currencyName)
             # check leveraged tokens(e.g. BTC3S, ETH5L)
@@ -1853,8 +1853,8 @@ class gate(Exchange, ImplicitAPI):
                     },
                 },
                 'active': not tradeDisabled,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': not depositDisabled,
+                'withdraw': not withdrawDisabled,
                 'fee': None,
                 'precision': precision,
             }

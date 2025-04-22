@@ -3504,7 +3504,7 @@ func  (this *bitget) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
                     AddElementToObject(request, "businessType", "spot")
                 }
             } else {
-                AddElementToObject(request, "businessType", "contract")
+                AddElementToObject(request, "businessType", "mix")
             }
         
             response:= (<-this.PrivateCommonGetV2CommonTradeRate(this.Extend(request, params)))

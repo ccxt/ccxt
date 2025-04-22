@@ -750,6 +750,9 @@ class coinex extends coinex$1 {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
+                if (networkId === undefined) {
+                    continue;
+                }
                 const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
                 const feeString = this.safeString(chain, 'withdrawal_fee');
                 const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');

@@ -704,16 +704,9 @@ class paradex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $request = array();
-        if ($symbols !== null) {
-            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                $request['market'] = $this->market_id($symbols[0]);
-            } else {
-                $request['market'] = $this->market_id($symbols);
-            }
-        } else {
-            $request['market'] = 'ALL';
-        }
+        $request = array(
+            'market' => 'ALL',
+        );
         $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
         //
         //     {

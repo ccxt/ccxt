@@ -2466,6 +2466,7 @@ class bybit extends Exchange {
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
+            $code = $this->safe_string_n($params, array( 'code', 'currency', 'baseCoin' ));
             $market = null;
             $parsedSymbols = null;
             if ($symbols !== null) {
@@ -2489,6 +2490,15 @@ class bybit extends Exchange {
                     } elseif ($market['type'] !== $currentType) {
                         throw new BadRequest($this->id . ' fetchTickers can only accept a list of $symbols of the same type');
                     }
+                    if ($market['option']) {
+                        if ($code !== null && $code !== $market['base']) {
+                            throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all $symbols, this endpoint only supports one base currency at a time. Read more about it here => https://bybit-exchange.github.io/docs/v5/market/tickers');
+                        }
+                        if ($code === null) {
+                            $code = $market['base'];
+                        }
+                        $params = $this->omit($params, array( 'code', 'currency' ));
+                    }
                     $parsedSymbols[] = $market['symbol'];
                 }
             }
@@ -2510,7 +2520,10 @@ class bybit extends Exchange {
                 $request['category'] = 'spot';
             } elseif ($type === 'option') {
                 $request['category'] = 'option';
-                $request['baseCoin'] = $this->safe_string($params, 'baseCoin', 'BTC');
+                if ($code === null) {
+                    $code = 'BTC';
+                }
+                $request['baseCoin'] = $code;
             } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
                 $request['category'] = $subType;
             }

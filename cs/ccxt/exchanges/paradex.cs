@@ -713,20 +713,9 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-            {
-                ((IDictionary<string,object>)request)["market"] = this.marketId(getValue(symbols, 0));
-            } else
-            {
-                ((IDictionary<string,object>)request)["market"] = this.marketId(symbols);
-            }
-        } else
-        {
-            ((IDictionary<string,object>)request)["market"] = "ALL";
-        }
+        object request = new Dictionary<string, object>() {
+            { "market", "ALL" },
+        };
         object response = await this.publicGetMarketsSummary(this.extend(request, parameters));
         //
         //     {

@@ -1193,6 +1193,8 @@ export default class binance extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: any): string;
+    getNetworkCodeByNetworkUrl(currencyCode: string, depositUrl?: Str): Str;
+    getBaseDomainFromUrl(url: Str): Str;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

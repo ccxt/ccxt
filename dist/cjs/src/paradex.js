@@ -707,18 +707,9 @@ class paradex extends paradex$1 {
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const request = {};
-        if (symbols !== undefined) {
-            if (Array.isArray(symbols)) {
-                request['market'] = this.marketId(symbols[0]);
-            }
-            else {
-                request['market'] = this.marketId(symbols);
-            }
-        }
-        else {
-            request['market'] = 'ALL';
-        }
+        const request = {
+            'market': 'ALL',
+        };
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         //
         //     {

@@ -2476,6 +2476,7 @@ public partial class bybit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object code = this.safeStringN(parameters, new List<object>() {"code", "currency", "baseCoin"});
         object market = null;
         object parsedSymbols = null;
         if (isTrue(!isEqual(symbols, null)))
@@ -2505,6 +2506,18 @@ public partial class bybit : Exchange
                 {
                     throw new BadRequest ((string)add(this.id, " fetchTickers can only accept a list of symbols of the same type")) ;
                 }
+                if (isTrue(getValue(market, "option")))
+                {
+                    if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, getValue(market, "base")))))
+                    {
+                        throw new BadRequest ((string)add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
+                    }
+                    if (isTrue(isEqual(code, null)))
+                    {
+                        code = getValue(market, "base");
+                    }
+                    parameters = this.omit(parameters, new List<object>() {"code", "currency"});
+                }
                 ((IList<object>)parsedSymbols).Add(getValue(market, "symbol"));
             }
         }
@@ -2528,7 +2541,11 @@ public partial class bybit : Exchange
         } else if (isTrue(isEqual(type, "option")))
         {
             ((IDictionary<string,object>)request)["category"] = "option";
-            ((IDictionary<string,object>)request)["baseCoin"] = this.safeString(parameters, "baseCoin", "BTC");
+            if (isTrue(isEqual(code, null)))
+            {
+                code = "BTC";
+            }
+            ((IDictionary<string,object>)request)["baseCoin"] = code;
         } else if (isTrue(isTrue(isTrue(isEqual(type, "swap")) || isTrue(isEqual(type, "future"))) || isTrue(!isEqual(subType, null))))
         {
             ((IDictionary<string,object>)request)["category"] = subType;

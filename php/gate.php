@@ -1853,9 +1853,9 @@ class gate extends Exchange {
             $partFirst = $this->safe_string($parts, 0);
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             $currencyName = str_ends_with($currencyId, '_OLD') ? $currencyId : $partFirst;
-            $withdrawEnabled = !$this->safe_bool($entry, 'withdraw_disabled');
-            $depositEnabled = !$this->safe_bool($entry, 'deposit_disabled');
-            $tradeDisabled = !$this->safe_bool($entry, 'trade_disabled');
+            $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
+            $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
+            $tradeDisabled = $this->safe_bool($entry, 'trade_disabled', false);
             $precision = $this->parse_number('0.0001'); // temporary safe default, because no value provided from API
             $code = $this->safe_currency_code($currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1885,8 +1885,8 @@ class gate extends Exchange {
                     ),
                 ),
                 'active' => !$tradeDisabled,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
+                'deposit' => !$depositDisabled,
+                'withdraw' => !$withdrawDisabled,
                 'fee' => null,
                 'precision' => $precision,
             );

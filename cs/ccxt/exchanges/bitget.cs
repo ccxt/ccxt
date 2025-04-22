@@ -3383,7 +3383,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            ((IDictionary<string,object>)request)["businessType"] = "contract";
+            ((IDictionary<string,object>)request)["businessType"] = "mix";
         }
         object response = await this.privateCommonGetV2CommonTradeRate(this.extend(request, parameters));
         //

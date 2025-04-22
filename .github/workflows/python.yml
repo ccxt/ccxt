@@ -31,7 +31,7 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
@@ -143,7 +143,7 @@ jobs:
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -179,7 +179,7 @@ jobs:
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'

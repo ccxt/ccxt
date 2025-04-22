@@ -318,6 +318,20 @@ func (this *Upbit) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
 }
 /**
  * @method
+ * @name upbit#fetchTradingFees
+ * @description fetch the trading fees for markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+ */
+func (this *Upbit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+    res := <- this.Core.FetchTradingFees(params...)
+    if IsError(res) {
+        return TradingFees{}, CreateReturnError(res)
+    }
+    return NewTradingFees(res), nil
+}
+/**
+ * @method
  * @name upbit#fetchOHLCV
  * @see https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market

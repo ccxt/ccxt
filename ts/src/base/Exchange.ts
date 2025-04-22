@@ -129,8 +129,10 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
+import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 
 const {
     aggregate,
@@ -361,7 +363,7 @@ export default class Exchange {
     // whether fees should be summed by currency code
     reduceFees: boolean = true;
 
-    // don't delete this line, it is needed for users to be able to define their own fetchImplementation
+    // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
     AbortError: any
     FetchError: any
@@ -950,7 +952,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + url;
+            url = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -1638,6 +1640,61 @@ export default class Exchange {
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
+    async getZKContractSignatureObj (seed, params = {}) {
+        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'slotId')), sha256, 'hex'))).toString ();
+        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'nonce')), sha256, 'hex'))).toString ();
+        const formattedUint64 = '18446744073709551615';
+        const formattedUint32 = '4294967295';
+        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32), 10);
+        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32), 10);
+        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let tx_builder = new zklink.ContractBuilder (accountId, 0, slotId, nonce,
+            this.safeInteger (params, 'pairId'),
+            Precise.stringMul (this.safeString(params, 'size'), '1e18'),
+            Precise.stringMul (this.safeString(params, 'price'), '1e18'),
+            this.safeString (params, 'direction') === 'BUY',
+            parseInt (Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')),
+            parseInt (Precise.stringMul(this.safeString (params, 'takerFeeRate'), '10000')), false);
+        let contractor = zklink.newContract (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+
+    async getZKTransferSignatureObj (seed, params = {}) {
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let nonce = this.safeString (params, 'nonce', '0')
+        if (this.safeBool(params, 'isContract') === true){
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
+            nonce = Precise.stringMod (formattedNonce, formattedUint32);
+        }
+        let tx_builder = new zklink.TransferBuilder (this.safeNumber (params, 'zkAccountId', 0),
+            this.safeString (params, 'receiverAddress'),
+            this.safeNumber (params, 'subAccountId', 0),
+            this.safeNumber (params, 'receiverSubAccountId', 0),
+            this.safeNumber (params, 'tokenId', 0),
+            this.safeString (params, 'fee','0'),
+            this.safeString (params, 'amount','0'),
+            this.parseToInt(nonce),
+            this.safeNumber (params, 'timestampSeconds', 0));
+        let contractor = zklink.newTransfer (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+
     intToBase16(elem): string {
         return elem.toString(16);
 
@@ -2219,6 +2276,13 @@ export default class Exchange {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+
+    urlEncoderForProxyUrl (targetUrl: string) {
+        // to be overriden
+        const includesQuery = targetUrl.indexOf ('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent (targetUrl) : targetUrl;
+        return finalUrl;
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
@@ -3055,9 +3119,6 @@ export default class Exchange {
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const currencyDeposit = this.safeBool (currency, 'deposit');
-        const currencyWithdraw = this.safeBool (currency, 'withdraw');
-        const currencyActive = this.safeBool (currency, 'active');
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
@@ -3066,24 +3127,28 @@ export default class Exchange {
                 const key = keys[i];
                 const network = networks[key];
                 const deposit = this.safeBool (network, 'deposit');
+                const currencyDeposit = this.safeBool (currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool (network, 'withdraw');
+                const currencyWithdraw = this.safeBool (currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                const active = this.safeBool (network, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
-                }
                 // set network 'active' to false if D or W is disabled
-                if (this.safeBool (network, 'active') === undefined) {
+                let active = this.safeBool (network, 'active');
+                if (active === undefined) {
                     if (deposit && withdraw) {
                         currency['networks'][key]['active'] = true;
                     } else if (deposit !== undefined && withdraw !== undefined) {
                         currency['networks'][key]['active'] = false;
                     }
+                }
+                active = this.safeBool (network, 'active');
+                const currencyActive = this.safeBool (currency, 'active');
+                if (currencyActive === undefined || active) {
+                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
@@ -7475,20 +7540,42 @@ export default class Exchange {
     }
 
     removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
-        const uniqueResult = {};
+        const uniqueDic = {};
+        const uniqueResult = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
-            if (uniqValue !== undefined && !(uniqValue in uniqueResult)) {
-                uniqueResult[uniqValue] = entry;
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = 1;
+                uniqueResult.push (entry);
+            }
+        }
+        const valuesLength = uniqueResult.length;
+        if (valuesLength > 0) {
+            return uniqueResult as any;
+        }
+        return input;
+    }
+
+    removeRepeatedTradesFromArray (input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            let id = this.safeString (entry, 'id');
+            if (id === undefined) {
+                const price = this.safeString (entry, 'price');
+                const amount = this.safeString (entry, 'amount');
+                const timestamp = this.safeString (entry, 'timestamp');
+                const side = this.safeString (entry, 'side');
+                // unique trade identifier
+                id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+            }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values (uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values as any;
-        }
-        return input;
+        return values as any;
     }
 
     handleUntilOption (key: string, request, params, multiplier = 1) {

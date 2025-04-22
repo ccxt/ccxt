@@ -1863,9 +1863,9 @@ export default class gate extends Exchange {
             const partFirst = this.safeString (parts, 0);
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
-            const withdrawEnabled = !this.safeBool (entry, 'withdraw_disabled');
-            const depositEnabled = !this.safeBool (entry, 'deposit_disabled');
-            const tradeDisabled = !this.safeBool (entry, 'trade_disabled');
+            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
             const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
             const code = this.safeCurrencyCode (currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1895,8 +1895,8 @@ export default class gate extends Exchange {
                     },
                 },
                 'active': !tradeDisabled,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': !depositDisabled,
+                'withdraw': !withdrawDisabled,
                 'fee': undefined,
                 'precision': precision,
             };

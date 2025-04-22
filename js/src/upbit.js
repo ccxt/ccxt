@@ -24,7 +24,7 @@ export default class upbit extends Exchange {
             'name': 'Upbit',
             'countries': ['KR'],
             'version': 'v1',
-            'rateLimit': 1000,
+            'rateLimit': 50,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -71,7 +71,7 @@ export default class upbit extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -79,6 +79,7 @@ export default class upbit extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -90,6 +91,7 @@ export default class upbit extends Exchange {
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
@@ -103,54 +105,70 @@ export default class upbit extends Exchange {
                 'fees': 'https://upbit.com/service_center/guide',
             },
             'api': {
+                // 'endpoint','API Cost'
+                // cost = 1000 / (rateLimit * RPS)
                 'public': {
-                    'get': [
-                        'market/all',
-                        'candles/{timeframe}',
-                        'candles/{timeframe}/{unit}',
-                        'candles/minutes/{unit}',
-                        'candles/minutes/1',
-                        'candles/minutes/3',
-                        'candles/minutes/5',
-                        'candles/minutes/10',
-                        'candles/minutes/15',
-                        'candles/minutes/30',
-                        'candles/minutes/60',
-                        'candles/minutes/240',
-                        'candles/days',
-                        'candles/weeks',
-                        'candles/months',
-                        'trades/ticks',
-                        'ticker',
-                        'orderbook',
-                    ],
+                    'get': {
+                        'market/all': 2,
+                        'candles/{timeframe}': 2,
+                        'candles/{timeframe}/{unit}': 2,
+                        'candles/seconds': 2,
+                        'candles/minutes/{unit}': 2,
+                        'candles/minutes/1': 2,
+                        'candles/minutes/3': 2,
+                        'candles/minutes/5': 2,
+                        'candles/minutes/10': 2,
+                        'candles/minutes/15': 2,
+                        'candles/minutes/30': 2,
+                        'candles/minutes/60': 2,
+                        'candles/minutes/240': 2,
+                        'candles/days': 2,
+                        'candles/weeks': 2,
+                        'candles/months': 2,
+                        'candles/years': 2,
+                        'trades/ticks': 2,
+                        'ticker': 2,
+                        'ticker/all': 2,
+                        'orderbook': 2,
+                        'orderbook/supported_levels': 2, // Upbit KR only
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'orders/chance',
-                        'order',
-                        'orders',
-                        'orders/closed',
-                        'orders/open',
-                        'orders/uuids',
-                        'withdraws',
-                        'withdraw',
-                        'withdraws/chance',
-                        'deposits',
-                        'deposit',
-                        'deposits/coin_addresses',
-                        'deposits/coin_address',
-                    ],
-                    'post': [
-                        'orders',
-                        'withdraws/coin',
-                        'withdraws/krw',
-                        'deposits/generate_coin_address',
-                    ],
-                    'delete': [
-                        'order',
-                    ],
+                    'get': {
+                        'accounts': 0.67,
+                        'orders/chance': 0.67,
+                        'order': 0.67,
+                        'orders/closed': 0.67,
+                        'orders/open': 0.67,
+                        'orders/uuids': 0.67,
+                        'withdraws': 0.67,
+                        'withdraw': 0.67,
+                        'withdraws/chance': 0.67,
+                        'withdraws/coin_addresses': 0.67,
+                        'deposits': 0.67,
+                        'deposits/chance/coin': 0.67,
+                        'deposit': 0.67,
+                        'deposits/coin_addresses': 0.67,
+                        'deposits/coin_address': 0.67,
+                        'travel_rule/vasps': 0.67,
+                        'status/wallet': 0.67,
+                        'api_keys': 0.67, // Upbit KR only
+                    },
+                    'post': {
+                        'orders': 2.5,
+                        'orders/cancel_and_new': 2.5,
+                        'withdraws/coin': 0.67,
+                        'withdraws/krw': 0.67,
+                        'deposits/krw': 0.67,
+                        'deposits/generate_coin_address': 0.67,
+                        'travel_rule/deposit/uuid': 0.67,
+                        'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                    },
+                    'delete': {
+                        'order': 0.67,
+                        'orders/open': 40,
+                        'orders/uuids': 0.67,
+                    },
                 },
             },
             'fees': {
@@ -753,11 +771,11 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join(',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                const numIds = this.ids.length;
-                throw new ExchangeError(this.id + ' fetchTickers() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            // if (ids.length > this.options['fetchTickersMaxLength']) {
+            //     const numIds = this.ids.length;
+            //     throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
+            // }
         }
         else {
             ids = this.marketIds(symbols);
@@ -998,6 +1016,29 @@ export default class upbit extends Exchange {
             'percentage': true,
             'tierBased': false,
         };
+    }
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets();
+        const fetchMarketResponse = await this.fetchMarkets(params);
+        const response = {};
+        for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const element = {};
+            element['maker'] = this.safeNumber(fetchMarketResponse[i], 'maker');
+            element['taker'] = this.safeNumber(fetchMarketResponse[i], 'taker');
+            element['symbol'] = this.safeString(fetchMarketResponse[i], 'symbol');
+            element['percentage'] = true;
+            element['tierBased'] = false;
+            element['info'] = fetchMarketResponse[i];
+            response[this.safeString(fetchMarketResponse[i], 'symbol')] = element;
+        }
+        return response;
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
