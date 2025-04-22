@@ -1379,7 +1379,6 @@ export default class binance extends Exchange {
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
-                'defaultWithdrawPrecision': 0.00000001,
                 'defaultFiatWithdrawPrecision': 0.01,
             },
             'features': {
@@ -2953,14 +2952,10 @@ export default class binance extends Exchange {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
                 let withdrawPrecision = this.omitZero (this.safeString2 (networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
-                // avoid zero values, which are mostly from fiat or leveraged(ETF) tokens: https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
                 if (withdrawPrecision === undefined) {
                     if (isFiat) {
                         withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
-                    } else if (!isETF) {
-                        // for regular cryptocurrencies (other than ETF), there are many cases when precision is set to zero (probably bug, we've reported to binance already)
-                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
-                        withdrawPrecision = this.safeString (this.options, 'defaultWithdrawPrecision');
                     }
                 }
                 networks[networkCode] = {
