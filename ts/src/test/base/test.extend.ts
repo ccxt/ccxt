@@ -58,7 +58,9 @@ function testExtend () {
 
 function testMutation () {
     // extend should not mutate the initial dicts
-    const exchange = new ccxt.Exchange ();
+    const exchange = new ccxt.Exchange ({
+        'id': 'regirock',
+    });
     const first = {
         'a': 1
     };
