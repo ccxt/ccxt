@@ -366,7 +366,6 @@ public partial class apex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href=""/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
