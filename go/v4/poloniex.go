@@ -2055,7 +2055,7 @@ func  (this *poloniex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             var isTrigger interface{} = this.SafeValue2(params, "trigger", "stop")
             params = this.Omit(params, []interface{}{"trigger", "stop"})
             var response interface{} = nil
-            if !IsTrue(GetValue(market, "spot")) {
+            if IsTrue(!IsEqual(marketType, "spot")) {
         
                 raw:= (<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, params)))
                 PanicOnError(raw)
