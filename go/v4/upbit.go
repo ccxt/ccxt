@@ -891,11 +891,6 @@ func  (this *upbit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, ",")
-                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-                if IsTrue(IsGreaterThan(GetArrayLength(ids), GetValue(this.Options, "fetchTickersMaxLength"))) {
-                    var numIds interface{} =             GetArrayLength(this.Ids)
-                    panic(ExchangeError(Add(Add(Add(this.Id, " fetchTickers() has "), ToString(numIds)), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers")))
-                }
             } else {
                 ids = this.MarketIds(symbols)
                 ids = Join(ids, ",")
