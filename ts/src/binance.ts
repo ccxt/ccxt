@@ -1379,6 +1379,7 @@ export default class binance extends Exchange {
                 'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
+                'defaultWithdrawPrecision': 0.00000001,
                 'defaultFiatWithdrawPrecision': 0.01,
             },
             'features': {
