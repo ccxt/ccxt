@@ -14,6 +14,7 @@ var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var ace = require('./src/ace.js');
 var alpaca = require('./src/alpaca.js');
+var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
@@ -120,6 +121,7 @@ var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
+var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
@@ -197,6 +199,7 @@ Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
     'alpaca': alpaca,
+    'apex': apex,
     'ascendex': ascendex,
     'bequant': bequant,
     'bigone': bigone,
@@ -305,6 +308,7 @@ const exchanges = {
 };
 const pro = {
     'alpaca': alpaca$1,
+    'apex': apex$1,
     'ascendex': ascendex$1,
     'bequant': bequant$1,
     'binance': binance$1,
@@ -427,6 +431,7 @@ exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.ace = ace;
 exports.alpaca = alpaca;
+exports.apex = apex;
 exports.ascendex = ascendex;
 exports.bequant = bequant;
 exports.bigone = bigone;
