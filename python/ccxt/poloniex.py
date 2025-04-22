@@ -1827,7 +1827,7 @@ class poloniex(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         response = None
-        if not market['spot']:
+        if marketType != 'spot':
             raw = self.swapPrivateGetV3TradeOrderOpens(self.extend(request, params))
             #
             #    {
