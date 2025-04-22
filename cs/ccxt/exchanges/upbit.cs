@@ -798,12 +798,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchTickersMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(this.id, " fetchTickers() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
