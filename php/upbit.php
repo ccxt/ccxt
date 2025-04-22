@@ -770,11 +770,11 @@ class upbit extends Exchange {
         $ids = null;
         if ($symbols === null) {
             $ids = implode(',', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            // if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+            //     $numIds = count($this->ids);
+            //     throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+            // }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode(',', $ids);
