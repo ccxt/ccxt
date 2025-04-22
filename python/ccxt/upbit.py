@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -75,7 +75,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -1000,6 +1000,26 @@ class upbit(Exchange, ImplicitAPI):
             'percentage': True,
             'tierBased': False,
         }
+
+    def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `trading fee structure <https://docs.ccxt.com/#/?id=trading-fee-structure>`
+        """
+        self.load_markets()
+        fetchMarketResponse = self.fetch_markets(params)
+        response: dict = {}
+        for i in range(0, len(fetchMarketResponse)):
+            element: dict = {}
+            element['maker'] = self.safe_number(fetchMarketResponse[i], 'maker')
+            element['taker'] = self.safe_number(fetchMarketResponse[i], 'taker')
+            element['symbol'] = self.safe_string(fetchMarketResponse[i], 'symbol')
+            element['percentage'] = True
+            element['tierBased'] = False
+            element['info'] = fetchMarketResponse[i]
+            response[self.safe_string(fetchMarketResponse[i], 'symbol')] = element
+        return response
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
