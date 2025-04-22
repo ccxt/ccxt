@@ -1874,7 +1874,9 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
-        if (!market['spot']) {
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if (type !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
             //    {
