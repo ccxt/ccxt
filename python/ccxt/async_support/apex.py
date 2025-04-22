@@ -1355,9 +1355,6 @@ class apex(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-
- @see
-
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
