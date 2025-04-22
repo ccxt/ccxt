@@ -54,6 +54,7 @@ function testExtend () {
     // todo !
     // tbfeCheckExtended (deepExtended["sub"], false);
     testMutation ();
+    testMutationComplex ();
 }
 
 function testMutation () {
@@ -81,6 +82,26 @@ function testMutation () {
     assert (mergedKeys.length === 2);
     assert ('a' in merged);
     assert ('b' in merged);
+}
+
+
+function testMutationComplex () {
+    // extend should not mutate the initial dicts
+    const exchange = new ccxt.Exchange ({
+        'id': 'regirock',
+    });
+    const first = {
+        'info': {
+            'a': 1
+        }
+    };
+    const second = {
+        'b': 2
+    };
+    const merged = exchange.extend (first, second);
+
+    merged["info"]["a"] = 2;
+    assert (first["info"]["a"] === 1);
 }
 
 function tbfeCheckExtended (extended: any, hasSub: boolean) {
