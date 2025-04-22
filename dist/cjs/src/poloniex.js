@@ -1852,7 +1852,7 @@ class poloniex extends poloniex$1 {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = undefined;
-        if (!market['spot']) {
+        if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, params));
             //
             //    {
