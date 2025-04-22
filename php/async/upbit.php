@@ -70,7 +70,7 @@ class upbit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -1047,6 +1047,30 @@ class upbit extends Exchange {
                 'percentage' => true,
                 'tierBased' => false,
             );
+        }) ();
+    }
+
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for markets
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=trading-fee-structure trading fee structure~
+             */
+            Async\await($this->load_markets());
+            $fetchMarketResponse = Async\await($this->fetch_markets($params));
+            $response = array();
+            for ($i = 0; $i < count($fetchMarketResponse); $i++) {
+                $element = array();
+                $element['maker'] = $this->safe_number($fetchMarketResponse[$i], 'maker');
+                $element['taker'] = $this->safe_number($fetchMarketResponse[$i], 'taker');
+                $element['symbol'] = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+                $element['percentage'] = true;
+                $element['tierBased'] = false;
+                $element['info'] = $fetchMarketResponse[$i];
+                $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+            }
+            return $response;
         }) ();
     }
 
