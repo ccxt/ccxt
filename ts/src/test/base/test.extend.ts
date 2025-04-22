@@ -3,6 +3,7 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import Exchange from '../../abstract/ace.js';
 
 function testExtend () {
 
@@ -52,6 +53,32 @@ function testExtend () {
     // tbfeCheckExtended (extended, true);
     // todo !
     // tbfeCheckExtended (deepExtended["sub"], false);
+    testMutation ();
+}
+
+function testMutation () {
+    // extend should not mutate the initial dicts
+    const exchange = new ccxt.Exchange ();
+    const first = {
+        'a': 1
+    };
+    const second = {
+        'b': 2
+    };
+    const merged = exchange.extend (first, second);
+
+    const firstKeys = Object.keys (first);
+    assert (firstKeys.length === 1);
+    assert (firstKeys[0] === 'a');
+
+    const secondKeys = Object.keys (second);
+    assert (secondKeys.length === 1);
+    assert (secondKeys[0] === 'b');
+
+    const mergedKeys = Object.keys (merged);
+    assert (mergedKeys.length === 2);
+    assert ('a' in merged);
+    assert ('b' in merged);
 }
 
 function tbfeCheckExtended (extended: any, hasSub: boolean) {
