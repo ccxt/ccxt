@@ -70,7 +70,7 @@ export default class upbit extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': 'emulated',
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -1035,15 +1035,15 @@ export default class upbit extends Exchange {
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        const fetchMarketResponse = await this.fetchMarkets ();
+        const fetchMarketResponse = await this.fetchMarkets (params);
         const response: Dict = {};
         for (let i = 0; i < fetchMarketResponse.length; i++) {
             const element: Dict = {};
-            element['maker'] = this.safeString (fetchMarketResponse[i], 'maker');
-            element['taker'] = this.safeString (fetchMarketResponse[i], 'taker');
+            element['maker'] = this.safeNumber (fetchMarketResponse[i], 'maker');
+            element['taker'] = this.safeNumber (fetchMarketResponse[i], 'taker');
             element['symbol'] = this.safeString (fetchMarketResponse[i], 'symbol');
-            element['percentage'] = this.fees.trading.percentage;
-            element['tierBased'] = this.fees.trading.tierBased;
+            element['percentage'] = true;
+            element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
             response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
         }
