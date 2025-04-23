@@ -22,7 +22,7 @@ export default class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [ 'JP' ], // Japan
+            'countries': [], // Japan
             'rateLimit': 50,
             'certified': true,
             'pro': true,
