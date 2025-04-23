@@ -128,8 +128,13 @@ export default class tradeogre extends tradeogreRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        if ((symbols === undefined) || (symbols.length === 0)) {
+        if (symbols === undefined) {
             symbols = this.symbols;
+        } else {
+            const length = symbols.length;
+            if (length === 0) {
+                symbols = this.symbols;
+            }
         }
         const request: Dict = {
             'a': 'subscribe',
