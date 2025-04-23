@@ -1,9 +1,9 @@
 //
 // Usage to update specific symbols, currencies, everything (existing keys with new datas):
 //
-//   npm run static-updater   binance BTC/USDT ETH/USDT
-//                                    USDC LTC
-//                                    --all
+//   tsx ./utils/update-static-markets.ts binance BTC/USDT ETH/USDT
+//                                        binance USDC LTC
+//                                        binance ALL
 //
 
 import fs from 'fs';
@@ -61,7 +61,7 @@ function die (errorMessage = undefined, code = 1) {
     const defaultMsg = 'Please specify correct format, e.g.: \n\n' +
                        '    npm run static-updater binance BTC/USDT ETH/USDT\n' +
                        '               ...                 USDC LTC\n' +
-                       '               ...                 --all\n'
+                       '               ...                 ALL\n'
     console.log (errorMessage || defaultMsg);
     process.exit(code);
 }
@@ -105,8 +105,6 @@ async function update_markets_and_currencies () {
         if (!exchangeId) {
             die ();
         }
-        // remove first item
-        args.shift ();
 
         for (const dataType of ['markets', 'currencies']) {
             dataContainer[dataType].path = rootDir + `/ts/src/test/static/${dataType}/${exchangeId}.json`;
@@ -120,6 +118,8 @@ async function update_markets_and_currencies () {
             process.exit(1);
         }
     
+        // remove first item
+        args.shift ();
         const symbolsOrCurrencies = args;
         if (!symbolsOrCurrencies.length) {
             die ();
@@ -139,7 +139,7 @@ async function update_markets_and_currencies () {
             if (!argument) {
                 die ();
             }
-            if (argument === '--all') {
+            if (argument === 'ALL') {
                 // reserved keyword to update all markets and currencies
                 updateMarketsOrCurrencies (exchange, 'markets', exchange.markets);
                 updateMarketsOrCurrencies (exchange, 'currencies', currencies);
