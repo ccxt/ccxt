@@ -119,7 +119,7 @@ export default class tradeogre extends tradeogreRest {
      * @name tradeogre#watchTradesForSymbols
      * @see https://tradeogre.com/help/api
      * @description get the list of most recent trades for a list of symbols
-     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {string[]} symbols unified symbol of the market to fetch trades for (emty array means all markets)
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -128,7 +128,8 @@ export default class tradeogre extends tradeogreRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        if ((symbols === undefined) || (symbols.length < 1)) {
+        const length = this.symbols.length;
+        if (length === 0) {
             symbols = this.symbols;
         }
         const request: Dict = {
