@@ -540,6 +540,7 @@ export default class tradeogre extends Exchange {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook (rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 's');
         return orderbook;
     }
 
