@@ -2,7 +2,6 @@
 //  ---------------------------------------------------------------------------
 
 import tradeogreRest from '../tradeogre.js';
-import { } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import type { Dict, Int, OrderBook, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -10,7 +9,7 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class oxfun extends tradeogreRest {
+export default class tradeogre extends tradeogreRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -90,7 +89,7 @@ export default class oxfun extends tradeogreRest {
 
     /**
      * @method
-     * @name woofipro#watchTrades
+     * @name tradeogre#watchTrades
      * @description watches information on multiple trades made in a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
