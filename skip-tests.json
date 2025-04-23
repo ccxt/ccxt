@@ -1563,7 +1563,12 @@
         }
     },
     "tradeogre": {
-        "skip": "flaky"
+        "skip": "flaky",
+        "skipMethods": {
+            "watchOrderBook": {
+                "timestamp": "not provided"
+            }
+        }
     },
     "timex": {
         "skipMethods": {
