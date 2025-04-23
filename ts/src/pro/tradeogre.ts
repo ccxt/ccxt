@@ -2,7 +2,6 @@
 //  ---------------------------------------------------------------------------
 
 import tradeogreRest from '../tradeogre.js';
-import { Precise } from '../base/Precise.js';
 import type { Dict, Int, OrderBook, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -39,8 +38,6 @@ export default class tradeogre extends tradeogreRest {
             'options': {
             },
             'streaming': {
-                'ping': this.ping,
-                'keepAlive': 50000,
             },
         });
     }
@@ -104,39 +101,37 @@ export default class tradeogre extends tradeogreRest {
         symbol = market['symbol'];
         const name = 'trade';
         const url = this.urls['api']['ws'];
-        const messageHash = market['id'] + '@trade';
         const request: Dict = {
             'a': 'subscribe',
             'e': name,
-            't': '*',
+            't': market['id'],
         };
-        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const messageHash = name + ':' + symbol;
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleTrade (client: Client, message) {
         //
-        // {
-        //     "topic":"PERP_ADA_USDC@trade",
-        //     "ts":1618820361552,
-        //     "data":{
-        //         "symbol":"PERP_ADA_USDC",
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
+        //     {
+        //         "e": "trade",
+        //         "t": "LTC-USDT",
+        //         "d": {
+        //             "t": 0,
+        //             "p": "84.50000000",
+        //             "q": "1.28471270",
+        //             "d": "1745392002"
+        //         }
         //     }
-        // }
         //
-        const topic = this.safeString (message, 'topic');
-        const timestamp = this.safeInteger (message, 'ts');
-        const data = this.safeDict (message, 'data', {});
-        const marketId = this.safeString (data, 'symbol');
+        const marketId = this.safeString (message, 't');
         const market = this.safeMarket (marketId);
+        const data = this.safeDict (message, 'd', {});
+        const trade = this.parseWsTrade (data, market);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -145,82 +140,47 @@ export default class tradeogre extends tradeogreRest {
         const trades = this.trades[symbol];
         trades.append (trade);
         this.trades[symbol] = trades;
-        client.resolve (trades, topic);
+        const messageHash = 'trade' + ':' + symbol;
+        client.resolve (trades, messageHash);
     }
 
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         "symbol":"PERP_ADA_USDC",
-        //         "timestamp":1618820361552,
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
-        //     }
-        // private stream
-        //     {
-        //         symbol: 'PERP_XRP_USDC',
-        //         clientOrderId: '',
-        //         orderId: 1167632251,
-        //         type: 'MARKET',
-        //         side: 'BUY',
-        //         quantity: 20,
-        //         price: 0,
-        //         tradeId: '1715179456664012',
-        //         executedPrice: 0.5276,
-        //         executedQuantity: 20,
-        //         fee: 0.006332,
-        //         feeAsset: 'USDC',
-        //         totalExecutedQuantity: 20,
-        //         avgPrice: 0.5276,
-        //         averageExecutedPrice: 0.5276,
-        //         status: 'FILLED',
-        //         reason: '',
-        //         totalFee: 0.006332,
-        //         visible: 0,
-        //         visibleQuantity: 0,
-        //         timestamp: 1715179456660,
-        //         orderTag: 'CCXT',
-        //         createdTime: 1715179456656,
-        //         maker: false
+        //         "t": 0,
+        //         "p": "84.50000000",
+        //         "q": "1.28471270",
+        //         "d": "1745392002"
         //     }
         //
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'executedPrice', 'price');
-        const amount = this.safeString2 (trade, 'executedQuantity', 'size');
-        const cost = Precise.stringMul (price, amount);
-        const side = this.safeStringLower (trade, 'side');
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        let takerOrMaker = undefined;
-        const maker = this.safeBool (trade, 'maker');
-        if (maker !== undefined) {
-            takerOrMaker = maker ? 'maker' : 'taker';
-        }
-        let fee = undefined;
-        const feeValue = this.safeString (trade, 'fee');
-        if (feeValue !== undefined) {
-            fee = {
-                'cost': feeValue,
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeAsset')),
-            };
-        }
+        const timestamp = this.safeIntegerProduct (trade, 'd', 1000);
+        const sideEnum = this.safeString (trade, 't');
         return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
+            'info': trade,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'order': this.safeString (trade, 'orderId'),
-            'takerOrMaker': takerOrMaker,
-            'type': this.safeStringLower (trade, 'type'),
-            'fee': fee,
-            'info': trade,
+            'symbol': this.safeString (market, 'symbol'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.parseWsTradeSide (sideEnum),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'p'),
+            'amount': this.safeString (trade, 'q'),
+            'cost': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
         }, market);
+    }
+
+    parseWsTradeSide (side) {
+        const sides = {
+            '0': 'buy',
+            '1': 'sell',
+        };
+        return this.safeString (sides, side, side);
     }
 
     handleMessage (client: Client, message) {
