@@ -14,7 +14,7 @@ export default class tradeogre extends tradeogreRest {
             'has': {
                 'ws': true,
                 'watchTrades': true,
-                'watchTradesForSymbols': false,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': false,
@@ -88,7 +88,7 @@ export default class tradeogre extends tradeogreRest {
      * @method
      * @name tradeogre#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+     * @see https://tradeogre.com/help/api
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -99,19 +99,58 @@ export default class tradeogre extends tradeogreRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const name = 'trade';
+        const channelName = 'trade';
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'a': 'subscribe',
-            'e': name,
+            'e': channelName,
             't': market['id'],
         };
-        const messageHash = name + ':' + symbol;
+        const messageHash = channelName + ':' + symbol;
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name tradeogre#watchTradesForSymbols
+     * @see https://tradeogre.com/help/api
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        if ((symbols === undefined) || (symbols.length < 1)) {
+            symbols = this.symbols;
+        }
+        const request: Dict = {
+            'a': 'subscribe',
+            'e': 'trade',
+            't': '*',
+        };
+        const massageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trade' + ':' + symbol;
+            massageHashes.push (messageHash);
+        }
+        const url = this.urls['api']['ws'];
+        const trades = await this.watchMultiple (url, massageHashes, this.extend (request, params), 'trades');
+        if (this.newUpdates) {
+            const first = this.safeDict (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        const filteredTrades = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterByArray (filteredTrades, 'symbol', symbols, false);
     }
 
     handleTrade (client: Client, message) {
@@ -142,6 +181,7 @@ export default class tradeogre extends tradeogreRest {
         this.trades[symbol] = trades;
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (trades, messageHash);
+        client.resolve (trades, 'trades');
     }
 
     parseWsTrade (trade, market = undefined) {
