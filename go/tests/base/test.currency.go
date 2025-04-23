@@ -18,9 +18,8 @@ import "github.com/ccxt/ccxt/go/v4"
         if IsTrue(isNative) {
             AddElementToObject(format, "info", map[string]interface{} {})
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            // these two fields are being dynamically added a bit below
-            // format['withdraw'] = true; // withdraw enabled
-            // format['deposit'] = true; // deposit enabled
+            AddElementToObject(format, "withdraw", true) // withdraw enabled
+            AddElementToObject(format, "deposit", true) // deposit enabled
             AddElementToObject(format, "precision", exchange.ParseNumber("0.0001")) // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
             AddElementToObject(format, "fee", exchange.ParseNumber("0.001"))
             AddElementToObject(format, "networks", map[string]interface{} {})
@@ -34,16 +33,17 @@ import "github.com/ccxt/ccxt/go/v4"
             "max": exchange.ParseNumber("1000"),
         },
     })
-            // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
-            if IsTrue(!IsEqual(currencyType, nil)) {
-                AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "leveraged", "other"})
-            }
+            AddElementToObject(format, "type", "crypto") // crypto, fiat, leverage, other
+            AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "leveraged", "other", nil}) // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if IsTrue(IsTrue(IsEqual(currencyType, "crypto")) || !IsTrue((InOp(skippedProperties, "depositForNonCrypto")))) {
-                AddElementToObject(format, "deposit", true)
+            if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "depositForNonCrypto")))) {
+                AppendToArray(&emptyAllowedFor,"deposit")
             }
-            if IsTrue(IsTrue(IsEqual(currencyType, "crypto")) || !IsTrue((InOp(skippedProperties, "withdrawForNonCrypto")))) {
-                AddElementToObject(format, "withdraw", true)
+            if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "withdrawForNonCrypto")))) {
+                AppendToArray(&emptyAllowedFor,"withdraw")
+            }
+            if IsTrue(IsTrue(IsEqual(currencyType, "leveraged")) || IsTrue(IsEqual(currencyType, "other"))) {
+                AppendToArray(&emptyAllowedFor,"precision")
             }
         }
         AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
