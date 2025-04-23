@@ -46,8 +46,9 @@ export default class tradeogre extends tradeogreRest {
      * @method
      * @name tradeogre#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://tradeogre.com/help/api
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {int} [limit] the maximum amount of order book entries to return (not used by the exchange)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -56,7 +57,7 @@ export default class tradeogre extends tradeogreRest {
         const name = 'book';
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = market['id'] + '@' + name;
+        const messageHash = 'orderbook' + ':' + market['symbol'];
         const request: Dict = {
             'a': 'subscribe',
             'e': name,
@@ -68,20 +69,102 @@ export default class tradeogre extends tradeogreRest {
 
     handleOrderBook (client: Client, message) {
         //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
         //
-        const data = this.safeDict (message, 'data', {});
-        const marketId = this.safeString (data, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const topic = this.safeString (message, 'topic');
+        //     {
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
+        //                 ["8732.02", "0.00002478", "1207590500704256"],
+        //                 ["8729.62", "0.01600000", "1207590502350849"],
+        //                 ["8727.22", "0.01800000", "1207590504296448"],
+        //             ],
+        //             "asks": [
+        //                 ["8735.67", "2.00000000", "1207590693249024"],
+        //                 ["8735.67", "0.01700000", "1207590693634048"],
+        //                 ["8735.68", "1.53294500", "1207590692048896"],
+        //             ],
+        //         },
+        //         "event": "data",
+        //         "channel": "diff_order_book_btcusd"
+        //     }
+        //
+        //
+        //     {
+        //         "e": "book",
+        //         "t": "ETH-USDT",
+        //         "s": "10752324",
+        //         "d": {
+        //             "bids": { "1787.02497915": "0" },
+        //             "asks": {}
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (message, 't');
+        const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
+            this.orderbooks[symbol] = this.orderBook ({});
         }
-        const orderbook = this.orderbooks[symbol];
-        const timestamp = this.safeInteger (message, 'ts');
-        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
-        orderbook.reset (snapshot);
-        client.resolve (orderbook, topic);
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        const delta = this.safeDict (message, 'd', {});
+        const deltaNonce = this.safeInteger (message, 's');
+        const messageHash = 'orderbook:' + symbol;
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            // the rest API is very delayed
+            // usually it takes at least 4-5 deltas to resolve
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
+            if (cacheLength === snapshotDelay) {
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
+            }
+            storedOrderBook.cache.push (delta);
+            return;
+        } else if (nonce >= deltaNonce) {
+            return;
+        }
+        this.handleDelta (storedOrderBook, delta);
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    handleDelta (orderbook, delta) {
+        const timestamp = this.safeTimestamp (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
+        const bids = this.safeValue (delta, 'bids', []);
+        const asks = this.safeValue (delta, 'asks', []);
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
+    }
+
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            bookSide.storeArray (bidAsk);
+        }
+    }
+
+    getCacheIndex (orderbook, deltas) {
+        // we will consider it a fail
+        const firstElement = deltas[0];
+        const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce < firstElementNonce) {
+            return -1;
+        }
+        for (let i = 0; i < deltas.length; i++) {
+            const delta = deltas[i];
+            const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+            if (deltaNonce === nonce) {
+                return i + 1;
+            }
+        }
+        return deltas.length;
     }
 
     /**
@@ -99,14 +182,13 @@ export default class tradeogre extends tradeogreRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const channelName = 'trade';
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'a': 'subscribe',
-            'e': channelName,
+            'e': 'trade',
             't': market['id'],
         };
-        const messageHash = channelName + ':' + symbol;
+        const messageHash = 'trades' + ':' + symbol;
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -141,21 +223,15 @@ export default class tradeogre extends tradeogreRest {
             'e': 'trade',
             't': '*',
         };
-        const massageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const messageHash = 'trade' + ':' + symbol;
-            massageHashes.push (messageHash);
-        }
+        const massageHash = 'trades' + ':' + symbols.join (',');
         const url = this.urls['api']['ws'];
-        const trades = await this.watchMultiple (url, massageHashes, this.extend (request, params), massageHashes);
+        const trades = await this.watch (url, massageHash, this.extend (request, params), 'trades:all');
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        const filteredTrades = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-        return this.filterByArray (filteredTrades, 'symbol', symbols, false);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client: Client, message) {
@@ -174,18 +250,25 @@ export default class tradeogre extends tradeogreRest {
         const marketId = this.safeString (message, 't');
         const market = this.safeMarket (marketId);
         const data = this.safeDict (message, 'd', {});
-        const trade = this.parseWsTrade (data, market);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.trades[symbol];
-        trades.append (trade);
-        this.trades[symbol] = trades;
-        const messageHash = 'trade' + ':' + symbol;
-        client.resolve (trades, messageHash);
+        const cache = this.trades[symbol];
+        const trade = this.parseWsTrade (data, market);
+        cache.append (trade);
+        const messageHashes = this.findMessageHashes (client, 'trades:');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split (':');
+            const symbolPart = this.safeString (parts, 1);
+            const symbols = symbolPart.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (trade, messageHash);
+            }
+        }
     }
 
     parseWsTrade (trade, market = undefined) {
