@@ -106,9 +106,9 @@ export default class tradeogre extends tradeogreRest {
     }
 
     handleDelta (orderbook, delta) {
-        const timestamp = this.milliseconds (); // todo check if this is correct
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
+        // const timestamp = this.milliseconds (); // todo check if this is correct
+        // orderbook['timestamp'] = timestamp;
+        // orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 's');
         const data = this.safeDict (delta, 'd', {});
         const bids = this.safeDict (data, 'bids', {});
@@ -158,7 +158,7 @@ export default class tradeogre extends tradeogreRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -195,7 +195,7 @@ export default class tradeogre extends tradeogreRest {
             messageHashes.push (messageHash);
         }
         const url = this.urls['api']['ws'];
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ 'trades' ]);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ 'trades' ]);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
