@@ -1146,7 +1146,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}) {
+    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
         let quoteAmount = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeNumber (params, 'cost');
