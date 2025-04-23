@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.76'
+__version__ = '4.4.77'
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +67,10 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+try:
+    import apexpro.zklink_sdk as zklink_sdk
+except ImportError:
+    zklink_sdk = None
 
 # -----------------------------------------------------------------------------
 
@@ -1754,6 +1758,69 @@ class Exchange(object):
 
     def binary_length(self, binary):
         return len(binary)
+
+    def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        slotId = self.safe_string(params, 'slotId')
+        nonceInt = int(self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
+
+        maxUint64 = 18446744073709551615
+        maxUint32 = 4294967295
+
+        slotId = (nonceInt % maxUint64) / maxUint32
+        nonce = nonceInt % maxUint32
+        accountId = int(self.safe_string(params, 'accountId'), 10) % maxUint32
+
+        priceStr = (Decimal(self.safe_string(params, 'price')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+        sizeStr = (Decimal(self.safe_string(params, 'size')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+
+        takerFeeRateStr = (Decimal(self.safe_string(params, 'takerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+        makerFeeRateStr = (Decimal(self.safe_string(params, 'makerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+
+        builder = zklink_sdk.ContractBuilder(
+            int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
+            sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
+            int(takerFeeRateStr), int(makerFeeRateStr), False)
+
+
+        tx = zklink_sdk.Contract(builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
+    def get_zk_transfer_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        nonce = self.safe_string(params, 'nonce', '0')
+        if self.safe_bool(params, 'isContract'):
+            formattedUint32 = '4294967295'
+            formattedNonce = int(self.remove0x_prefix(self.hash(self.encode(nonce), 'sha256', 'hex')), 16)
+            nonce = Precise.string_mod(str(formattedNonce), formattedUint32)
+
+        tx_builder = zklink_sdk.TransferBuilder(
+            int(self.safe_number(params, 'zkAccountId', 0)),
+            self.safe_string(params, 'receiverAddress'),
+            int(self.safe_number(params, 'subAccountId', 0)),
+            int(self.safe_number(params, 'receiverSubAccountId', 0)),
+            int(self.safe_number(params, 'tokenId', 0)),
+            self.safe_string(params, 'amount', '0'),
+            self.safe_string(params, 'fee', '0'),
+            self.parse_to_int(nonce),
+            int(self.safe_number(params, 'timestampSeconds', 0))
+        )
+
+        tx = zklink_sdk.Transfer(tx_builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
 
     # ########################################################################
     # ########################################################################

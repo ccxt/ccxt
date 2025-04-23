@@ -5825,7 +5825,7 @@ func  (this *xt) EditOrder(id interface{}, symbol interface{}, typeVar interface
                         PanicOnError(response)
                     } else {
                         
-        response = (<-this.callDynamically("privateInversePostFutureTradeV1OrderUpdate", this.Extend(request, params)))
+        response = (<-this.PrivateInversePostFutureTradeV1OrderUpdate(this.Extend(request, params)))
                         PanicOnError(response)
                     }
                 } else {
@@ -5835,14 +5835,14 @@ func  (this *xt) EditOrder(id interface{}, symbol interface{}, typeVar interface
                         PanicOnError(response)
                     } else {
                         
-        response = (<-this.callDynamically("privateLinearPostFutureTradeV1OrderUpdate", this.Extend(request, params)))
+        response = (<-this.PrivateLinearPostFutureTradeV1OrderUpdate(this.Extend(request, params)))
                         PanicOnError(response)
                     }
                 }
             } else {
                 AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
                 
-        response = (<-this.callDynamically("privateSpotPutOrderOrderId", this.Extend(request, params)))
+        response = (<-this.PrivateSpotPutOrderOrderId(this.Extend(request, params)))
                 PanicOnError(response)
             }
             var result interface{} = Ternary(IsTrue((GetValue(market, "swap"))), response, this.SafeDict(response, "result", map[string]interface{} {}))

@@ -63,7 +63,7 @@ class upbit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -770,11 +770,11 @@ class upbit extends Exchange {
         $ids = null;
         if ($symbols === null) {
             $ids = implode(',', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            // if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+            //     $numIds = count($this->ids);
+            //     throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+            // }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode(',', $ids);
@@ -1017,6 +1017,28 @@ class upbit extends Exchange {
             'percentage' => true,
             'tierBased' => false,
         );
+    }
+
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         * fetch the trading fees for markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=trading-fee-structure trading fee structure~
+         */
+        $this->load_markets();
+        $fetchMarketResponse = $this->fetch_markets($params);
+        $response = array();
+        for ($i = 0; $i < count($fetchMarketResponse); $i++) {
+            $element = array();
+            $element['maker'] = $this->safe_number($fetchMarketResponse[$i], 'maker');
+            $element['taker'] = $this->safe_number($fetchMarketResponse[$i], 'taker');
+            $element['symbol'] = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['percentage'] = true;
+            $element['tierBased'] = false;
+            $element['info'] = $fetchMarketResponse[$i];
+            $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+        }
+        return $response;
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

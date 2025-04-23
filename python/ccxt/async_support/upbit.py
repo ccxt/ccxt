@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -75,7 +75,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -764,10 +764,11 @@ class upbit(Exchange, ImplicitAPI):
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchTickersMaxLength']:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' fetchTickers() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+            #  # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            # if len(ids) > self.options['fetchTickersMaxLength']:
+            #     numIds = len(self.ids)
+            #     raise ExchangeError(self.id + ' fetchTickers() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+            # }
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -1000,6 +1001,26 @@ class upbit(Exchange, ImplicitAPI):
             'percentage': True,
             'tierBased': False,
         }
+
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `trading fee structure <https://docs.ccxt.com/#/?id=trading-fee-structure>`
+        """
+        await self.load_markets()
+        fetchMarketResponse = await self.fetch_markets(params)
+        response: dict = {}
+        for i in range(0, len(fetchMarketResponse)):
+            element: dict = {}
+            element['maker'] = self.safe_number(fetchMarketResponse[i], 'maker')
+            element['taker'] = self.safe_number(fetchMarketResponse[i], 'taker')
+            element['symbol'] = self.safe_string(fetchMarketResponse[i], 'symbol')
+            element['percentage'] = True
+            element['tierBased'] = False
+            element['info'] = fetchMarketResponse[i]
+            response[self.safe_string(fetchMarketResponse[i], 'symbol')] = element
+        return response
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

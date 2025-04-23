@@ -18,6 +18,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         alpacaItf := &alpaca{}
         alpacaItf.Init(exchangeArgs)
         return alpacaItf, true
+    case "apex":
+        apexItf := &apex{}
+        apexItf.Init(exchangeArgs)
+        return apexItf, true
     case "ascendex":
         ascendexItf := &ascendex{}
         ascendexItf.Init(exchangeArgs)

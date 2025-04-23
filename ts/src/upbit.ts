@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ export default class upbit extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -777,11 +777,11 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            // if (ids.length > this.options['fetchTickersMaxLength']) {
+            //     const numIds = this.ids.length;
+            //     throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
+            // }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -1024,6 +1024,30 @@ export default class upbit extends Exchange {
             'percentage': true,
             'tierBased': false,
         };
+    }
+
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const fetchMarketResponse = await this.fetchMarkets (params);
+        const response: Dict = {};
+        for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const element: Dict = {};
+            element['maker'] = this.safeNumber (fetchMarketResponse[i], 'maker');
+            element['taker'] = this.safeNumber (fetchMarketResponse[i], 'taker');
+            element['symbol'] = this.safeString (fetchMarketResponse[i], 'symbol');
+            element['percentage'] = true;
+            element['tierBased'] = false;
+            element['info'] = fetchMarketResponse[i];
+            response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
+        }
+        return response;
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

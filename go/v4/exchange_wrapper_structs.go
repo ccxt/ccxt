@@ -610,14 +610,122 @@ func WithFetchWithdrawalsParams(params map[string]interface{}) FetchWithdrawalsO
 }
 
 
-type CreateOrdersOptionsStruct struct {
+type FetchOpenInterestOptionsStruct struct {
     Params *map[string]interface{}
 }
 
-type CreateOrdersOptions func(opts *CreateOrdersOptionsStruct)
+type FetchOpenInterestOptions func(opts *FetchOpenInterestOptionsStruct)
 
-func WithCreateOrdersParams(params map[string]interface{}) CreateOrdersOptions {
-    return func(opts *CreateOrdersOptionsStruct) {
+func WithFetchOpenInterestParams(params map[string]interface{}) FetchOpenInterestOptions {
+    return func(opts *FetchOpenInterestOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchFundingRateHistoryOptionsStruct struct {
+    Symbol *string
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchFundingRateHistoryOptions func(opts *FetchFundingRateHistoryOptionsStruct)
+
+func WithFetchFundingRateHistorySymbol(symbol string) FetchFundingRateHistoryOptions {
+    return func(opts *FetchFundingRateHistoryOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchFundingRateHistorySince(since int64) FetchFundingRateHistoryOptions {
+    return func(opts *FetchFundingRateHistoryOptionsStruct) {
+        opts.Since = &since
+    }
+}
+
+
+func WithFetchFundingRateHistoryLimit(limit int64) FetchFundingRateHistoryOptions {
+    return func(opts *FetchFundingRateHistoryOptionsStruct) {
+        opts.Limit = &limit
+    }
+}
+
+
+func WithFetchFundingRateHistoryParams(params map[string]interface{}) FetchFundingRateHistoryOptions {
+    return func(opts *FetchFundingRateHistoryOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type TransferOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type TransferOptions func(opts *TransferOptionsStruct)
+
+func WithTransferParams(params map[string]interface{}) TransferOptions {
+    return func(opts *TransferOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchFundingHistoryOptionsStruct struct {
+    Symbol *string
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchFundingHistoryOptions func(opts *FetchFundingHistoryOptionsStruct)
+
+func WithFetchFundingHistorySymbol(symbol string) FetchFundingHistoryOptions {
+    return func(opts *FetchFundingHistoryOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchFundingHistorySince(since int64) FetchFundingHistoryOptions {
+    return func(opts *FetchFundingHistoryOptionsStruct) {
+        opts.Since = &since
+    }
+}
+
+
+func WithFetchFundingHistoryLimit(limit int64) FetchFundingHistoryOptions {
+    return func(opts *FetchFundingHistoryOptionsStruct) {
+        opts.Limit = &limit
+    }
+}
+
+
+func WithFetchFundingHistoryParams(params map[string]interface{}) FetchFundingHistoryOptions {
+    return func(opts *FetchFundingHistoryOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type SetLeverageOptionsStruct struct {
+    Symbol *string
+    Params *map[string]interface{}
+}
+
+type SetLeverageOptions func(opts *SetLeverageOptionsStruct)
+
+func WithSetLeverageSymbol(symbol string) SetLeverageOptions {
+    return func(opts *SetLeverageOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithSetLeverageParams(params map[string]interface{}) SetLeverageOptions {
+    return func(opts *SetLeverageOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -644,6 +752,19 @@ func WithFetchPositionsParams(params map[string]interface{}) FetchPositionsOptio
 }
 
 
+type CreateOrdersOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateOrdersOptions func(opts *CreateOrdersOptionsStruct)
+
+func WithCreateOrdersParams(params map[string]interface{}) CreateOrdersOptions {
+    return func(opts *CreateOrdersOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchFundingRatesOptionsStruct struct {
     Symbols *[]string
     Params *map[string]interface{}
@@ -660,27 +781,6 @@ func WithFetchFundingRatesSymbols(symbols []string) FetchFundingRatesOptions {
 
 func WithFetchFundingRatesParams(params map[string]interface{}) FetchFundingRatesOptions {
     return func(opts *FetchFundingRatesOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type SetLeverageOptionsStruct struct {
-    Symbol *string
-    Params *map[string]interface{}
-}
-
-type SetLeverageOptions func(opts *SetLeverageOptionsStruct)
-
-func WithSetLeverageSymbol(symbol string) SetLeverageOptions {
-    return func(opts *SetLeverageOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithSetLeverageParams(params map[string]interface{}) SetLeverageOptions {
-    return func(opts *SetLeverageOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -744,56 +844,6 @@ func WithFetchDepositWithdrawFeesCodes(codes []string) FetchDepositWithdrawFeesO
 
 func WithFetchDepositWithdrawFeesParams(params map[string]interface{}) FetchDepositWithdrawFeesOptions {
     return func(opts *FetchDepositWithdrawFeesOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type TransferOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type TransferOptions func(opts *TransferOptionsStruct)
-
-func WithTransferParams(params map[string]interface{}) TransferOptions {
-    return func(opts *TransferOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchFundingHistoryOptionsStruct struct {
-    Symbol *string
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchFundingHistoryOptions func(opts *FetchFundingHistoryOptionsStruct)
-
-func WithFetchFundingHistorySymbol(symbol string) FetchFundingHistoryOptions {
-    return func(opts *FetchFundingHistoryOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchFundingHistorySince(since int64) FetchFundingHistoryOptions {
-    return func(opts *FetchFundingHistoryOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchFundingHistoryLimit(limit int64) FetchFundingHistoryOptions {
-    return func(opts *FetchFundingHistoryOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchFundingHistoryParams(params map[string]interface{}) FetchFundingHistoryOptions {
-    return func(opts *FetchFundingHistoryOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -1209,43 +1259,6 @@ func WithFetchFundingRateParams(params map[string]interface{}) FetchFundingRateO
 }
 
 
-type FetchFundingRateHistoryOptionsStruct struct {
-    Symbol *string
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchFundingRateHistoryOptions func(opts *FetchFundingRateHistoryOptionsStruct)
-
-func WithFetchFundingRateHistorySymbol(symbol string) FetchFundingRateHistoryOptions {
-    return func(opts *FetchFundingRateHistoryOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchFundingRateHistorySince(since int64) FetchFundingRateHistoryOptions {
-    return func(opts *FetchFundingRateHistoryOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchFundingRateHistoryLimit(limit int64) FetchFundingRateHistoryOptions {
-    return func(opts *FetchFundingRateHistoryOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchFundingRateHistoryParams(params map[string]interface{}) FetchFundingRateHistoryOptions {
-    return func(opts *FetchFundingRateHistoryOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
 type FetchPositionOptionsStruct struct {
     Params *map[string]interface{}
 }
@@ -1620,19 +1633,6 @@ func WithFetchOpenInterestHistoryLimit(limit int64) FetchOpenInterestHistoryOpti
 
 func WithFetchOpenInterestHistoryParams(params map[string]interface{}) FetchOpenInterestHistoryOptions {
     return func(opts *FetchOpenInterestHistoryOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchOpenInterestOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type FetchOpenInterestOptions func(opts *FetchOpenInterestOptionsStruct)
-
-func WithFetchOpenInterestParams(params map[string]interface{}) FetchOpenInterestOptions {
-    return func(opts *FetchOpenInterestOptionsStruct) {
         opts.Params = &params
     }
 }

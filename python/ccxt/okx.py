@@ -1616,8 +1616,8 @@ class okx(Exchange, ImplicitAPI):
         swap = (type == 'swap')
         option = (type == 'option')
         contract = swap or future or option
-        baseId = self.safe_string(market, 'baseCcy')
-        quoteId = self.safe_string(market, 'quoteCcy')
+        baseId = self.safe_string(market, 'baseCcy', '')  # defaulting to '' because some weird preopen markets have empty baseId
+        quoteId = self.safe_string(market, 'quoteCcy', '')
         settleId = self.safe_string(market, 'settleCcy')
         settle = self.safe_currency_code(settleId)
         underlying = self.safe_string(market, 'uly')
@@ -1632,18 +1632,21 @@ class okx(Exchange, ImplicitAPI):
         strikePrice = None
         optionType = None
         if contract:
-            symbol = symbol + ':' + settle
+            if settle is not None:
+                symbol = symbol + ':' + settle
             if future:
                 expiry = self.safe_integer(market, 'expTime')
-                ymd = self.yymmdd(expiry)
-                symbol = symbol + '-' + ymd
+                if expiry is not None:
+                    ymd = self.yymmdd(expiry)
+                    symbol = symbol + '-' + ymd
             elif option:
                 expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
-                ymd = self.yymmdd(expiry)
-                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
-                optionType = 'put' if (optionType == 'P') else 'call'
+                if expiry is not None:
+                    ymd = self.yymmdd(expiry)
+                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
+                    optionType = 'put' if (optionType == 'P') else 'call'
         tickSize = self.safe_string(market, 'tickSz')
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         maxLeverage = self.safe_string(market, 'lever', '1')

@@ -5319,7 +5319,7 @@ public partial class xt : Exchange
                     response = await this.privateInversePostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, parameters));
                 } else
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1OrderUpdate", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateInversePostFutureTradeV1OrderUpdate(this.extend(request, parameters));
                 }
             } else
             {
@@ -5328,13 +5328,13 @@ public partial class xt : Exchange
                     response = await this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, parameters));
                 } else
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1OrderUpdate", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateLinearPostFutureTradeV1OrderUpdate(this.extend(request, parameters));
                 }
             }
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-            response = await ((Task<object>)callDynamically(this, "privateSpotPutOrderOrderId", new object[] { this.extend(request, parameters) }));
+            response = await this.privateSpotPutOrderOrderId(this.extend(request, parameters));
         }
         object result = ((bool) isTrue((getValue(market, "swap")))) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);

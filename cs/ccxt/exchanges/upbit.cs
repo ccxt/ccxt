@@ -58,7 +58,7 @@ public partial class upbit : Exchange
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
-                { "fetchTradingFees", false },
+                { "fetchTradingFees", true },
                 { "fetchTransactions", false },
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
@@ -798,12 +798,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchTickersMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(this.id, " fetchTickers() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
@@ -1060,6 +1054,33 @@ public partial class upbit : Exchange
             { "percentage", true },
             { "tierBased", false },
         };
+    }
+
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fetchMarketResponse = await this.fetchMarkets(parameters);
+        object response = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fetchMarketResponse)); postFixIncrement(ref i))
+        {
+            object element = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)element)["maker"] = this.safeNumber(getValue(fetchMarketResponse, i), "maker");
+            ((IDictionary<string,object>)element)["taker"] = this.safeNumber(getValue(fetchMarketResponse, i), "taker");
+            ((IDictionary<string,object>)element)["symbol"] = this.safeString(getValue(fetchMarketResponse, i), "symbol");
+            ((IDictionary<string,object>)element)["percentage"] = true;
+            ((IDictionary<string,object>)element)["tierBased"] = false;
+            ((IDictionary<string,object>)element)["info"] = getValue(fetchMarketResponse, i);
+            ((IDictionary<string,object>)response)[(string)this.safeString(getValue(fetchMarketResponse, i), "symbol")] = element;
+        }
+        return response;
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

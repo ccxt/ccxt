@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.76'
+__version__ = '4.4.77'
 
 # ----------------------------------------------------------------------------
 
@@ -85,6 +85,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 from ccxt.ace import ace                                              # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
+from ccxt.apex import apex                                            # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
@@ -194,6 +195,7 @@ from ccxt.zonda import zonda                                          # noqa: F4
 exchanges = [
     'ace',
     'alpaca',
+    'apex',
     'ascendex',
     'bequant',
     'bigone',

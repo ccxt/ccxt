@@ -68,7 +68,7 @@ class upbit extends upbit$1 {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -768,11 +768,11 @@ class upbit extends upbit$1 {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join(',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                const numIds = this.ids.length;
-                throw new errors.ExchangeError(this.id + ' fetchTickers() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            }
+            // // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            // if (ids.length > this.options['fetchTickersMaxLength']) {
+            //     const numIds = this.ids.length;
+            //     throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
+            // }
         }
         else {
             ids = this.marketIds(symbols);
@@ -1013,6 +1013,29 @@ class upbit extends upbit$1 {
             'percentage': true,
             'tierBased': false,
         };
+    }
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets();
+        const fetchMarketResponse = await this.fetchMarkets(params);
+        const response = {};
+        for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const element = {};
+            element['maker'] = this.safeNumber(fetchMarketResponse[i], 'maker');
+            element['taker'] = this.safeNumber(fetchMarketResponse[i], 'taker');
+            element['symbol'] = this.safeString(fetchMarketResponse[i], 'symbol');
+            element['percentage'] = true;
+            element['tierBased'] = false;
+            element['info'] = fetchMarketResponse[i];
+            response[this.safeString(fetchMarketResponse[i], 'symbol')] = element;
+        }
+        return response;
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

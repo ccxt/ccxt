@@ -1748,5 +1748,19 @@
                 "active":"is undefined"
             }
         }
+    },
+    "apex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "currency": "messed"
+            },
+            "fetchCurrencies": {
+                "precision": "messed"
+            },
+            "watchTrades": {
+                "timestamp": "order is messed"
+            }
+        }
     }
 }
