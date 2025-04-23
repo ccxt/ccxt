@@ -15,20 +15,20 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 function test_fetch_currencies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchCurrencies';
-        // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
         $currencies = Async\await($exchange->fetch_currencies());
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         $num_inactive_currencies = 0;
-        // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
-        // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
+        $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
+        $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
         if ($currencies !== null) {
             $values = is_array($currencies) ? array_values($currencies) : array();
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
             $currencies_length = count($values);
             // ensure exchange returns enough length of currencies
-            // assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+            assert($currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
             // allow skipped exchanges
-            // const skipActive = ('active' in skippedProperties);
+            $skip_active = (is_array($skipped_properties) && array_key_exists('activeCurrenciesQuota', $skipped_properties));
+            $skip_major_currency_check = (is_array($skipped_properties) && array_key_exists('activeMajorCurrencies', $skipped_properties));
             // loop
             for ($i = 0; $i < $currencies_length; $i++) {
                 $currency = $values[$i];
@@ -38,7 +38,17 @@ function test_fetch_currencies($exchange, $skipped_properties) {
                 if ($active === false) {
                     $num_inactive_currencies = $num_inactive_currencies + 1;
                 }
+                // ensure that major currencies are active and enabled for deposit and withdrawal
+                $code = $exchange->safe_string($currency, 'code', null);
+                $withdraw = $exchange->safe_bool($currency, 'withdraw');
+                $deposit = $exchange->safe_bool($currency, 'deposit');
+                if ($exchange->in_array($code, $required_active_currencies)) {
+                    assert($skip_major_currency_check || ($withdraw && $deposit), 'Major currency ' . $code . ' should have withdraw and deposit flags enabled');
+                }
             }
+            // check at least X% of currencies are active
+            $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
+            assert($skip_active || ($inactive_currencies_percentage < $max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' . ((string) $inactive_currencies_percentage) . '% that is more than the allowed maximum of ' . ((string) $max_inactive_currencies_percentage) . '%');
         }
         return true;
     }) ();
