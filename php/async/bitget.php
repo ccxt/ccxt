@@ -6839,11 +6839,15 @@ class bitget extends Exchange {
                 //     {
                 //         "code" => "00000",
                 //         "msg" => "success",
-                //         "requestTime" => 1700811542124,
+                //         "requestTime" => 1745500709429,
                 //         "data" => array(
                 //             {
                 //                 "symbol" => "BTCUSDT",
-                //                 "fundingRate" => "0.000106"
+                //                 "fundingRate" => "-0.000013",
+                //                 "fundingRateInterval" => "8",
+                //                 "nextUpdate" => "1745510400000",
+                //                 "minFundingRate" => "-0.003",
+                //                 "maxFundingRate" => "0.003"
                 //             }
                 //         )
                 //     }
@@ -6938,11 +6942,20 @@ class bitget extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "fundingRate" => "-0.000182"
+        //         "fundingRate" => "-0.000013",
+        //         "fundingRateInterval" => "8",
+        //         "nextUpdate" => "1745510400000",
+        //         "minFundingRate" => "-0.003",
+        //         "maxFundingRate" => "0.003"
         //     }
         //
         // fetchFundingRate => publicMixGetV2MixMarketFundingTime
         //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "nextFundingTime" => "1745424000000",
+        //         "ratePeriod" => "8"
+        //     }
         //
         // fetchFundingInterval
         //
@@ -6982,8 +6995,8 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
-        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
-        $interval = $this->safe_string($contract, 'ratePeriod');
+        $fundingTimestamp = $this->safe_integer_2($contract, 'nextFundingTime', 'nextUpdate');
+        $interval = $this->safe_string_2($contract, 'ratePeriod', 'fundingRateInterval');
         $timestamp = $this->safe_integer($contract, 'ts');
         $markPrice = $this->safe_number($contract, 'markPrice');
         $indexPrice = $this->safe_number($contract, 'indexPrice');
