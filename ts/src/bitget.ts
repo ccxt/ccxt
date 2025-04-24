@@ -6743,6 +6743,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
@@ -6757,10 +6758,8 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'productType': productType,
         };
-        const options = this.safeValue (this.options, 'fetchFundingRate', {});
-        const defaultMethod = this.safeString (options, 'method', 'publicMixGetV2MixMarketCurrentFundRate');
-        const method = this.safeString (params, 'method', defaultMethod);
-        params = this.omit (params, 'method');
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
         let response = undefined;
         if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
             response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
@@ -6794,7 +6793,7 @@ export default class bitget extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseFundingRate (data[0], market);
     }
 
