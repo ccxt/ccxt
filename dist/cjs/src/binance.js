@@ -20,7 +20,7 @@ class binance extends binance$1 {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': ['JP', 'MT'],
+            'countries': [],
             'rateLimit': 50,
             'certified': true,
             'pro': true,

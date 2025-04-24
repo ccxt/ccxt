@@ -6846,11 +6846,15 @@ class bitget extends bitget$1 {
             //     {
             //         "code": "00000",
             //         "msg": "success",
-            //         "requestTime": 1700811542124,
+            //         "requestTime": 1745500709429,
             //         "data": [
             //             {
             //                 "symbol": "BTCUSDT",
-            //                 "fundingRate": "0.000106"
+            //                 "fundingRate": "-0.000013",
+            //                 "fundingRateInterval": "8",
+            //                 "nextUpdate": "1745510400000",
+            //                 "minFundingRate": "-0.003",
+            //                 "maxFundingRate": "0.003"
             //             }
             //         ]
             //     }
@@ -6941,11 +6945,20 @@ class bitget extends bitget$1 {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000013",
+        //         "fundingRateInterval": "8",
+        //         "nextUpdate": "1745510400000",
+        //         "minFundingRate": "-0.003",
+        //         "maxFundingRate": "0.003"
         //     }
         //
         // fetchFundingRate: publicMixGetV2MixMarketFundingTime
         //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1745424000000",
+        //         "ratePeriod": "8"
+        //     }
         //
         // fetchFundingInterval
         //
@@ -6985,8 +6998,8 @@ class bitget extends bitget$1 {
         //
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
-        const fundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
-        const interval = this.safeString(contract, 'ratePeriod');
+        const fundingTimestamp = this.safeInteger2(contract, 'nextFundingTime', 'nextUpdate');
+        const interval = this.safeString2(contract, 'ratePeriod', 'fundingRateInterval');
         const timestamp = this.safeInteger(contract, 'ts');
         const markPrice = this.safeNumber(contract, 'markPrice');
         const indexPrice = this.safeNumber(contract, 'indexPrice');
