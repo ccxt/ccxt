@@ -62,7 +62,7 @@ export default class tradeogre extends tradeogreRest {
             'e': 'book',
             't': market['id'],
         };
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
     }
 
@@ -120,9 +120,16 @@ export default class tradeogre extends tradeogreRest {
     }
 
     handleBidAsks (bookSide, bidAsks) {
-        for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+        const keys = Object.keys (bidAsks);
+        for (let i = 0; i < keys.length; i++) {
+            const price = this.safeString (keys, i);
+            const amount = this.safeNumber (bidAsks, price);
+            const bidAsk = [ this.parseNumber (price), amount ];
             bookSide.storeArray (bidAsk);
+        // for (let i = 0; i < bidAsks.length; i++) {
+        //     const bidAsk = this.parseBidAsk (bidAsks[i]);
+        //     bookSide.storeArray (bidAsk);
+        // }
         }
     }
 
