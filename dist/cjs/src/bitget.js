@@ -1403,6 +1403,9 @@ class bitget extends bitget$1 {
                         'method': 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
                     },
                 },
+                'fetchFundingRate': {
+                    'method': 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'cross': 'crossed_margin',
@@ -6816,8 +6819,10 @@ class bitget extends bitget$1 {
      * @name bitget#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
@@ -6832,21 +6837,43 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'productType': productType,
         };
-        const response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700811542124,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "fundingRate": "0.000106"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue(response, 'data', []);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+        let response = undefined;
+        if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700811542124,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "fundingRate": "0.000106"
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        else if (method === 'publicMixGetV2MixMarketFundingTime') {
+            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1745402092428,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "nextFundingTime": "1745424000000",
+            //                 "ratePeriod": "8"
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRate(data[0], market);
     }
     /**
@@ -6910,12 +6937,15 @@ class bitget extends bitget$1 {
     }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
         //         "fundingRate": "-0.000182"
         //     }
+        //
+        // fetchFundingRate: publicMixGetV2MixMarketFundingTime
+        //
         //
         // fetchFundingInterval
         //
@@ -6924,7 +6954,9 @@ class bitget extends bitget$1 {
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
+        //
         // fetchFundingRates
+        //
         //     {
         //         "symbol": "BTCUSD",
         //         "lastPr": "29904.5",
@@ -6950,6 +6982,7 @@ class bitget extends bitget$1 {
         //         "open24h": "0",
         //         "markPrice": "12345"
         //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
         const fundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
