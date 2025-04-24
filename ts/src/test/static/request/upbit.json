@@ -41,6 +41,204 @@
         ],
         "createOrder": [
             {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "sell",
+                    0.0001,
+                    100000000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc",
+                        "cost": 6200
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"best\",\"volume\":\"0.0001\",\"time_in_force\":\"ioc\",\"cost\":6200}"
+            },
+            {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0001,
+                    100000000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc",
+                        "cost": 6200
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"6200\",\"time_in_force\":\"ioc\",\"cost\":6200}"
+            },
+            {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0001,
+                    100000000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc",
+                        "cost": 6200
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"6200\",\"time_in_force\":\"ioc\",\"cost\":6200}"
+            },
+            {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    7000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc",
+                        "cost": "6200"
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"7000\"}"
+            },
+            {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    7000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc"
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"7000\"}"
+            },
+            {
+                "description": "spot best buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.00006,
+                    100000000,
+                    {
+                        "ordType": "best",
+                        "time_in_force": "ioc"
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"6000\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "sell",
+                    0.0001
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"market\",\"volume\":\"0.0001\"}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    6100
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"6100\"}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0006,
+                    10000000,
+                    {
+                        "cost": 5000
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5000\",\"cost\":5000}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0006,
+                    10000000,
+                    null,
+                    5000
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"6000\"}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0006,
+                    10000000
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"6000\"}"
+            },
+            {
+                "description": "spot limit sell",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "BTC/KRW",
+                    "limit",
+                    "sell",
+                    0.00008,
+                    190000000
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"limit\",\"price\":\"190000000\",\"volume\":\"0.00008\"}"
+            },
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.upbit.com/v1/orders",
+                "input": [
+                    "USDT/KRW",
+                    "limit",
+                    "buy",
+                    10,
+                    1000
+                ],
+                "output": "{\"market\":\"KRW-USDT\",\"side\":\"bid\",\"ord_type\":\"limit\",\"price\":\"1000\",\"volume\":\"10\"}"
+            },
+            {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to true",
                 "method": "createOrder",
                 "url": "https://sg-api.upbit.com/v1/orders",
