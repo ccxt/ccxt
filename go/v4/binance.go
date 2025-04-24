@@ -18,7 +18,7 @@ func  (this *binance) Describe() interface{}  {
     return this.DeepExtend(this.Exchange.Describe(), map[string]interface{} {
         "id": "binance",
         "name": "Binance",
-        "countries": []interface{}{"JP", "MT"},
+        "countries": []interface{}{},
         "rateLimit": 50,
         "certified": true,
         "pro": true,
