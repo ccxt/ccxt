@@ -546,6 +546,7 @@ export default class apex extends Exchange {
                 'info': currency,
                 'code': code,
                 'id': currencyId,
+                'type': 'crypto',
                 'name': name,
                 'active': deposit && withdraw,
                 'deposit': deposit,
