@@ -755,7 +755,9 @@ export default class bitmex extends Exchange {
             }
             expiryDatetime = this.safeString (market, 'expiry');
             expiry = this.parse8601 (expiryDatetime);
-            symbol = symbol + '-' + this.yymmdd (expiry);
+            if (expiry !== undefined) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
         } else {
             // for index/exotic markets, default to id
             symbol = id;
