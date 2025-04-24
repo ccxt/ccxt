@@ -6473,11 +6473,15 @@ class bitget(Exchange, ImplicitAPI):
             #     {
             #         "code": "00000",
             #         "msg": "success",
-            #         "requestTime": 1700811542124,
+            #         "requestTime": 1745500709429,
             #         "data": [
             #             {
             #                 "symbol": "BTCUSDT",
-            #                 "fundingRate": "0.000106"
+            #                 "fundingRate": "-0.000013",
+            #                 "fundingRateInterval": "8",
+            #                 "nextUpdate": "1745510400000",
+            #                 "minFundingRate": "-0.003",
+            #                 "maxFundingRate": "0.003"
             #             }
             #         ]
             #     }
@@ -6565,11 +6569,20 @@ class bitget(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "fundingRate": "-0.000182"
+        #         "fundingRate": "-0.000013",
+        #         "fundingRateInterval": "8",
+        #         "nextUpdate": "1745510400000",
+        #         "minFundingRate": "-0.003",
+        #         "maxFundingRate": "0.003"
         #     }
         #
         # fetchFundingRate: publicMixGetV2MixMarketFundingTime
         #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "nextFundingTime": "1745424000000",
+        #         "ratePeriod": "8"
+        #     }
         #
         # fetchFundingInterval
         #
@@ -6609,8 +6622,8 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
-        fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
-        interval = self.safe_string(contract, 'ratePeriod')
+        fundingTimestamp = self.safe_integer_2(contract, 'nextFundingTime', 'nextUpdate')
+        interval = self.safe_string_2(contract, 'ratePeriod', 'fundingRateInterval')
         timestamp = self.safe_integer(contract, 'ts')
         markPrice = self.safe_number(contract, 'markPrice')
         indexPrice = self.safe_number(contract, 'indexPrice')
