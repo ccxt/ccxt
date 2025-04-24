@@ -7361,11 +7361,20 @@ public partial class bitget : Exchange
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000013",
+        //         "fundingRateInterval": "8",
+        //         "nextUpdate": "1745510400000",
+        //         "minFundingRate": "-0.003",
+        //         "maxFundingRate": "0.003"
         //     }
         //
         // fetchFundingRate: publicMixGetV2MixMarketFundingTime
         //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1745424000000",
+        //         "ratePeriod": "8"
+        //     }
         //
         // fetchFundingInterval
         //
@@ -7405,8 +7414,8 @@ public partial class bitget : Exchange
         //
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object fundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        object interval = this.safeString(contract, "ratePeriod");
+        object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         object timestamp = this.safeInteger(contract, "ts");
         object markPrice = this.safeNumber(contract, "markPrice");
         object indexPrice = this.safeNumber(contract, "indexPrice");
