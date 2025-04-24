@@ -267,6 +267,7 @@ export default class apex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
