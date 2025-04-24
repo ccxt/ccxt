@@ -1,5 +1,7 @@
 # Manual
 
+CCXT Pro is a free part of CCXT that adds support for WebSocket streaming: https://github.com/ccxt/ccxt/issues/15171
+
 The CCXT Pro stack is built upon [CCXT](https://ccxt.com) and extends the core CCXT classes, using:
 
 - JavaScript prototype-level mixins
