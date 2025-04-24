@@ -753,11 +753,9 @@ export default class bitmex extends Exchange {
                 const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
                 contractSize = this.parseNumber (multiplierString);
             }
-            if (future) {
-                expiryDatetime = this.safeString (market, 'expiry');
-                expiry = this.parse8601 (expiryDatetime);
-                symbol = symbol + '-' + this.yymmdd (expiry);
-            }
+            expiryDatetime = this.safeString (market, 'expiry');
+            expiry = this.parse8601 (expiryDatetime);
+            symbol = symbol + '-' + this.yymmdd (expiry);
         } else {
             // for index/exotic markets, default to id
             symbol = id;
