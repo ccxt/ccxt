@@ -1400,6 +1400,9 @@ class bitget extends Exchange {
                         'method' => 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
                     ),
                 ),
+                'fetchFundingRate' => array(
+                    'method' => 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
+                ),
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'cross' => 'crossed_margin',
@@ -6730,9 +6733,11 @@ class bitget extends Exchange {
          * fetch the current funding rate
          *
          * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
@@ -6746,21 +6751,42 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'productType' => $productType,
         );
-        $response = $this->publicMixGetV2MixMarketCurrentFundRate ($this->extend($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1700811542124,
-        //         "data" => array(
-        //             {
-        //                 "symbol" => "BTCUSDT",
-        //                 "fundingRate" => "0.000106"
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+        $response = null;
+        if ($method === 'publicMixGetV2MixMarketCurrentFundRate') {
+            $response = $this->publicMixGetV2MixMarketCurrentFundRate ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1700811542124,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "fundingRate" => "0.000106"
+            //             }
+            //         )
+            //     }
+            //
+        } elseif ($method === 'publicMixGetV2MixMarketFundingTime') {
+            $response = $this->publicMixGetV2MixMarketFundingTime ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1745402092428,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "nextFundingTime" => "1745424000000",
+            //                 "ratePeriod" => "8"
+            //             }
+            //         )
+            //     }
+            //
+        }
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rate($data[0], $market);
     }
 
@@ -6826,12 +6852,15 @@ class bitget extends Exchange {
 
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
-        // fetchFundingRate
+        // fetchFundingRate => publicMixGetV2MixMarketCurrentFundRate
         //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "fundingRate" => "-0.000182"
         //     }
+        //
+        // fetchFundingRate => publicMixGetV2MixMarketFundingTime
+        //
         //
         // fetchFundingInterval
         //
@@ -6840,7 +6869,9 @@ class bitget extends Exchange {
         //         "nextFundingTime" => "1727942400000",
         //         "ratePeriod" => "8"
         //     }
+        //
         // fetchFundingRates
+        //
         //     {
         //         "symbol" => "BTCUSD",
         //         "lastPr" => "29904.5",
@@ -6866,6 +6897,7 @@ class bitget extends Exchange {
         //         "open24h" => "0",
         //         "markPrice" => "12345"
         //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
