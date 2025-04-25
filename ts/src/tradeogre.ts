@@ -21,7 +21,7 @@ export default class tradeogre extends Exchange {
             'countries': [ ],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
