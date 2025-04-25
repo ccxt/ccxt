@@ -732,7 +732,7 @@ class bitmex extends bitmex$1 {
         const isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         const linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString(market, 'state');
-        const active = status !== 'Unlisted';
+        const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry = undefined;
         let expiryDatetime = undefined;
         let symbol = undefined;
@@ -749,9 +749,9 @@ class bitmex extends bitmex$1 {
                 const multiplierString = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
                 contractSize = this.parseNumber(multiplierString);
             }
-            if (future) {
-                expiryDatetime = this.safeString(market, 'expiry');
-                expiry = this.parse8601(expiryDatetime);
+            expiryDatetime = this.safeString(market, 'expiry');
+            expiry = this.parse8601(expiryDatetime);
+            if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
         }
