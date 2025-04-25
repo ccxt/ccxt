@@ -1,6 +1,7 @@
 namespace ccxt;
 
 using System.Globalization;
+using Newtonsoft.Json;
 
 using dict = IDictionary<string, object>;
 using list = List<object>;
@@ -87,23 +88,54 @@ public partial class Exchange
         return Extend(aa, bb);
     }
 
+
+    public static bool UseDeepCloningForExtend = true;
+
     public static Dictionary<string, object> Extend(object aa, object bb = null)
     {
-
         var a = (dict)aa;
         var outDict = new Dictionary<string, object>();
         var keysA = new List<string>(a.Keys);
-        foreach (string key in keysA)
-            outDict[(string)key] = a[key];
+        foreach (string key in keysA) {
+            var value = a[key];
+            if (!UseDeepCloningForExtend || value is null || value is string || value is decimal || value.GetType().IsValueType) {
+                outDict[(string)key] = value;
+            } else {
+                outDict[(string)key] = JsonClone(value);
+            }
+        }
 
         if (bb != null)
         {
             var b = (dict)bb;
             var keysB = new List<string>(b.Keys);
-            foreach (string key in keysB)
-                outDict[(string)key] = b[key];
+            foreach (string key in keysB){
+                var value = b[key];
+                if (!UseDeepCloningForExtend || value is null || value is string || value is decimal || value.GetType().IsValueType) {
+                    outDict[(string)key] = value;
+                } else {
+                    outDict[(string)key] = JsonClone(value);
+                }
+            }
         }
         return outDict;
+    }
+
+
+    // deep cloning using Newtonsoft
+    private static object JsonClone(object obj)
+    {
+        if (obj == null)
+            return null;
+
+        var settings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.All,
+            ObjectCreationHandling = ObjectCreationHandling.Replace
+        };
+        
+        string json = JsonConvert.SerializeObject(obj, settings);
+        return JsonConvert.DeserializeObject(json, obj.GetType(), settings);
     }
 
     public object deepExtend2(params object[] objs)
