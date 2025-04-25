@@ -182,25 +182,26 @@ export default class tradeogre extends tradeogreRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        } else {
-            const length = symbols.length;
-            if (length === 0) {
-                symbols = this.symbols;
+        const messageHashes = [];
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const messageHash = 'trades:' + symbol;
+                messageHashes.push (messageHash);
             }
+        } else {
+            const messageHash = 'trades';
+            messageHashes.push (messageHash);
         }
         const request: Dict = {
             'a': 'subscribe',
             'e': 'trade',
             't': '*',
         };
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const messageHash = 'trades:' + symbol;
-            messageHashes.push (messageHash);
-        }
         const url = this.urls['api']['ws'];
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ 'trades' ]);
         if (this.newUpdates) {
