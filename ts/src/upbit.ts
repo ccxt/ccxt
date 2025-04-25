@@ -1252,7 +1252,7 @@ export default class upbit extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
+        params = this.omit (params, [ 'clientOrderId', 'identifier', 'cost' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
