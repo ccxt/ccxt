@@ -256,8 +256,6 @@ public partial class upbit : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchTickersMaxLength", 4096 },
-                { "fetchOrderBooksMaxLength", 4096 },
                 { "tradingFeesByQuoteCurrency", new Dictionary<string, object>() {
                     { "KRW", 0.0005 },
                 } },
@@ -643,12 +641,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchOrderBooksMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols ("), ((object)getArrayLength(ids)).ToString()), " characters) exceeding max URL length ("), ((object)getValue(this.options, "fetchOrderBooksMaxLength")).ToString()), " characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
