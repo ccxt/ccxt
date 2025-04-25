@@ -275,8 +275,6 @@ class upbit(Exchange, ImplicitAPI):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchTickersMaxLength': 4096,  # 2048,
-                'fetchOrderBooksMaxLength': 4096,  # 2048,
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -624,10 +622,6 @@ class upbit(Exchange, ImplicitAPI):
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchOrderBooksMaxLength']:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols(' + str(len(ids)) + ' characters) exceeding max URL length(' + str(self.options['fetchOrderBooksMaxLength']) + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -764,11 +758,6 @@ class upbit(Exchange, ImplicitAPI):
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)
-            #  # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            # if len(ids) > self.options['fetchTickersMaxLength']:
-            #     numIds = len(self.ids)
-            #     raise ExchangeError(self.id + ' fetchTickers() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
-            # }
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
