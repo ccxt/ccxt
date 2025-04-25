@@ -239,6 +239,7 @@ export default class tradeogre extends tradeogreRest {
         cache.append (trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (cache, messageHash);
+        client.resolve (cache, 'trades');
     }
 
     parseWsTrade (trade, market = undefined) {
