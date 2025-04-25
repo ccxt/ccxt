@@ -1,0 +1,79 @@
+{
+    "exchange": "apex",
+    "skipKeys": ["signature", "clientId", "expiration"],
+    "disabledPy": true,
+    "disabledPHP": true,
+    "disabledCS": true,
+    "disabledGO": true,
+    "outputType": "both",
+    "options": {
+        "seeds": "0xa404dd69766d282ded6f4aded884044049ef727df94d9d42d0e92d424a87e72444d46462d2f9444efe427442fed47d42f2de774ed92dd4d42e74d7a7404d087e2d",
+        "accountId": "495274990579220581"
+    },
+    "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://omni.apex.exchange/api/v3/account",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "swap reduceOnly order",
+                "method": "createOrder",
+                "url": "https://omni.apex.exchange/api/v3/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    78,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "brokerId=6956&clientId=apexomni-695274990579220590-1744628886130-231172&expiration=1747220885&limitFee=0.01&price=78&reduceOnly=true&side=SELL&signature=1d1ede80d6d9b116f12437f2cb262ced3ed0a22067cd2ffe3ba9672cb4d02317ceeaaf42e53c91b1bfa7701a08dde79189865a7aaf063c4f216eedf952f74803&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+            },
+            {
+                "description": "swap market sell order",
+                "method": "createOrder",
+                "url": "https://omni.apex.exchange/api/v3/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    70
+                ],
+                "output": "brokerId=6956&clientId=apexomni-346629571951-1744293408391-603638&expiration=1746885408&limitFee=0.01&price=70&side=SELL&signature=ea9690ccc9c1bb9cb9987e4e4cf2f8e71ba16895db3281bb9eb0defd3d4cc11acf67968a95464be9baa7249b30a32ab840882c67d33d35fcbdad9ba174da2400&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+            },
+            {
+                "description": "swap market buy order",
+                "method": "createOrder",
+                "url": "https://omni.apex.exchange/api/v3/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    70
+                ],
+                "output": "brokerId=6956&clientId=apexomni-767005595056-1744293058826-220684&expiration=1746885058&limitFee=0.01&price=70&side=BUY&signature=caf585e3060eb6f9faaa36314eb27a6d838172dd6011c2172fed22f569d01a0bfd1c9f0038a0495d5699cab8d6ebe3ef1f33e0c68d63d79e2386e8807113dd03&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://omni.apex.exchange/api/v3/trades?symbol=BTCUSDT&limit=500",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ]
+  }
+}

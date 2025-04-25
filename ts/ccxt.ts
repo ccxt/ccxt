@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.75';
+const version = '4.4.77';
 
 (Exchange as any).ccxtVersion = version
 
@@ -48,6 +48,7 @@ const version = '4.4.75';
 
 import ace from  './src/ace.js'
 import alpaca from  './src/alpaca.js'
+import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
@@ -157,6 +158,7 @@ import zonda from  './src/zonda.js'
 
 // pro exchanges
 import alpacaPro from  './src/pro/alpaca.js'
+import apexPro from  './src/pro/apex.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
@@ -230,6 +232,7 @@ import xtPro from  './src/pro/xt.js'
 const exchanges = {
     'ace':                    ace,
     'alpaca':                 alpaca,
+    'apex':                   apex,
     'ascendex':               ascendex,
     'bequant':                bequant,
     'bigone':                 bigone,
@@ -339,6 +342,7 @@ const exchanges = {
 
 const pro = {
     'alpaca':                 alpacaPro,
+    'apex':                   apexPro,
     'ascendex':               ascendexPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
@@ -553,6 +557,7 @@ export {
     LeverageTiers,
     ace,
     alpaca,
+    apex,
     ascendex,
     bequant,
     bigone,

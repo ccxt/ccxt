@@ -375,6 +375,7 @@ export default class okx extends Exchange {
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
                         'account/subaccount/interest-limits': 4,
+                        'users/subaccount/apikey': 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
@@ -507,6 +508,9 @@ export default class okx extends Exchange {
                         'asset/subaccount/transfer': 10,
                         'users/subaccount/set-transfer-out': 10,
                         'account/subaccount/set-loan-allocation': 4,
+                        'users/subaccount/create-subaccount': 10,
+                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/delete-apikey': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
@@ -917,6 +921,11 @@ export default class okx extends Exchange {
                     '59506': ExchangeError,
                     '59507': ExchangeError,
                     '59508': AccountSuspended,
+                    '59515': ExchangeError,
+                    '59516': ExchangeError,
+                    '59517': ExchangeError,
+                    '59518': ExchangeError,
+                    '59519': ExchangeError,
                     '59642': BadRequest,
                     '59643': ExchangeError,
                     // WebSocket error Codes from 60000-63999
@@ -1599,8 +1608,8 @@ export default class okx extends Exchange {
         const swap = (type === 'swap');
         const option = (type === 'option');
         const contract = swap || future || option;
-        let baseId = this.safeString(market, 'baseCcy');
-        let quoteId = this.safeString(market, 'quoteCcy');
+        let baseId = this.safeString(market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
+        let quoteId = this.safeString(market, 'quoteCcy', '');
         const settleId = this.safeString(market, 'settleCcy');
         const settle = this.safeCurrencyCode(settleId);
         const underlying = this.safeString(market, 'uly');
@@ -1616,19 +1625,25 @@ export default class okx extends Exchange {
         let strikePrice = undefined;
         let optionType = undefined;
         if (contract) {
-            symbol = symbol + ':' + settle;
+            if (settle !== undefined) {
+                symbol = symbol + ':' + settle;
+            }
             if (future) {
                 expiry = this.safeInteger(market, 'expTime');
-                const ymd = this.yymmdd(expiry);
-                symbol = symbol + '-' + ymd;
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd(expiry);
+                    symbol = symbol + '-' + ymd;
+                }
             }
             else if (option) {
                 expiry = this.safeInteger(market, 'expTime');
                 strikePrice = this.safeString(market, 'stk');
                 optionType = this.safeString(market, 'optType');
-                const ymd = this.yymmdd(expiry);
-                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
-                optionType = (optionType === 'P') ? 'put' : 'call';
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd(expiry);
+                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
+                    optionType = (optionType === 'P') ? 'put' : 'call';
+                }
             }
         }
         const tickSize = this.safeString(market, 'tickSz');

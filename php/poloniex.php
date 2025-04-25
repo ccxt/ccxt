@@ -1869,7 +1869,7 @@ class poloniex extends Exchange {
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         $response = null;
-        if (!$market['spot']) {
+        if ($marketType !== 'spot') {
             $raw = $this->swapPrivateGetV3TradeOrderOpens ($this->extend($request, $params));
             //
             //    {

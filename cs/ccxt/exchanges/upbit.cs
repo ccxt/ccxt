@@ -12,7 +12,7 @@ public partial class upbit : Exchange
             { "name", "Upbit" },
             { "countries", new List<object>() {"KR"} },
             { "version", "v1" },
-            { "rateLimit", 1000 },
+            { "rateLimit", 50 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
@@ -58,7 +58,7 @@ public partial class upbit : Exchange
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
-                { "fetchTradingFees", false },
+                { "fetchTradingFees", true },
                 { "fetchTransactions", false },
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
@@ -93,12 +93,67 @@ public partial class upbit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/seconds", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "candles/years", "trades/ticks", "ticker", "ticker/all", "orderbook", "orderbook/supported_levels"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "market/all", 2 },
+                        { "candles/{timeframe}", 2 },
+                        { "candles/{timeframe}/{unit}", 2 },
+                        { "candles/seconds", 2 },
+                        { "candles/minutes/{unit}", 2 },
+                        { "candles/minutes/1", 2 },
+                        { "candles/minutes/3", 2 },
+                        { "candles/minutes/5", 2 },
+                        { "candles/minutes/10", 2 },
+                        { "candles/minutes/15", 2 },
+                        { "candles/minutes/30", 2 },
+                        { "candles/minutes/60", 2 },
+                        { "candles/minutes/240", 2 },
+                        { "candles/days", 2 },
+                        { "candles/weeks", 2 },
+                        { "candles/months", 2 },
+                        { "candles/years", 2 },
+                        { "trades/ticks", 2 },
+                        { "ticker", 2 },
+                        { "ticker/all", 2 },
+                        { "orderbook", 2 },
+                        { "orderbook/supported_levels", 2 },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders/closed", "orders/open", "orders/uuids", "withdraws", "withdraw", "withdraws/chance", "withdraws/coin_addresses", "deposits", "deposits/chance/coin", "deposit", "deposits/coin_addresses", "deposits/coin_address", "travel_rule/vasps", "status/wallet", "api_keys"} },
-                    { "post", new List<object>() {"orders", "orders/cancel_and_new", "withdraws/coin", "withdraws/krw", "deposits/krw", "deposits/generate_coin_address", "travel_rule/deposit/uuid", "travel_rule/deposit/txid"} },
-                    { "delete", new List<object>() {"order", "orders/open", "orders/uuids"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "accounts", 0.67 },
+                        { "orders/chance", 0.67 },
+                        { "order", 0.67 },
+                        { "orders/closed", 0.67 },
+                        { "orders/open", 0.67 },
+                        { "orders/uuids", 0.67 },
+                        { "withdraws", 0.67 },
+                        { "withdraw", 0.67 },
+                        { "withdraws/chance", 0.67 },
+                        { "withdraws/coin_addresses", 0.67 },
+                        { "deposits", 0.67 },
+                        { "deposits/chance/coin", 0.67 },
+                        { "deposit", 0.67 },
+                        { "deposits/coin_addresses", 0.67 },
+                        { "deposits/coin_address", 0.67 },
+                        { "travel_rule/vasps", 0.67 },
+                        { "status/wallet", 0.67 },
+                        { "api_keys", 0.67 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", 2.5 },
+                        { "orders/cancel_and_new", 2.5 },
+                        { "withdraws/coin", 0.67 },
+                        { "withdraws/krw", 0.67 },
+                        { "deposits/krw", 0.67 },
+                        { "deposits/generate_coin_address", 0.67 },
+                        { "travel_rule/deposit/uuid", 0.67 },
+                        { "travel_rule/deposit/txid", 0.67 },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "order", 0.67 },
+                        { "orders/open", 40 },
+                        { "orders/uuids", 0.67 },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -201,8 +256,6 @@ public partial class upbit : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchTickersMaxLength", 4096 },
-                { "fetchOrderBooksMaxLength", 4096 },
                 { "tradingFeesByQuoteCurrency", new Dictionary<string, object>() {
                     { "KRW", 0.0005 },
                 } },
@@ -588,12 +641,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchOrderBooksMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols ("), ((object)getArrayLength(ids)).ToString()), " characters) exceeding max URL length ("), ((object)getValue(this.options, "fetchOrderBooksMaxLength")).ToString()), " characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
@@ -743,12 +790,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchTickersMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(this.id, " fetchTickers() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
@@ -1005,6 +1046,33 @@ public partial class upbit : Exchange
             { "percentage", true },
             { "tierBased", false },
         };
+    }
+
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fetchMarketResponse = await this.fetchMarkets(parameters);
+        object response = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fetchMarketResponse)); postFixIncrement(ref i))
+        {
+            object element = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)element)["maker"] = this.safeNumber(getValue(fetchMarketResponse, i), "maker");
+            ((IDictionary<string,object>)element)["taker"] = this.safeNumber(getValue(fetchMarketResponse, i), "taker");
+            ((IDictionary<string,object>)element)["symbol"] = this.safeString(getValue(fetchMarketResponse, i), "symbol");
+            ((IDictionary<string,object>)element)["percentage"] = true;
+            ((IDictionary<string,object>)element)["tierBased"] = false;
+            ((IDictionary<string,object>)element)["info"] = getValue(fetchMarketResponse, i);
+            ((IDictionary<string,object>)response)[(string)this.safeString(getValue(fetchMarketResponse, i), "symbol")] = element;
+        }
+        return response;
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

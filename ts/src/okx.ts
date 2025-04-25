@@ -374,6 +374,7 @@ export default class okx extends Exchange {
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
                         'account/subaccount/interest-limits': 4,
+                        'users/subaccount/apikey': 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
@@ -506,6 +507,9 @@ export default class okx extends Exchange {
                         'asset/subaccount/transfer': 10,
                         'users/subaccount/set-transfer-out': 10,
                         'account/subaccount/set-loan-allocation': 4,
+                        'users/subaccount/create-subaccount': 10,
+                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/delete-apikey': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
@@ -916,6 +920,11 @@ export default class okx extends Exchange {
                     '59506': ExchangeError, // APIKey does not exist
                     '59507': ExchangeError, // The two accounts involved in a transfer must be two different sub accounts under the same parent account
                     '59508': AccountSuspended, // The sub account of {0} is suspended
+                    '59515': ExchangeError, // You are currently not on the custody whitelist. Please contact customer service for assistance.
+                    '59516': ExchangeError, // Please create the Copper custody funding account first.
+                    '59517': ExchangeError, // Please create the Komainu custody funding account first.
+                    '59518': ExchangeError, // You can’t create a sub-account using the API; please use the app or web.
+                    '59519': ExchangeError, // You can’t use this function/feature while it's frozen, due to: {freezereason}
                     '59642': BadRequest, // Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643': ExchangeError, // Couldn’t switch account modes as you’re currently copying spot trades
                     // WebSocket error Codes from 60000-63999
@@ -1604,8 +1613,8 @@ export default class okx extends Exchange {
         const swap = (type === 'swap');
         const option = (type === 'option');
         const contract = swap || future || option;
-        let baseId = this.safeString (market, 'baseCcy');
-        let quoteId = this.safeString (market, 'quoteCcy');
+        let baseId = this.safeString (market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
+        let quoteId = this.safeString (market, 'quoteCcy', '');
         const settleId = this.safeString (market, 'settleCcy');
         const settle = this.safeCurrencyCode (settleId);
         const underlying = this.safeString (market, 'uly');
@@ -1621,18 +1630,24 @@ export default class okx extends Exchange {
         let strikePrice = undefined;
         let optionType = undefined;
         if (contract) {
-            symbol = symbol + ':' + settle;
+            if (settle !== undefined) {
+                symbol = symbol + ':' + settle;
+            }
             if (future) {
                 expiry = this.safeInteger (market, 'expTime');
-                const ymd = this.yymmdd (expiry);
-                symbol = symbol + '-' + ymd;
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd (expiry);
+                    symbol = symbol + '-' + ymd;
+                }
             } else if (option) {
                 expiry = this.safeInteger (market, 'expTime');
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
-                const ymd = this.yymmdd (expiry);
-                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
-                optionType = (optionType === 'P') ? 'put' : 'call';
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd (expiry);
+                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
+                    optionType = (optionType === 'P') ? 'put' : 'call';
+                }
             }
         }
         const tickSize = this.safeString (market, 'tickSz');

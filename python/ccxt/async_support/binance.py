@@ -44,7 +44,7 @@ class binance(Exchange, ImplicitAPI):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': ['JP', 'MT'],  # Japan, Malta
+            'countries': [],  # Japan
             'rateLimit': 50,
             'certified': True,
             'pro': True,

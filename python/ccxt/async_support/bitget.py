@@ -1425,6 +1425,9 @@ class bitget(Exchange, ImplicitAPI):
                         'method': 'publicMixGetV2MixMarketFillsHistory',  # or publicMixGetV2MixMarketFills
                     },
                 },
+                'fetchFundingRate': {
+                    'method': 'publicMixGetV2MixMarketCurrentFundRate',  # or publicMixGetV2MixMarketFundingTime
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'cross': 'crossed_margin',
@@ -3219,7 +3222,7 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 request['businessType'] = 'spot'
         else:
-            request['businessType'] = 'contract'
+            request['businessType'] = 'mix'
         response = await self.privateCommonGetV2CommonTradeRate(self.extend(request, params))
         #
         #     {
@@ -6444,9 +6447,11 @@ class bitget(Exchange, ImplicitAPI):
         fetch the current funding rate
 
         https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+        https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either(default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
@@ -6459,21 +6464,45 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'productType': productType,
         }
-        response = await self.publicMixGetV2MixMarketCurrentFundRate(self.extend(request, params))
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700811542124,
-        #         "data": [
-        #             {
-        #                 "symbol": "BTCUSDT",
-        #                 "fundingRate": "0.000106"
-        #             }
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate')
+        response = None
+        if method == 'publicMixGetV2MixMarketCurrentFundRate':
+            response = await self.publicMixGetV2MixMarketCurrentFundRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1745500709429,
+            #         "data": [
+            #             {
+            #                 "symbol": "BTCUSDT",
+            #                 "fundingRate": "-0.000013",
+            #                 "fundingRateInterval": "8",
+            #                 "nextUpdate": "1745510400000",
+            #                 "minFundingRate": "-0.003",
+            #                 "maxFundingRate": "0.003"
+            #             }
+            #         ]
+            #     }
+            #
+        elif method == 'publicMixGetV2MixMarketFundingTime':
+            response = await self.publicMixGetV2MixMarketFundingTime(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1745402092428,
+            #         "data": [
+            #             {
+            #                 "symbol": "BTCUSDT",
+            #                 "nextFundingTime": "1745424000000",
+            #                 "ratePeriod": "8"
+            #             }
+            #         ]
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate(data[0], market)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -6536,11 +6565,23 @@ class bitget(Exchange, ImplicitAPI):
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
-        # fetchFundingRate
+        # fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "fundingRate": "-0.000182"
+        #         "fundingRate": "-0.000013",
+        #         "fundingRateInterval": "8",
+        #         "nextUpdate": "1745510400000",
+        #         "minFundingRate": "-0.003",
+        #         "maxFundingRate": "0.003"
+        #     }
+        #
+        # fetchFundingRate: publicMixGetV2MixMarketFundingTime
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "nextFundingTime": "1745424000000",
+        #         "ratePeriod": "8"
         #     }
         #
         # fetchFundingInterval
@@ -6550,7 +6591,9 @@ class bitget(Exchange, ImplicitAPI):
         #         "nextFundingTime": "1727942400000",
         #         "ratePeriod": "8"
         #     }
+        #
         # fetchFundingRates
+        #
         #     {
         #         "symbol": "BTCUSD",
         #         "lastPr": "29904.5",
@@ -6576,10 +6619,11 @@ class bitget(Exchange, ImplicitAPI):
         #         "open24h": "0",
         #         "markPrice": "12345"
         #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
-        fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
-        interval = self.safe_string(contract, 'ratePeriod')
+        fundingTimestamp = self.safe_integer_2(contract, 'nextFundingTime', 'nextUpdate')
+        interval = self.safe_string_2(contract, 'ratePeriod', 'fundingRateInterval')
         timestamp = self.safe_integer(contract, 'ts')
         markPrice = self.safe_number(contract, 'markPrice')
         indexPrice = self.safe_number(contract, 'indexPrice')

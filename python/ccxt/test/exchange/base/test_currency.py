@@ -28,9 +28,8 @@ def test_currency(exchange, skipped_properties, method, entry):
     if is_native:
         format['info'] = {}
         # todo: 'name': 'Bitcoin', # uppercase string, base currency, 2 or more letters
-        # these two fields are being dynamically added a bit below
-        # format['withdraw'] = true; # withdraw enabled
-        # format['deposit'] = true; # deposit enabled
+        format['withdraw'] = True  # withdraw enabled
+        format['deposit'] = True  # deposit enabled
         format['precision'] = exchange.parse_number('0.0001')  # in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         format['fee'] = exchange.parse_number('0.001')
         format['networks'] = {}
@@ -44,14 +43,15 @@ def test_currency(exchange, skipped_properties, method, entry):
                 'max': exchange.parse_number('1000'),
             },
         }
-        # todo: format['type'] = 'fiat|crypto'; # after all exchanges have `type` defined, romove "if" check
-        if currency_type is not None:
-            test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['fiat', 'crypto', 'leveraged', 'other'])
+        format['type'] = 'crypto'  # crypto, fiat, leverage, other
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['fiat', 'crypto', 'leveraged', 'other', None])  # todo: remove undefined
         # only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if currency_type == 'crypto' or not ('depositForNonCrypto' in skipped_properties):
-            format['deposit'] = True
-        if currency_type == 'crypto' or not ('withdrawForNonCrypto' in skipped_properties):
-            format['withdraw'] = True
+        if currency_type != 'crypto' and ('depositForNonCrypto' in skipped_properties):
+            empty_allowed_for.append('deposit')
+        if currency_type != 'crypto' and ('withdrawForNonCrypto' in skipped_properties):
+            empty_allowed_for.append('withdraw')
+        if currency_type == 'leveraged' or currency_type == 'other':
+            empty_allowed_for.append('precision')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['code'])
     #

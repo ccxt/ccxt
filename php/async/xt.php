@@ -51,7 +51,7 @@ class xt extends Exchange {
                 'createOrder' => true,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -238,6 +238,9 @@ class xt extends Exchange {
                             'open-order' => 1,
                             'order/{orderId}' => 1,
                         ),
+                        'put' => array(
+                            'order/{orderId}' => 1,
+                        ),
                     ),
                     'linear' => array(
                         'get' => array(
@@ -272,6 +275,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/cancel-all' => 1,
                             'future/trade/v1/order/create' => 1,
                             'future/trade/v1/order/create-batch' => 1,
+                            'future/trade/v1/order/update' => 1,
                             'future/user/v1/account/open' => 1,
                             'future/user/v1/position/adjust-leverage' => 1,
                             'future/user/v1/position/auto-margin' => 1,
@@ -315,6 +319,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/cancel-all' => 1,
                             'future/trade/v1/order/create' => 1,
                             'future/trade/v1/order/create-batch' => 1,
+                            'future/trade/v1/order/update' => 1,
                             'future/user/v1/account/open' => 1,
                             'future/user/v1/position/adjust-leverage' => 1,
                             'future/user/v1/position/auto-margin' => 1,
@@ -3526,7 +3531,7 @@ class xt extends Exchange {
         //         "cancelId" => "208322474307982720"
         //     }
         //
-        // swap and future => createOrder, cancelOrder
+        // swap and future => createOrder, cancelOrder, editOrder
         //
         //     {
         //         "returnCode" => 0,
@@ -3631,6 +3636,14 @@ class xt extends Exchange {
         //         "createdTime" => 1681273420039
         //     }
         //
+        // spot editOrder
+        //
+        //     {
+        //         "orderId" => "484203027161892224",
+        //         "modifyId" => "484203544105344000",
+        //         "clientModifyId" => null
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('result', $order)) || (is_array($order) && array_key_exists('positionSide', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -3644,7 +3657,7 @@ class xt extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
-            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'clientOrderId' => $this->safe_string_2($order, 'clientOrderId', 'clientModifyId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastUpdatedTimestamp,
@@ -4983,6 +4996,104 @@ class xt extends Exchange {
         }) ();
     }
 
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * cancels an order and places a new order
+             *
+             * @see https://doc.xt.com/#orderorderUpdate
+             * @see https://doc.xt.com/#futures_orderupdate
+             * @see https://doc.xt.com/#futures_entrustupdateProfit
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
+             * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array();
+            $stopLoss = $this->safe_number_2($params, 'stopLoss', 'triggerStopPrice');
+            $takeProfit = $this->safe_number_2($params, 'takeProfit', 'triggerProfitPrice');
+            $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
+            $isStopLoss = ($stopLoss !== null);
+            $isTakeProfit = ($takeProfit !== null);
+            if ($isStopLoss || $isTakeProfit) {
+                $request['profitId'] = $id;
+            } else {
+                $request['orderId'] = $id;
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = null;
+            if ($market['swap']) {
+                if ($isStopLoss) {
+                    $request['triggerStopPrice'] = $this->price_to_precision($symbol, $stopLoss);
+                } elseif ($takeProfit !== null) {
+                    $request['triggerProfitPrice'] = $this->price_to_precision($symbol, $takeProfit);
+                } else {
+                    $request['origQty'] = $this->amount_to_precision($symbol, $amount);
+                }
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('editOrder', $market, $params);
+                if ($subType === 'inverse') {
+                    if ($isStopLoss || $isTakeProfit) {
+                        $response = Async\await($this->privateInversePostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateInversePostFutureTradeV1OrderUpdate ($this->extend($request, $params)));
+                        //
+                        //     {
+                        //         "returnCode" => 0,
+                        //         "msgInfo" => "success",
+                        //         "error" => null,
+                        //         "result" => "483869474947826752"
+                        //     }
+                        //
+                    }
+                } else {
+                    if ($isStopLoss || $isTakeProfit) {
+                        $response = Async\await($this->privateLinearPostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateLinearPostFutureTradeV1OrderUpdate ($this->extend($request, $params)));
+                        //
+                        //     {
+                        //         "returnCode" => 0,
+                        //         "msgInfo" => "success",
+                        //         "error" => null,
+                        //         "result" => "483869474947826752"
+                        //     }
+                        //
+                    }
+                }
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $response = Async\await($this->privateSpotPutOrderOrderId ($this->extend($request, $params)));
+                //
+                //     {
+                //         "rc" => 0,
+                //         "mc" => "SUCCESS",
+                //         "ma" => array(),
+                //         "result" => {
+                //             "orderId" => "484203027161892224",
+                //             "modifyId" => "484203544105344000",
+                //             "clientModifyId" => null
+                //         }
+                //     }
+                //
+            }
+            $result = ($market['swap']) ? $response : $this->safe_dict($response, 'result', array());
+            return $this->parse_order($result, $market);
+        }) ();
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         // spot => $error
@@ -5086,6 +5197,9 @@ class xt extends Exchange {
                 }
             }
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}') || ($path === 'ws-token'));
+            if (($method === 'PUT') && ($endpoint === 'spot')) {
+                $isUndefinedBody = false;
+            }
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
             if (($endpoint === 'spot') || ($endpoint === 'user')) {

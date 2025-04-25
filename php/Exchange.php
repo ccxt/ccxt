@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.75';
+$version = '4.4.77';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.75';
+    const VERSION = '4.4.77';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -339,6 +339,7 @@ class Exchange {
     public static $exchanges = array(
         'ace',
         'alpaca',
+        'apex',
         'ascendex',
         'bequant',
         'bigone',
@@ -2221,6 +2222,16 @@ class Exchange {
 
     public function binary_length($binary) {
         return strlen($binary);
+    }
+
+    public function get_zk_contract_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support create order in PHP language');
+         return "";
+    }
+
+    public function get_zk_transfer_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+         return "";
     }
 
     // ########################################################################
