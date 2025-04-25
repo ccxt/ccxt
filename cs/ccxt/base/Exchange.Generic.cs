@@ -101,7 +101,7 @@ public partial class Exchange
             if (!UseDeepCloningForExtend || value is null || value is string || value is decimal || value.GetType().IsValueType) {
                 outDict[(string)key] = value;
             } else {
-                outDict[(string)key] = JsonClone(value);
+                outDict[(string)key] = CustomClone(value);
             }
         }
 
@@ -114,7 +114,7 @@ public partial class Exchange
                 if (!UseDeepCloningForExtend || value is null || value is string || value is decimal || value.GetType().IsValueType) {
                     outDict[(string)key] = value;
                 } else {
-                    outDict[(string)key] = JsonClone(value);
+                    outDict[(string)key] = CustomClone(value);
                 }
             }
         }
@@ -123,7 +123,7 @@ public partial class Exchange
 
 
     // deep cloning using Newtonsoft
-    private static object JsonClone(object obj)
+    private static object CustomClone(object obj)
     {
         if (obj == null)
             return null;
@@ -133,9 +133,27 @@ public partial class Exchange
             TypeNameHandling = TypeNameHandling.All,
             ObjectCreationHandling = ObjectCreationHandling.Replace
         };
+
+        System.Reflection.MethodInfo copyMethod = obj.GetType().GetMethod("Copy");
+        if (copyMethod != null)
+        {
+            return copyMethod.Invoke(obj, null);
+        }
         
-        string json = JsonConvert.SerializeObject(obj, settings);
-        return JsonConvert.DeserializeObject(json, obj.GetType(), settings);
+        try {
+           string json = JsonConvert.SerializeObject(obj, settings);
+           return JsonConvert.DeserializeObject(json, obj.GetType(), settings);
+        }
+        catch (Exception ex)
+        {
+            // this exception happens mostly for custom types, e.g. IndexedBids
+            // var method = obj.GetType().GetMethod("Copy");
+            // if (method != null) {
+            //     return method.Invoke(obj, null);
+            // } else {
+                return obj; // atm, return original object (todo fix)
+            // }
+        }
     }
 
     public object deepExtend2(params object[] objs)
