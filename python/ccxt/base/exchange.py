@@ -89,6 +89,7 @@ import gzip
 import hashlib
 import hmac
 import io
+import copy
 
 # load orjson if available, otherwise default to json
 orjson = None
@@ -904,13 +905,12 @@ class Exchange(object):
     @staticmethod
     def extend(*args):
         if args is not None:
-            result = None
             if type(args[0]) is collections.OrderedDict:
                 result = collections.OrderedDict()
             else:
                 result = {}
             for arg in args:
-                result.update(arg)
+                result.update(copy.deepcopy(arg))
             return result
         return {}
 
