@@ -8,7 +8,7 @@ import Exchange from '../../abstract/ace.js';
 function testExtend () {
 
     const exchange = new ccxt.Exchange ({
-        'id': 'regirock',
+        'id': 'example',
     });
 
     const obj1 = {
@@ -60,7 +60,7 @@ function testExtend () {
 function testMutation () {
     // extend should not mutate the initial dicts
     const exchange = new ccxt.Exchange ({
-        'id': 'regirock',
+        'id': 'example',
     });
     const first = {
         'a': 1
@@ -88,7 +88,7 @@ function testMutation () {
 function testMutationComplex () {
     // extend should not mutate the initial dicts
     const exchange = new ccxt.Exchange ({
-        'id': 'regirock',
+        'id': 'example',
     });
     const first = {
         'info': {
