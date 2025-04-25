@@ -872,6 +872,13 @@
             }
         }
     },
+    "defx": {
+        "skipMethods": {
+            "ohlcv": {
+                "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
+            }
+        }
+    },
     "delta": {
         "skipCSharp": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301 https://app.travis-ci.com/github/ccxt/ccxt/builds/269533613#L3622",
         "skipMethods": {
