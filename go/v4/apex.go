@@ -263,6 +263,7 @@ func  (this *apex) Describe() interface{}  {
                 },
                 "fetchOpenOrders": map[string]interface{} {
                     "marginMode": false,
+                    "limit": nil,
                     "trigger": false,
                     "trailing": false,
                     "symbolRequired": false,
@@ -366,8 +367,8 @@ func  (this *apex) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3558 := (<-this.LoadMarkets())
-            PanicOnError(retRes3558)
+            retRes3568 := (<-this.LoadMarkets())
+            PanicOnError(retRes3568)
         
             response:= (<-this.PrivateGetV3AccountBalance(params))
             PanicOnError(response)
@@ -404,8 +405,8 @@ func  (this *apex) FetchAccount(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3808 := (<-this.LoadMarkets())
-            PanicOnError(retRes3808)
+            retRes3818 := (<-this.LoadMarkets())
+            PanicOnError(retRes3818)
         
             response:= (<-this.PrivateGetV3Account(params))
             PanicOnError(response)
@@ -586,6 +587,7 @@ func  (this *apex) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
             "info": currency,
             "code": code,
             "id": currencyId,
+            "type": "crypto",
             "name": name,
             "active": IsTrue(deposit) && IsTrue(withdraw),
             "deposit": deposit,
@@ -791,8 +793,6 @@ func  (this *apex) ParseTicker(ticker interface{}, optionalArgs ...interface{}) 
     var symbol interface{} = this.SafeSymbol(marketId, market)
     var last interface{} = this.SafeString(ticker, "lastPrice")
     var percentage interface{} = this.SafeString(ticker, "price24hPcnt")
-    var percent interface{} = Precise.StringMul(percentage, "100")
-    var open interface{} = Precise.StringDiv(last, Precise.StringMul("1", percentage), 8)
     var quoteVolume interface{} = this.SafeString(ticker, "turnover24h")
     var baseVolume interface{} = this.SafeString(ticker, "volume24h")
     var high interface{} = this.SafeString(ticker, "highPrice24h")
@@ -808,12 +808,12 @@ func  (this *apex) ParseTicker(ticker interface{}, optionalArgs ...interface{}) 
         "ask": nil,
         "askVolume": nil,
         "vwap": nil,
-        "open": open,
+        "open": nil,
         "close": last,
         "last": last,
         "previousClose": nil,
         "change": nil,
-        "percentage": percent,
+        "percentage": percentage,
         "average": nil,
         "baseVolume": baseVolume,
         "quoteVolume": quoteVolume,
