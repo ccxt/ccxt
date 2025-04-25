@@ -53,8 +53,10 @@ function testExtend () {
     // tbfeCheckExtended (extended, true);
     // todo !
     // tbfeCheckExtended (deepExtended["sub"], false);
+    assert ('GO_SKIP_START');
     testMutation ();
     testMutationComplex ();
+    assert ('GO_SKIP_END');
 }
 
 function testMutation () {
