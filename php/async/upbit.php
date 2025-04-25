@@ -270,8 +270,6 @@ class upbit extends Exchange {
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchTickersMaxLength' => 4096, // 2048,
-                'fetchOrderBooksMaxLength' => 4096, // 2048,
                 'tradingFeesByQuoteCurrency' => array(
                     'KRW' => 0.0005,
                 ),
@@ -644,11 +642,6 @@ class upbit extends Exchange {
             $ids = null;
             if ($symbols === null) {
                 $ids = implode(',', $this->ids);
-                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-                if (strlen($ids) > $this->options['fetchOrderBooksMaxLength']) {
-                    $numIds = count($this->ids);
-                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
-                }
             } else {
                 $ids = $this->market_ids($symbols);
                 $ids = implode(',', $ids);
@@ -794,11 +787,6 @@ class upbit extends Exchange {
             $ids = null;
             if ($symbols === null) {
                 $ids = implode(',', $this->ids);
-                // // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-                // if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                //     $numIds = count($this->ids);
-                //     throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
-                // }
             } else {
                 $ids = $this->market_ids($symbols);
                 $ids = implode(',', $ids);
