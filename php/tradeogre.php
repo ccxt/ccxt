@@ -17,7 +17,7 @@ class tradeogre extends Exchange {
             'countries' => [ ],
             'rateLimit' => 100,
             'version' => 'v2',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -528,6 +528,7 @@ class tradeogre extends Exchange {
             'asks' => $rawAsks,
         );
         $orderbook = $this->parse_order_book($rawOrderbook, $symbol);
+        $orderbook['nonce'] = $this->safe_integer($response, 's');
         return $orderbook;
     }
 
