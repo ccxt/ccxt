@@ -729,7 +729,7 @@ class bitmex(Exchange, ImplicitAPI):
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         linear = (not isInverse and not isQuanto) if contract else None
         status = self.safe_string(market, 'state')
-        active = status != 'Unlisted'
+        active = status == 'Open'  # Open, Settled, Unlisted
         expiry = None
         expiryDatetime = None
         symbol = None
@@ -743,9 +743,9 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
                 contractSize = self.parse_number(multiplierString)
-            if future:
-                expiryDatetime = self.safe_string(market, 'expiry')
-                expiry = self.parse8601(expiryDatetime)
+            expiryDatetime = self.safe_string(market, 'expiry')
+            expiry = self.parse8601(expiryDatetime)
+            if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id
