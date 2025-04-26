@@ -48,8 +48,8 @@
                     "BTC/KRW",
                     "market",
                     "buy",
-                    null,
-                    null,
+                    0,
+                    0,
                     {
                         "cost": 5000
                     }
@@ -68,7 +68,7 @@
                     "market",
                     "buy",
                     5000,
-                    null
+                    0
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5000\"}"
             },
@@ -84,7 +84,7 @@
                     "market",
                     "buy",
                     5000,
-                    null,
+                    0,
                     {
                         "ordType": "best",
                         "timeInForce": "ioc"
@@ -335,7 +335,7 @@
                     "market",
                     "buy",
                     5,
-                    null
+                    0
                 ],
                 "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5\"}"
             },
@@ -348,7 +348,7 @@
                     "market",
                     "buy",
                     0,
-                    null,
+                    0,
                     {
                         "cost": 5
                     }
