@@ -1374,27 +1374,34 @@ export default class bitget extends Exchange {
                 },
                 'fetchOHLCV': {
                     'spot': {
+                        // ### Timeframe settings ###
+                        // after testing, the below values are real ones, because the values provided by API DOCS are wrong
+                        // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
+                        'maxRecentDaysPerTimeframe': {
+                            '1m': 31,
+                            '3m': 31,
+                            '5m': 31,
+                            '15m': 31,
+                            '30m': 31,
+                            '1h': 60,
+                            '4h': 240,
+                            '6h': 360,
+                            '12h': 720,
+                            '1d': 1440,
+                            '3d': 1440 * 3,
+                            '1w': 1440 * 7,
+                            '1M': 1440 * 30,
+                        },
+                        'maxLimitPerTimeframe': {
+                            '1d': 300,
+                            '3d': 100,
+                            '1w': 100,
+                            '1M': 100,
+                        },
                         'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
                         'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
-                    },
-                    'maxDaysPerTimeframe': {
-                        '1m': 30,
-                        '3m': 30,
-                        '5m': 30,
-                        '10m': 30,
-                        '15m': 52,
-                        '30m': 62,
-                        '1h': 83,
-                        '2h': 120,
-                        '4h': 240,
-                        '6h': 360,
-                        '12h': 360,
-                        '1d': 300,
-                        '3d': 100,
-                        '1w': 100,
-                        '1M': 100,
                     },
                 },
                 'fetchTrades': {
@@ -1605,7 +1612,7 @@ export default class bitget extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                        'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
                 },
                 'forPerps': {
@@ -3506,12 +3513,16 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
-        const recentEndpointDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
+        const key = market['spot'] ? 'spot' : 'swap';
+        const ohlcOptions = this.safeDict (this.options['fetchOHLCV'], key, {});
+        const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
+        const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
+        const recentEndpointDaysMap = this.safeDict (ohlcOptions, 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
         if (limitDefined) {
             limit = Math.min (limit, maxLimitForRecentEndpoint);
+            limit = Math.min (limit, maxLimitForThisTimeframe);
         } else {
             limit = defaultLimit;
         }
