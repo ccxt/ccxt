@@ -319,26 +319,23 @@
                     "market",
                     "buy",
                     0.00015,
-                    49998,
-                    {
-                        "createMarketBuyOrderRequiresPrice": true
-                    }
+                    49998
                 ],
                 "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"7.4997\"}"
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
                 "method": "createOrder",
+                "options": {
+                    "createMarketBuyOrderRequiresPrice": false
+                },
                 "url": "https://sg-api.upbit.com/v1/orders",
                 "input": [
                     "BTC/USDT",
                     "market",
                     "buy",
                     5,
-                    null,
-                    {
-                        "createMarketBuyOrderRequiresPrice": false
-                    }
+                    null
                 ],
                 "output": "{\"market\":\"USDT-BTC\",\"side\":\"bid\",\"ord_type\":\"price\",\"price\":\"5\"}"
             },
