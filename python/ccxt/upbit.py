@@ -1102,6 +1102,25 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def calc_order_price(self, symbol: str, amount: float, price: Num = None, params={}) -> str:
+        quoteAmount = None
+        createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
+        cost = self.safe_string(params, 'cost')
+        if cost is not None:
+            quoteAmount = self.cost_to_precision(symbol, cost)
+        elif createMarketBuyOrderRequiresPrice:
+            if price is None or amount is None:
+                raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            costRequest = Precise.string_mul(amountString, priceString)
+            quoteAmount = self.cost_to_precision(symbol, costRequest)
+        else:
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' When createMarketBuyOrderRequiresPrice is False, "amount" is required and should be the total quote amount to spend.')
+            quoteAmount = self.cost_to_precision(symbol, amount)
+        return quoteAmount
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -1110,13 +1129,14 @@ class upbit(Exchange, ImplicitAPI):
         https://global-docs.upbit.com/reference/order
 
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: for market buy orders, the quote quantity that can be used alternative for the amount
-        :param str [params.timeInForce]: 'IOC' or 'FOK'
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount
+        :param str [params.ordType]: self field can be used to place a ‘best’ type order
+        :param str [params.timeInForce]: 'IOC' or 'FOK'. only for limit or best type orders. self field is required when the order type is 'best'.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1127,46 +1147,52 @@ class upbit(Exchange, ImplicitAPI):
         elif side == 'sell':
             orderSide = 'ask'
         else:
-            raise InvalidOrder(self.id + ' createOrder() allows buy or sell side only!')
+            raise InvalidOrder(self.id + ' createOrder() supports only buy or sell in the side argument.')
         request: dict = {
             'market': market['id'],
             'side': orderSide,
         }
         if type == 'limit':
+            if price is None or amount is None:
+                raise ArgumentsRequired(self.id + ' the limit type order in createOrder() is required price and amount.')
+            request['ord_type'] = 'limit'
             request['price'] = self.price_to_precision(symbol, price)
-        if (type == 'market') and (side == 'buy'):
-            # for market buy it requires the amount of quote currency to spend
-            quoteAmount = None
-            createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-            cost = self.safe_number(params, 'cost')
-            params = self.omit(params, 'cost')
-            if cost is not None:
-                quoteAmount = self.cost_to_precision(symbol, cost)
-            elif createMarketBuyOrderRequiresPrice:
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
-                else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    costRequest = Precise.string_mul(amountString, priceString)
-                    quoteAmount = self.cost_to_precision(symbol, costRequest)
-            else:
-                quoteAmount = self.cost_to_precision(symbol, amount)
-            request['ord_type'] = 'price'
-            request['price'] = quoteAmount
-        else:
-            request['ord_type'] = type
             request['volume'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
+        elif type == 'market':
+            if side == 'buy':
+                request['ord_type'] = 'price'
+                orderPrice = self.calc_order_price(symbol, amount, price, params)
+                request['price'] = orderPrice
+            else:
+                if amount is None:
+                    raise ArgumentsRequired(self.id + ' the market sell type order in createOrder() is required amount.')
+                request['ord_type'] = 'market'
+                request['volume'] = self.amount_to_precision(symbol, amount)
+        else:
+            raise InvalidOrder(self.id + ' createOrder() supports only limit or market types in the type argument.')
+        customType = self.safe_string_2(params, 'ordType', 'ord_type')
+        if customType == 'best':
+            params = self.omit(params, ['ordType', 'ord_type'])
+            request['ord_type'] = 'best'
+            if side == 'buy':
+                orderPrice = self.calc_order_price(symbol, amount, price, params)
+                request['price'] = orderPrice
+            else:
+                if amount is None:
+                    raise ArgumentsRequired(self.id + ' the best sell type order in createOrder() is required amount.')
+                request['volume'] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['identifier'] = clientOrderId
-        if type != 'market':
+        if request['ord_type'] != 'market' and request['ord_type'] != 'price':
             timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-            params = self.omit(params, 'timeInForce')
+            params = self.omit(params, ['timeInForce'])
             if timeInForce is not None:
                 request['time_in_force'] = timeInForce
-        params = self.omit(params, ['clientOrderId', 'identifier'])
+            else:
+                if request['ord_type'] == 'best':
+                    raise ArgumentsRequired(self.id + ' the best type order in createOrder() is required timeInForce.')
+        params = self.omit(params, ['clientOrderId', 'cost'])
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -1546,6 +1572,7 @@ class upbit(Exchange, ImplicitAPI):
             side = 'buy'
         else:
             side = 'sell'
+        identifier = self.safe_string(order, 'identifier')
         type = self.safe_string(order, 'ord_type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -1595,7 +1622,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': identifier,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
