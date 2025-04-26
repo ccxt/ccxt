@@ -1149,7 +1149,7 @@ export default class upbit extends Exchange {
     calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
         let quoteAmount = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
-        const cost = this.safeNumber (params, 'cost');
+        const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision (symbol, cost);
         } else if (createMarketBuyOrderRequiresPrice) {
@@ -1162,7 +1162,7 @@ export default class upbit extends Exchange {
             quoteAmount = this.costToPrecision (symbol, costRequest);
         } else {
             if (amount === undefined) {
-                throw new ArgumentsRequired (this.id + ' When createMarketBuyOrderRequiresPrice is false, ‘amount’ is required and should be the total quote amount to spend.');
+                throw new ArgumentsRequired (this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             quoteAmount = this.costToPrecision (symbol, amount);
         }
@@ -1237,13 +1237,13 @@ export default class upbit extends Exchange {
                 request['volume'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
         }
         if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower2 (params, 'time_in_force', 'timeInForce');
-            params = this.omit (params, [ 'time_in_force', 'timeInForce' ]);
+            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            params = this.omit (params, [ 'timeInForce' ]);
             if (timeInForce !== undefined) {
                 request['time_in_force'] = timeInForce;
             } else {
@@ -1252,7 +1252,7 @@ export default class upbit extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'identifier', 'cost' ]);
+        params = this.omit (params, [ 'clientOrderId', 'cost' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {

@@ -87,7 +87,7 @@
                     null,
                     {
                         "ordType": "best",
-                        "time_in_force": "ioc"
+                        "timeInForce": "ioc"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"5000\",\"time_in_force\":\"ioc\"}"
@@ -103,8 +103,8 @@
                     0.0001,
                     150000000,
                     {
-                        "identifier": "test_250425_02",
-                        "time_in_force": "ioc"
+                        "clientOrderId": "test_250425_02",
+                        "timeInForce": "ioc"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"limit\",\"price\":\"150000000\",\"volume\":\"0.0001\",\"identifier\":\"test_250425_02\",\"time_in_force\":\"ioc\"}"
@@ -120,7 +120,7 @@
                     0.0001,
                     150000000,
                     {
-                        "identifier": "test_250425_01"
+                        "clientOrderId": "test_250425_01"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"limit\",\"price\":\"150000000\",\"volume\":\"0.0001\",\"identifier\":\"test_250425_01\"}"
@@ -153,7 +153,7 @@
                     0,
                     {
                         "ordType": "best",
-                        "time_in_force": "ioc"
+                        "timeInForce": "ioc"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"ask\",\"ord_type\":\"best\",\"volume\":\"0.0001\",\"time_in_force\":\"ioc\"}"
@@ -170,7 +170,7 @@
                     0,
                     {
                         "ordType": "best",
-                        "time_in_force": "ioc",
+                        "timeInForce": "ioc",
                         "cost": 5000
                     }
                 ],
