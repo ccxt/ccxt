@@ -1373,25 +1373,25 @@ export default class bitget extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'fetchOHLCV': {
+                    // ### Timeframe settings ###
+                    // after testing, the below values are real ones, because the values provided by API DOCS are wrong
+                    // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
+                    'maxRecentDaysPerTimeframe': {
+                        '1m': 30,
+                        '3m': 30,
+                        '5m': 30,
+                        '15m': 30,
+                        '30m': 30,
+                        '1h': 60,
+                        '4h': 240,
+                        '6h': 360,
+                        '12h': 720,
+                        '1d': 1440,
+                        '3d': 1440 * 3,
+                        '1w': 1440 * 7,
+                        '1M': 1440 * 30,
+                    },
                     'spot': {
-                        // ### Timeframe settings ###
-                        // after testing, the below values are real ones, because the values provided by API DOCS are wrong
-                        // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
-                        'maxRecentDaysPerTimeframe': {
-                            '1m': 31,
-                            '3m': 31,
-                            '5m': 31,
-                            '15m': 31,
-                            '30m': 31,
-                            '1h': 60,
-                            '4h': 240,
-                            '6h': 360,
-                            '12h': 720,
-                            '1d': 1440,
-                            '3d': 1440 * 3,
-                            '1w': 1440 * 7,
-                            '1M': 1440 * 30,
-                        },
                         'maxLimitPerTimeframe': {
                             '1d': 300,
                             '3d': 100,
@@ -1401,6 +1401,15 @@ export default class bitget extends Exchange {
                         'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
+                        'maxLimitPerTimeframe': {
+                            '4h': 540,
+                            '6h': 360,
+                            '12h': 180,
+                            '1d': 90,
+                            '3d': 30,
+                            '1w': 13,
+                            '1M': 4,
+                        },
                         'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                 },
@@ -3517,7 +3526,7 @@ export default class bitget extends Exchange {
         const ohlcOptions = this.safeDict (this.options['fetchOHLCV'], key, {});
         const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
-        const recentEndpointDaysMap = this.safeDict (ohlcOptions, 'maxRecentDaysPerTimeframe', {});
+        const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
         if (limitDefined) {
