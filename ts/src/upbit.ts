@@ -1242,7 +1242,7 @@ export default class upbit extends Exchange {
             request['identifier'] = clientOrderId;
         }
         if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
             params = this.omit (params, [ 'timeInForce' ]);
             if (timeInForce !== undefined) {
                 request['time_in_force'] = timeInForce;

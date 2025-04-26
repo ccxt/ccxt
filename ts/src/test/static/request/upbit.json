@@ -191,7 +191,7 @@
                     0,
                     {
                         "ordType": "best",
-                        "time_in_force": "ioc"
+                        "timeInForce": "ioc"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"5000\",\"time_in_force\":\"ioc\"}"
@@ -208,7 +208,7 @@
                     100000000,
                     {
                         "ordType": "best",
-                        "time_in_force": "ioc"
+                        "timeInForce": "ioc"
                     }
                 ],
                 "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"ord_type\":\"best\",\"price\":\"10000\",\"time_in_force\":\"ioc\"}"
