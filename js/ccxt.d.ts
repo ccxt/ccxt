@@ -178,6 +178,7 @@ import paradexPro from './src/pro/paradex.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
 import probitPro from './src/pro/probit.js';
+import tradeogrePro from './src/pro/tradeogre.js';
 import upbitPro from './src/pro/upbit.js';
 import vertexPro from './src/pro/vertex.js';
 import whitebitPro from './src/pro/whitebit.js';
@@ -360,6 +361,7 @@ declare const pro: {
     phemex: typeof phemexPro;
     poloniex: typeof poloniexPro;
     probit: typeof probitPro;
+    tradeogre: typeof tradeogrePro;
     upbit: typeof upbitPro;
     vertex: typeof vertexPro;
     whitebit: typeof whitebitPro;
@@ -438,6 +440,7 @@ declare const ccxt: {
         phemex: typeof phemexPro;
         poloniex: typeof poloniexPro;
         probit: typeof probitPro;
+        tradeogre: typeof tradeogrePro;
         upbit: typeof upbitPro;
         vertex: typeof vertexPro;
         whitebit: typeof whitebitPro;
