@@ -1697,7 +1697,7 @@ public partial class Exchange
                 // find lowest precision (which is more desired)
                 object precision = this.safeString(network, "precision");
                 object precisionMain = this.safeString(currency, "precision");
-                if (isTrue(isTrue(isEqual(precisionMain, null)) || isTrue(Precise.stringLt(precision, precisionMain))))
+                if (isTrue(isTrue(isEqual(precisionMain, null)) || isTrue(Precise.stringGt(precision, precisionMain))))
                 {
                     ((IDictionary<string,object>)currency)["precision"] = this.parseNumber(precision);
                 }
