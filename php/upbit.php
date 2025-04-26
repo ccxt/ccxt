@@ -1125,6 +1125,29 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
+    public function calc_order_price(string $symbol, float $amount, ?float $price = null, $params = array ()): string {
+        $quoteAmount = null;
+        $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
+        $cost = $this->safe_string($params, 'cost');
+        if ($cost !== null) {
+            $quoteAmount = $this->cost_to_precision($symbol, $cost);
+        } elseif ($createMarketBuyOrderRequiresPrice) {
+            if ($price === null || $amount === null) {
+                throw new InvalidOrder($this->id . ' createOrder() requires the $price and $amount argument for market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+            }
+            $amountString = $this->number_to_string($amount);
+            $priceString = $this->number_to_string($price);
+            $costRequest = Precise::string_mul($amountString, $priceString);
+            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+        } else {
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
+            }
+            $quoteAmount = $this->cost_to_precision($symbol, $amount);
+        }
+        return $quoteAmount;
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
@@ -1133,13 +1156,14 @@ class upbit extends Exchange {
          * @see https://global-docs.upbit.com/reference/order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type supports 'market' and 'limit'. if $params->ordType is set to best, a best-$type order will be created regardless of the value of $type->
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] for $market buy orders, the quote quantity that can be used alternative for the $amount
-         * @param {string} [$params->timeInForce] 'IOC' or 'FOK'
+         * @param {float} [$params->cost] for $market buy and best buy orders, the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->ordType] this field can be used to place a ‘best’ $type order
+         * @param {string} [$params->timeInForce] 'IOC' or 'FOK'. only for limit or best $type orders. this field is required when the order $type is 'best'.
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1150,54 +1174,64 @@ class upbit extends Exchange {
         } elseif ($side === 'sell') {
             $orderSide = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder() allows buy or sell $side only!');
+            throw new InvalidOrder($this->id . ' createOrder() supports only buy or sell in the $side argument.');
         }
         $request = array(
             'market' => $market['id'],
             'side' => $orderSide,
         );
         if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if (($type === 'market') && ($side === 'buy')) {
-            // for $market buy it requires the $amount of quote currency to spend
-            $quoteAmount = null;
-            $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            $cost = $this->safe_number($params, 'cost');
-            $params = $this->omit($params, 'cost');
-            if ($cost !== null) {
-                $quoteAmount = $this->cost_to_precision($symbol, $cost);
-            } elseif ($createMarketBuyOrderRequiresPrice) {
-                if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
-                } else {
-                    $amountString = $this->number_to_string($amount);
-                    $priceString = $this->number_to_string($price);
-                    $costRequest = Precise::string_mul($amountString, $priceString);
-                    $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
-                }
-            } else {
-                $quoteAmount = $this->cost_to_precision($symbol, $amount);
+            if ($price === null || $amount === null) {
+                throw new ArgumentsRequired($this->id . ' the limit $type order in createOrder() is required $price and $amount->');
             }
-            $request['ord_type'] = 'price';
-            $request['price'] = $quoteAmount;
-        } else {
-            $request['ord_type'] = $type;
+            $request['ord_type'] = 'limit';
+            $request['price'] = $this->price_to_precision($symbol, $price);
             $request['volume'] = $this->amount_to_precision($symbol, $amount);
+        } elseif ($type === 'market') {
+            if ($side === 'buy') {
+                $request['ord_type'] = 'price';
+                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                $request['price'] = $orderPrice;
+            } else {
+                if ($amount === null) {
+                    throw new ArgumentsRequired($this->id . ' the $market sell $type order in createOrder() is required $amount->');
+                }
+                $request['ord_type'] = 'market';
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
+        } else {
+            throw new InvalidOrder($this->id . ' createOrder() supports only limit or $market types in the $type argument.');
         }
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
+        $customType = $this->safe_string_2($params, 'ordType', 'ord_type');
+        if ($customType === 'best') {
+            $params = $this->omit($params, array( 'ordType', 'ord_type' ));
+            $request['ord_type'] = 'best';
+            if ($side === 'buy') {
+                $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                $request['price'] = $orderPrice;
+            } else {
+                if ($amount === null) {
+                    throw new ArgumentsRequired($this->id . ' the best sell $type order in createOrder() is required $amount->');
+                }
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['identifier'] = $clientOrderId;
         }
-        if ($type !== 'market') {
+        if ($request['ord_type'] !== 'market' && $request['ord_type'] !== 'price') {
             $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
-            $params = $this->omit($params, 'timeInForce');
+            $params = $this->omit($params, array( 'timeInForce' ));
             if ($timeInForce !== null) {
                 $request['time_in_force'] = $timeInForce;
+            } else {
+                if ($request['ord_type'] === 'best') {
+                    throw new ArgumentsRequired($this->id . ' the best $type order in createOrder() is required $timeInForce->');
+                }
             }
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'cost' ));
         $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //     {
@@ -1594,6 +1628,7 @@ class upbit extends Exchange {
         } else {
             $side = 'sell';
         }
+        $identifier = $this->safe_string($order, 'identifier');
         $type = $this->safe_string($order, 'ord_type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -1650,7 +1685,7 @@ class upbit extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $identifier,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
