@@ -59,6 +59,9 @@
             {
                 "description": "market buy with createMarketBuyOrderRequiresPrice = false: Buying BTC at market price for the amount of KRW specified in amount (quote amount)",
                 "method": "createOrder",
+                "options": {
+                    "createMarketBuyOrderRequiresPrice": false
+                },
                 "url": "https://api.upbit.com/v1/orders",
                 "input": [
                     "BTC/KRW",
@@ -72,6 +75,9 @@
             {
                 "description": "market buy with createMarketBuyOrderRequiresPrice = false: Buying BTC at the best market price for the amount of KRW specified in amount (quote amount)",
                 "method": "createOrder",
+                "options": {
+                    "createMarketBuyOrderRequiresPrice": false
+                },
                 "url": "https://api.upbit.com/v1/orders",
                 "input": [
                     "BTC/KRW",
@@ -173,6 +179,9 @@
             {
                 "description": "best buy with createMarketBuyOrderRequiresPrice = false: Buying BTC at the best market price for the amount of KRW specified in amount (quote amount)",
                 "method": "createOrder",
+                "options": {
+                    "createMarketBuyOrderRequiresPrice": false
+                },
                 "url": "https://api.upbit.com/v1/orders",
                 "input": [
                     "BTC/KRW",
@@ -236,6 +245,9 @@
             {
                 "description": "market buy with createMarketBuyOrderRequiresPrice = false: Buying BTC at market price for the amount of KRW specified in amount (quote amount)",
                 "method": "createOrder",
+                "options": {
+                    "createMarketBuyOrderRequiresPrice": false
+                },
                 "url": "https://api.upbit.com/v1/orders",
                 "input": [
                     "BTC/KRW",
