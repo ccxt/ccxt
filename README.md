@@ -668,6 +668,18 @@ Thank you!
 - <sub>[![Telegram Chat](https://img.shields.io/badge/CCXT-Chat-blue?logo=telegram)](https://t.me/ccxt_chat)</sub> CCXT Chat on Telegram (technical support)
 
 
+## Team members
+
+In order to verify that you are communicating with a CCXT Dev Team member, refer to the below list of usernames:
+- Github: `kroitor`, `frosty00`, `carlosmiei` and other members [listed here](https://github.com/orgs/ccxt/people)
+- Discord: verify username listed under ![`Team` role](https://i.imgur.com/nVJxWEW.png)
+- Telegram: `igorkroitor`, `carlorevelli`, `carlosmiei` ...
+
+## Official Repos
+
+See the list under [Install](#install).
+
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
