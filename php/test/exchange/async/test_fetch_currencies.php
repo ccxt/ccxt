@@ -50,6 +50,24 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
             assert($skip_active || ($inactive_currencies_percentage < $max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' . ((string) $inactive_currencies_percentage) . '% that is more than the allowed maximum of ' . ((string) $max_inactive_currencies_percentage) . '%');
         }
+        detect_currency_conflicts($exchange, $currencies);
         return true;
     }) ();
+}
+
+
+function detect_currency_conflicts($exchange, $currency_values) {
+    // detect if there are currencies with different ids for the same code
+    $ids = array();
+    for ($i = 0; $i < count($currency_values); $i++) {
+        $currency = $currency_values[$i];
+        $code = $currency['code'];
+        if (!(is_array($ids) && array_key_exists($code, $ids))) {
+            $ids[$code] = $currency['id'];
+        } else {
+            $is_different = $ids[$code] !== $currency['id'];
+            assert(!$is_different, $exchange->id . ' fetchCurrencies() has different ids for the same code: ' . $code . ' ' . $ids[$code] . ' ' . $currency['id']);
+        }
+    }
+    return true;
 }
