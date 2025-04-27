@@ -1175,6 +1175,9 @@ class testMainClass {
     async testRequestStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
+        if (this.info) {
+            dump('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync()) {
                 await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
@@ -1206,6 +1209,9 @@ class testMainClass {
     async testResponseStatically(exchange, method, skipKeys, data) {
         const expectedResult = exchange.safeValue(data, 'parsedResponse');
         const mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        if (this.info) {
+            dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync()) {
                 const unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
