@@ -48,6 +48,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     var inactiveCurrenciesPercentage interface{} = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
                     Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
                 }
+                DetectCurrencyConflicts(exchange, currencies)
             
                 ch <- true
                 return nil
@@ -55,3 +56,18 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
+    func DetectCurrencyConflicts(exchange ccxt.IExchange, currencyValues interface{}) interface{}  {
+        // detect if there are currencies with different ids for the same code
+        var ids interface{} = map[string]interface{} {}
+        for i := 0; IsLessThan(i, GetArrayLength(currencyValues)); i++ {
+            var currency interface{} = GetValue(currencyValues, i)
+            var code interface{} = GetValue(currency, "code")
+            if !IsTrue((InOp(ids, code))) {
+                AddElementToObject(ids, code, GetValue(currency, "id"))
+            } else {
+                var isDifferent interface{} = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
+                Assert(!IsTrue(isDifferent), Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
+            }
+        }
+        return true
+    }
