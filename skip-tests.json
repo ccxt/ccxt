@@ -1476,6 +1476,15 @@
             "fetchL2OrderBook": "asks and bids could be empty"
         }
     },
+    "oanda": {
+        "skip": "private endpoints",
+        "skipMethods": {
+            "loadMarkets":{
+                "active":"is undefined"
+            },
+            "fetchOrderBook": "abnormal structure, can not be tested"
+        }
+    },
     "oceanex": {
         "skipMethods": {
             "loadMarkets":{
