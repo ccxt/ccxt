@@ -3594,9 +3594,9 @@ export default class mexc extends Exchange {
             id = this.safeString2 (order, 'orderId', 'id');
         }
         let timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
-        const type = this.safeString (order, 'type');
+        const typeRaw = this.safeString (order, 'type');
         if (timeInForce === undefined) {
-            timeInForce = this.parseRawOrderTypeIntoTif (type);
+            timeInForce = this.getTifFromRawOrderType (typeRaw);
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -3620,7 +3620,7 @@ export default class mexc extends Exchange {
             'lastTradeTimestamp': undefined, // TODO: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
             'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
             'symbol': market['symbol'],
-            'type': this.parseOrderType (type),
+            'type': this.parseOrderType (typeRaw),
             'timeInForce': timeInForce,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeNumber (order, 'price'),
@@ -3685,7 +3685,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseRawOrderTypeIntoTif (orderType:Str = undefined) {
+    getTifFromRawOrderType (orderType:Str = undefined) {
         const statuses: Dict = {
             'LIMIT': 'GTC',
             'LIMIT_MAKER': 'POST_ONLY',
