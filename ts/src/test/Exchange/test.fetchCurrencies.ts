@@ -11,6 +11,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
     let numInactiveCurrencies = 0;
     const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
     const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
+    // todo: remove undefined check
     if (currencies !== undefined) {
         const values = Object.values (currencies);
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
@@ -48,8 +49,10 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
 function detectCurrencyConflicts (exchange: Exchange, currencyValues: any) {
     // detect if there are currencies with different ids for the same code
     const ids = {};
-    for (let i = 0; i < currencyValues.length; i++) {
-        const currency = currencyValues[i];
+    const keys = Object.keys (currencyValues);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const currency = currencyValues[key];
         const code = currency['code'];
         if (!(code in ids)) {
             ids[code] = currency['id'];
