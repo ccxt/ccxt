@@ -3691,7 +3691,7 @@ export default class mexc extends Exchange {
             'LIMIT_MAKER': 'POST_ONLY',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
-            'MARKET': undefined, // depends on exchange, if it treates as IOC or FOK
+            'MARKET': 'IOC',
         };
         return this.safeString (statuses, orderType, orderType);
     }
