@@ -40,8 +40,8 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         // check at least X% of currencies are active
         const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
         assert (skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString () + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString () + '%');
+        detectCurrencyConflicts (exchange, currencies);
     }
-    detectCurrencyConflicts (exchange, currencies);
     return true;
 }
 
