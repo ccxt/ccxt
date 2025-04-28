@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/mexc.js';
-import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance } from './base/errors.js';
+import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1101,10 +1101,10 @@ export default class mexc extends Exchange {
             const chains = this.safeValue (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString2 (chain, 'netWork', 'network');
-                const network = this.networkIdToCode (networkId);
-                const isDepositEnabled = this.safeBool (chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeBool (chain, 'withdrawEnable', false);
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                const isDepositEnabled = this.safeValue (chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const withdrawMin = this.safeString (chain, 'withdrawMin');
@@ -1125,10 +1125,10 @@ export default class mexc extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
-                networks[network] = {
+                networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
@@ -1176,22 +1176,16 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    /**
-     * @method
-     * @name mexc#fetchMarkets
-     * @description retrieves data on all markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference ();
-        }
-        const spotMarketPromise = this.fetchSpotMarkets (params);
-        const swapMarketPromise = this.fetchSwapMarkets (params);
-        const [ spotMarket, swapMarket ] = await Promise.all ([ spotMarketPromise, swapMarketPromise ]);
+    async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchMarkets
+         * @description retrieves data on all markets for mexc3
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const spotMarket = await this.fetchSpotMarkets (params);
+        const swapMarket = await this.fetchSwapMarkets (params);
         return this.arrayConcat (spotMarket, swapMarket);
     }
 
@@ -4688,20 +4682,23 @@ export default class mexc extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
-        //    {
-        //        coin: "USDT",
-        //        network: "BNB Smart Chain(BEP20)",
-        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo:  null
-        //    }
+        // {
+        //     coin: "USDT",
+        //     network: "BEP20(BSC)",
+        //     address: "0xe228715f5dea191335b40c12a905ead43c52bae2",
+        //     memo: null,
+        // }
         //
+        const coin = this.safeString (depositAddress, 'coin');
         const address = this.safeString (depositAddress, 'address');
-        const currencyId = this.safeString (depositAddress, 'coin');
-        const networkId = this.safeString (depositAddress, 'netWork');
         this.checkAddress (address);
         return {
+            'currency': this.safeCurrencyCode (coin, currency),
+            'address': address,
+            'tag': this.safeString2 (depositAddress, 'tag', 'memo'),
+            'network': this.networkIdToCode (this.safeString2 (depositAddress, 'network', 'chain')),
             'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
             'network': this.networkIdToCode (networkId, currencyId),
@@ -4725,38 +4722,14 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
         };
-        const networkCode = this.safeString (params, 'network');
-        let networkId = undefined;
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-            const networkUnified = this.networkIdToCode (networkCode, code);
-            const networks = this.safeDict (currency, 'networks', {});
-            if (networkUnified in networks) {
-                const network = this.safeDict (networks, networkUnified, {});
-                const networkInfo = this.safeValue (network, 'info', {});
-                networkId = this.safeString (networkInfo, 'network');
-            } else {
-                networkId = this.networkCodeToId (networkCode, code);
-            }
+            request['network'] = this.networkCodeToId (networkCode, code);
         }
-        if (networkId !== undefined) {
-            request['network'] = networkId;
-        }
-        params = this.omit (params, 'network');
-        const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
-        //
-        //    [
-        //        {
-        //            coin: "USDT",
-        //            network: "BNB Smart Chain(BEP20)",
-        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo:  null
-        //        }
-        //        ...
-        //    ]
-        //
-        const addressStructures = this.parseDepositAddresses (response, undefined, false);
-        return this.indexBy (addressStructures, 'network') as DepositAddress[];
+        const chains = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false);
+        return this.indexBy (parsed, 'network');
     }
 
     /**
@@ -4776,24 +4749,8 @@ export default class mexc extends Exchange {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
-        if (networkCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
-        }
-        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-        let networkId = undefined;
-        const networkUnified = this.networkIdToCode (networkCode, code);
-        const networks = this.safeDict (currency, 'networks', {});
-        if (networkUnified in networks) {
-            const network = this.safeDict (networks, networkUnified, {});
-            const networkInfo = this.safeValue (network, 'info', {});
-            networkId = this.safeString (networkInfo, 'network');
-        } else {
-            networkId = this.networkCodeToId (networkCode, code);
-        }
-        if (networkId !== undefined) {
-            request['network'] = networkId;
-        }
-        params = this.omit (params, 'network');
+        this.checkRequiredArgument ('createDepositAddress', networkCode, 'params["network"]');
+        request['network'] = this.networkCodeToId (networkCode, code);
         const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, params));
         //     {
         //        "coin": "EOS",
@@ -4815,25 +4772,12 @@ export default class mexc extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        const network = this.safeString (params, 'network');
-        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params) as DepositAddress[];
-        let result = undefined;
-        if (network !== undefined) {
-            result = this.safeDict (addressStructures, this.networkIdToCode (network, code));
-        } else {
-            const options = this.safeDict (this.options, 'defaultNetworks');
-            const defaultNetworkForCurrency = this.safeString (options, code);
-            if (defaultNetworkForCurrency !== undefined) {
-                result = this.safeDict (addressStructures, defaultNetworkForCurrency);
-            } else {
-                const keys = Object.keys (addressStructures);
-                const key = this.safeString (keys, 0);
-                result = this.safeDict (addressStructures, key);
-            }
-        }
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website');
-        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
+        const result = indexedAddresses[selectedNetworkCode];
         return result as DepositAddress;
     }
 
@@ -5032,7 +4976,7 @@ export default class mexc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5696,7 +5640,7 @@ export default class mexc extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], networkId, networkId);
+            const networkCode = this.networkIdToCode (networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[networkCode] = fee;
         }
@@ -5780,16 +5724,19 @@ export default class mexc extends Exchange {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            // some networks might be null/undefined, so skip them
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees (result);
     }
