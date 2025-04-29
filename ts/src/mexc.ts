@@ -1130,6 +1130,7 @@ export default class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'type': 'crypto',
                 'networks': networks,
             });
         }
