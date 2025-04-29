@@ -71,7 +71,8 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
             const typeAssertion = assertType (exchange, skippedProperties, entry, i, format);
-            assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
+            const skipped = typeAssertion === undefined;
+            assert (skipped || typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -82,7 +83,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if (emptyAllowedForThisKey && (value === undefined)) {
                 continue;
@@ -92,7 +93,8 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
                 const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
-                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                const skipped = typeAssertion === undefined;
+                assert (skipped || typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (typeof value === 'object') {
                         assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
