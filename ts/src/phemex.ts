@@ -1166,7 +1166,8 @@ export default class phemex extends Exchange {
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
+                'networks': undefined,
+                'type': 'crypto',
             };
         }
         return result;
