@@ -606,14 +606,8 @@
     "coinbase": {
         "skipMethods": {
             "loadMarkets": {
-                "taker":"is undefined",
-                "maker":"is undefined",
-                "currencyIdAndCode": "some curr not available",
-                "networks": "not available"
+                "currencyIdAndCode": "some curr not available"
             },
-            "fetchTicker": "private",
-            "fetchTickers": "private",
-            "fetchBidsAsks": "private",
             "fetchCurrencies": {
                 "precision": "not provided",
                 "networks": "not provided",
