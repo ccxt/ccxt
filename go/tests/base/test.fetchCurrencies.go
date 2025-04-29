@@ -18,6 +18,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 var numInactiveCurrencies interface{} = 0
                 var maxInactiveCurrenciesPercentage interface{} = 60 // no more than X% currencies should be inactive
                 var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
+                // todo: remove undefined check
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
@@ -47,8 +48,8 @@ import "github.com/ccxt/ccxt/go/v4"
                     // check at least X% of currencies are active
                     var inactiveCurrenciesPercentage interface{} = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
                     Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
+                    DetectCurrencyConflicts(exchange, currencies)
                 }
-                DetectCurrencyConflicts(exchange, currencies)
             
                 ch <- true
                 return nil
@@ -59,8 +60,10 @@ import "github.com/ccxt/ccxt/go/v4"
     func DetectCurrencyConflicts(exchange ccxt.IExchange, currencyValues interface{}) interface{}  {
         // detect if there are currencies with different ids for the same code
         var ids interface{} = map[string]interface{} {}
-        for i := 0; IsLessThan(i, GetArrayLength(currencyValues)); i++ {
-            var currency interface{} = GetValue(currencyValues, i)
+        var keys interface{} = ObjectKeys(currencyValues)
+        for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+            var key interface{} = GetValue(keys, i)
+            var currency interface{} = GetValue(currencyValues, key)
             var code interface{} = GetValue(currency, "code")
             if !IsTrue((InOp(ids, code))) {
                 AddElementToObject(ids, code, GetValue(currency, "id"))
