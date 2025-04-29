@@ -7,9 +7,7 @@
                 "description": "public spot trades",
                 "method": "fetchTrades",
                 "input": [
-                    "BTC/USDT",
-                    null,
-                    1
+                    "BTC/USDT"
                 ],
                 "httpResponse": [
                     {
@@ -17,11 +15,700 @@
                         "timestamp": "2019-12-07T04:51:50.358Z",
                         "direction": "BUY",
                         "price": "7560.71",
-                        "quantity": "0.005",
-                        "feeQuantity": null,
-                        "feeSymbol": null,
-                        "ownerOrderId": null,
-                        "clientOrderId": null
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "498989",
+                        "timestamp": "2019-12-07T04:52:02.048Z",
+                        "direction": "BUY",
+                        "price": "7560.71",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "498994",
+                        "timestamp": "2019-12-07T04:52:13.422Z",
+                        "direction": "BUY",
+                        "price": "7560.71",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "498999",
+                        "timestamp": "2019-12-07T04:52:25.221Z",
+                        "direction": "BUY",
+                        "price": "7560.71",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499004",
+                        "timestamp": "2019-12-07T04:52:36.691Z",
+                        "direction": "BUY",
+                        "price": "7542.48",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499009",
+                        "timestamp": "2019-12-07T04:52:47.866Z",
+                        "direction": "BUY",
+                        "price": "7542.48",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499013",
+                        "timestamp": "2019-12-07T04:52:59.082Z",
+                        "direction": "BUY",
+                        "price": "7579.87",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499017",
+                        "timestamp": "2019-12-07T04:53:10.569Z",
+                        "direction": "BUY",
+                        "price": "7579.87",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499021",
+                        "timestamp": "2019-12-07T04:53:21.974Z",
+                        "direction": "BUY",
+                        "price": "7525.11",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499027",
+                        "timestamp": "2019-12-07T04:53:33.766Z",
+                        "direction": "BUY",
+                        "price": "7525.11",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499032",
+                        "timestamp": "2019-12-07T04:53:45.729Z",
+                        "direction": "BUY",
+                        "price": "7560.67",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499037",
+                        "timestamp": "2019-12-07T04:53:58.112Z",
+                        "direction": "BUY",
+                        "price": "7560.67",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499042",
+                        "timestamp": "2019-12-07T04:54:09.208Z",
+                        "direction": "BUY",
+                        "price": "7560.67",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499047",
+                        "timestamp": "2019-12-07T04:54:20.499Z",
+                        "direction": "SELL",
+                        "price": "7568.14",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499059",
+                        "timestamp": "2019-12-07T04:54:51.937Z",
+                        "direction": "BUY",
+                        "price": "7582.5",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499105",
+                        "timestamp": "2019-12-07T07:42:09.147Z",
+                        "direction": "BUY",
+                        "price": "7526.3",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499360",
+                        "timestamp": "2019-12-07T12:59:04.83Z",
+                        "direction": "SELL",
+                        "price": "7542.99",
+                        "quantity": "0.002286"
+                    },
+                    {
+                        "id": "499361",
+                        "timestamp": "2019-12-07T12:59:08.121Z",
+                        "direction": "SELL",
+                        "price": "7542.98",
+                        "quantity": "0.002286"
+                    },
+                    {
+                        "id": "499362",
+                        "timestamp": "2019-12-07T12:59:31.122Z",
+                        "direction": "SELL",
+                        "price": "7542.96",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499369",
+                        "timestamp": "2019-12-07T13:02:04.713Z",
+                        "direction": "SELL",
+                        "price": "7529.04",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499376",
+                        "timestamp": "2019-12-07T13:07:22.922Z",
+                        "direction": "SELL",
+                        "price": "7517.7",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499385",
+                        "timestamp": "2019-12-07T13:11:23.566Z",
+                        "direction": "SELL",
+                        "price": "7514.76",
+                        "quantity": "0.028425"
+                    },
+                    {
+                        "id": "499386",
+                        "timestamp": "2019-12-07T13:11:27.098Z",
+                        "direction": "BUY",
+                        "price": "7514.78",
+                        "quantity": "0.006608"
+                    },
+                    {
+                        "id": "499387",
+                        "timestamp": "2019-12-07T13:11:30.445Z",
+                        "direction": "SELL",
+                        "price": "7514.74",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499391",
+                        "timestamp": "2019-12-07T13:15:14.921Z",
+                        "direction": "SELL",
+                        "price": "7517.6",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499395",
+                        "timestamp": "2019-12-07T13:16:54.921Z",
+                        "direction": "SELL",
+                        "price": "7514.35",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499402",
+                        "timestamp": "2019-12-07T13:22:05.655Z",
+                        "direction": "SELL",
+                        "price": "7510.87",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499411",
+                        "timestamp": "2019-12-07T13:26:52.544Z",
+                        "direction": "SELL",
+                        "price": "7518.36",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499429",
+                        "timestamp": "2019-12-07T13:37:19.855Z",
+                        "direction": "SELL",
+                        "price": "7531.81",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499432",
+                        "timestamp": "2019-12-07T13:39:28.228Z",
+                        "direction": "SELL",
+                        "price": "7529.42",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499438",
+                        "timestamp": "2019-12-07T13:41:05.56Z",
+                        "direction": "SELL",
+                        "price": "7525.55",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499443",
+                        "timestamp": "2019-12-07T13:45:21.944Z",
+                        "direction": "SELL",
+                        "price": "7527.4",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499447",
+                        "timestamp": "2019-12-07T13:48:44.117Z",
+                        "direction": "BUY",
+                        "price": "7520.46",
+                        "quantity": "0.05"
+                    },
+                    {
+                        "id": "499448",
+                        "timestamp": "2019-12-07T13:48:47.052Z",
+                        "direction": "SELL",
+                        "price": "7520.44",
+                        "quantity": "0.010406"
+                    },
+                    {
+                        "id": "499456",
+                        "timestamp": "2019-12-07T13:52:48.791Z",
+                        "direction": "SELL",
+                        "price": "7524.73",
+                        "quantity": "0.010406"
+                    },
+                    {
+                        "id": "499458",
+                        "timestamp": "2019-12-07T13:53:25.956Z",
+                        "direction": "BUY",
+                        "price": "7524.73",
+                        "quantity": "0.0015"
+                    },
+                    {
+                        "id": "499459",
+                        "timestamp": "2019-12-07T13:54:08.089Z",
+                        "direction": "SELL",
+                        "price": "7524.7",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499464",
+                        "timestamp": "2019-12-07T13:56:37.714Z",
+                        "direction": "SELL",
+                        "price": "7527.14",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499466",
+                        "timestamp": "2019-12-07T13:58:06.043Z",
+                        "direction": "SELL",
+                        "price": "7522.86",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499473",
+                        "timestamp": "2019-12-07T14:01:59.254Z",
+                        "direction": "SELL",
+                        "price": "7523.03",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499486",
+                        "timestamp": "2019-12-07T14:08:10.253Z",
+                        "direction": "SELL",
+                        "price": "7521.38",
+                        "quantity": "0.020729"
+                    },
+                    {
+                        "id": "499487",
+                        "timestamp": "2019-12-07T14:08:11.67Z",
+                        "direction": "BUY",
+                        "price": "7521.4",
+                        "quantity": "0.0015"
+                    },
+                    {
+                        "id": "499489",
+                        "timestamp": "2019-12-07T14:08:37.215Z",
+                        "direction": "SELL",
+                        "price": "7521.36",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499493",
+                        "timestamp": "2019-12-07T14:09:56.984Z",
+                        "direction": "SELL",
+                        "price": "7517.49",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499497",
+                        "timestamp": "2019-12-07T14:13:44.983Z",
+                        "direction": "BUY",
+                        "price": "7514.35",
+                        "quantity": "0.0006"
+                    },
+                    {
+                        "id": "499499",
+                        "timestamp": "2019-12-07T14:14:04.863Z",
+                        "direction": "SELL",
+                        "price": "7514.32",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499500",
+                        "timestamp": "2019-12-07T14:15:49.208Z",
+                        "direction": "SELL",
+                        "price": "7510.87",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499507",
+                        "timestamp": "2019-12-07T14:19:14.001Z",
+                        "direction": "SELL",
+                        "price": "7512.25",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499522",
+                        "timestamp": "2019-12-07T14:30:09.343Z",
+                        "direction": "BUY",
+                        "price": "7520.99",
+                        "quantity": "0.0015"
+                    },
+                    {
+                        "id": "499523",
+                        "timestamp": "2019-12-07T14:30:10.6Z",
+                        "direction": "BUY",
+                        "price": "7521.19",
+                        "quantity": "0.006607"
+                    },
+                    {
+                        "id": "499528",
+                        "timestamp": "2019-12-07T14:34:39.217Z",
+                        "direction": "BUY",
+                        "price": "7530.3",
+                        "quantity": "0.006609"
+                    },
+                    {
+                        "id": "499531",
+                        "timestamp": "2019-12-07T14:35:57.319Z",
+                        "direction": "SELL",
+                        "price": "7530.27",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499538",
+                        "timestamp": "2019-12-07T14:37:27.644Z",
+                        "direction": "SELL",
+                        "price": "7528.8",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499545",
+                        "timestamp": "2019-12-07T14:42:48.958Z",
+                        "direction": "BUY",
+                        "price": "7530.04",
+                        "quantity": "0.006607"
+                    },
+                    {
+                        "id": "499546",
+                        "timestamp": "2019-12-07T14:42:51.688Z",
+                        "direction": "BUY",
+                        "price": "7530.04",
+                        "quantity": "0.006607"
+                    },
+                    {
+                        "id": "499548",
+                        "timestamp": "2019-12-07T14:44:48.236Z",
+                        "direction": "BUY",
+                        "price": "7531.37",
+                        "quantity": "0.006605"
+                    },
+                    {
+                        "id": "499553",
+                        "timestamp": "2019-12-07T14:47:55.677Z",
+                        "direction": "SELL",
+                        "price": "7532.72",
+                        "quantity": "0.010395"
+                    },
+                    {
+                        "id": "499556",
+                        "timestamp": "2019-12-07T14:49:22.466Z",
+                        "direction": "SELL",
+                        "price": "7540.88",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499561",
+                        "timestamp": "2019-12-07T14:51:33.38Z",
+                        "direction": "SELL",
+                        "price": "7538.21",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499567",
+                        "timestamp": "2019-12-07T14:54:56.937Z",
+                        "direction": "SELL",
+                        "price": "7531.71",
+                        "quantity": "0.030818"
+                    },
+                    {
+                        "id": "499571",
+                        "timestamp": "2019-12-07T14:57:51.241Z",
+                        "direction": "SELL",
+                        "price": "7533.53",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499577",
+                        "timestamp": "2019-12-07T15:02:18.113Z",
+                        "direction": "SELL",
+                        "price": "7530.8",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499581",
+                        "timestamp": "2019-12-07T15:04:11.107Z",
+                        "direction": "SELL",
+                        "price": "7529.59",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499583",
+                        "timestamp": "2019-12-07T15:05:55.834Z",
+                        "direction": "BUY",
+                        "price": "7529.01",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499586",
+                        "timestamp": "2019-12-07T15:08:55.557Z",
+                        "direction": "SELL",
+                        "price": "7539.21",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499588",
+                        "timestamp": "2019-12-07T15:10:20.129Z",
+                        "direction": "SELL",
+                        "price": "7538.11",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499593",
+                        "timestamp": "2019-12-07T15:12:10.91Z",
+                        "direction": "SELL",
+                        "price": "7536.27",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499596",
+                        "timestamp": "2019-12-07T15:15:04.421Z",
+                        "direction": "BUY",
+                        "price": "7533.93",
+                        "quantity": "0.006598"
+                    },
+                    {
+                        "id": "499597",
+                        "timestamp": "2019-12-07T15:15:07.892Z",
+                        "direction": "BUY",
+                        "price": "7533.93",
+                        "quantity": "0.006588"
+                    },
+                    {
+                        "id": "499607",
+                        "timestamp": "2019-12-07T15:22:31.279Z",
+                        "direction": "SELL",
+                        "price": "7540.4",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499614",
+                        "timestamp": "2019-12-07T15:24:52.521Z",
+                        "direction": "SELL",
+                        "price": "7533.64",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499620",
+                        "timestamp": "2019-12-07T15:28:39.81Z",
+                        "direction": "BUY",
+                        "price": "7529.58",
+                        "quantity": "0.006581"
+                    },
+                    {
+                        "id": "499621",
+                        "timestamp": "2019-12-07T15:28:42.843Z",
+                        "direction": "BUY",
+                        "price": "7529.57",
+                        "quantity": "0.006595"
+                    },
+                    {
+                        "id": "499623",
+                        "timestamp": "2019-12-07T15:29:29.138Z",
+                        "direction": "SELL",
+                        "price": "7529.6",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499628",
+                        "timestamp": "2019-12-07T15:32:47.176Z",
+                        "direction": "SELL",
+                        "price": "7525.99",
+                        "quantity": "0.146577"
+                    },
+                    {
+                        "id": "499636",
+                        "timestamp": "2019-12-07T15:36:48.371Z",
+                        "direction": "SELL",
+                        "price": "7526.04",
+                        "quantity": "0.028064"
+                    },
+                    {
+                        "id": "499638",
+                        "timestamp": "2019-12-07T15:38:46.283Z",
+                        "direction": "SELL",
+                        "price": "7519.7",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499645",
+                        "timestamp": "2019-12-07T15:42:14.542Z",
+                        "direction": "SELL",
+                        "price": "7516.46",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499652",
+                        "timestamp": "2019-12-07T15:49:09.264Z",
+                        "direction": "BUY",
+                        "price": "7515.39",
+                        "quantity": "0.005994"
+                    },
+                    {
+                        "id": "499653",
+                        "timestamp": "2019-12-07T15:49:12.442Z",
+                        "direction": "BUY",
+                        "price": "7515.48",
+                        "quantity": "0.005994"
+                    },
+                    {
+                        "id": "499669",
+                        "timestamp": "2019-12-07T15:59:22.711Z",
+                        "direction": "SELL",
+                        "price": "7523.87",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499676",
+                        "timestamp": "2019-12-07T16:03:04.805Z",
+                        "direction": "SELL",
+                        "price": "7520.58",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499679",
+                        "timestamp": "2019-12-07T16:04:37.595Z",
+                        "direction": "SELL",
+                        "price": "7516.46",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499688",
+                        "timestamp": "2019-12-07T16:09:52.615Z",
+                        "direction": "SELL",
+                        "price": "7506.54",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499695",
+                        "timestamp": "2019-12-07T16:14:52.979Z",
+                        "direction": "SELL",
+                        "price": "7517.06",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499702",
+                        "timestamp": "2019-12-07T16:18:02.823Z",
+                        "direction": "SELL",
+                        "price": "7516.58",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499708",
+                        "timestamp": "2019-12-07T16:21:07.387Z",
+                        "direction": "SELL",
+                        "price": "7516.03",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499726",
+                        "timestamp": "2019-12-07T16:31:45.205Z",
+                        "direction": "SELL",
+                        "price": "7524.44",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499732",
+                        "timestamp": "2019-12-07T16:35:24.097Z",
+                        "direction": "SELL",
+                        "price": "7521.84",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499738",
+                        "timestamp": "2019-12-07T16:37:52.864Z",
+                        "direction": "SELL",
+                        "price": "7517.1",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499745",
+                        "timestamp": "2019-12-07T16:42:54.246Z",
+                        "direction": "BUY",
+                        "price": "7520.04",
+                        "quantity": "0.0006"
+                    },
+                    {
+                        "id": "499746",
+                        "timestamp": "2019-12-07T16:42:55.937Z",
+                        "direction": "BUY",
+                        "price": "7520.03",
+                        "quantity": "0.006603"
+                    },
+                    {
+                        "id": "499748",
+                        "timestamp": "2019-12-07T16:43:13.579Z",
+                        "direction": "SELL",
+                        "price": "7520",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499757",
+                        "timestamp": "2019-12-07T16:48:27.89Z",
+                        "direction": "BUY",
+                        "price": "7519.57",
+                        "quantity": "0.006603"
+                    },
+                    {
+                        "id": "499760",
+                        "timestamp": "2019-12-07T16:50:33.709Z",
+                        "direction": "SELL",
+                        "price": "7523.36",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499765",
+                        "timestamp": "2019-12-07T16:52:19.327Z",
+                        "direction": "SELL",
+                        "price": "7522.44",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499770",
+                        "timestamp": "2019-12-07T16:54:31.638Z",
+                        "direction": "SELL",
+                        "price": "7519.34",
+                        "quantity": "0.005"
+                    },
+                    {
+                        "id": "499777",
+                        "timestamp": "2019-12-07T16:58:03.752Z",
+                        "direction": "BUY",
+                        "price": "7510.7",
+                        "quantity": "0.002062"
+                    },
+                    {
+                        "id": "499778",
+                        "timestamp": "2019-12-07T16:58:05.588Z",
+                        "direction": "BUY",
+                        "price": "7510.7",
+                        "quantity": "0.006603"
+                    },
+                    {
+                        "id": "499783",
+                        "timestamp": "2019-12-07T17:00:01.508Z",
+                        "direction": "SELL",
+                        "price": "7517.55",
+                        "quantity": "0.005"
                     }
                 ],
                 "parsedResponse": [
@@ -31,11 +718,7 @@
                             "timestamp": "2019-12-07T04:51:50.358Z",
                             "direction": "BUY",
                             "price": "7560.71",
-                            "quantity": "0.005",
-                            "feeQuantity": null,
-                            "feeSymbol": null,
-                            "ownerOrderId": null,
-                            "clientOrderId": null
+                            "quantity": "0.005"
                         },
                         "id": "498984",
                         "timestamp": 1575694310358,
@@ -48,11 +731,2491 @@
                         "amount": 0.005,
                         "cost": 37.80355,
                         "takerOrMaker": null,
-                        "fee": null
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "498989",
+                            "timestamp": "2019-12-07T04:52:02.048Z",
+                            "direction": "BUY",
+                            "price": "7560.71",
+                            "quantity": "0.005"
+                        },
+                        "id": "498989",
+                        "timestamp": 1575694322048,
+                        "datetime": "2019-12-07T04:52:02.048Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.71,
+                        "amount": 0.005,
+                        "cost": 37.80355,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "498994",
+                            "timestamp": "2019-12-07T04:52:13.422Z",
+                            "direction": "BUY",
+                            "price": "7560.71",
+                            "quantity": "0.005"
+                        },
+                        "id": "498994",
+                        "timestamp": 1575694333422,
+                        "datetime": "2019-12-07T04:52:13.422Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.71,
+                        "amount": 0.005,
+                        "cost": 37.80355,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "498999",
+                            "timestamp": "2019-12-07T04:52:25.221Z",
+                            "direction": "BUY",
+                            "price": "7560.71",
+                            "quantity": "0.005"
+                        },
+                        "id": "498999",
+                        "timestamp": 1575694345221,
+                        "datetime": "2019-12-07T04:52:25.221Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.71,
+                        "amount": 0.005,
+                        "cost": 37.80355,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499004",
+                            "timestamp": "2019-12-07T04:52:36.691Z",
+                            "direction": "BUY",
+                            "price": "7542.48",
+                            "quantity": "0.005"
+                        },
+                        "id": "499004",
+                        "timestamp": 1575694356691,
+                        "datetime": "2019-12-07T04:52:36.691Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7542.48,
+                        "amount": 0.005,
+                        "cost": 37.7124,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499009",
+                            "timestamp": "2019-12-07T04:52:47.866Z",
+                            "direction": "BUY",
+                            "price": "7542.48",
+                            "quantity": "0.005"
+                        },
+                        "id": "499009",
+                        "timestamp": 1575694367866,
+                        "datetime": "2019-12-07T04:52:47.866Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7542.48,
+                        "amount": 0.005,
+                        "cost": 37.7124,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499013",
+                            "timestamp": "2019-12-07T04:52:59.082Z",
+                            "direction": "BUY",
+                            "price": "7579.87",
+                            "quantity": "0.005"
+                        },
+                        "id": "499013",
+                        "timestamp": 1575694379082,
+                        "datetime": "2019-12-07T04:52:59.082Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7579.87,
+                        "amount": 0.005,
+                        "cost": 37.89935,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499017",
+                            "timestamp": "2019-12-07T04:53:10.569Z",
+                            "direction": "BUY",
+                            "price": "7579.87",
+                            "quantity": "0.005"
+                        },
+                        "id": "499017",
+                        "timestamp": 1575694390569,
+                        "datetime": "2019-12-07T04:53:10.569Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7579.87,
+                        "amount": 0.005,
+                        "cost": 37.89935,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499021",
+                            "timestamp": "2019-12-07T04:53:21.974Z",
+                            "direction": "BUY",
+                            "price": "7525.11",
+                            "quantity": "0.005"
+                        },
+                        "id": "499021",
+                        "timestamp": 1575694401974,
+                        "datetime": "2019-12-07T04:53:21.974Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7525.11,
+                        "amount": 0.005,
+                        "cost": 37.62555,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499027",
+                            "timestamp": "2019-12-07T04:53:33.766Z",
+                            "direction": "BUY",
+                            "price": "7525.11",
+                            "quantity": "0.005"
+                        },
+                        "id": "499027",
+                        "timestamp": 1575694413766,
+                        "datetime": "2019-12-07T04:53:33.766Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7525.11,
+                        "amount": 0.005,
+                        "cost": 37.62555,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499032",
+                            "timestamp": "2019-12-07T04:53:45.729Z",
+                            "direction": "BUY",
+                            "price": "7560.67",
+                            "quantity": "0.005"
+                        },
+                        "id": "499032",
+                        "timestamp": 1575694425729,
+                        "datetime": "2019-12-07T04:53:45.729Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.67,
+                        "amount": 0.005,
+                        "cost": 37.80335,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499037",
+                            "timestamp": "2019-12-07T04:53:58.112Z",
+                            "direction": "BUY",
+                            "price": "7560.67",
+                            "quantity": "0.005"
+                        },
+                        "id": "499037",
+                        "timestamp": 1575694438112,
+                        "datetime": "2019-12-07T04:53:58.112Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.67,
+                        "amount": 0.005,
+                        "cost": 37.80335,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499042",
+                            "timestamp": "2019-12-07T04:54:09.208Z",
+                            "direction": "BUY",
+                            "price": "7560.67",
+                            "quantity": "0.005"
+                        },
+                        "id": "499042",
+                        "timestamp": 1575694449208,
+                        "datetime": "2019-12-07T04:54:09.208Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.67,
+                        "amount": 0.005,
+                        "cost": 37.80335,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499047",
+                            "timestamp": "2019-12-07T04:54:20.499Z",
+                            "direction": "SELL",
+                            "price": "7568.14",
+                            "quantity": "0.005"
+                        },
+                        "id": "499047",
+                        "timestamp": 1575694460499,
+                        "datetime": "2019-12-07T04:54:20.499Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7568.14,
+                        "amount": 0.005,
+                        "cost": 37.8407,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499059",
+                            "timestamp": "2019-12-07T04:54:51.937Z",
+                            "direction": "BUY",
+                            "price": "7582.5",
+                            "quantity": "0.005"
+                        },
+                        "id": "499059",
+                        "timestamp": 1575694491937,
+                        "datetime": "2019-12-07T04:54:51.937Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7582.5,
+                        "amount": 0.005,
+                        "cost": 37.9125,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499105",
+                            "timestamp": "2019-12-07T07:42:09.147Z",
+                            "direction": "BUY",
+                            "price": "7526.3",
+                            "quantity": "0.005"
+                        },
+                        "id": "499105",
+                        "timestamp": 1575704529147,
+                        "datetime": "2019-12-07T07:42:09.147Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7526.3,
+                        "amount": 0.005,
+                        "cost": 37.6315,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499360",
+                            "timestamp": "2019-12-07T12:59:04.83Z",
+                            "direction": "SELL",
+                            "price": "7542.99",
+                            "quantity": "0.002286"
+                        },
+                        "id": "499360",
+                        "timestamp": 1575723544830,
+                        "datetime": "2019-12-07T12:59:04.830Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7542.99,
+                        "amount": 0.002286,
+                        "cost": 17.24327514,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499361",
+                            "timestamp": "2019-12-07T12:59:08.121Z",
+                            "direction": "SELL",
+                            "price": "7542.98",
+                            "quantity": "0.002286"
+                        },
+                        "id": "499361",
+                        "timestamp": 1575723548121,
+                        "datetime": "2019-12-07T12:59:08.121Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7542.98,
+                        "amount": 0.002286,
+                        "cost": 17.24325228,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499362",
+                            "timestamp": "2019-12-07T12:59:31.122Z",
+                            "direction": "SELL",
+                            "price": "7542.96",
+                            "quantity": "0.005"
+                        },
+                        "id": "499362",
+                        "timestamp": 1575723571122,
+                        "datetime": "2019-12-07T12:59:31.122Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7542.96,
+                        "amount": 0.005,
+                        "cost": 37.7148,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499369",
+                            "timestamp": "2019-12-07T13:02:04.713Z",
+                            "direction": "SELL",
+                            "price": "7529.04",
+                            "quantity": "0.005"
+                        },
+                        "id": "499369",
+                        "timestamp": 1575723724713,
+                        "datetime": "2019-12-07T13:02:04.713Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7529.04,
+                        "amount": 0.005,
+                        "cost": 37.6452,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499376",
+                            "timestamp": "2019-12-07T13:07:22.922Z",
+                            "direction": "SELL",
+                            "price": "7517.7",
+                            "quantity": "0.005"
+                        },
+                        "id": "499376",
+                        "timestamp": 1575724042922,
+                        "datetime": "2019-12-07T13:07:22.922Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.7,
+                        "amount": 0.005,
+                        "cost": 37.5885,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499385",
+                            "timestamp": "2019-12-07T13:11:23.566Z",
+                            "direction": "SELL",
+                            "price": "7514.76",
+                            "quantity": "0.028425"
+                        },
+                        "id": "499385",
+                        "timestamp": 1575724283566,
+                        "datetime": "2019-12-07T13:11:23.566Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7514.76,
+                        "amount": 0.028425,
+                        "cost": 213.607053,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499386",
+                            "timestamp": "2019-12-07T13:11:27.098Z",
+                            "direction": "BUY",
+                            "price": "7514.78",
+                            "quantity": "0.006608"
+                        },
+                        "id": "499386",
+                        "timestamp": 1575724287098,
+                        "datetime": "2019-12-07T13:11:27.098Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7514.78,
+                        "amount": 0.006608,
+                        "cost": 49.65766624,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499387",
+                            "timestamp": "2019-12-07T13:11:30.445Z",
+                            "direction": "SELL",
+                            "price": "7514.74",
+                            "quantity": "0.005"
+                        },
+                        "id": "499387",
+                        "timestamp": 1575724290445,
+                        "datetime": "2019-12-07T13:11:30.445Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7514.74,
+                        "amount": 0.005,
+                        "cost": 37.5737,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499391",
+                            "timestamp": "2019-12-07T13:15:14.921Z",
+                            "direction": "SELL",
+                            "price": "7517.6",
+                            "quantity": "0.005"
+                        },
+                        "id": "499391",
+                        "timestamp": 1575724514921,
+                        "datetime": "2019-12-07T13:15:14.921Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.6,
+                        "amount": 0.005,
+                        "cost": 37.588,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499395",
+                            "timestamp": "2019-12-07T13:16:54.921Z",
+                            "direction": "SELL",
+                            "price": "7514.35",
+                            "quantity": "0.005"
+                        },
+                        "id": "499395",
+                        "timestamp": 1575724614921,
+                        "datetime": "2019-12-07T13:16:54.921Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7514.35,
+                        "amount": 0.005,
+                        "cost": 37.57175,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499402",
+                            "timestamp": "2019-12-07T13:22:05.655Z",
+                            "direction": "SELL",
+                            "price": "7510.87",
+                            "quantity": "0.005"
+                        },
+                        "id": "499402",
+                        "timestamp": 1575724925655,
+                        "datetime": "2019-12-07T13:22:05.655Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7510.87,
+                        "amount": 0.005,
+                        "cost": 37.55435,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499411",
+                            "timestamp": "2019-12-07T13:26:52.544Z",
+                            "direction": "SELL",
+                            "price": "7518.36",
+                            "quantity": "0.005"
+                        },
+                        "id": "499411",
+                        "timestamp": 1575725212544,
+                        "datetime": "2019-12-07T13:26:52.544Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7518.36,
+                        "amount": 0.005,
+                        "cost": 37.5918,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499429",
+                            "timestamp": "2019-12-07T13:37:19.855Z",
+                            "direction": "SELL",
+                            "price": "7531.81",
+                            "quantity": "0.005"
+                        },
+                        "id": "499429",
+                        "timestamp": 1575725839855,
+                        "datetime": "2019-12-07T13:37:19.855Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7531.81,
+                        "amount": 0.005,
+                        "cost": 37.65905,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499432",
+                            "timestamp": "2019-12-07T13:39:28.228Z",
+                            "direction": "SELL",
+                            "price": "7529.42",
+                            "quantity": "0.005"
+                        },
+                        "id": "499432",
+                        "timestamp": 1575725968228,
+                        "datetime": "2019-12-07T13:39:28.228Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7529.42,
+                        "amount": 0.005,
+                        "cost": 37.6471,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499438",
+                            "timestamp": "2019-12-07T13:41:05.56Z",
+                            "direction": "SELL",
+                            "price": "7525.55",
+                            "quantity": "0.005"
+                        },
+                        "id": "499438",
+                        "timestamp": 1575726065560,
+                        "datetime": "2019-12-07T13:41:05.560Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7525.55,
+                        "amount": 0.005,
+                        "cost": 37.62775,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499443",
+                            "timestamp": "2019-12-07T13:45:21.944Z",
+                            "direction": "SELL",
+                            "price": "7527.4",
+                            "quantity": "0.005"
+                        },
+                        "id": "499443",
+                        "timestamp": 1575726321944,
+                        "datetime": "2019-12-07T13:45:21.944Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7527.4,
+                        "amount": 0.005,
+                        "cost": 37.637,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499447",
+                            "timestamp": "2019-12-07T13:48:44.117Z",
+                            "direction": "BUY",
+                            "price": "7520.46",
+                            "quantity": "0.05"
+                        },
+                        "id": "499447",
+                        "timestamp": 1575726524117,
+                        "datetime": "2019-12-07T13:48:44.117Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7520.46,
+                        "amount": 0.05,
+                        "cost": 376.023,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499448",
+                            "timestamp": "2019-12-07T13:48:47.052Z",
+                            "direction": "SELL",
+                            "price": "7520.44",
+                            "quantity": "0.010406"
+                        },
+                        "id": "499448",
+                        "timestamp": 1575726527052,
+                        "datetime": "2019-12-07T13:48:47.052Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7520.44,
+                        "amount": 0.010406,
+                        "cost": 78.25769864,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499456",
+                            "timestamp": "2019-12-07T13:52:48.791Z",
+                            "direction": "SELL",
+                            "price": "7524.73",
+                            "quantity": "0.010406"
+                        },
+                        "id": "499456",
+                        "timestamp": 1575726768791,
+                        "datetime": "2019-12-07T13:52:48.791Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7524.73,
+                        "amount": 0.010406,
+                        "cost": 78.30234038,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499458",
+                            "timestamp": "2019-12-07T13:53:25.956Z",
+                            "direction": "BUY",
+                            "price": "7524.73",
+                            "quantity": "0.0015"
+                        },
+                        "id": "499458",
+                        "timestamp": 1575726805956,
+                        "datetime": "2019-12-07T13:53:25.956Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7524.73,
+                        "amount": 0.0015,
+                        "cost": 11.287095,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499459",
+                            "timestamp": "2019-12-07T13:54:08.089Z",
+                            "direction": "SELL",
+                            "price": "7524.7",
+                            "quantity": "0.005"
+                        },
+                        "id": "499459",
+                        "timestamp": 1575726848089,
+                        "datetime": "2019-12-07T13:54:08.089Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7524.7,
+                        "amount": 0.005,
+                        "cost": 37.6235,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499464",
+                            "timestamp": "2019-12-07T13:56:37.714Z",
+                            "direction": "SELL",
+                            "price": "7527.14",
+                            "quantity": "0.005"
+                        },
+                        "id": "499464",
+                        "timestamp": 1575726997714,
+                        "datetime": "2019-12-07T13:56:37.714Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7527.14,
+                        "amount": 0.005,
+                        "cost": 37.6357,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499466",
+                            "timestamp": "2019-12-07T13:58:06.043Z",
+                            "direction": "SELL",
+                            "price": "7522.86",
+                            "quantity": "0.005"
+                        },
+                        "id": "499466",
+                        "timestamp": 1575727086043,
+                        "datetime": "2019-12-07T13:58:06.043Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7522.86,
+                        "amount": 0.005,
+                        "cost": 37.6143,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499473",
+                            "timestamp": "2019-12-07T14:01:59.254Z",
+                            "direction": "SELL",
+                            "price": "7523.03",
+                            "quantity": "0.005"
+                        },
+                        "id": "499473",
+                        "timestamp": 1575727319254,
+                        "datetime": "2019-12-07T14:01:59.254Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7523.03,
+                        "amount": 0.005,
+                        "cost": 37.61515,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499486",
+                            "timestamp": "2019-12-07T14:08:10.253Z",
+                            "direction": "SELL",
+                            "price": "7521.38",
+                            "quantity": "0.020729"
+                        },
+                        "id": "499486",
+                        "timestamp": 1575727690253,
+                        "datetime": "2019-12-07T14:08:10.253Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7521.38,
+                        "amount": 0.020729,
+                        "cost": 155.91068602,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499487",
+                            "timestamp": "2019-12-07T14:08:11.67Z",
+                            "direction": "BUY",
+                            "price": "7521.4",
+                            "quantity": "0.0015"
+                        },
+                        "id": "499487",
+                        "timestamp": 1575727691670,
+                        "datetime": "2019-12-07T14:08:11.670Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7521.4,
+                        "amount": 0.0015,
+                        "cost": 11.2821,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499489",
+                            "timestamp": "2019-12-07T14:08:37.215Z",
+                            "direction": "SELL",
+                            "price": "7521.36",
+                            "quantity": "0.005"
+                        },
+                        "id": "499489",
+                        "timestamp": 1575727717215,
+                        "datetime": "2019-12-07T14:08:37.215Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7521.36,
+                        "amount": 0.005,
+                        "cost": 37.6068,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499493",
+                            "timestamp": "2019-12-07T14:09:56.984Z",
+                            "direction": "SELL",
+                            "price": "7517.49",
+                            "quantity": "0.005"
+                        },
+                        "id": "499493",
+                        "timestamp": 1575727796984,
+                        "datetime": "2019-12-07T14:09:56.984Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.49,
+                        "amount": 0.005,
+                        "cost": 37.58745,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499497",
+                            "timestamp": "2019-12-07T14:13:44.983Z",
+                            "direction": "BUY",
+                            "price": "7514.35",
+                            "quantity": "0.0006"
+                        },
+                        "id": "499497",
+                        "timestamp": 1575728024983,
+                        "datetime": "2019-12-07T14:13:44.983Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7514.35,
+                        "amount": 0.0006,
+                        "cost": 4.50861,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499499",
+                            "timestamp": "2019-12-07T14:14:04.863Z",
+                            "direction": "SELL",
+                            "price": "7514.32",
+                            "quantity": "0.005"
+                        },
+                        "id": "499499",
+                        "timestamp": 1575728044863,
+                        "datetime": "2019-12-07T14:14:04.863Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7514.32,
+                        "amount": 0.005,
+                        "cost": 37.5716,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499500",
+                            "timestamp": "2019-12-07T14:15:49.208Z",
+                            "direction": "SELL",
+                            "price": "7510.87",
+                            "quantity": "0.005"
+                        },
+                        "id": "499500",
+                        "timestamp": 1575728149208,
+                        "datetime": "2019-12-07T14:15:49.208Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7510.87,
+                        "amount": 0.005,
+                        "cost": 37.55435,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499507",
+                            "timestamp": "2019-12-07T14:19:14.001Z",
+                            "direction": "SELL",
+                            "price": "7512.25",
+                            "quantity": "0.005"
+                        },
+                        "id": "499507",
+                        "timestamp": 1575728354001,
+                        "datetime": "2019-12-07T14:19:14.001Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7512.25,
+                        "amount": 0.005,
+                        "cost": 37.56125,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499522",
+                            "timestamp": "2019-12-07T14:30:09.343Z",
+                            "direction": "BUY",
+                            "price": "7520.99",
+                            "quantity": "0.0015"
+                        },
+                        "id": "499522",
+                        "timestamp": 1575729009343,
+                        "datetime": "2019-12-07T14:30:09.343Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7520.99,
+                        "amount": 0.0015,
+                        "cost": 11.281485,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499523",
+                            "timestamp": "2019-12-07T14:30:10.6Z",
+                            "direction": "BUY",
+                            "price": "7521.19",
+                            "quantity": "0.006607"
+                        },
+                        "id": "499523",
+                        "timestamp": 1575729010600,
+                        "datetime": "2019-12-07T14:30:10.600Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7521.19,
+                        "amount": 0.006607,
+                        "cost": 49.69250233,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499528",
+                            "timestamp": "2019-12-07T14:34:39.217Z",
+                            "direction": "BUY",
+                            "price": "7530.3",
+                            "quantity": "0.006609"
+                        },
+                        "id": "499528",
+                        "timestamp": 1575729279217,
+                        "datetime": "2019-12-07T14:34:39.217Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7530.3,
+                        "amount": 0.006609,
+                        "cost": 49.7677527,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499531",
+                            "timestamp": "2019-12-07T14:35:57.319Z",
+                            "direction": "SELL",
+                            "price": "7530.27",
+                            "quantity": "0.005"
+                        },
+                        "id": "499531",
+                        "timestamp": 1575729357319,
+                        "datetime": "2019-12-07T14:35:57.319Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7530.27,
+                        "amount": 0.005,
+                        "cost": 37.65135,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499538",
+                            "timestamp": "2019-12-07T14:37:27.644Z",
+                            "direction": "SELL",
+                            "price": "7528.8",
+                            "quantity": "0.005"
+                        },
+                        "id": "499538",
+                        "timestamp": 1575729447644,
+                        "datetime": "2019-12-07T14:37:27.644Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7528.8,
+                        "amount": 0.005,
+                        "cost": 37.644,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499545",
+                            "timestamp": "2019-12-07T14:42:48.958Z",
+                            "direction": "BUY",
+                            "price": "7530.04",
+                            "quantity": "0.006607"
+                        },
+                        "id": "499545",
+                        "timestamp": 1575729768958,
+                        "datetime": "2019-12-07T14:42:48.958Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7530.04,
+                        "amount": 0.006607,
+                        "cost": 49.75097428,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499546",
+                            "timestamp": "2019-12-07T14:42:51.688Z",
+                            "direction": "BUY",
+                            "price": "7530.04",
+                            "quantity": "0.006607"
+                        },
+                        "id": "499546",
+                        "timestamp": 1575729771688,
+                        "datetime": "2019-12-07T14:42:51.688Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7530.04,
+                        "amount": 0.006607,
+                        "cost": 49.75097428,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499548",
+                            "timestamp": "2019-12-07T14:44:48.236Z",
+                            "direction": "BUY",
+                            "price": "7531.37",
+                            "quantity": "0.006605"
+                        },
+                        "id": "499548",
+                        "timestamp": 1575729888236,
+                        "datetime": "2019-12-07T14:44:48.236Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7531.37,
+                        "amount": 0.006605,
+                        "cost": 49.74469885,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499553",
+                            "timestamp": "2019-12-07T14:47:55.677Z",
+                            "direction": "SELL",
+                            "price": "7532.72",
+                            "quantity": "0.010395"
+                        },
+                        "id": "499553",
+                        "timestamp": 1575730075677,
+                        "datetime": "2019-12-07T14:47:55.677Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7532.72,
+                        "amount": 0.010395,
+                        "cost": 78.3026244,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499556",
+                            "timestamp": "2019-12-07T14:49:22.466Z",
+                            "direction": "SELL",
+                            "price": "7540.88",
+                            "quantity": "0.005"
+                        },
+                        "id": "499556",
+                        "timestamp": 1575730162466,
+                        "datetime": "2019-12-07T14:49:22.466Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7540.88,
+                        "amount": 0.005,
+                        "cost": 37.7044,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499561",
+                            "timestamp": "2019-12-07T14:51:33.38Z",
+                            "direction": "SELL",
+                            "price": "7538.21",
+                            "quantity": "0.005"
+                        },
+                        "id": "499561",
+                        "timestamp": 1575730293380,
+                        "datetime": "2019-12-07T14:51:33.380Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7538.21,
+                        "amount": 0.005,
+                        "cost": 37.69105,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499567",
+                            "timestamp": "2019-12-07T14:54:56.937Z",
+                            "direction": "SELL",
+                            "price": "7531.71",
+                            "quantity": "0.030818"
+                        },
+                        "id": "499567",
+                        "timestamp": 1575730496937,
+                        "datetime": "2019-12-07T14:54:56.937Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7531.71,
+                        "amount": 0.030818,
+                        "cost": 232.11223878,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499571",
+                            "timestamp": "2019-12-07T14:57:51.241Z",
+                            "direction": "SELL",
+                            "price": "7533.53",
+                            "quantity": "0.005"
+                        },
+                        "id": "499571",
+                        "timestamp": 1575730671241,
+                        "datetime": "2019-12-07T14:57:51.241Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7533.53,
+                        "amount": 0.005,
+                        "cost": 37.66765,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499577",
+                            "timestamp": "2019-12-07T15:02:18.113Z",
+                            "direction": "SELL",
+                            "price": "7530.8",
+                            "quantity": "0.005"
+                        },
+                        "id": "499577",
+                        "timestamp": 1575730938113,
+                        "datetime": "2019-12-07T15:02:18.113Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7530.8,
+                        "amount": 0.005,
+                        "cost": 37.654,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499581",
+                            "timestamp": "2019-12-07T15:04:11.107Z",
+                            "direction": "SELL",
+                            "price": "7529.59",
+                            "quantity": "0.005"
+                        },
+                        "id": "499581",
+                        "timestamp": 1575731051107,
+                        "datetime": "2019-12-07T15:04:11.107Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7529.59,
+                        "amount": 0.005,
+                        "cost": 37.64795,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499583",
+                            "timestamp": "2019-12-07T15:05:55.834Z",
+                            "direction": "BUY",
+                            "price": "7529.01",
+                            "quantity": "0.005"
+                        },
+                        "id": "499583",
+                        "timestamp": 1575731155834,
+                        "datetime": "2019-12-07T15:05:55.834Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7529.01,
+                        "amount": 0.005,
+                        "cost": 37.64505,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499586",
+                            "timestamp": "2019-12-07T15:08:55.557Z",
+                            "direction": "SELL",
+                            "price": "7539.21",
+                            "quantity": "0.005"
+                        },
+                        "id": "499586",
+                        "timestamp": 1575731335557,
+                        "datetime": "2019-12-07T15:08:55.557Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7539.21,
+                        "amount": 0.005,
+                        "cost": 37.69605,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499588",
+                            "timestamp": "2019-12-07T15:10:20.129Z",
+                            "direction": "SELL",
+                            "price": "7538.11",
+                            "quantity": "0.005"
+                        },
+                        "id": "499588",
+                        "timestamp": 1575731420129,
+                        "datetime": "2019-12-07T15:10:20.129Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7538.11,
+                        "amount": 0.005,
+                        "cost": 37.69055,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499593",
+                            "timestamp": "2019-12-07T15:12:10.91Z",
+                            "direction": "SELL",
+                            "price": "7536.27",
+                            "quantity": "0.005"
+                        },
+                        "id": "499593",
+                        "timestamp": 1575731530910,
+                        "datetime": "2019-12-07T15:12:10.910Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7536.27,
+                        "amount": 0.005,
+                        "cost": 37.68135,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499596",
+                            "timestamp": "2019-12-07T15:15:04.421Z",
+                            "direction": "BUY",
+                            "price": "7533.93",
+                            "quantity": "0.006598"
+                        },
+                        "id": "499596",
+                        "timestamp": 1575731704421,
+                        "datetime": "2019-12-07T15:15:04.421Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7533.93,
+                        "amount": 0.006598,
+                        "cost": 49.70887014,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499597",
+                            "timestamp": "2019-12-07T15:15:07.892Z",
+                            "direction": "BUY",
+                            "price": "7533.93",
+                            "quantity": "0.006588"
+                        },
+                        "id": "499597",
+                        "timestamp": 1575731707892,
+                        "datetime": "2019-12-07T15:15:07.892Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7533.93,
+                        "amount": 0.006588,
+                        "cost": 49.63353084,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499607",
+                            "timestamp": "2019-12-07T15:22:31.279Z",
+                            "direction": "SELL",
+                            "price": "7540.4",
+                            "quantity": "0.005"
+                        },
+                        "id": "499607",
+                        "timestamp": 1575732151279,
+                        "datetime": "2019-12-07T15:22:31.279Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7540.4,
+                        "amount": 0.005,
+                        "cost": 37.702,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499614",
+                            "timestamp": "2019-12-07T15:24:52.521Z",
+                            "direction": "SELL",
+                            "price": "7533.64",
+                            "quantity": "0.005"
+                        },
+                        "id": "499614",
+                        "timestamp": 1575732292521,
+                        "datetime": "2019-12-07T15:24:52.521Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7533.64,
+                        "amount": 0.005,
+                        "cost": 37.6682,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499620",
+                            "timestamp": "2019-12-07T15:28:39.81Z",
+                            "direction": "BUY",
+                            "price": "7529.58",
+                            "quantity": "0.006581"
+                        },
+                        "id": "499620",
+                        "timestamp": 1575732519810,
+                        "datetime": "2019-12-07T15:28:39.810Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7529.58,
+                        "amount": 0.006581,
+                        "cost": 49.55216598,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499621",
+                            "timestamp": "2019-12-07T15:28:42.843Z",
+                            "direction": "BUY",
+                            "price": "7529.57",
+                            "quantity": "0.006595"
+                        },
+                        "id": "499621",
+                        "timestamp": 1575732522843,
+                        "datetime": "2019-12-07T15:28:42.843Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7529.57,
+                        "amount": 0.006595,
+                        "cost": 49.65751415,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499623",
+                            "timestamp": "2019-12-07T15:29:29.138Z",
+                            "direction": "SELL",
+                            "price": "7529.6",
+                            "quantity": "0.005"
+                        },
+                        "id": "499623",
+                        "timestamp": 1575732569138,
+                        "datetime": "2019-12-07T15:29:29.138Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7529.6,
+                        "amount": 0.005,
+                        "cost": 37.648,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499628",
+                            "timestamp": "2019-12-07T15:32:47.176Z",
+                            "direction": "SELL",
+                            "price": "7525.99",
+                            "quantity": "0.146577"
+                        },
+                        "id": "499628",
+                        "timestamp": 1575732767176,
+                        "datetime": "2019-12-07T15:32:47.176Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7525.99,
+                        "amount": 0.146577,
+                        "cost": 1103.13703623,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499636",
+                            "timestamp": "2019-12-07T15:36:48.371Z",
+                            "direction": "SELL",
+                            "price": "7526.04",
+                            "quantity": "0.028064"
+                        },
+                        "id": "499636",
+                        "timestamp": 1575733008371,
+                        "datetime": "2019-12-07T15:36:48.371Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7526.04,
+                        "amount": 0.028064,
+                        "cost": 211.21078656,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499638",
+                            "timestamp": "2019-12-07T15:38:46.283Z",
+                            "direction": "SELL",
+                            "price": "7519.7",
+                            "quantity": "0.005"
+                        },
+                        "id": "499638",
+                        "timestamp": 1575733126283,
+                        "datetime": "2019-12-07T15:38:46.283Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7519.7,
+                        "amount": 0.005,
+                        "cost": 37.5985,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499645",
+                            "timestamp": "2019-12-07T15:42:14.542Z",
+                            "direction": "SELL",
+                            "price": "7516.46",
+                            "quantity": "0.005"
+                        },
+                        "id": "499645",
+                        "timestamp": 1575733334542,
+                        "datetime": "2019-12-07T15:42:14.542Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7516.46,
+                        "amount": 0.005,
+                        "cost": 37.5823,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499652",
+                            "timestamp": "2019-12-07T15:49:09.264Z",
+                            "direction": "BUY",
+                            "price": "7515.39",
+                            "quantity": "0.005994"
+                        },
+                        "id": "499652",
+                        "timestamp": 1575733749264,
+                        "datetime": "2019-12-07T15:49:09.264Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7515.39,
+                        "amount": 0.005994,
+                        "cost": 45.04724766,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499653",
+                            "timestamp": "2019-12-07T15:49:12.442Z",
+                            "direction": "BUY",
+                            "price": "7515.48",
+                            "quantity": "0.005994"
+                        },
+                        "id": "499653",
+                        "timestamp": 1575733752442,
+                        "datetime": "2019-12-07T15:49:12.442Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7515.48,
+                        "amount": 0.005994,
+                        "cost": 45.04778712,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499669",
+                            "timestamp": "2019-12-07T15:59:22.711Z",
+                            "direction": "SELL",
+                            "price": "7523.87",
+                            "quantity": "0.005"
+                        },
+                        "id": "499669",
+                        "timestamp": 1575734362711,
+                        "datetime": "2019-12-07T15:59:22.711Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7523.87,
+                        "amount": 0.005,
+                        "cost": 37.61935,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499676",
+                            "timestamp": "2019-12-07T16:03:04.805Z",
+                            "direction": "SELL",
+                            "price": "7520.58",
+                            "quantity": "0.005"
+                        },
+                        "id": "499676",
+                        "timestamp": 1575734584805,
+                        "datetime": "2019-12-07T16:03:04.805Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7520.58,
+                        "amount": 0.005,
+                        "cost": 37.6029,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499679",
+                            "timestamp": "2019-12-07T16:04:37.595Z",
+                            "direction": "SELL",
+                            "price": "7516.46",
+                            "quantity": "0.005"
+                        },
+                        "id": "499679",
+                        "timestamp": 1575734677595,
+                        "datetime": "2019-12-07T16:04:37.595Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7516.46,
+                        "amount": 0.005,
+                        "cost": 37.5823,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499688",
+                            "timestamp": "2019-12-07T16:09:52.615Z",
+                            "direction": "SELL",
+                            "price": "7506.54",
+                            "quantity": "0.005"
+                        },
+                        "id": "499688",
+                        "timestamp": 1575734992615,
+                        "datetime": "2019-12-07T16:09:52.615Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7506.54,
+                        "amount": 0.005,
+                        "cost": 37.5327,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499695",
+                            "timestamp": "2019-12-07T16:14:52.979Z",
+                            "direction": "SELL",
+                            "price": "7517.06",
+                            "quantity": "0.005"
+                        },
+                        "id": "499695",
+                        "timestamp": 1575735292979,
+                        "datetime": "2019-12-07T16:14:52.979Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.06,
+                        "amount": 0.005,
+                        "cost": 37.5853,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499702",
+                            "timestamp": "2019-12-07T16:18:02.823Z",
+                            "direction": "SELL",
+                            "price": "7516.58",
+                            "quantity": "0.005"
+                        },
+                        "id": "499702",
+                        "timestamp": 1575735482823,
+                        "datetime": "2019-12-07T16:18:02.823Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7516.58,
+                        "amount": 0.005,
+                        "cost": 37.5829,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499708",
+                            "timestamp": "2019-12-07T16:21:07.387Z",
+                            "direction": "SELL",
+                            "price": "7516.03",
+                            "quantity": "0.005"
+                        },
+                        "id": "499708",
+                        "timestamp": 1575735667387,
+                        "datetime": "2019-12-07T16:21:07.387Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7516.03,
+                        "amount": 0.005,
+                        "cost": 37.58015,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499726",
+                            "timestamp": "2019-12-07T16:31:45.205Z",
+                            "direction": "SELL",
+                            "price": "7524.44",
+                            "quantity": "0.005"
+                        },
+                        "id": "499726",
+                        "timestamp": 1575736305205,
+                        "datetime": "2019-12-07T16:31:45.205Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7524.44,
+                        "amount": 0.005,
+                        "cost": 37.6222,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499732",
+                            "timestamp": "2019-12-07T16:35:24.097Z",
+                            "direction": "SELL",
+                            "price": "7521.84",
+                            "quantity": "0.005"
+                        },
+                        "id": "499732",
+                        "timestamp": 1575736524097,
+                        "datetime": "2019-12-07T16:35:24.097Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7521.84,
+                        "amount": 0.005,
+                        "cost": 37.6092,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499738",
+                            "timestamp": "2019-12-07T16:37:52.864Z",
+                            "direction": "SELL",
+                            "price": "7517.1",
+                            "quantity": "0.005"
+                        },
+                        "id": "499738",
+                        "timestamp": 1575736672864,
+                        "datetime": "2019-12-07T16:37:52.864Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.1,
+                        "amount": 0.005,
+                        "cost": 37.5855,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499745",
+                            "timestamp": "2019-12-07T16:42:54.246Z",
+                            "direction": "BUY",
+                            "price": "7520.04",
+                            "quantity": "0.0006"
+                        },
+                        "id": "499745",
+                        "timestamp": 1575736974246,
+                        "datetime": "2019-12-07T16:42:54.246Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7520.04,
+                        "amount": 0.0006,
+                        "cost": 4.512024,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499746",
+                            "timestamp": "2019-12-07T16:42:55.937Z",
+                            "direction": "BUY",
+                            "price": "7520.03",
+                            "quantity": "0.006603"
+                        },
+                        "id": "499746",
+                        "timestamp": 1575736975937,
+                        "datetime": "2019-12-07T16:42:55.937Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7520.03,
+                        "amount": 0.006603,
+                        "cost": 49.65475809,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499748",
+                            "timestamp": "2019-12-07T16:43:13.579Z",
+                            "direction": "SELL",
+                            "price": "7520",
+                            "quantity": "0.005"
+                        },
+                        "id": "499748",
+                        "timestamp": 1575736993579,
+                        "datetime": "2019-12-07T16:43:13.579Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7520,
+                        "amount": 0.005,
+                        "cost": 37.6,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499757",
+                            "timestamp": "2019-12-07T16:48:27.89Z",
+                            "direction": "BUY",
+                            "price": "7519.57",
+                            "quantity": "0.006603"
+                        },
+                        "id": "499757",
+                        "timestamp": 1575737307890,
+                        "datetime": "2019-12-07T16:48:27.890Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7519.57,
+                        "amount": 0.006603,
+                        "cost": 49.65172071,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499760",
+                            "timestamp": "2019-12-07T16:50:33.709Z",
+                            "direction": "SELL",
+                            "price": "7523.36",
+                            "quantity": "0.005"
+                        },
+                        "id": "499760",
+                        "timestamp": 1575737433709,
+                        "datetime": "2019-12-07T16:50:33.709Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7523.36,
+                        "amount": 0.005,
+                        "cost": 37.6168,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499765",
+                            "timestamp": "2019-12-07T16:52:19.327Z",
+                            "direction": "SELL",
+                            "price": "7522.44",
+                            "quantity": "0.005"
+                        },
+                        "id": "499765",
+                        "timestamp": 1575737539327,
+                        "datetime": "2019-12-07T16:52:19.327Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7522.44,
+                        "amount": 0.005,
+                        "cost": 37.6122,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499770",
+                            "timestamp": "2019-12-07T16:54:31.638Z",
+                            "direction": "SELL",
+                            "price": "7519.34",
+                            "quantity": "0.005"
+                        },
+                        "id": "499770",
+                        "timestamp": 1575737671638,
+                        "datetime": "2019-12-07T16:54:31.638Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7519.34,
+                        "amount": 0.005,
+                        "cost": 37.5967,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499777",
+                            "timestamp": "2019-12-07T16:58:03.752Z",
+                            "direction": "BUY",
+                            "price": "7510.7",
+                            "quantity": "0.002062"
+                        },
+                        "id": "499777",
+                        "timestamp": 1575737883752,
+                        "datetime": "2019-12-07T16:58:03.752Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7510.7,
+                        "amount": 0.002062,
+                        "cost": 15.4870634,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499778",
+                            "timestamp": "2019-12-07T16:58:05.588Z",
+                            "direction": "BUY",
+                            "price": "7510.7",
+                            "quantity": "0.006603"
+                        },
+                        "id": "499778",
+                        "timestamp": 1575737885588,
+                        "datetime": "2019-12-07T16:58:05.588Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7510.7,
+                        "amount": 0.006603,
+                        "cost": 49.5931521,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "499783",
+                            "timestamp": "2019-12-07T17:00:01.508Z",
+                            "direction": "SELL",
+                            "price": "7517.55",
+                            "quantity": "0.005"
+                        },
+                        "id": "499783",
+                        "timestamp": 1575738001508,
+                        "datetime": "2019-12-07T17:00:01.508Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "price": 7517.55,
+                        "amount": 0.005,
+                        "cost": 37.58775,
+                        "takerOrMaker": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
                     }
                 ]
             }
         ],
+        
         "fetchTicker": [
             {
                 "description": "public spot ticker",
