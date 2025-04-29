@@ -967,6 +967,8 @@ class hitbtc extends Exchange {
                 $transferEnabled = $this->safe_bool($entry, 'transfer_enabled', false);
                 $active = $payinEnabled && $payoutEnabled && $transferEnabled;
                 $rawNetworks = $this->safe_value($entry, 'networks', array());
+                $isCrypto = $this->safe_bool($entry, 'crypto');
+                $type = $isCrypto ? 'crypto' : 'fiat';
                 $networks = array();
                 $fee = null;
                 $depositEnabled = null;
@@ -1027,6 +1029,7 @@ class hitbtc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'type' => $type,
                 );
             }
             return $result;
