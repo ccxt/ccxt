@@ -11,7 +11,6 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
     let numInactiveCurrencies = 0;
     const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
     const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
-    // todo: remove undefined check
     if (currencies !== undefined) {
         const values = Object.values (currencies);
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
@@ -41,8 +40,8 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         // check at least X% of currencies are active
         const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
         assert (skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString () + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString () + '%');
-        detectCurrencyConflicts (exchange, currencies);
     }
+    detectCurrencyConflicts (exchange, currencies);
     return true;
 }
 
