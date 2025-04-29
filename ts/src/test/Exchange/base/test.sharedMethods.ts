@@ -51,6 +51,9 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     const allowEmptySkips = exchange.safeList (skippedProperties, 'allowNull', []);
+    if (emptyAllowedFor === undefined) {
+        emptyAllowedFor = [];
+    }
     emptyAllowedFor = emptyAllowedFor.concat (allowEmptySkips);
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);
