@@ -1630,7 +1630,8 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
