@@ -261,7 +261,6 @@ function getVersionBadge (exchange) {
 }
 
 // ----------------------------------------------------------------------------
-
 function createMarkdownExchange (exchange) {
     const url = getReferralUrlOrWebsiteUrl (exchange)
     return {
@@ -269,7 +268,9 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
-        'type': exchange.dex ? '![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")' : '![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange")',
+        // 'type': exchange.dex ? '![DEX](https://img.shields.io/badge/DEX-blue.svg)' : '![CEX](https://img.shields.io/badge/CEX-green.svg)',
+        'type': exchange.dex ? 'dex' : 'cex',
+        // 'type': exchange.dex ? '![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")' : '![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange")',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
