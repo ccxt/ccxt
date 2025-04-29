@@ -62,9 +62,6 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (i, emptyAllowedFor);
             const value = entry[i];
-            if (i in skippedProperties) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -81,13 +78,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (key in skippedProperties) {
-                continue;
-            }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
