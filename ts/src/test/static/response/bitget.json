@@ -1766,6 +1766,78 @@
                   "marginMode": "cross"
                 }
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch the funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {"code":"00000","msg":"success","requestTime":1745500986108,"data":[{"symbol":"BTCUSDT","fundingRate":"-0.000014","fundingRateInterval":"8","nextUpdate":"1745510400000","minFundingRate":"-0.003","maxFundingRate":"0.003"}]},
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSDT",
+                    "fundingRate": "-0.000014",
+                    "fundingRateInterval": "8",
+                    "nextUpdate": "1745510400000",
+                    "minFundingRate": "-0.003",
+                    "maxFundingRate": "0.003"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": null,
+                  "indexPrice": null,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "fundingRate": -0.000014,
+                  "fundingTimestamp": 1745510400000,
+                  "fundingDatetime": "2025-04-24T16:00:00.000Z",
+                  "nextFundingRate": null,
+                  "nextFundingTimestamp": null,
+                  "nextFundingDatetime": null,
+                  "previousFundingRate": null,
+                  "previousFundingTimestamp": null,
+                  "previousFundingDatetime": null,
+                  "interval": "8h"
+                }
+            },
+            {
+                "description": "Fetch the funding rate details with an alternative method",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "method": "publicMixGetV2MixMarketFundingTime"
+                    }
+                ],
+                "httpResponse": {"code":"00000","msg":"success","requestTime":1745402656867,"data":[{"symbol":"BTCUSDT","nextFundingTime":"1745424000000","ratePeriod":"8"}]},
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "nextFundingTime": "1745424000000",
+                        "ratePeriod": "8"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": null,
+                    "fundingTimestamp": 1745424000000,
+                    "fundingDatetime": "2025-04-23T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
         ]
     }
 }

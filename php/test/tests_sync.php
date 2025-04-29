@@ -1091,6 +1091,9 @@ class testMainClass {
     public function test_request_statically($exchange, $method, $data, $type, $skip_keys) {
         $output = null;
         $request_url = null;
+        if ($this->info) {
+            dump('[INFO] STATIC REQUEST TEST:', $method, ':', $data['description']);
+        }
         try {
             if (!is_sync()) {
                 call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input']));
@@ -1118,6 +1121,9 @@ class testMainClass {
     public function test_response_statically($exchange, $method, $skip_keys, $data) {
         $expected_result = $exchange->safe_value($data, 'parsedResponse');
         $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+        if ($this->info) {
+            dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
+        }
         try {
             if (!is_sync()) {
                 $unified_result = call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input']));

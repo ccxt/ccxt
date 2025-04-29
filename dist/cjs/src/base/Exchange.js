@@ -2609,7 +2609,7 @@ class Exchange {
                 // find lowest precision (which is more desired)
                 const precision = this.safeString(network, 'precision');
                 const precisionMain = this.safeString(currency, 'precision');
-                if (precisionMain === undefined || Precise["default"].stringLt(precision, precisionMain)) {
+                if (precisionMain === undefined || Precise["default"].stringGt(precision, precisionMain)) {
                     currency['precision'] = this.parseNumber(precision);
                 }
                 // limits

@@ -185,6 +185,7 @@ var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
+var tradeogre$1 = require('./src/pro/tradeogre.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
@@ -372,6 +373,7 @@ const pro = {
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'probit': probit$1,
+    'tradeogre': tradeogre$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
     'whitebit': whitebit$1,

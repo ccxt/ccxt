@@ -49,6 +49,26 @@ public partial class testMainClass : BaseTest
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
             assert(isTrue(skipActive) || isTrue((isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
         }
+        detectCurrencyConflicts(exchange, currencies);
+        return true;
+    }
+    public static object detectCurrencyConflicts(Exchange exchange, object currencyValues)
+    {
+        // detect if there are currencies with different ids for the same code
+        object ids = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(currencyValues)); postFixIncrement(ref i))
+        {
+            object currency = getValue(currencyValues, i);
+            object code = getValue(currency, "code");
+            if (!isTrue((inOp(ids, code))))
+            {
+                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
+            } else
+            {
+                object isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
+                assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
+            }
+        }
         return true;
     }
 

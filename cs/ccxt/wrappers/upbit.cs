@@ -289,13 +289,19 @@ public partial class upbit
     /// <item>
     /// <term>params.cost</term>
     /// <description>
-    /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// float : for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.ordType</term>
+    /// <description>
+    /// string : this field can be used to place a ‘best’ type order
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'
+    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
     /// </description>
     /// </item>
     /// </list>

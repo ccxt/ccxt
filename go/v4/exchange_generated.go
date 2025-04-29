@@ -2036,7 +2036,7 @@ func  (this *Exchange) SafeCurrencyStructure(currency interface{}) interface{}  
             // find lowest precision (which is more desired)
             var precision interface{} = this.SafeString(network, "precision")
             var precisionMain interface{} = this.SafeString(currency, "precision")
-            if IsTrue(IsTrue(IsEqual(precisionMain, nil)) || IsTrue(Precise.StringLt(precision, precisionMain))) {
+            if IsTrue(IsTrue(IsEqual(precisionMain, nil)) || IsTrue(Precise.StringGt(precision, precisionMain))) {
                 AddElementToObject(currency, "precision", this.ParseNumber(precision))
             }
             // limits

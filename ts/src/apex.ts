@@ -267,6 +267,7 @@ export default class apex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -545,6 +546,7 @@ export default class apex extends Exchange {
                 'info': currency,
                 'code': code,
                 'id': currencyId,
+                'type': 'crypto',
                 'name': name,
                 'active': deposit && withdraw,
                 'deposit': deposit,
@@ -733,8 +735,6 @@ export default class apex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         const percentage = this.safeString (ticker, 'price24hPcnt');
-        const percent = Precise.stringMul (percentage, '100');
-        const open = Precise.stringDiv (last, Precise.stringMul ('1', percentage), 8);
         const quoteVolume = this.safeString (ticker, 'turnover24h');
         const baseVolume = this.safeString (ticker, 'volume24h');
         const high = this.safeString (ticker, 'highPrice24h');
@@ -750,12 +750,12 @@ export default class apex extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percent,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,

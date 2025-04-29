@@ -270,8 +270,6 @@ export default class upbit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTickersMaxLength': 4096, // 2048,
-                'fetchOrderBooksMaxLength': 4096, // 2048,
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -631,11 +629,6 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchOrderBooksMaxLength']) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols (' + ids.length.toString () + ' characters) exceeding max URL length (' + this.options['fetchOrderBooksMaxLength'].toString () + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -777,11 +770,6 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
-            // // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            // if (ids.length > this.options['fetchTickersMaxLength']) {
-            //     const numIds = this.ids.length;
-            //     throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            // }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -1146,6 +1134,29 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
+        let quoteAmount = undefined;
+        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            quoteAmount = this.costToPrecision (symbol, cost);
+        } else if (createMarketBuyOrderRequiresPrice) {
+            if (price === undefined || amount === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+            }
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const costRequest = Precise.stringMul (amountString, priceString);
+            quoteAmount = this.costToPrecision (symbol, costRequest);
+        } else {
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
+            }
+            quoteAmount = this.costToPrecision (symbol, amount);
+        }
+        return quoteAmount;
+    }
+
     /**
      * @method
      * @name upbit#createOrder
@@ -1153,13 +1164,14 @@ export default class upbit extends Exchange {
      * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
      * @see https://global-docs.upbit.com/reference/order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'
+     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1171,54 +1183,64 @@ export default class upbit extends Exchange {
         } else if (side === 'sell') {
             orderSide = 'ask';
         } else {
-            throw new InvalidOrder (this.id + ' createOrder() allows buy or sell side only!');
+            throw new InvalidOrder (this.id + ' createOrder() supports only buy or sell in the side argument.');
         }
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if ((type === 'market') && (side === 'buy')) {
-            // for market buy it requires the amount of quote currency to spend
-            let quoteAmount = undefined;
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
-            if (cost !== undefined) {
-                quoteAmount = this.costToPrecision (symbol, cost);
-            } else if (createMarketBuyOrderRequiresPrice) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
-                } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const costRequest = Precise.stringMul (amountString, priceString);
-                    quoteAmount = this.costToPrecision (symbol, costRequest);
-                }
-            } else {
-                quoteAmount = this.costToPrecision (symbol, amount);
+            if (price === undefined || amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' the limit type order in createOrder() is required price and amount.');
             }
-            request['ord_type'] = 'price';
-            request['price'] = quoteAmount;
-        } else {
-            request['ord_type'] = type;
+            request['ord_type'] = 'limit';
+            request['price'] = this.priceToPrecision (symbol, price);
             request['volume'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            if (side === 'buy') {
+                request['ord_type'] = 'price';
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                request['price'] = orderPrice;
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' the market sell type order in createOrder() is required amount.');
+                }
+                request['ord_type'] = 'market';
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
+        const customType = this.safeString2 (params, 'ordType', 'ord_type');
+        if (customType === 'best') {
+            params = this.omit (params, [ 'ordType', 'ord_type' ]);
+            request['ord_type'] = 'best';
+            if (side === 'buy') {
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                request['price'] = orderPrice;
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' the best sell type order in createOrder() is required amount.');
+                }
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
         }
-        if (type !== 'market') {
+        if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
             const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
-            params = this.omit (params, 'timeInForce');
+            params = this.omit (params, [ 'timeInForce' ]);
             if (timeInForce !== undefined) {
                 request['time_in_force'] = timeInForce;
+            } else {
+                if (request['ord_type'] === 'best') {
+                    throw new ArgumentsRequired (this.id + ' the best type order in createOrder() is required timeInForce.');
+                }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
+        params = this.omit (params, [ 'clientOrderId', 'cost' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
@@ -1615,6 +1637,7 @@ export default class upbit extends Exchange {
         } else {
             side = 'sell';
         }
+        const identifier = this.safeString (order, 'identifier');
         let type = this.safeString (order, 'ord_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -1671,7 +1694,7 @@ export default class upbit extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': identifier,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

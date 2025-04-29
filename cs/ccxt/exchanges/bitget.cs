@@ -1361,6 +1361,9 @@ public partial class bitget : Exchange
                         { "method", "publicMixGetV2MixMarketFillsHistory" },
                     } },
                 } },
+                { "fetchFundingRate", new Dictionary<string, object>() {
+                    { "method", "publicMixGetV2MixMarketCurrentFundRate" },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "spot" },
                     { "cross", "crossed_margin" },
@@ -7247,8 +7250,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -7268,21 +7273,19 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "productType", productType },
         };
-        object response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700811542124,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "fundingRate": "0.000106"
-        //             }
-        //         ]
-        //     }
-        //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(method, "publicMixGetV2MixMarketCurrentFundRate")))
+        {
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicMixGetV2MixMarketFundingTime")))
+        {
+            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRate(getValue(data, 0), market);
     }
 
@@ -7354,11 +7357,23 @@ public partial class bitget : Exchange
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000013",
+        //         "fundingRateInterval": "8",
+        //         "nextUpdate": "1745510400000",
+        //         "minFundingRate": "-0.003",
+        //         "maxFundingRate": "0.003"
+        //     }
+        //
+        // fetchFundingRate: publicMixGetV2MixMarketFundingTime
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1745424000000",
+        //         "ratePeriod": "8"
         //     }
         //
         // fetchFundingInterval
@@ -7368,7 +7383,9 @@ public partial class bitget : Exchange
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
+        //
         // fetchFundingRates
+        //
         //     {
         //         "symbol": "BTCUSD",
         //         "lastPr": "29904.5",
@@ -7394,10 +7411,11 @@ public partial class bitget : Exchange
         //         "open24h": "0",
         //         "markPrice": "12345"
         //     }
+        //
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object fundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        object interval = this.safeString(contract, "ratePeriod");
+        object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         object timestamp = this.safeInteger(contract, "ts");
         object markPrice = this.safeNumber(contract, "markPrice");
         object indexPrice = this.safeNumber(contract, "indexPrice");

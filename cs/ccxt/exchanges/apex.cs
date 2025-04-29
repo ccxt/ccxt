@@ -255,6 +255,7 @@ public partial class apex : Exchange
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
+                        { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
                         { "symbolRequired", false },
@@ -547,6 +548,7 @@ public partial class apex : Exchange
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
+                { "type", "crypto" },
                 { "name", name },
                 { "active", isTrue(deposit) && isTrue(withdraw) },
                 { "deposit", deposit },
@@ -739,8 +741,6 @@ public partial class apex : Exchange
         object symbol = this.safeSymbol(marketId, market);
         object last = this.safeString(ticker, "lastPrice");
         object percentage = this.safeString(ticker, "price24hPcnt");
-        object percent = Precise.stringMul(percentage, "100");
-        object open = Precise.stringDiv(last, Precise.stringMul("1", percentage), 8);
         object quoteVolume = this.safeString(ticker, "turnover24h");
         object baseVolume = this.safeString(ticker, "volume24h");
         object high = this.safeString(ticker, "highPrice24h");
@@ -756,12 +756,12 @@ public partial class apex : Exchange
             { "ask", null },
             { "askVolume", null },
             { "vwap", null },
-            { "open", open },
+            { "open", null },
             { "close", last },
             { "last", last },
             { "previousClose", null },
             { "change", null },
-            { "percentage", percent },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },

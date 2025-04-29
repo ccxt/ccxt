@@ -1687,6 +1687,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "fetch the funding rate details with an alternative method",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "method": "publicMixGetV2MixMarketFundingTime"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [

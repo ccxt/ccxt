@@ -742,7 +742,7 @@ func  (this *bitmex) ParseMarket(market interface{}) interface{}  {
     var isQuanto interface{} = this.SafeValue(market, "isQuanto") // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
     var linear interface{} = Ternary(IsTrue(contract), (!IsTrue(isInverse) && !IsTrue(isQuanto)), nil)
     var status interface{} = this.SafeString(market, "state")
-    var active interface{} = !IsEqual(status, "Unlisted")
+    var active interface{} = IsEqual(status, "Open") // Open, Settled, Unlisted
     var expiry interface{} = nil
     var expiryDatetime interface{} = nil
     var symbol interface{} = nil
@@ -757,9 +757,9 @@ func  (this *bitmex) ParseMarket(market interface{}) interface{}  {
             var multiplierString interface{} = Precise.StringAbs(this.SafeString(market, "multiplier"))
             contractSize = this.ParseNumber(multiplierString)
         }
-        if IsTrue(future) {
-            expiryDatetime = this.SafeString(market, "expiry")
-            expiry = this.Parse8601(expiryDatetime)
+        expiryDatetime = this.SafeString(market, "expiry")
+        expiry = this.Parse8601(expiryDatetime)
+        if IsTrue(!IsEqual(expiry, nil)) {
             symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
         }
     } else {

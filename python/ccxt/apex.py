@@ -275,6 +275,7 @@ class apex(Exchange, ImplicitAPI):
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -544,6 +545,7 @@ class apex(Exchange, ImplicitAPI):
                 'info': currency,
                 'code': code,
                 'id': currencyId,
+                'type': 'crypto',
                 'name': name,
                 'active': deposit and withdraw,
                 'deposit': deposit,
@@ -728,8 +730,6 @@ class apex(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         percentage = self.safe_string(ticker, 'price24hPcnt')
-        percent = Precise.string_mul(percentage, '100')
-        open = Precise.string_div(last, Precise.string_mul('1', percentage), 8)
         quoteVolume = self.safe_string(ticker, 'turnover24h')
         baseVolume = self.safe_string(ticker, 'volume24h')
         high = self.safe_string(ticker, 'highPrice24h')
@@ -745,12 +745,12 @@ class apex(Exchange, ImplicitAPI):
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percent,
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,

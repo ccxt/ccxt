@@ -731,7 +731,7 @@ class bitmex extends Exchange {
         $isQuanto = $this->safe_value($market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         $linear = $contract ? (!$isInverse && !$isQuanto) : null;
         $status = $this->safe_string($market, 'state');
-        $active = $status !== 'Unlisted';
+        $active = $status === 'Open'; // Open, Settled, Unlisted
         $expiry = null;
         $expiryDatetime = null;
         $symbol = null;
@@ -746,9 +746,9 @@ class bitmex extends Exchange {
                 $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
                 $contractSize = $this->parse_number($multiplierString);
             }
-            if ($future) {
-                $expiryDatetime = $this->safe_string($market, 'expiry');
-                $expiry = $this->parse8601($expiryDatetime);
+            $expiryDatetime = $this->safe_string($market, 'expiry');
+            $expiry = $this->parse8601($expiryDatetime);
+            if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
         } else {
