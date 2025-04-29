@@ -49,8 +49,10 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
 function detectCurrencyConflicts (exchange: Exchange, currencyValues: any) {
     // detect if there are currencies with different ids for the same code
     const ids = {};
-    for (let i = 0; i < currencyValues.length; i++) {
-        const currency = currencyValues[i];
+    const keys = Object.keys (currencyValues);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const currency = currencyValues[key];
         const code = currency['code'];
         if (!(code in ids)) {
             ids[code] = currency['id'];
