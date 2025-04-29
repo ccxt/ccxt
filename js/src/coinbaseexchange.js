@@ -1894,6 +1894,7 @@ export default class coinbaseexchange extends Exchange {
         return {
             'currency': code,
             'address': this.checkAddress(address),
+            'network': undefined,
             'tag': tag,
             'info': response,
         };

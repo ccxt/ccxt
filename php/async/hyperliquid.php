@@ -793,12 +793,15 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $isSpot = ($type === 'spot');
             $reqType = ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
             $request = array(
@@ -857,12 +860,17 @@ class hyperliquid extends Exchange {
                 return $this->safe_balance($spotBalances);
             }
             $data = $this->safe_dict($response, 'marginSummary', array());
+            $usdcBalance = array(
+                'total' => $this->safe_number($data, 'accountValue'),
+            );
+            if (($marginMode !== null) && ($marginMode === 'isolated')) {
+                $usdcBalance['free'] = $this->safe_number($response, 'withdrawable');
+            } else {
+                $usdcBalance['used'] = $this->safe_number($data, 'totalMarginUsed');
+            }
             $result = array(
                 'info' => $response,
-                'USDC' => array(
-                    'total' => $this->safe_number($data, 'accountValue'),
-                    'used' => $this->safe_number($data, 'totalMarginUsed'),
-                ),
+                'USDC' => $usdcBalance,
             );
             $timestamp = $this->safe_integer($response, 'time');
             $result['timestamp'] = $timestamp;
@@ -2025,6 +2033,47 @@ class hyperliquid extends Exchange {
             $dataObject = $this->safe_dict($responseObject, 'data', array());
             $statuses = $this->safe_list($dataObject, 'statuses', array());
             return $this->parse_orders($statuses);
+        }) ();
+    }
+
+    public function create_vault(string $name, string $description, int $initialUsd, $params = array ()) {
+        return Async\async(function () use ($name, $description, $initialUsd, $params) {
+            /**
+             * creates a value
+             * @param {string} $name The $name of the vault
+             * @param {string} $description The $description of the vault
+             * @param {number} $initialUsd The $initialUsd of the vault
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($initialUsd), '1000000'));
+            $action = array(
+                'type' => 'createVault',
+                'name' => $name,
+                'description' => $description,
+                'initialUsd' => $usd,
+                'nonce' => $nonce,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            //
+            // {
+            //     "status" => "ok",
+            //     "response" => {
+            //         "type" => "createVault",
+            //         "data" => "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+            //     }
+            // }
+            //
+            return $response;
         }) ();
     }
 

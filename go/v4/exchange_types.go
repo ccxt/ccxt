@@ -933,23 +933,6 @@ func NewWithdrawlResponse(withdrawlResponseData map[string]interface{}) Withdraw
 	}
 }
 
-type DepositAddressResponse struct {
-	Address *string
-	Tag     *string
-	Status  *string
-	Info    map[string]interface{}
-}
-
-// NewDepositAddressResponse initializes a DepositAddressResponse struct from a map.
-func NewDepositAddressResponse(depositAddressResponseData map[string]interface{}) DepositAddressResponse {
-	return DepositAddressResponse{
-		Address: SafeStringTyped(depositAddressResponseData, "address"),
-		Tag:     SafeStringTyped(depositAddressResponseData, "tag"),
-		Status:  SafeStringTyped(depositAddressResponseData, "status"),
-		Info:    GetInfo(depositAddressResponseData), // Assuming GetInfo is implemented
-	}
-}
-
 type CrossBorrowRate struct {
 	Currency  *string
 	Rate      *float64

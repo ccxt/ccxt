@@ -369,6 +369,7 @@ class okx extends Exchange {
                         'asset/subaccount/managed-subaccount-bills' => 5 / 3,
                         'users/entrust-subaccount-list' => 10,
                         'account/subaccount/interest-limits' => 4,
+                        'users/subaccount/apikey' => 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending' => 1,
                         'tradingBot/grid/orders-algo-history' => 1,
@@ -501,6 +502,9 @@ class okx extends Exchange {
                         'asset/subaccount/transfer' => 10,
                         'users/subaccount/set-transfer-out' => 10,
                         'account/subaccount/set-loan-allocation' => 4,
+                        'users/subaccount/create-subaccount' => 10,
+                        'users/subaccount/subaccount-apikey' => 10,
+                        'users/subaccount/delete-apikey' => 10,
                         // grid trading
                         'tradingBot/grid/order-algo' => 1,
                         'tradingBot/grid/amend-order-algo' => 1,
@@ -912,6 +916,11 @@ class okx extends Exchange {
                     '59506' => '\\ccxt\\ExchangeError', // APIKey does not exist
                     '59507' => '\\ccxt\\ExchangeError', // The two accounts involved in a transfer must be two different sub accounts under the same parent account
                     '59508' => '\\ccxt\\AccountSuspended', // The sub account of {0} is suspended
+                    '59515' => '\\ccxt\\ExchangeError', // You are currently not on the custody whitelist. Please contact customer service for assistance.
+                    '59516' => '\\ccxt\\ExchangeError', // Please create the Copper custody funding account first.
+                    '59517' => '\\ccxt\\ExchangeError', // Please create the Komainu custody funding account first.
+                    '59518' => '\\ccxt\\ExchangeError', // You can’t create a sub-account using the API; please use the app or web.
+                    '59519' => '\\ccxt\\ExchangeError', // You can’t use this function/feature while it's frozen, due to => {freezereason}
                     '59642' => '\\ccxt\\BadRequest', // Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes’re currently copying spot trades
                     // WebSocket error Codes from 60000-63999
@@ -1266,6 +1275,7 @@ class okx extends Exchange {
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 300,
+                        'historical' => 100,
                     ),
                 ),
                 'spot' => array(
@@ -1599,8 +1609,8 @@ class okx extends Exchange {
         $swap = ($type === 'swap');
         $option = ($type === 'option');
         $contract = $swap || $future || $option;
-        $baseId = $this->safe_string($market, 'baseCcy');
-        $quoteId = $this->safe_string($market, 'quoteCcy');
+        $baseId = $this->safe_string($market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty $baseId
+        $quoteId = $this->safe_string($market, 'quoteCcy', '');
         $settleId = $this->safe_string($market, 'settleCcy');
         $settle = $this->safe_currency_code($settleId);
         $underlying = $this->safe_string($market, 'uly');
@@ -1616,17 +1626,24 @@ class okx extends Exchange {
         $strikePrice = null;
         $optionType = null;
         if ($contract) {
-            $symbol = $symbol . ':' . $settle;
-            $expiry = $this->safe_integer($market, 'expTime');
+            if ($settle !== null) {
+                $symbol = $symbol . ':' . $settle;
+            }
             if ($future) {
-                $ymd = $this->yymmdd($expiry);
-                $symbol = $symbol . '-' . $ymd;
+                $expiry = $this->safe_integer($market, 'expTime');
+                if ($expiry !== null) {
+                    $ymd = $this->yymmdd($expiry);
+                    $symbol = $symbol . '-' . $ymd;
+                }
             } elseif ($option) {
+                $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
-                $ymd = $this->yymmdd($expiry);
-                $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
-                $optionType = ($optionType === 'P') ? 'put' : 'call';
+                if ($expiry !== null) {
+                    $ymd = $this->yymmdd($expiry);
+                    $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
+                    $optionType = ($optionType === 'P') ? 'put' : 'call';
+                }
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
@@ -1820,68 +1837,57 @@ class okx extends Exchange {
             $code = $currency['code'];
             $chains = $dataByCurrencyId[$currencyId];
             $networks = array();
-            $currencyActive = false;
-            $depositEnabled = false;
-            $withdrawEnabled = false;
-            $maxPrecision = null;
-            for ($j = 0; $j < count($chains); $j++) {
+            $type = 'crypto';
+            $chainsLength = count($chains);
+            for ($j = 0; $j < $chainsLength; $j++) {
                 $chain = $chains[$j];
-                $canDeposit = $this->safe_bool($chain, 'canDep');
-                $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                $canWithdraw = $this->safe_bool($chain, 'canWd');
-                $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                $canInternal = $this->safe_bool($chain, 'canInternal');
-                $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                $currencyActive = ($active) ? $active : $currencyActive;
-                $networkId = $this->safe_string($chain, 'chain');
-                if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                    $idParts = explode('-', $networkId);
-                    $parts = $this->array_slice($idParts, 1);
-                    $chainPart = implode('-', $parts);
-                    $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
-                    $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
-                    if ($maxPrecision === null) {
-                        $maxPrecision = $precision;
-                    } else {
-                        $maxPrecision = Precise::string_min($maxPrecision, $precision);
-                    }
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => $active,
-                        'deposit' => $canDeposit,
-                        'withdraw' => $canWithdraw,
-                        'fee' => $this->safe_number($chain, 'fee'),
-                        'precision' => $this->parse_number($precision),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'minWd'),
-                                'max' => $this->safe_number($chain, 'maxWd'),
-                            ),
-                        ),
-                        'info' => $chain,
-                    );
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+                if ($networkId === '') {
+                    // only happens for fiat 'TRY' $currency
+                    $type = 'fiat';
                 }
+                $idParts = explode('-', $networkId);
+                $parts = $this->array_slice($idParts, 1);
+                $chainPart = implode('-', $parts);
+                $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'canDep'),
+                    'withdraw' => $this->safe_bool($chain, 'canWd'),
+                    'fee' => $this->safe_number($chain, 'fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'minWd'),
+                            'max' => $this->safe_number($chain, 'maxWd'),
+                        ),
+                    ),
+                    'info' => $chain,
+                );
             }
             $firstChain = $this->safe_dict($chains, 0, array());
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $chains,
                 'code' => $code,
                 'id' => $currencyId,
                 'name' => $this->safe_string($firstChain, 'name'),
-                'active' => $currencyActive,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
-                'precision' => $this->parse_number($maxPrecision),
+                'precision' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
+                'type' => $type,
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -2423,6 +2429,8 @@ class okx extends Exchange {
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
         if ($limit === null) {
             $limit = 100; // default 100, max 100
+        } else {
+            $limit = min ($limit, 300); // max 100
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2442,6 +2450,7 @@ class okx extends Exchange {
             $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
             if ($since < $historyBorder) {
                 $defaultType = 'HistoryCandles';
+                $limit = min ($limit, 100); // max 100 for historical endpoint
             }
             $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;

@@ -1489,6 +1489,11 @@ export default class gate extends Exchange {
         const takerPercent = this.safeString (market, 'taker_fee_rate');
         const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
+        let contractSize = this.safeString (market, 'quanto_multiplier');
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if (contractSize === '0') {
+            contractSize = '1'; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -1510,7 +1515,7 @@ export default class gate extends Exchange {
             'inverse': !isLinear,
             'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
             'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-            'contractSize': this.safeNumber (market, 'quanto_multiplier'),
+            'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
@@ -1858,9 +1863,9 @@ export default class gate extends Exchange {
             const partFirst = this.safeString (parts, 0);
             // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
             const currencyName = currencyId.endsWith ('_OLD') ? currencyId : partFirst;
-            const withdrawEnabled = !this.safeBool (entry, 'withdraw_disabled');
-            const depositEnabled = !this.safeBool (entry, 'deposit_disabled');
-            const tradeDisabled = !this.safeBool (entry, 'trade_disabled');
+            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
             const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
             const code = this.safeCurrencyCode (currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -1890,8 +1895,8 @@ export default class gate extends Exchange {
                     },
                 },
                 'active': !tradeDisabled,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': !depositDisabled,
+                'withdraw': !withdrawDisabled,
                 'fee': undefined,
                 'precision': precision,
             };
@@ -6728,7 +6733,7 @@ export default class gate extends Exchange {
                     queryString = this.urlencode (query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf ('currencies=') >= 0 && queryString.indexOf ('%2C') >= 0) {
-                        queryString = queryString.replaceAll ('%2', ',');
+                        queryString = queryString.replaceAll ('%2C', ',');
                     }
                     url += '?' + queryString;
                 }

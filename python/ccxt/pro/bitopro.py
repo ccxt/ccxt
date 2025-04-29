@@ -343,15 +343,16 @@ class bitopro(ccxt.async_support.bitopro):
         #     }
         #
         marketId = self.safe_string(message, 'pair')
-        market = self.safe_market(marketId, None, '_')
+        # market-ids are lowercase in REST API and uppercase in WS API
+        market = self.safe_market(marketId.lower(), None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol
-        result = self.parse_ticker(message)
+        result = self.parse_ticker(message, market)
+        result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
-        datetime = self.safe_string(message, 'datetime')
         result['timestamp'] = timestamp
-        result['datetime'] = datetime
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 

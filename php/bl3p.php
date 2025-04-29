@@ -488,7 +488,7 @@ class bl3p extends Exchange {
         ));
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
          *

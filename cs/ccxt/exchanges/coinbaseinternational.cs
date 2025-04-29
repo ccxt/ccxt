@@ -810,6 +810,7 @@ public partial class coinbaseinternational : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }

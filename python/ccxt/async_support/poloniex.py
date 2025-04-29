@@ -1828,7 +1828,7 @@ class poloniex(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         response = None
-        if not market['spot']:
+        if marketType != 'spot':
             raw = await self.swapPrivateGetV3TradeOrderOpens(self.extend(request, params))
             #
             #    {
@@ -2573,7 +2573,7 @@ class poloniex(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
