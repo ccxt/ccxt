@@ -587,6 +587,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
                 'fee': None,
+                'networks': None,  # todo
                 'precision': None,
                 'limits': {
                     'amount': {
