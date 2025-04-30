@@ -3365,13 +3365,27 @@ class mexc extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // spot => createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol" => "FARTCOINUSDT",
+        //        "orderId" => "C02__342252993005723644225",
+        //        "orderListId" => "-1",
+        //        "price" => "1.1",
+        //        "origQty" => "6.3",
+        //        "type" => "IMMEDIATE_OR_CANCEL",
+        //        "side" => "SELL",
+        //        "transactTime" => "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "123738410679123456",
         //         "orderListId" => -1
-        //     }
+        //    }
         //
         // margin => createOrder
         //
@@ -3535,6 +3549,11 @@ class mexc extends Exchange {
         } else {
             $id = $this->safe_string_2($order, 'orderId', 'id');
         }
+        $timeInForce = $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce'));
+        $typeRaw = $this->safe_string($order, 'type');
+        if ($timeInForce === null) {
+            $timeInForce = $this->get_tif_from_raw_order_type($typeRaw);
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'transactTime' ));
@@ -3557,8 +3576,8 @@ class mexc extends Exchange {
             'lastTradeTimestamp' => null, // TODO => this might be 'updateTime' if $order-status is filled, otherwise cancellation time. needs to be checked
             'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
             'symbol' => $market['symbol'],
-            'type' => $this->parse_order_type($this->safe_string($order, 'type')),
-            'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
+            'type' => $this->parse_order_type($typeRaw),
+            'timeInForce' => $timeInForce,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
@@ -3589,6 +3608,9 @@ class mexc extends Exchange {
             'MARKET' => 'market',
             'LIMIT' => 'limit',
             'LIMIT_MAKER' => 'limit',
+            // on spot, during submission below types are used only accepted order
+            'IMMEDIATE_OR_CANCEL' => 'limit',
+            'FILL_OR_KILL' => 'limit',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3617,6 +3639,17 @@ class mexc extends Exchange {
             'IOC' => 'IOC',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function get_tif_from_raw_order_type(?string $orderType = null) {
+        $statuses = array(
+            'LIMIT' => 'GTC',
+            'LIMIT_MAKER' => 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'MARKET' => 'IOC',
+        );
+        return $this->safe_string($statuses, $orderType, $orderType);
     }
 
     public function fetch_account_helper($type, $params) {
