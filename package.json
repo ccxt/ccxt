@@ -142,6 +142,7 @@
     "replace-in-file": "^6.3.5",
     "rollup": "^4.9.1",
     "rollup-plugin-execute": "1.1.1",
+    "rollup-plugin-polyfill-node": "^0.13.0",
     "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
