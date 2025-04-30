@@ -64,6 +64,28 @@ function helper_test_handle_market_type_and_params() {
 }
 
 
+function helper_test_handle_network_request() {
+    $exchange = new \ccxt\Exchange(array(
+        'id' => 'sampleexchange',
+        'options' => array(
+            'networks' => array(
+                'XYZ' => 'Xyz',
+            ),
+        ),
+    ));
+    $exchange->currencies = array(); // todo: initialize in C# base files
+    $currency_code = 'ETH'; // todo: in future with complex cases
+    // no-case
+    [$request1, $params1] = $exchange->handle_request_network(array(
+        'network' => 'XYZ',
+    ), array(), 'chain_id', $currency_code, false);
+    assert(!(is_array($params1) && array_key_exists('network', $params1)));
+    assert(is_array($request1) && array_key_exists('chain_id', $request1));
+    assert($request1['chain_id'] === 'Xyz');
+}
+
+
 function test_handle_methods() {
     helper_test_handle_market_type_and_params();
+    helper_test_handle_network_request();
 }

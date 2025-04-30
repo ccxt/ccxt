@@ -13,7 +13,7 @@ public partial class tradeogre : Exchange
             { "countries", new List<object>() {} },
             { "rateLimit", 100 },
             { "version", "v2" },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -129,7 +129,6 @@ public partial class tradeogre : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account/balance", 1 },
                         { "account/balances", 1 },
                         { "account/order/{uuid}", 1 },
                     } },
@@ -139,6 +138,7 @@ public partial class tradeogre : Exchange
                         { "order/cancel", 1 },
                         { "orders", 1 },
                         { "account/orders", 1 },
+                        { "account/balance", 1 },
                     } },
                 } },
             } },
@@ -470,7 +470,7 @@ public partial class tradeogre : Exchange
         {
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(until, 1000));
-            response = await ((Task<object>)callDynamically(this, "publicGetChartIntervalMarketTimestamp", new object[] { this.extend(request, parameters) }));
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, parameters));
         } else
         {
             response = await this.publicGetChartIntervalMarket(this.extend(request, parameters));
@@ -502,7 +502,7 @@ public partial class tradeogre : Exchange
         //         6.72168016
         //     ]
         //
-        return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
+        return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
     /**
@@ -540,6 +540,7 @@ public partial class tradeogre : Exchange
             { "asks", rawAsks },
         };
         object orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "s");
         return orderbook;
     }
 
@@ -619,13 +620,32 @@ public partial class tradeogre : Exchange
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAccountBalances(parameters);
+        object response = null;
+        object currency = this.safeString(parameters, "currency");
+        if (isTrue(!isEqual(currency, null)))
+        {
+            response = await this.privatePostAccountBalance(parameters);
+            object singleCurrencyresult = new Dictionary<string, object>() {
+                { "info", response },
+            };
+            object code = this.safeCurrencyCode(currency);
+            object account = new Dictionary<string, object>() {
+                { "total", this.safeNumber(response, "balance") },
+                { "free", this.safeNumber(response, "available") },
+            };
+            ((IDictionary<string,object>)singleCurrencyresult)[(string)code] = account;
+            return this.safeBalance(singleCurrencyresult);
+        } else
+        {
+            response = await this.privateGetAccountBalances(parameters);
+        }
         object result = this.safeDict(response, "balances", new Dictionary<string, object>() {});
         return this.parseBalance(result);
     }
@@ -812,11 +832,11 @@ public partial class tradeogre : Exchange
             { "side", this.safeString(order, "type") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
-            { "amount", this.safeString(order, "quantity") },
+            { "amount", null },
             { "cost", null },
             { "average", null },
             { "filled", this.safeString(order, "fulfilled") },
-            { "remaining", null },
+            { "remaining", this.safeString(order, "quantity") },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", null },

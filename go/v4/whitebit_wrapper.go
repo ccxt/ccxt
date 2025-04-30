@@ -435,6 +435,10 @@ func (this *Whitebit) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+ * @param {string} [params.clientOrderId] a unique id for the order
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Whitebit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -770,6 +774,35 @@ func (this *Whitebit) FetchDepositAddress(code string, options ...FetchDepositAd
         params = *opts.Params
     }
     res := <- this.Core.FetchDepositAddress(code, params)
+    if IsError(res) {
+        return DepositAddress{}, CreateReturnError(res)
+    }
+    return NewDepositAddress(res), nil
+}
+/**
+ * @method
+ * @name whitebit#createDepositAddress
+ * @description create a currency deposit address
+ * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the blockchain network to create a deposit address on
+ * @param {string} [params.type] address type, available for specific currencies
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func (this *Whitebit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+
+    opts := CreateDepositAddressOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
         return DepositAddress{}, CreateReturnError(res)
     }
@@ -1371,4 +1404,31 @@ func (this *Whitebit) FetchPosition(symbol string, options ...FetchPositionOptio
         return Position{}, CreateReturnError(res)
     }
     return NewPosition(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
+func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+    opts := FetchCrossBorrowRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchCrossBorrowRate(code, params)
+    if IsError(res) {
+        return CrossBorrowRate{}, CreateReturnError(res)
+    }
+    return NewCrossBorrowRate(res), nil
 }

@@ -215,6 +215,25 @@ public partial class upbit
         return new TradingFeeInterface(res);
     }
     /// <summary>
+    /// fetch the trading fees for markets
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
@@ -270,13 +289,19 @@ public partial class upbit
     /// <item>
     /// <term>params.cost</term>
     /// <description>
-    /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// float : for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.ordType</term>
+    /// <description>
+    /// string : this field can be used to place a ‘best’ type order
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'
+    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
     /// </description>
     /// </item>
     /// </list>

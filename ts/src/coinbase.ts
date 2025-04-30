@@ -327,6 +327,7 @@ export default class coinbase extends Exchange {
                     'INSUFFICIENT_FUND': BadRequest,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -377,6 +378,7 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
+                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -748,7 +750,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         let accountId = this.safeString (params, 'account_id');
         params = this.omit (params, 'account_id');
         if (accountId === undefined) {
@@ -811,8 +813,9 @@ export default class coinbase extends Exchange {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
-        };
+        } as DepositAddress;
     }
 
     /**
@@ -1519,7 +1522,34 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        return result;
+        // remove aliases
+        this.options['aliasCbMarketIds'] = {};
+        const newMarkets = [];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
+            const info = this.safeValue (market, 'info', {});
+            const realMarketIds = this.safeList (info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
+                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
+            } else {
+                newMarkets.push (market);
+            }
+        }
+        return newMarkets;
+    }
+
+    market (symbol: string): MarketInterface {
+        const finalSymbol = this.safeString (this.options['aliasCbMarketIds'], symbol, symbol);
+        return super.market (finalSymbol);
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (marketId in this.options['aliasCbMarketIds']) {
+            return this.market (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
@@ -1934,6 +1964,7 @@ export default class coinbase extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'min_size'),
@@ -2263,10 +2294,11 @@ export default class coinbase extends Exchange {
             askVolume = this.safeNumber (asks[0], 'size');
         }
         const marketId = this.safeString (ticker, 'product_id');
+        market = this.safeMarket (marketId, market);
         const last = this.safeNumber (ticker, 'price');
         const datetime = this.safeString (ticker, 'time');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'bid': bid,
@@ -2380,7 +2412,7 @@ export default class coinbase extends Exchange {
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,
@@ -5120,18 +5152,37 @@ export default class coinbase extends Exchange {
         //      ]
         //    }
         // or
-        //   {
+        // {
+        //     "success": false,
+        //     "error_response": {
         //       "error": "UNKNOWN_FAILURE_REASON",
         //       "message": "",
         //       "error_details": "",
-        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
-        //   }
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString2 (response, 'error_description', 'preview_failure_reason');
+            const errorMessage = this.safeString2 (response, 'error_description', 'error');
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
+        }
+        const errorResponse = this.safeDict (response, 'error_response');
+        if (errorResponse !== undefined) {
+            const errorMessageInner = this.safeString2 (errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessageInner, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessageInner, feedback);
             throw new ExchangeError (feedback);
         }
         const errors = this.safeList (response, 'errors');

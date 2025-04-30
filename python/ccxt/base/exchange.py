@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.68'
+__version__ = '4.4.77'
 
 # -----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +67,10 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+try:
+    import apexpro.zklink_sdk as zklink_sdk
+except ImportError:
+    zklink_sdk = None
 
 # -----------------------------------------------------------------------------
 
@@ -369,7 +373,7 @@ class Exchange(object):
     }
     synchronous = True
 
-    def __init__(self, config={}):
+    def __init__(self, config: ConstructorArgs = {}):
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 
@@ -409,6 +413,9 @@ class Exchange(object):
                 setattr(self, key, settings[key])
 
         self.after_construct()
+
+        if self.safe_bool(config, 'sandbox') or self.safe_bool(config, 'testnet'):
+            self.set_sandbox_mode(True)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -506,7 +513,7 @@ class Exchange(object):
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
-            url = proxyUrl + url
+            url = proxyUrl + self.url_encoder_for_proxy_url(url)
         # proxy agents
         proxies = None  # set default
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
@@ -1752,6 +1759,69 @@ class Exchange(object):
     def binary_length(self, binary):
         return len(binary)
 
+    def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        slotId = self.safe_string(params, 'slotId')
+        nonceInt = int(self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
+
+        maxUint64 = 18446744073709551615
+        maxUint32 = 4294967295
+
+        slotId = (nonceInt % maxUint64) / maxUint32
+        nonce = nonceInt % maxUint32
+        accountId = int(self.safe_string(params, 'accountId'), 10) % maxUint32
+
+        priceStr = (Decimal(self.safe_string(params, 'price')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+        sizeStr = (Decimal(self.safe_string(params, 'size')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+
+        takerFeeRateStr = (Decimal(self.safe_string(params, 'takerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+        makerFeeRateStr = (Decimal(self.safe_string(params, 'makerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+
+        builder = zklink_sdk.ContractBuilder(
+            int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
+            sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
+            int(takerFeeRateStr), int(makerFeeRateStr), False)
+
+
+        tx = zklink_sdk.Contract(builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
+    def get_zk_transfer_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        nonce = self.safe_string(params, 'nonce', '0')
+        if self.safe_bool(params, 'isContract'):
+            formattedUint32 = '4294967295'
+            formattedNonce = int(self.remove0x_prefix(self.hash(self.encode(nonce), 'sha256', 'hex')), 16)
+            nonce = Precise.string_mod(str(formattedNonce), formattedUint32)
+
+        tx_builder = zklink_sdk.TransferBuilder(
+            int(self.safe_number(params, 'zkAccountId', 0)),
+            self.safe_string(params, 'receiverAddress'),
+            int(self.safe_number(params, 'subAccountId', 0)),
+            int(self.safe_number(params, 'receiverSubAccountId', 0)),
+            int(self.safe_number(params, 'tokenId', 0)),
+            self.safe_string(params, 'amount', '0'),
+            self.safe_string(params, 'fee', '0'),
+            self.parse_to_int(nonce),
+            int(self.safe_number(params, 'timestampSeconds', 0))
+        )
+
+        tx = zklink_sdk.Transfer(tx_builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -2099,7 +2169,6 @@ class Exchange(object):
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -2251,6 +2320,12 @@ class Exchange(object):
             joinedProxyNames = ','.join(usedProxies)
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
+
+    def url_encoder_for_proxy_url(self, targetUrl: str):
+        # to be overriden
+        includesQuery = targetUrl.find('?') >= 0
+        finalUrl = self.encode_uri_component(targetUrl) if includesQuery else targetUrl
+        return finalUrl
 
     def check_proxy_settings(self, url: Str = None, method: Str = None, headers=None, body=None):
         usedProxies = []
@@ -2911,22 +2986,30 @@ class Exchange(object):
 
     def safe_currency_structure(self, currency: object):
         # derive data from networks: deposit, withdraw, active, fee, limits, precision
-        currencyDeposit = self.safe_bool(currency, 'deposit')
-        currencyWithdraw = self.safe_bool(currency, 'withdraw')
-        currencyActive = self.safe_bool(currency, 'active')
         networks = self.safe_dict(currency, 'networks', {})
         keys = list(networks.keys())
         length = len(keys)
         if length != 0:
             for i in range(0, length):
-                network = networks[keys[i]]
+                key = keys[i]
+                network = networks[key]
                 deposit = self.safe_bool(network, 'deposit')
+                currencyDeposit = self.safe_bool(currency, 'deposit')
                 if currencyDeposit is None or deposit:
                     currency['deposit'] = deposit
                 withdraw = self.safe_bool(network, 'withdraw')
+                currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
+                # set network 'active' to False if D or W is disabled
                 active = self.safe_bool(network, 'active')
+                if active is None:
+                    if deposit and withdraw:
+                        currency['networks'][key]['active'] = True
+                    elif deposit is not None and withdraw is not None:
+                        currency['networks'][key]['active'] = False
+                active = self.safe_bool(network, 'active')
+                currencyActive = self.safe_bool(currency, 'active')
                 if currencyActive is None or active:
                     currency['active'] = active
                 # find lowest fee(which is more desired)
@@ -2937,7 +3020,7 @@ class Exchange(object):
                 # find lowest precision(which is more desired)
                 precision = self.safe_string(network, 'precision')
                 precisionMain = self.safe_string(currency, 'precision')
-                if precisionMain is None or Precise.string_lt(precision, precisionMain):
+                if precisionMain is None or Precise.string_gt(precision, precisionMain):
                     currency['precision'] = self.parse_number(precision)
                 # limits
                 limits = self.safe_dict(network, 'limits')
@@ -4286,6 +4369,23 @@ class Exchange(object):
         if value is not None:
             params = self.omit(params, [paramName1, paramName2])
         return [value, params]
+
+    def handle_request_network(self, params: dict, request: dict, exchangeSpecificKey: str, currencyCode: Str = None, isRequired: bool = False):
+        """
+        :param dict params: - extra parameters
+        :param dict request: - existing dictionary of request
+        :param str exchangeSpecificKey: - the key for chain id to be set in request
+        :param dict currencyCode: - (optional) existing dictionary of request
+        :param boolean isRequired: - (optional) whether that param is required to be present
+        :returns dict[]: - returns [request, params] where request is the modified request object and params is the modified params object
+        """
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request[exchangeSpecificKey] = self.network_code_to_id(networkCode, currencyCode)
+        elif isRequired:
+            raise ArgumentsRequired(self.id + ' - "network" param is required for self request')
+        return [request, params]
 
     def resolve_path(self, path, params):
         return [
@@ -6445,24 +6545,36 @@ class Exchange(object):
                 return self.sort_by(result, 'id', True)
         return result
 
-    def remove_repeated_elements_from_array(self, input):
+    def remove_repeated_elements_from_array(self, input, fallbackToTimestamp: bool = True):
+        uniqueDic = {}
+        uniqueResult = []
+        for i in range(0, len(input)):
+            entry = input[i]
+            uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0]) if fallbackToTimestamp else self.safe_string(entry, 'id')
+            if uniqValue is not None and not (uniqValue in uniqueDic):
+                uniqueDic[uniqValue] = 1
+                uniqueResult.append(entry)
+        valuesLength = len(uniqueResult)
+        if valuesLength > 0:
+            return uniqueResult
+        return input
+
+    def remove_repeated_trades_from_array(self, input):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]
             id = self.safe_string(entry, 'id')
-            if id is not None:
-                if self.safe_string(uniqueResult, id) is None:
-                    uniqueResult[id] = entry
-            else:
-                timestamp = self.safe_integer_2(entry, 'timestamp', 0)
-                if timestamp is not None:
-                    if self.safe_string(uniqueResult, timestamp) is None:
-                        uniqueResult[timestamp] = entry
+            if id is None:
+                price = self.safe_string(entry, 'price')
+                amount = self.safe_string(entry, 'amount')
+                timestamp = self.safe_string(entry, 'timestamp')
+                side = self.safe_string(entry, 'side')
+                # unique trade identifier
+                id = 't_' + str(timestamp) + '_' + side + '_' + price + '_' + amount
+            if id is not None and not (id in uniqueResult):
+                uniqueResult[id] = entry
         values = list(uniqueResult.values())
-        valuesLength = len(values)
-        if valuesLength > 0:
-            return values
-        return input
+        return values
 
     def handle_until_option(self, key: str, request, params, multiplier=1):
         until = self.safe_integer_2(params, 'until', 'till')

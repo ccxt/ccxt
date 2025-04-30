@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -79,7 +79,7 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
@@ -171,6 +171,7 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/leaderboard': 1,
                         'v1/affiliate/{competition_code}': 1,
                         'v1/competition/{competition_id}': 1,
+                        'v1/symbols/{symbol}/funding': 1,
                     },
                 },
                 'private': {
@@ -194,6 +195,7 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/credits': 1,  # not unified
                         'v1/positions': 1,
                         'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/closedPositions': 1,
                     },
                     'post': {
                         'v1/keys': 1,  # not unified
@@ -211,6 +213,9 @@ class coinlist(Exchange, ImplicitAPI):
                     'patch': {
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1,  # not unified
+                    },
+                    'put': {
+                        'v1/accounts/{trader_id}/alias': 1,
                     },
                     'delete': {
                         'v1/keys/{key}': 1,  # not unified
@@ -501,7 +506,7 @@ class coinlist(Exchange, ImplicitAPI):
         #     {
         #         "symbols": [
         #             {
-        #                 "symbol": "CQT-USDT",
+        #                 "symbol": "CQT-USDT",  # spot
         #                 "base_currency": "CQT",
         #                 "is_trader_geofenced": False,
         #                 "list_time": "2021-06-15T00:00:00.000Z",
@@ -526,6 +531,62 @@ class coinlist(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
+        # perp
+        #   {
+        #       "symbol":"BTC-PERP",
+        #       "base_currency":"BTC",
+        #       "is_trader_geofenced":false,
+        #       "expiry_name":null,
+        #       "expiry_time":null,
+        #       "list_time":"2024-09-16T00:00:00.000Z",
+        #       "type":"perp-swap",
+        #       "series_code":"BTC",
+        #       "long_name":"Bitcoin",
+        #       "asset_class":"CRYPTO",
+        #       "minimum_price_increment":"0.01",
+        #       "minimum_size_increment":"0.0001",
+        #       "quote_currency":"USDT",
+        #       "multiplier":"1",
+        #       "contract_frequency":"FGHJKMNQUVXZ",
+        #       "index_code":".BTC-USDT",
+        #       "price_band_threshold_market":"0.05",
+        #       "price_band_threshold_limit":"0.25",
+        #       "maintenance_initial_ratio":"0.500000000000000000",
+        #       "liquidation_initial_ratio":"0.500000000000000000",
+        #       "last_price":"75881.36000000",
+        #       "fair_price":"76256.00000000",
+        #       "index_price":"77609.90000000",
+        #       "mark_price":"76237.75000000",
+        #       "mark_price_dollarizer":"0.99950000",
+        #       "funding_interval":{
+        #          "hours":"8"
+        #       },
+        #       "funding_rate_index_code":".BTC-USDT-FR8H",
+        #       "initial_margin_base":"0.200000000000000000",
+        #       "initial_margin_per_contract":"0.160000000000000000",
+        #       "position_limit":"5.0000"
+        #   }
+        # spot
+        #    {
+        #        "symbol": "CQT-USDT",  # spot
+        #        "base_currency": "CQT",
+        #        "is_trader_geofenced": False,
+        #        "list_time": "2021-06-15T00:00:00.000Z",
+        #        "type": "spot",
+        #        "series_code": "CQT-USDT-SPOT",
+        #        "long_name": "Covalent",
+        #        "asset_class": "CRYPTO",
+        #        "minimum_price_increment": "0.0001",
+        #        "minimum_size_increment": "0.0001",
+        #        "quote_currency": "USDT",
+        #        "index_code": null,
+        #        "price_band_threshold_market": "0.05",
+        #        "price_band_threshold_limit": "0.25",
+        #        "last_price": "0.12160000",
+        #        "fair_price": "0.12300000",
+        #        "index_price": null
+        #    }
+        isSwap = self.safe_string(market, 'type') == 'perp-swap'
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
@@ -534,26 +595,40 @@ class coinlist(Exchange, ImplicitAPI):
         amountPrecision = self.safe_string(market, 'minimum_size_increment')
         pricePrecision = self.safe_string(market, 'minimum_price_increment')
         created = self.safe_string(market, 'list_time')
+        settledId = None
+        settled = None
+        linear = None
+        inverse = None
+        contractSize = None
+        symbol = base + '/' + quote
+        if isSwap:
+            contractSize = self.parse_number('1')
+            linear = True
+            inverse = False
+            settledId = quoteId
+            settled = quote
+            symbol = symbol + ':' + quote
+        type = 'swap' if isSwap else 'spot'
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': None,
+            'settle': settled,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
+            'settleId': settledId,
+            'type': type,
+            'spot': not isSwap,
             'margin': False,
-            'swap': False,
+            'swap': isSwap,
             'future': False,
             'option': False,
             'active': True,
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -2329,6 +2404,89 @@ class coinlist(Exchange, ImplicitAPI):
             'withdrawal': 'transfer',
         }
         return self.safe_string(types, type, type)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetV1SymbolsSymbolFunding(self.extend(request, params))
+        #
+        #     {
+        #         "last": {
+        #             "funding_rate": "-0.00043841",
+        #             "funding_time": "2025-04-15T04:00:00.000Z"
+        #         },
+        #         "next": {
+        #             "funding_rate": "-0.00046952",
+        #             "funding_time": "2025-04-15T12:00:00.000Z"
+        #         },
+        #         "indicative": {
+        #             "funding_rate": "-0.00042517",
+        #             "funding_time": "2025-04-15T20:00:00.000Z"
+        #         },
+        #         "timestamp": "2025-04-15T07:01:15.219Z"
+        #     }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "last": {
+        #             "funding_rate": "-0.00043841",
+        #             "funding_time": "2025-04-15T04:00:00.000Z"
+        #         },
+        #         "next": {
+        #             "funding_rate": "-0.00046952",
+        #             "funding_time": "2025-04-15T12:00:00.000Z"
+        #         },
+        #         "indicative": {
+        #             "funding_rate": "-0.00042517",
+        #             "funding_time": "2025-04-15T20:00:00.000Z"
+        #         },
+        #         "timestamp": "2025-04-15T07:01:15.219Z"
+        #     }
+        #
+        previous = self.safe_dict(contract, 'last', {})
+        current = self.safe_dict(contract, 'next', {})
+        next = self.safe_dict(contract, 'indicative', {})
+        previousDatetime = self.safe_string(previous, 'funding_time')
+        currentDatetime = self.safe_string(current, 'funding_time')
+        nextDatetime = self.safe_string(next, 'funding_time')
+        datetime = self.safe_string(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(current, 'funding_rate'),
+            'fundingTimestamp': self.parse8601(currentDatetime),
+            'fundingDatetime': currentDatetime,
+            'nextFundingRate': self.safe_number(next, 'funding_rate'),
+            'nextFundingTimestamp': self.parse8601(nextDatetime),
+            'nextFundingDatetime': nextDatetime,
+            'previousFundingRate': self.safe_number(previous, 'funding_rate'),
+            'previousFundingTimestamp': self.parse8601(previousDatetime),
+            'previousFundingDatetime': previousDatetime,
+            'interval': '8h',
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.omit(params, self.extract_params(path))

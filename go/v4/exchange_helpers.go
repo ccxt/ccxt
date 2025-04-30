@@ -1037,8 +1037,8 @@ func IsObject(v interface{}) bool {
 	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
-	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
-		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
+		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
 		return true
 	default:
 		return false
@@ -1841,6 +1841,38 @@ func mathMin(a, b interface{}) interface{} {
 	// default:
 	// 	return nil
 	// }
+}
+
+func MathPow(base interface{}, exp interface{}) float64 {
+	baseFloat, baseOk := base.(float64)
+	expFloat, expOk := exp.(float64)
+	if baseOk && expOk {
+		return math.Pow(baseFloat, expFloat)
+	}
+	return 0
+}
+
+func MathAbs(v interface{}) float64 {
+	switch n := v.(type) {
+	case float64:
+		return math.Abs(n)
+	case float32:
+		return math.Abs(float64(n))
+	case int:
+		return math.Abs(float64(n))
+	case int64:
+		return math.Abs(float64(n))
+	case int32:
+		return math.Abs(float64(n))
+	case int16:
+		return math.Abs(float64(n))
+	case int8:
+		return math.Abs(float64(n))
+	case uint, uint64, uint32, uint16, uint8:
+		return float64(reflect.ValueOf(n).Uint()) // no need for Abs on unsigned values
+	default:
+		return 0
+	}
 }
 
 func MathMax(a, b interface{}) interface{} {

@@ -563,6 +563,7 @@ class woo(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         contractSize: Num = None
         linear: Bool = None
+        inverse: Bool = None
         margin = True
         contract = swap
         if contract:
@@ -572,6 +573,7 @@ class woo(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             contractSize = self.parse_number('1')
             linear = True
+            inverse = False
         return {
             'id': marketId,
             'symbol': symbol,
@@ -590,7 +592,7 @@ class woo(Exchange, ImplicitAPI):
             'active': self.safe_string(market, 'is_trading') == '1',
             'contract': contract,
             'linear': linear,
-            'inverse': None,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,

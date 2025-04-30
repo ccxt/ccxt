@@ -594,6 +594,7 @@ export default class derive extends Exchange {
         let swap = false;
         let option = false;
         let linear = undefined;
+        let inverse = undefined;
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -617,6 +618,7 @@ export default class derive extends Exchange {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             linear = true;
+            inverse = false;
             marketType = 'swap';
         }
         else if (type === 'option') {
@@ -636,6 +638,8 @@ export default class derive extends Exchange {
             else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure({
             'id': marketId,
@@ -655,7 +659,7 @@ export default class derive extends Exchange {
             'active': this.safeBool(market, 'is_active'),
             'contract': (swap || option),
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': (spot) ? undefined : 1,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1853,7 +1857,7 @@ export default class derive extends Exchange {
         if (order === undefined) {
             order = rawOrder;
         }
-        const timestamp = this.safeInteger(rawOrder, 'nonce');
+        const timestamp = this.safeInteger2(rawOrder, 'creation_timestamp', 'nonce');
         const orderId = this.safeString(order, 'order_id');
         const marketId = this.safeString(order, 'instrument_name');
         if (marketId !== undefined) {
@@ -2394,17 +2398,21 @@ export default class derive extends Exchange {
         const result = {
             'info': response,
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
             const collaterals = this.safeList(subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode(this.safeString(balance, 'currency'));
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'amount');
+                let account = this.safeDict(result, code);
+                if (account === undefined) {
+                    account = this.account();
+                    account['total'] = this.safeString(balance, 'amount');
+                }
+                else {
+                    const amount = this.safeString(balance, 'amount');
+                    account['total'] = Precise.stringAdd(account['total'], amount);
+                }
                 result[code] = account;
             }
         }

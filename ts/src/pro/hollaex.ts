@@ -609,11 +609,11 @@ export default class hollaex extends hollaexRest {
 
     onError (client: Client, error) {
         this.options['ws-expires'] = undefined;
-        this.onError (client, error);
+        super.onError (client, error);
     }
 
     onClose (client: Client, error) {
         this.options['ws-expires'] = undefined;
-        this.onClose (client, error);
+        super.onClose (client, error);
     }
 }

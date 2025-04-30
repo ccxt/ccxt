@@ -26,13 +26,16 @@ public partial class whitebit : Exchange
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "createConvertTrade", true },
+                { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
@@ -41,7 +44,7 @@ public partial class whitebit : Exchange
                 { "fetchConvertQuote", true },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", true },
-                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
@@ -1304,9 +1307,11 @@ public partial class whitebit : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
         // only buy side is supported
-        return await this.createOrder(symbol, "market", side, 0, null, parameters);
+        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
     }
 
     /**
@@ -1340,6 +1345,10 @@ public partial class whitebit : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2125,6 +2134,65 @@ public partial class whitebit : Exchange
             { "network", null },
             { "address", address },
             { "tag", tag },
+        };
+    }
+
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ticker", getValue(currency, "id") },
+        };
+        object response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "maxAmount": "0",
+        //             "minAmount": "1",
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
+        //             }
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "account", new Dictionary<string, object>() {});
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //     {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //         "memo": "48565488244493"
+        //     },
+        //
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(null, currency) },
+            { "network", null },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", this.safeString(depositAddress, "memo") },
         };
     }
 
@@ -3307,6 +3375,46 @@ public partial class whitebit : Exchange
             { "stopLossPrice", this.safeNumber(tpsl, "stopLoss") },
             { "takeProfitPrice", this.safeNumber(tpsl, "takeProfit") },
         });
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ticker", getValue(currency, "id") },
+        };
+        object response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters));
+        //
+        //
+        object data = this.safeList(response, 0, new List<object>() {});
+        return this.parseBorrowRate(data, currency);
+    }
+
+    public override object parseBorrowRate(object info, object currency = null)
+    {
+        //
+        //
+        object currencyId = this.safeString(info, "ticker");
+        object percent = this.safeString(info, "percent");
+        return new Dictionary<string, object>() {
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "rate", this.parseNumber(Precise.stringDiv(percent, "100")) },
+            { "period", this.safeInteger(info, "duration") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "info", info },
+        };
     }
 
     public virtual object isFiat(object currency)

@@ -24,7 +24,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -140,7 +140,6 @@ class tradeogre(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -150,6 +149,7 @@ class tradeogre(Exchange, ImplicitAPI):
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -488,9 +488,9 @@ class tradeogre(Exchange, ImplicitAPI):
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 5),
         ]
 
@@ -525,6 +525,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'asks': rawAsks,
         }
         orderbook = self.parse_order_book(rawOrderbook, symbol)
+        orderbook['nonce'] = self.safe_integer(response, 's')
         return orderbook
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
@@ -588,10 +589,26 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currency]: currency to fetch the balance for
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privateGetAccountBalances(params)
+        response = None
+        currency = self.safe_string(params, 'currency')
+        if currency is not None:
+            response = self.privatePostAccountBalance(params)
+            singleCurrencyresult: dict = {
+                'info': response,
+            }
+            code = self.safe_currency_code(currency)
+            account = {
+                'total': self.safe_number(response, 'balance'),
+                'free': self.safe_number(response, 'available'),
+            }
+            singleCurrencyresult[code] = account
+            return self.safe_balance(singleCurrencyresult)
+        else:
+            response = self.privateGetAccountBalances(params)
         result = self.safe_dict(response, 'balances', {})
         return self.parse_balance(result)
 
@@ -744,11 +761,11 @@ class tradeogre(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
-            'amount': self.safe_string(order, 'quantity'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(order, 'fulfilled'),
-            'remaining': None,
+            'remaining': self.safe_string(order, 'quantity'),
             'status': None,
             'fee': {
                 'currency': None,

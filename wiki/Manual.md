@@ -1002,56 +1002,51 @@ Note: the `false` value for the `active` property doesn't always guarantee that 
 
 ## Precision And Limits
 
-**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of `0.01` does not necessarily mean that a minimum limit for market is `0.01`. The opposite is also true: a min limit of `0.01` does not necessarily mean a precision is `0.01`.
 
 Examples:
 
-1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
-
-  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
+1.
+```
+market['limits']['amount']['min'] == 0.05 &&
+market['precision']['amount'] == 0.0001 &&
+market['precision']['price'] == 0.01
+```
 
   - The *amount value* should be >= 0.05:
     ```diff
     + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
     - bad: 0.04, 0.049, 0.0499
     ```
-  - *Precision of the amount* should be up to 4 decimal digits:
+  - *Precision of the amount* should be up to 4 digits after dot (0.0001):
     ```diff
-    + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
+    + good: 0.05, 0.0501, ..., 0.06, ..., 0.0719, ...
     - bad: 0.05001, 0.05000, 0.06001
     ```
-
-2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
-
-  In this example the **price** of any order placed on the market **must satisfy both conditions**:
-
-  - The *price value* should be >= 0.019:
+  - *Precision of the price* should be up to 2 digits after dot (0.01):
     ```diff
-    + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
-    - bad: 0.016, ..., 0.01699
+    + good: 1.6, 1.61, 123.01, ..., 1234.56, ...
+    - bad: 1.601, ..., 123.012, ..., 1234.567
     ```
-  - *Precision of price* should be 5 decimal digits or less:
-    ```diff
-    + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
-    - bad: 0.017000, 0.017001, ...
-    ```
+  - 
 
-3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
+2. `(market['precision']['amount'] == -1)`
 
-  In this example **both conditions must be satisfied**:
-
-  - The *amount value* should be greater than or equal to 50:
+    A negative *precision* might only theoretically happen if exchange's `precisionMode` is `SIGNIFICANT_DIGIT` or `DECIMAL_PRECISION`. It means that the amount should be an integer multiple of 10 (to the absolute power specified):
     ```diff
-    + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
-    - bad: 1, 2, 3, ..., 9
-    ```
-  - A negative *amount precision* means that the amount should be an integer multiple of 10 (to the absolute power specified):
-    ```diff
-    + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
+    + good: 10, 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
     - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
     ```
+    In case of `-2` the acceptable values would be multiple of `100` (e.g. 100, 200, ... ), and so on.
 
-*The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
+
+#### Precision Mode
+
+Supported precision modes in `exchange['precisionMode']` are:
+
+- `TICK_SIZE` – almost all exchanges use this precision mode. In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+- `DECIMAL_PLACES` (**DEPRECATED, CCXT no longer uses this mode anywhere**) – counts all digits. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
 
 ### Notes On Precision And Limits
 
@@ -1078,14 +1073,6 @@ Supported rounding modes are:
 - `TRUNCATE`– will cut off the digits after certain precision
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
-
-#### Precision Mode
-
-Supported precision modes in `exchange['precisionMode']` are:
-
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 
 #### Padding Mode
 
@@ -4805,62 +4792,40 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 12.34, // at what price it will trigger
+        'price': 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
+        // similar params here
     }
 }
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+const order = await exchange.createOrder ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **Python**
 ```python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'buy'
-amount = 123.45  # your amount
-price = 115.321  # your price
 params = {
     'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
-        'price': 100.33,  # limit price for a limit stop loss order
+        'triggerPrice': 12.34,  # at what price it will trigger
+        'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
     },
     'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
-        # no limit price for a market take profit order
-        # 'price': 160.33,  # this field is not necessary for a market take profit order
+        # similar params here
     }
 }
-order = exchange.create_order (symbol, type, side, amount, price, params)
+order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
 ```
 #### **PHP**
 ```php
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'buy';
-$amount = 123.45; // your amount
-$price = 115.321; // your price
-$params = {
-    'stopLoss': {
-        'triggerPrice': 101.25,
-        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
-        'price': 100.33, // limit price for a limit stop loss order
-    },
-    'takeProfit': {
-        'triggerPrice': 150.75,
-        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
-        // no limit price for a market take profit order
-        // 'price': 160.33, // this field is not necessary for a market take profit order
-    }
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+$params = [
+    'stopLoss': [
+        'triggerPrice'=> 12.34, // at what price it will trigger
+        'price'=> 12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+    ],
+    'takeProfit'=> [
+        // similar params here
+    ]
+]
+$order = $exchange->create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, $params);
 ```
 <!-- tabs:end -->
 
@@ -6816,7 +6781,7 @@ while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 - `http://your-website.com/sample-script.php?url=`
 - etc
 
-So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
+So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)). To customize the target url, you can also override `urlEncoderForProxyUrl` method of instance.
 
 This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_))[#test-if-your-proxy-works]
 

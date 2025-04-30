@@ -955,8 +955,8 @@ class testMainClass {
             }
         } else {
             // built-in types like strings, numbers, booleans
-            $sanitized_new_output = (!$new_output) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
-            $sanitized_stored_output = (!$stored_output) ? null : $stored_output;
+            $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
+            $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
             $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
             $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
@@ -977,7 +977,7 @@ class testMainClass {
                 $is_string = $is_computed_string || $is_stored_string;
                 $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
-                    if ($this->lang === 'C#') {
+                    if (($this->lang === 'C#') || ($this->lang === 'GO')) {
                         // tmp c# number comparsion
                         $is_number = false;
                         try {
@@ -1114,6 +1114,9 @@ class testMainClass {
         return Async\async(function () use ($exchange, $method, $data, $type, $skip_keys) {
             $output = null;
             $request_url = null;
+            if ($this->info) {
+                dump('[INFO] STATIC REQUEST TEST:', $method, ':', $data['description']);
+            }
             try {
                 if (!is_sync()) {
                     Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
@@ -1143,6 +1146,9 @@ class testMainClass {
         return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
             $expected_result = $exchange->safe_value($data, 'parsedResponse');
             $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            if ($this->info) {
+                dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
+            }
             try {
                 if (!is_sync()) {
                     $unified_result = Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
@@ -1164,6 +1170,7 @@ class testMainClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
             'currencies' => $currencies,
@@ -1357,6 +1364,31 @@ class testMainClass {
         return $sum;
     }
 
+    public function check_if_exchange_is_disabled($exchange_name, $exchange_data) {
+        $exchange = init_exchange('Exchange', array());
+        $is_disabled_py = $exchange->safe_bool($exchange_data, 'disabledPy', false);
+        if ($is_disabled_py && ($this->lang === 'PY')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in python');
+            return true;
+        }
+        $is_disabled_php = $exchange->safe_bool($exchange_data, 'disabledPHP', false);
+        if ($is_disabled_php && ($this->lang === 'PHP')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in php');
+            return true;
+        }
+        $is_disabled_c_sharp = $exchange->safe_bool($exchange_data, 'disabledCS', false);
+        if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in c#');
+            return true;
+        }
+        $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
+        if ($is_disabled_go && ($this->lang === 'GO')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
+
     public function run_static_request_tests($target_exchange = null, $test_name = null) {
         return Async\async(function () use ($target_exchange, $test_name) {
             Async\await($this->run_static_tests('request', $target_exchange, $test_name));
@@ -1384,6 +1416,10 @@ class testMainClass {
             for ($i = 0; $i < count($exchanges); $i++) {
                 $exchange_name = $exchanges[$i];
                 $exchange_data = $static_data[$exchange_name];
+                $disabled = $this->check_if_exchange_is_disabled($exchange_name, $exchange_data);
+                if ($disabled) {
+                    continue;
+                }
                 $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name);
                 $sum = $exchange->sum($sum, $number_of_tests);
                 if ($type === 'request') {
@@ -1440,7 +1476,9 @@ class testMainClass {
     public function test_binance() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('binance');
-            $spot_id = 'x-R4BD3S82';
+            $spot_id = 'x-TKT5PX2F';
+            $swap_id = 'x-cvBPrNm9';
+            $inverse_swap_id = 'x-xcKtGhcu';
             $spot_order_request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
@@ -1450,7 +1488,6 @@ class testMainClass {
             $client_order_id = $spot_order_request['newClientOrderId'];
             $spot_id_string = ((string) $spot_id);
             assert(str_starts_with($client_order_id, $spot_id_string), 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
-            $swap_id = 'x-xcKtGhcu';
             $swap_order_request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
@@ -1463,11 +1500,13 @@ class testMainClass {
             } catch(\Throwable $e) {
                 $swap_inverse_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
+            // linear swap
             $client_order_id_swap = $swap_order_request['newClientOrderId'];
             $swap_id_string = ((string) $swap_id);
             assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+            // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
             $create_orders_request = null;
             try {
                 $orders = [array(

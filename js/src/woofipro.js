@@ -547,7 +547,7 @@ export default class woofipro extends Exchange {
             'active': undefined,
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'contractSize': this.parseNumber('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,

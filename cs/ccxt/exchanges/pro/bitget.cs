@@ -39,6 +39,10 @@ public partial class bitget : ccxt.bitget
                         { "public", "wss://ws.bitget.com/v2/ws/public" },
                         { "private", "wss://ws.bitget.com/v2/ws/private" },
                     } },
+                    { "demo", new Dictionary<string, object>() {
+                        { "public", "wss://wspap.bitget.com/v2/ws/public" },
+                        { "private", "wss://wspap.bitget.com/v2/ws/private" },
+                    } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -58,6 +62,9 @@ public partial class bitget : ccxt.bitget
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "checksum", true },
+                } },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -873,7 +880,14 @@ public partial class bitget : ccxt.bitget
             object tradeSymbol = this.safeString(first, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
     }
 
     /**
@@ -1298,7 +1312,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue((!isEqual(symbol, null)))))
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbol);
         }
@@ -1971,6 +1985,15 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
@@ -1983,6 +2006,15 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
             { "args", new List<object>() {args} },
@@ -1995,6 +2027,16 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object argsArrayFirst = this.safeDict(argsArray, 0, new Dictionary<string, object>() {});
+            object instType = this.safeString(argsArrayFirst, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", argsArray },
@@ -2007,7 +2049,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = this.safeString(parameters, "url");
         var client = this.client(url);
         object messageHash = "authenticated";
         var future = client.future(messageHash);
@@ -2036,8 +2078,19 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object messageHash, object subscriptionHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if (isTrue(sandboxMode))
+        {
+            object instType = this.safeString(args, "instType");
+            if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
+            {
+                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "private");
+            }
+        }
+        await this.authenticate(new Dictionary<string, object>() {
+            { "url", url },
+        });
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {args} },

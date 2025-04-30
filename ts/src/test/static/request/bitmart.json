@@ -3,6 +3,26 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetchPositionMode",
+                "method": "fetchPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/get-position-mode",
+                "input": [],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode hedged",
+                "method": "setPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/set-position-mode",
+                "input": [
+                    true
+                ],
+                "output": "{\"position_mode\":\"hedge_mode\"}"
+            }
+        ],
         "fetchTransactionFee": [
             {
                 "description": "trx tx fee",
@@ -799,6 +819,20 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "edit swap limit order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-limit-order",
+                "input": [
+                    "3000013590000612",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    56
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"order_id\":3000013590000612,\"price\":\"56\"}"
+            },
             {
                 "description": "edit a stopLossPrice order",
                 "method": "editOrder",

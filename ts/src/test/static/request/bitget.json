@@ -1471,6 +1471,15 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "swap trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=mix&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch trading fee spot",
                 "method": "fetchTradingFee",
                 "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=spot&symbol=BTCUSDT",
@@ -1678,6 +1687,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "fetch the funding rate details with an alternative method",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "method": "publicMixGetV2MixMarketFundingTime"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [
@@ -1698,6 +1718,13 @@
             }
         ],
         "fetchWithdrawals": [
+            {
+                "description": "fetchWitdrawals without currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?endTime=1743676539420&startTime=1735900539420",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "fetch withdrawals",
                 "method": "fetchWithdrawals",

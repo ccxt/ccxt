@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ export default class upbit extends Exchange {
             'name': 'Upbit',
             'countries': [ 'KR' ],
             'version': 'v1',
-            'rateLimit': 1000,
+            'rateLimit': 50,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -70,7 +70,7 @@ export default class upbit extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -78,6 +78,7 @@ export default class upbit extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': 'seconds',
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
@@ -89,6 +90,7 @@ export default class upbit extends Exchange {
                 '1d': 'days',
                 '1w': 'weeks',
                 '1M': 'months',
+                '1y': 'years',
             },
             'hostname': 'api.upbit.com',
             'urls': {
@@ -102,54 +104,70 @@ export default class upbit extends Exchange {
                 'fees': 'https://upbit.com/service_center/guide',
             },
             'api': {
+                // 'endpoint','API Cost'
+                // cost = 1000 / (rateLimit * RPS)
                 'public': {
-                    'get': [
-                        'market/all',
-                        'candles/{timeframe}',
-                        'candles/{timeframe}/{unit}',
-                        'candles/minutes/{unit}',
-                        'candles/minutes/1',
-                        'candles/minutes/3',
-                        'candles/minutes/5',
-                        'candles/minutes/10',
-                        'candles/minutes/15',
-                        'candles/minutes/30',
-                        'candles/minutes/60',
-                        'candles/minutes/240',
-                        'candles/days',
-                        'candles/weeks',
-                        'candles/months',
-                        'trades/ticks',
-                        'ticker',
-                        'orderbook',
-                    ],
+                    'get': {
+                        'market/all': 2, // RPS: 10
+                        'candles/{timeframe}': 2,
+                        'candles/{timeframe}/{unit}': 2,
+                        'candles/seconds': 2,
+                        'candles/minutes/{unit}': 2,
+                        'candles/minutes/1': 2,
+                        'candles/minutes/3': 2,
+                        'candles/minutes/5': 2,
+                        'candles/minutes/10': 2,
+                        'candles/minutes/15': 2,
+                        'candles/minutes/30': 2,
+                        'candles/minutes/60': 2,
+                        'candles/minutes/240': 2,
+                        'candles/days': 2,
+                        'candles/weeks': 2,
+                        'candles/months': 2,
+                        'candles/years': 2,
+                        'trades/ticks': 2,
+                        'ticker': 2,
+                        'ticker/all': 2,
+                        'orderbook': 2,
+                        'orderbook/supported_levels': 2, // Upbit KR only
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'orders/chance',
-                        'order',
-                        'orders',
-                        'orders/closed',
-                        'orders/open',
-                        'orders/uuids',
-                        'withdraws',
-                        'withdraw',
-                        'withdraws/chance',
-                        'deposits',
-                        'deposit',
-                        'deposits/coin_addresses',
-                        'deposits/coin_address',
-                    ],
-                    'post': [
-                        'orders',
-                        'withdraws/coin',
-                        'withdraws/krw',
-                        'deposits/generate_coin_address',
-                    ],
-                    'delete': [
-                        'order',
-                    ],
+                    'get': {
+                        'accounts': 0.67, // RPS: 30
+                        'orders/chance': 0.67,
+                        'order': 0.67,
+                        'orders/closed': 0.67,
+                        'orders/open': 0.67,
+                        'orders/uuids': 0.67,
+                        'withdraws': 0.67,
+                        'withdraw': 0.67,
+                        'withdraws/chance': 0.67,
+                        'withdraws/coin_addresses': 0.67,
+                        'deposits': 0.67,
+                        'deposits/chance/coin': 0.67,
+                        'deposit': 0.67,
+                        'deposits/coin_addresses': 0.67,
+                        'deposits/coin_address': 0.67,
+                        'travel_rule/vasps': 0.67,
+                        'status/wallet': 0.67, // Upbit KR only
+                        'api_keys': 0.67, // Upbit KR only
+                    },
+                    'post': {
+                        'orders': 2.5, // RPS: 8
+                        'orders/cancel_and_new': 2.5, // RPS: 8
+                        'withdraws/coin': 0.67,
+                        'withdraws/krw': 0.67, // Upbit KR only.
+                        'deposits/krw': 0.67, // Upbit KR only.
+                        'deposits/generate_coin_address': 0.67,
+                        'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                    },
+                    'delete': {
+                        'order': 0.67,
+                        'orders/open': 40, // RPS: 0.5
+                        'orders/uuids': 0.67,
+                    },
                 },
             },
             'fees': {
@@ -252,8 +270,6 @@ export default class upbit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTickersMaxLength': 4096, // 2048,
-                'fetchOrderBooksMaxLength': 4096, // 2048,
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -613,11 +629,6 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchOrderBooksMaxLength']) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols (' + ids.length.toString () + ' characters) exceeding max URL length (' + this.options['fetchOrderBooksMaxLength'].toString () + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -759,11 +770,6 @@ export default class upbit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' fetchTickers() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -1008,6 +1014,30 @@ export default class upbit extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name upbit#fetchTradingFees
+     * @description fetch the trading fees for markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const fetchMarketResponse = await this.fetchMarkets (params);
+        const response: Dict = {};
+        for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const element: Dict = {};
+            element['maker'] = this.safeNumber (fetchMarketResponse[i], 'maker');
+            element['taker'] = this.safeNumber (fetchMarketResponse[i], 'taker');
+            element['symbol'] = this.safeString (fetchMarketResponse[i], 'symbol');
+            element['percentage'] = true;
+            element['tierBased'] = false;
+            element['info'] = fetchMarketResponse[i];
+            response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
+        }
+        return response;
+    }
+
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
@@ -1104,6 +1134,29 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
+        let quoteAmount = undefined;
+        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            quoteAmount = this.costToPrecision (symbol, cost);
+        } else if (createMarketBuyOrderRequiresPrice) {
+            if (price === undefined || amount === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+            }
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const costRequest = Precise.stringMul (amountString, priceString);
+            quoteAmount = this.costToPrecision (symbol, costRequest);
+        } else {
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
+            }
+            quoteAmount = this.costToPrecision (symbol, amount);
+        }
+        return quoteAmount;
+    }
+
     /**
      * @method
      * @name upbit#createOrder
@@ -1111,13 +1164,14 @@ export default class upbit extends Exchange {
      * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
      * @see https://global-docs.upbit.com/reference/order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'
+     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1129,54 +1183,64 @@ export default class upbit extends Exchange {
         } else if (side === 'sell') {
             orderSide = 'ask';
         } else {
-            throw new InvalidOrder (this.id + ' createOrder() allows buy or sell side only!');
+            throw new InvalidOrder (this.id + ' createOrder() supports only buy or sell in the side argument.');
         }
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if ((type === 'market') && (side === 'buy')) {
-            // for market buy it requires the amount of quote currency to spend
-            let quoteAmount = undefined;
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
-            if (cost !== undefined) {
-                quoteAmount = this.costToPrecision (symbol, cost);
-            } else if (createMarketBuyOrderRequiresPrice) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
-                } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const costRequest = Precise.stringMul (amountString, priceString);
-                    quoteAmount = this.costToPrecision (symbol, costRequest);
-                }
-            } else {
-                quoteAmount = this.costToPrecision (symbol, amount);
+            if (price === undefined || amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' the limit type order in createOrder() is required price and amount.');
             }
-            request['ord_type'] = 'price';
-            request['price'] = quoteAmount;
-        } else {
-            request['ord_type'] = type;
+            request['ord_type'] = 'limit';
+            request['price'] = this.priceToPrecision (symbol, price);
             request['volume'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            if (side === 'buy') {
+                request['ord_type'] = 'price';
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                request['price'] = orderPrice;
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' the market sell type order in createOrder() is required amount.');
+                }
+                request['ord_type'] = 'market';
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
+        const customType = this.safeString2 (params, 'ordType', 'ord_type');
+        if (customType === 'best') {
+            params = this.omit (params, [ 'ordType', 'ord_type' ]);
+            request['ord_type'] = 'best';
+            if (side === 'buy') {
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                request['price'] = orderPrice;
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' the best sell type order in createOrder() is required amount.');
+                }
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
         }
-        if (type !== 'market') {
+        if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
             const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
-            params = this.omit (params, 'timeInForce');
+            params = this.omit (params, [ 'timeInForce' ]);
             if (timeInForce !== undefined) {
                 request['time_in_force'] = timeInForce;
+            } else {
+                if (request['ord_type'] === 'best') {
+                    throw new ArgumentsRequired (this.id + ' the best type order in createOrder() is required timeInForce.');
+                }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
+        params = this.omit (params, [ 'clientOrderId', 'cost' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
@@ -1573,6 +1637,7 @@ export default class upbit extends Exchange {
         } else {
             side = 'sell';
         }
+        const identifier = this.safeString (order, 'identifier');
         let type = this.safeString (order, 'ord_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -1629,7 +1694,7 @@ export default class upbit extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': identifier,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1974,7 +2039,7 @@ export default class upbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {

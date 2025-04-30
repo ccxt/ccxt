@@ -18,7 +18,7 @@ class tradeogre extends tradeogre$1 {
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -134,7 +134,6 @@ class tradeogre extends tradeogre$1 {
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -144,6 +143,7 @@ class tradeogre extends tradeogre$1 {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -490,9 +490,9 @@ class tradeogre extends tradeogre$1 {
         return [
             this.safeTimestamp(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 3),
             this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 5),
         ];
     }
@@ -529,6 +529,7 @@ class tradeogre extends tradeogre$1 {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger(response, 's');
         return orderbook;
     }
     parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
@@ -596,11 +597,29 @@ class tradeogre extends tradeogre$1 {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetAccountBalances(params);
+        let response = undefined;
+        const currency = this.safeString(params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance(params);
+            const singleCurrencyresult = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode(currency);
+            const account = {
+                'total': this.safeNumber(response, 'balance'),
+                'free': this.safeNumber(response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance(singleCurrencyresult);
+        }
+        else {
+            response = await this.privateGetAccountBalances(params);
+        }
         const result = this.safeDict(response, 'balances', {});
         return this.parseBalance(result);
     }
@@ -764,11 +783,11 @@ class tradeogre extends tradeogre$1 {
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
             'triggerPrice': undefined,
-            'amount': this.safeString(order, 'quantity'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString(order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,

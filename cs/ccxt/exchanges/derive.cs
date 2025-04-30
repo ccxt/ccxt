@@ -493,6 +493,7 @@ public partial class derive : Exchange
         object swap = false;
         object option = false;
         object linear = null;
+        object inverse = null;
         object baseId = this.safeString(market, "base_currency");
         object quoteId = this.safeString(market, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -517,6 +518,7 @@ public partial class derive : Exchange
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             swap = true;
             linear = true;
+            inverse = false;
             marketType = "swap";
         } else if (isTrue(isEqual(type, "option")))
         {
@@ -537,6 +539,8 @@ public partial class derive : Exchange
             {
                 optionType = "call";
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -556,7 +560,7 @@ public partial class derive : Exchange
             { "active", this.safeBool(market, "is_active") },
             { "contract", (isTrue(swap) || isTrue(option)) },
             { "linear", linear },
-            { "inverse", null },
+            { "inverse", inverse },
             { "contractSize", ((bool) isTrue((spot))) ? null : 1 },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1836,7 +1840,7 @@ public partial class derive : Exchange
         {
             order = rawOrder;
         }
-        object timestamp = this.safeInteger(rawOrder, "nonce");
+        object timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         object orderId = this.safeString(order, "order_id");
         object marketId = this.safeString(order, "instrument_name");
         if (isTrue(!isEqual(marketId, null)))
@@ -2433,9 +2437,6 @@ public partial class derive : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
@@ -2444,8 +2445,16 @@ public partial class derive : Exchange
             {
                 object balance = getValue(collaterals, j);
                 object code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                object account = this.account();
-                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                object account = this.safeDict(result, code);
+                if (isTrue(isEqual(account, null)))
+                {
+                    account = this.account();
+                    ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                } else
+                {
+                    object amount = this.safeString(balance, "amount");
+                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), amount);
+                }
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }

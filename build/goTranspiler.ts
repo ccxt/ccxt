@@ -144,6 +144,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false
 }
@@ -606,7 +607,8 @@ class NewTranspiler {
             'createSpotOrder',
             'createContractOrder',
             'createSwapOrder',
-            'fetchPortfolioDetails'
+            'fetchPortfolioDetails',
+            'createVault'
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {

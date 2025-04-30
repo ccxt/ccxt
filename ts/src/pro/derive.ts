@@ -443,12 +443,12 @@ export default class derive extends deriveRest {
             const requestId = this.requestId (url);
             const now = this.milliseconds ().toString ();
             const signature = this.signMessage (now, this.privateKey);
-            const contractWalletAddress = this.safeString (this.options, 'contractWalletAddress');
+            const deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
             const request: Dict = {
                 'id': requestId,
                 'method': 'public/login',
                 'params': {
-                    'wallet': contractWalletAddress,
+                    'wallet': deriveWalletAddress,
                     'timestamp': now,
                     'signature': signature,
                 },

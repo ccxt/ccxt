@@ -561,15 +561,15 @@ class binance extends \ccxt\async\binance {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -619,15 +619,15 @@ class binance extends \ccxt\async\binance {
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -685,15 +685,15 @@ class binance extends \ccxt\async\binance {
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-             *
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
@@ -746,15 +746,15 @@ class binance extends \ccxt\async\binance {
     public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-             *
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+             *
              * @param {string} $symbol unified array of symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
@@ -768,7 +768,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#order-book
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -1077,10 +1077,10 @@ class binance extends \ccxt\async\binance {
             /**
              * get the list of most recent $trades for a list of $symbols
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-$trades
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-$trades
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1143,10 +1143,10 @@ class binance extends \ccxt\async\binance {
             /**
              * unsubscribes from the trades channel
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1208,10 +1208,10 @@ class binance extends \ccxt\async\binance {
             /**
              * unsubscribes from the trades channel
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1228,10 +1228,10 @@ class binance extends \ccxt\async\binance {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1433,9 +1433,9 @@ class binance extends \ccxt\async\binance {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1459,9 +1459,9 @@ class binance extends \ccxt\async\binance {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1528,9 +1528,9 @@ class binance extends \ccxt\async\binance {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1598,9 +1598,9 @@ class binance extends \ccxt\async\binance {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1728,7 +1728,7 @@ class binance extends \ccxt\async\binance {
             /**
              * query historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
              *
              * @param {string} $symbol unified $symbol of the $market to query OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1822,15 +1822,15 @@ class binance extends \ccxt\async\binance {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-$tickers-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-$tickers-stream
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
-             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-$symbol-mini-ticker-stream
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-$tickers-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->name] stream to use can be ticker or miniTicker
@@ -1846,10 +1846,10 @@ class binance extends \ccxt\async\binance {
     public function watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * watches a mark price for a specific market
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
              *
-             * watches a mark price for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -1865,10 +1865,10 @@ class binance extends \ccxt\async\binance {
     public function watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * watches the mark price for all markets
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
              *
-             * watches the mark price for all markets
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -1890,15 +1890,15 @@ class binance extends \ccxt\async\binance {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1919,15 +1919,15 @@ class binance extends \ccxt\async\binance {
     public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-$market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-$market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
-             *
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-$symbol-mini-ticker-stream
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-$market-mini-tickers-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Individual-Symbol-Ticker-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Individual-Symbol-Ticker-Streams
+             *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -2009,15 +2009,15 @@ class binance extends \ccxt\async\binance {
     public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             *
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
-             *
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-$symbol-mini-ticker-stream
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -2031,9 +2031,9 @@ class binance extends \ccxt\async\binance {
             /**
              * watches best bid & ask for $symbols
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
-             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#symbol-order-book-ticker
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
              *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2587,7 +2587,7 @@ class binance extends \ccxt\async\binance {
              * fetch balance and get the amount of funds available for trading or funds locked in orders
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-information-user_data
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2697,10 +2697,10 @@ class binance extends \ccxt\async\binance {
     public function fetch_position_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * fetch data on an open position
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
              *
-             * fetch data on an open position
              * @param {string} $symbol unified market $symbol of the market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -2967,7 +2967,7 @@ class binance extends \ccxt\async\binance {
             /**
              * create a trade order
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#place-new-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
              *
@@ -3120,7 +3120,7 @@ class binance extends \ccxt\async\binance {
             /**
              * edit a trade order
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-and-replace-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
              *
@@ -3280,7 +3280,7 @@ class binance extends \ccxt\async\binance {
             /**
              * cancel multiple orders
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-order-trade
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
              *
@@ -3329,7 +3329,7 @@ class binance extends \ccxt\async\binance {
             /**
              * cancel all open orders in a $market
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-open-orders-trade
              *
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3367,7 +3367,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetches information on an order made by the user
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#query-order-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
              *
@@ -3417,7 +3417,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetches information on multiple $orders made by the user
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#order-lists
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} [$since] the earliest time in ms to fetch $orders for
@@ -3465,7 +3465,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetch closed $orders
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-$order-list-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#$order-lists
              *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
@@ -3490,7 +3490,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetch all unfilled currently open $orders
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-$orders-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#current-open-$orders-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch open $orders for
@@ -4063,7 +4063,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetch all $trades made by the user
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-trade-history-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch $trades for
@@ -4119,7 +4119,7 @@ class binance extends \ccxt\async\binance {
             /**
              * fetch all $trades made by the user
              *
-             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-$trades
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-$trades
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for

@@ -397,5 +397,189 @@
             }
         },
         "feeSide": "get"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC_USDT_PERP",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 0.001,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 75
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1547435912000,
+        "info": {
+            "symbol": "BTC_USDT_PERP",
+            "bAsset": ".PXBTUSDT",
+            "bCcy": "BTC",
+            "qCcy": "USDT",
+            "visibleStartTime": "1584721775000",
+            "tradableStartTime": "1584721775000",
+            "sCcy": "USDT",
+            "tSz": "0.01",
+            "pxScale": "0.01,0.1,1,10,100",
+            "lotSz": "1",
+            "minSz": "1",
+            "ctVal": "0.001",
+            "status": "OPEN",
+            "oDate": "1547435912000",
+            "maxPx": "1000000",
+            "minPx": "0.01",
+            "maxQty": "1000000",
+            "minQty": "1",
+            "maxLever": "75",
+            "lever": "20",
+            "ctType": "LINEAR",
+            "alias": "",
+            "iM": "0.0133",
+            "mM": "0.006",
+            "mR": "5000",
+            "buyLmt": "",
+            "sellLmt": "",
+            "ordPxRange": "0.05",
+            "marketMaxQty": "10000",
+            "limitMaxQty": "1000000"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "feeSide": "get"
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH_USDT_PERP",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 75
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1598599725000,
+        "info": {
+            "symbol": "ETH_USDT_PERP",
+            "bAsset": ".PETHUSDT",
+            "bCcy": "ETH",
+            "qCcy": "USDT",
+            "visibleStartTime": "1599040800000",
+            "tradableStartTime": "1599040800000",
+            "sCcy": "USDT",
+            "tSz": "0.01",
+            "pxScale": "0.01,0.1,1,10,100",
+            "lotSz": "1",
+            "minSz": "1",
+            "ctVal": "0.01",
+            "status": "OPEN",
+            "oDate": "1598599725000",
+            "maxPx": "1000000",
+            "minPx": "0.01",
+            "maxQty": "1000000",
+            "minQty": "1",
+            "maxLever": "75",
+            "lever": "20",
+            "ctType": "LINEAR",
+            "alias": "",
+            "iM": "0.0133",
+            "mM": "0.006",
+            "mR": "5000",
+            "buyLmt": "",
+            "sellLmt": "",
+            "ordPxRange": "0.05",
+            "marketMaxQty": "24000",
+            "limitMaxQty": "1000000"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "feeSide": "get"
     }
 }

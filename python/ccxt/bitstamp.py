@@ -1282,10 +1282,9 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_trading_fees(self, fees):
         result: dict = {'info': fees}
-        symbols = self.symbols
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
+            symbol = fee['symbol']
             result[symbol] = fee
         return result
 

@@ -450,6 +450,7 @@
         "fetchTrades": [
             {
                 "description": "public swap trades",
+                "disabledGO": true,
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT:USDT",

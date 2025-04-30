@@ -2215,6 +2215,22 @@ func (this *bingx) AccountV1PrivateGetAccountApiPermissions (args ...interface{}
    return ch
 }
 
+func (this *bingx) AccountV1PrivateGetAllAccountBalance (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("accountV1PrivateGetAllAccountBalance", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bingx) AccountV1PrivatePostInnerTransferAuthorizeSubAccount (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})

@@ -335,6 +335,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'INSUFFICIENT_FUND': BadRequest,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
@@ -733,7 +734,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -801,6 +802,7 @@ class coinbase(Exchange, ImplicitAPI):
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': None,
             'info': response,
         }
 
@@ -2299,7 +2301,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "ending_before":null,
         #             "starting_after":null,
         #             "previous_ending_before":null,
-        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         #             "limit":100,
         #             "order":"desc",
         #             "previous_uri":null,
@@ -4863,18 +4865,36 @@ class coinbase(Exchange, ImplicitAPI):
         #      ]
         #    }
         # or
-        #   {
+        # {
+        #     "success": False,
+        #     "error_response": {
         #       "error": "UNKNOWN_FAILURE_REASON",
         #       "message": "",
         #       "error_details": "",
-        #       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
-        #   }
+        #       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        #     },
+        #     "order_configuration": {
+        #       "stop_limit_stop_limit_gtc": {
+        #         "base_size": "0.0001",
+        #         "limit_price": "2000",
+        #         "stop_price": "2005",
+        #         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        #         "reduce_only": False
+        #       }
+        #     }
+        # }
         #
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            errorMessage = self.safe_string_2(response, 'error_description', 'preview_failure_reason')
+            errorMessage = self.safe_string_2(response, 'error_description', 'error')
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)
+        errorResponse = self.safe_dict(response, 'error_response')
+        if errorResponse is not None:
+            errorMessageInner = self.safe_string_2(errorResponse, 'preview_failure_reason', 'preview_failure_reason')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessageInner, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessageInner, feedback)
             raise ExchangeError(feedback)
         errors = self.safe_list(response, 'errors')
         if errors is not None:

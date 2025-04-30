@@ -371,6 +371,7 @@
         "fetchClosedOrders": [
             {
                 "description": "spot closed orders",
+                "disabledGO": true,
                 "method": "fetchClosedOrders",
                 "input": [
                     "LTC/USDT",

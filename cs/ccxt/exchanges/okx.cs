@@ -290,7 +290,9 @@ public partial class okx : Exchange
                         { "trade/easy-convert-currency-list", 20 },
                         { "trade/easy-convert-history", 20 },
                         { "trade/one-click-repay-currency-list", 20 },
+                        { "trade/one-click-repay-currency-list-v2", 20 },
                         { "trade/one-click-repay-history", 20 },
+                        { "trade/one-click-repay-history-v2", 20 },
                         { "trade/account-rate-limit", 1 },
                         { "asset/currencies", divide(5, 3) },
                         { "asset/balances", divide(5, 3) },
@@ -350,6 +352,7 @@ public partial class okx : Exchange
                         { "asset/subaccount/managed-subaccount-bills", divide(5, 3) },
                         { "users/entrust-subaccount-list", 10 },
                         { "account/subaccount/interest-limits", 4 },
+                        { "users/subaccount/apikey", 10 },
                         { "tradingBot/grid/orders-algo-pending", 1 },
                         { "tradingBot/grid/orders-algo-history", 1 },
                         { "tradingBot/grid/orders-algo-details", 1 },
@@ -435,6 +438,7 @@ public partial class okx : Exchange
                         { "trade/cancel-advance-algos", 1 },
                         { "trade/easy-convert", 20 },
                         { "trade/one-click-repay", 20 },
+                        { "trade/one-click-repay-v2", 20 },
                         { "trade/mass-cancel", 4 },
                         { "trade/cancel-all-after", 10 },
                         { "asset/transfer", 10 },
@@ -469,6 +473,9 @@ public partial class okx : Exchange
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
                         { "account/subaccount/set-loan-allocation", 4 },
+                        { "users/subaccount/create-subaccount", 10 },
+                        { "users/subaccount/subaccount-apikey", 10 },
+                        { "users/subaccount/delete-apikey", 10 },
                         { "tradingBot/grid/order-algo", 1 },
                         { "tradingBot/grid/amend-order-algo", 1 },
                         { "tradingBot/grid/stop-order-algo", 1 },
@@ -865,6 +872,11 @@ public partial class okx : Exchange
                     { "59506", typeof(ExchangeError) },
                     { "59507", typeof(ExchangeError) },
                     { "59508", typeof(AccountSuspended) },
+                    { "59515", typeof(ExchangeError) },
+                    { "59516", typeof(ExchangeError) },
+                    { "59517", typeof(ExchangeError) },
+                    { "59518", typeof(ExchangeError) },
+                    { "59519", typeof(ExchangeError) },
                     { "59642", typeof(BadRequest) },
                     { "59643", typeof(ExchangeError) },
                     { "60001", typeof(AuthenticationError) },
@@ -937,68 +949,59 @@ public partial class okx : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
                     { "BTCLN", "Lightning" },
+                    { "BTCLIGHTNING", "Lightning" },
                     { "BEP20", "BSC" },
+                    { "BRC20", "BRC20" },
                     { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
                     { "ACA", "Acala" },
                     { "ALGO", "Algorand" },
-                    { "BHP", "BHP" },
                     { "APT", "Aptos" },
+                    { "SCROLL", "Scroll" },
                     { "ARBONE", "Arbitrum One" },
                     { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
-                    { "ARK", "ARK" },
+                    { "BASE", "Base" },
+                    { "SUI", "SUI" },
+                    { "ZKSYNCERA", "zkSync Era" },
+                    { "LINEA", "Linea" },
                     { "AR", "Arweave" },
                     { "ASTR", "Astar" },
                     { "BCH", "BitcoinCash" },
                     { "BSV", "Bitcoin SV" },
-                    { "BTM", "Bytom" },
                     { "ADA", "Cardano" },
                     { "CSPR", "Casper" },
                     { "CELO", "CELO" },
                     { "XCH", "Chia" },
-                    { "CHZ", "Chiliz" },
                     { "ATOM", "Cosmos" },
-                    { "TRUE", "TrueChain" },
-                    { "DCR", "Decred" },
                     { "DGB", "Digibyte" },
                     { "DOGE", "Dogecoin" },
-                    { "XEC", "XEC" },
                     { "EGLD", "Elrond" },
+                    { "CFX", "Conflux" },
                     { "EOS", "EOS" },
+                    { "CORE", "CORE" },
                     { "ETC", "Ethereum Classic" },
                     { "ETHW", "EthereumPow" },
-                    { "FTM", "Fantom" },
                     { "FIL", "Filecoin" },
-                    { "FLOW", "FLOW" },
-                    { "FSN", "Fusion" },
                     { "ONE", "Harmony" },
                     { "HBAR", "Hedera" },
-                    { "HNT", "Helium" },
-                    { "ZEN", "Horizen" },
                     { "ICX", "ICON" },
                     { "ICP", "Dfinity" },
                     { "IOST", "IOST" },
                     { "IOTA", "MIOTA" },
-                    { "KDA", "Kadena" },
-                    { "KAR", "KAR" },
                     { "KLAY", "Klaytn" },
                     { "KSM", "Kusama" },
                     { "LSK", "Lisk" },
                     { "LTC", "Litecoin" },
                     { "METIS", "Metis" },
                     { "MINA", "Mina" },
-                    { "XMR", "Monero" },
                     { "GLRM", "Moonbeam" },
                     { "MOVR", "Moonriver" },
                     { "NANO", "Nano" },
                     { "NEAR", "NEAR" },
-                    { "NAS", "Nebulas" },
-                    { "NEM", "New Economy Movement" },
                     { "NULS", "NULS" },
                     { "OASYS", "OASYS" },
-                    { "OKC", "OKC" },
                     { "ONT", "Ontology" },
                     { "OPTIMISM", "Optimism" },
                     { "LAT", "PlatON" },
@@ -1013,13 +1016,8 @@ public partial class okx : Exchange
                     { "XTZ", "Tezos" },
                     { "TON", "TON" },
                     { "THETA", "Theta" },
-                    { "VSYS", "VSYSTEMS" },
-                    { "WAVES", "WAVES" },
                     { "WAX", "Wax" },
-                    { "ZEC", "Zcash" },
                     { "ZIL", "Zilliqa" },
-                    { "ZKSYNC", "ZKSYNC" },
-                    { "OMNI", "Omni" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1176,6 +1174,7 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
+                        { "historical", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -1537,8 +1536,8 @@ public partial class okx : Exchange
         object swap = (isEqual(type, "swap"));
         object option = (isEqual(type, "option"));
         object contract = isTrue(isTrue(swap) || isTrue(future)) || isTrue(option);
-        object baseId = this.safeString(market, "baseCcy");
-        object quoteId = this.safeString(market, "quoteCcy");
+        object baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
+        object quoteId = this.safeString(market, "quoteCcy", "");
         object settleId = this.safeString(market, "settleCcy");
         object settle = this.safeCurrencyCode(settleId);
         object underlying = this.safeString(market, "uly");
@@ -1556,19 +1555,29 @@ public partial class okx : Exchange
         object optionType = null;
         if (isTrue(contract))
         {
-            symbol = add(add(symbol, ":"), settle);
-            expiry = this.safeInteger(market, "expTime");
+            if (isTrue(!isEqual(settle, null)))
+            {
+                symbol = add(add(symbol, ":"), settle);
+            }
             if (isTrue(future))
             {
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(symbol, "-"), ymd);
+                expiry = this.safeInteger(market, "expTime");
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(symbol, "-"), ymd);
+                }
             } else if (isTrue(option))
             {
+                expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
-                optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
+                    optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                }
             }
         }
         object tickSize = this.safeString(market, "tickSz");
@@ -1771,72 +1780,59 @@ public partial class okx : Exchange
             object code = getValue(currency, "code");
             object chains = getValue(dataByCurrencyId, currencyId);
             object networks = new Dictionary<string, object>() {};
-            object currencyActive = false;
-            object depositEnabled = false;
-            object withdrawEnabled = false;
-            object maxPrecision = null;
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object type = "crypto";
+            object chainsLength = getArrayLength(chains);
+            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object canDeposit = this.safeBool(chain, "canDep");
-                depositEnabled = ((bool) isTrue((canDeposit))) ? canDeposit : depositEnabled;
-                object canWithdraw = this.safeBool(chain, "canWd");
-                withdrawEnabled = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdrawEnabled;
-                object canInternal = this.safeBool(chain, "canInternal");
-                object active = ((bool) isTrue((isTrue(isTrue(canDeposit) && isTrue(canWithdraw)) && isTrue(canInternal)))) ? true : false;
-                currencyActive = ((bool) isTrue((active))) ? active : currencyActive;
-                object networkId = this.safeString(chain, "chain");
-                if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
+                // allow empty string for rare fiat-currencies, e.g. TRY
+                object networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
+                if (isTrue(isEqual(networkId, "")))
                 {
-                    object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object parts = this.arraySlice(idParts, 1);
-                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
-                    object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
-                    object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
-                    if (isTrue(isEqual(maxPrecision, null)))
-                    {
-                        maxPrecision = precision;
-                    } else
-                    {
-                        maxPrecision = Precise.stringMin(maxPrecision, precision);
-                    }
-                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                        { "id", networkId },
-                        { "network", networkCode },
-                        { "active", active },
-                        { "deposit", canDeposit },
-                        { "withdraw", canWithdraw },
-                        { "fee", this.safeNumber(chain, "fee") },
-                        { "precision", this.parseNumber(precision) },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", this.safeNumber(chain, "minWd") },
-                                { "max", this.safeNumber(chain, "maxWd") },
-                            } },
-                        } },
-                        { "info", chain },
-                    };
+                    // only happens for fiat 'TRY' currency
+                    type = "fiat";
                 }
+                object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                object parts = this.arraySlice(idParts, 1);
+                object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
+                object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "canDep") },
+                    { "withdraw", this.safeBool(chain, "canWd") },
+                    { "fee", this.safeNumber(chain, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "minWd") },
+                            { "max", this.safeNumber(chain, "maxWd") },
+                        } },
+                    } },
+                    { "info", chain },
+                };
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
-                { "active", currencyActive },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
-                { "precision", this.parseNumber(maxPrecision) },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                 } },
+                { "type", type },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -2422,6 +2418,9 @@ public partial class okx : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100; // default 100, max 100
+        } else
+        {
+            limit = mathMin(limit, 300); // max 100
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2444,6 +2443,7 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
+                limit = mathMin(limit, 100); // max 100 for historical endpoint
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -3259,6 +3259,7 @@ public partial class okx : Exchange
      * @param {string} [params.trailingPercent] the percent to trail away from the current market price
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+     * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)

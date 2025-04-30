@@ -66,6 +66,7 @@ public partial class coincatch : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -719,6 +720,86 @@ public partial class coincatch : Exchange
         if (isTrue(isEqual(this.safeList(this.options, "currencyIdsListForParseMarket"), null)))
         {
             ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currenciesIds;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.publicGetApiSpotV1PublicCurrencies(parameters);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseDepositWithdrawFees(data, codes, "coinName");
+    }
+
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
+    {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        object chains = this.safeList(fee, "chains", new List<object>() {});
+        object chainsLength = getArrayLength(chains);
+        object result = new Dictionary<string, object>() {
+            { "info", fee },
+            { "withdraw", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        };
+        for (object i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
+        {
+            object chain = getValue(chains, i);
+            object networkId = this.safeString(chain, "chain");
+            object currencyCode = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "percentage", false },
+                } },
+            };
+            if (isTrue(isEqual(chainsLength, 1)))
+            {
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(chain, "withdrawFee");
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+            }
         }
         return result;
     }

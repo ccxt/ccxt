@@ -683,7 +683,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
             { "id", id },
-            { "order", null },
+            { "order", this.safeString(trade, "oid") },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },

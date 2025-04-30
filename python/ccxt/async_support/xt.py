@@ -59,7 +59,7 @@ class xt(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': True,
-                'editOrder': False,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -246,6 +246,9 @@ class xt(Exchange, ImplicitAPI):
                             'open-order': 1,
                             'order/{orderId}': 1,
                         },
+                        'put': {
+                            'order/{orderId}': 1,
+                        },
                     },
                     'linear': {
                         'get': {
@@ -280,6 +283,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -323,6 +327,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -3338,7 +3343,7 @@ class xt(Exchange, ImplicitAPI):
         #         "cancelId": "208322474307982720"
         #     }
         #
-        # swap and future: createOrder, cancelOrder
+        # swap and future: createOrder, cancelOrder, editOrder
         #
         #     {
         #         "returnCode": 0,
@@ -3443,6 +3448,14 @@ class xt(Exchange, ImplicitAPI):
         #         "createdTime": 1681273420039
         #     }
         #
+        # spot editOrder
+        #
+        #     {
+        #         "orderId": "484203027161892224",
+        #         "modifyId": "484203544105344000",
+        #         "clientModifyId": null
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         marketType = ('result' in order) or 'contract' if ('positionSide' in order) else 'spot'
         market = self.safe_market(marketId, market, None, marketType)
@@ -3456,7 +3469,7 @@ class xt(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
-            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'clientOrderId': self.safe_string_2(order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastUpdatedTimestamp,
@@ -4679,6 +4692,94 @@ class xt(Exchange, ImplicitAPI):
         #
         return response  # unify return type
 
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        cancels an order and places a new order
+
+        https://doc.xt.com/#orderorderUpdate
+        https://doc.xt.com/#futures_orderupdate
+        https://doc.xt.com/#futures_entrustupdateProfit
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopLoss]: price to set a stop-loss on an open position
+        :param float [params.takeProfit]: price to set a take-profit on an open position
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        stopLoss = self.safe_number_2(params, 'stopLoss', 'triggerStopPrice')
+        takeProfit = self.safe_number_2(params, 'takeProfit', 'triggerProfitPrice')
+        params = self.omit(params, ['stopLoss', 'takeProfit'])
+        isStopLoss = (stopLoss is not None)
+        isTakeProfit = (takeProfit is not None)
+        if isStopLoss or isTakeProfit:
+            request['profitId'] = id
+        else:
+            request['orderId'] = id
+            request['price'] = self.price_to_precision(symbol, price)
+        response = None
+        if market['swap']:
+            if isStopLoss:
+                request['triggerStopPrice'] = self.price_to_precision(symbol, stopLoss)
+            elif takeProfit is not None:
+                request['triggerProfitPrice'] = self.price_to_precision(symbol, takeProfit)
+            else:
+                request['origQty'] = self.amount_to_precision(symbol, amount)
+            subType = None
+            subType, params = self.handle_sub_type_and_params('editOrder', market, params)
+            if subType == 'inverse':
+                if isStopLoss or isTakeProfit:
+                    response = await self.privateInversePostFutureTradeV1EntrustUpdateProfitStop(self.extend(request, params))
+                else:
+                    response = await self.privateInversePostFutureTradeV1OrderUpdate(self.extend(request, params))
+                    #
+                    #     {
+                    #         "returnCode": 0,
+                    #         "msgInfo": "success",
+                    #         "error": null,
+                    #         "result": "483869474947826752"
+                    #     }
+                    #
+            else:
+                if isStopLoss or isTakeProfit:
+                    response = await self.privateLinearPostFutureTradeV1EntrustUpdateProfitStop(self.extend(request, params))
+                else:
+                    response = await self.privateLinearPostFutureTradeV1OrderUpdate(self.extend(request, params))
+                    #
+                    #     {
+                    #         "returnCode": 0,
+                    #         "msgInfo": "success",
+                    #         "error": null,
+                    #         "result": "483869474947826752"
+                    #     }
+                    #
+        else:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+            response = await self.privateSpotPutOrderOrderId(self.extend(request, params))
+            #
+            #     {
+            #         "rc": 0,
+            #         "mc": "SUCCESS",
+            #         "ma": [],
+            #         "result": {
+            #             "orderId": "484203027161892224",
+            #             "modifyId": "484203544105344000",
+            #             "clientModifyId": null
+            #         }
+            #     }
+            #
+        result = response if (market['swap']) else self.safe_dict(response, 'result', {})
+        return self.parse_order(result, market)
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         # spot: error
@@ -4776,6 +4877,8 @@ class xt(Exchange, ImplicitAPI):
                 else:
                     body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))
+            if (method == 'PUT') and (endpoint == 'spot'):
+                isUndefinedBody = False
             body = None if isUndefinedBody else self.json(body)
             payloadString = None
             if (endpoint == 'spot') or (endpoint == 'user'):

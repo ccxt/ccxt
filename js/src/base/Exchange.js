@@ -25,7 +25,9 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import { SecureRandom } from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
+import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -66,7 +68,7 @@ export default class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
+        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
         this.liquidations = {};
         this.orderbooks = {};
@@ -344,6 +346,9 @@ export default class Exchange {
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -542,7 +547,7 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -550,7 +555,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + url;
+            url = proxyUrl + this.urlEncoderForProxyUrl(url);
         }
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
@@ -1197,6 +1202,45 @@ export default class Exchange {
         const signature = starknetCurveSign(hash.replace('0x', ''), pri.slice(-64));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
+    async getZKContractSignatureObj(seed, params = {}) {
+        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256, 'hex'))).toString();
+        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256, 'hex'))).toString();
+        const formattedUint64 = '18446744073709551615';
+        const formattedUint32 = '4294967295';
+        const accountId = parseInt(Precise.stringMod(this.safeString(params, 'accountId'), formattedUint32), 10);
+        const slotId = parseInt(Precise.stringDiv(Precise.stringMod(formattedSlotId, formattedUint64), formattedUint32), 10);
+        const nonce = parseInt(Precise.stringMod(formattedNonce, formattedUint32), 10);
+        await init();
+        const _signer = zklink.newRpcSignerWithProvider({});
+        await _signer.initZklinkSigner(seed);
+        let tx_builder = new zklink.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise.stringMul(this.safeString(params, 'size'), '1e18'), Precise.stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise.stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
+        let contractor = zklink.newContract(tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign(_signer?.getZkLinkSigner());
+        const tx = contractor.jsValue();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+    async getZKTransferSignatureObj(seed, params = {}) {
+        await init();
+        const _signer = zklink.newRpcSignerWithProvider({});
+        await _signer.initZklinkSigner(seed);
+        let nonce = this.safeString(params, 'nonce', '0');
+        if (this.safeBool(params, 'isContract') === true) {
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256, 'hex'))).toString();
+            nonce = Precise.stringMod(formattedNonce, formattedUint32);
+        }
+        let tx_builder = new zklink.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
+        let contractor = zklink.newTransfer(tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign(_signer?.getZkLinkSigner());
+        const tx = contractor.jsValue();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
     intToBase16(elem) {
         return elem.toString(16);
     }
@@ -1574,7 +1618,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -1754,6 +1797,12 @@ export default class Exchange {
             throw new InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+    urlEncoderForProxyUrl(targetUrl) {
+        // to be overriden
+        const includesQuery = targetUrl.indexOf('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
+        return finalUrl;
     }
     checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
@@ -2503,24 +2552,35 @@ export default class Exchange {
     }
     safeCurrencyStructure(currency) {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const currencyDeposit = this.safeBool(currency, 'deposit');
-        const currencyWithdraw = this.safeBool(currency, 'withdraw');
-        const currencyActive = this.safeBool(currency, 'active');
         const networks = this.safeDict(currency, 'networks', {});
         const keys = Object.keys(networks);
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
-                const network = networks[keys[i]];
+                const key = keys[i];
+                const network = networks[key];
                 const deposit = this.safeBool(network, 'deposit');
+                const currencyDeposit = this.safeBool(currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
+                const currencyWithdraw = this.safeBool(currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                const active = this.safeBool(network, 'active');
+                // set network 'active' to false if D or W is disabled
+                let active = this.safeBool(network, 'active');
+                if (active === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    }
+                    else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
+                }
+                active = this.safeBool(network, 'active');
+                const currencyActive = this.safeBool(currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
@@ -2533,7 +2593,7 @@ export default class Exchange {
                 // find lowest precision (which is more desired)
                 const precision = this.safeString(network, 'precision');
                 const precisionMain = this.safeString(currency, 'precision');
-                if (precisionMain === undefined || Precise.stringLt(precision, precisionMain)) {
+                if (precisionMain === undefined || Precise.stringGt(precision, precisionMain)) {
                     currency['precision'] = this.parseNumber(precision);
                 }
                 // limits
@@ -4134,6 +4194,25 @@ export default class Exchange {
             params = this.omit(params, [paramName1, paramName2]);
         }
         return [value, params];
+    }
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork(params, request, exchangeSpecificKey, currencyCode = undefined, isRequired = false) {
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId(networkCode, currencyCode);
+        }
+        else if (isRequired) {
+            throw new ArgumentsRequired(this.id + ' - "network" param is required for this request');
+        }
+        return [request, params];
     }
     resolvePath(path, params) {
         return [
@@ -6685,31 +6764,42 @@ export default class Exchange {
         }
         return result;
     }
-    removeRepeatedElementsFromArray(input) {
+    removeRepeatedElementsFromArray(input, fallbackToTimestamp = true) {
+        const uniqueDic = {};
+        const uniqueResult = [];
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const uniqValue = fallbackToTimestamp ? this.safeStringN(entry, ['id', 'timestamp', 0]) : this.safeString(entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = 1;
+                uniqueResult.push(entry);
+            }
+        }
+        const valuesLength = uniqueResult.length;
+        if (valuesLength > 0) {
+            return uniqueResult;
+        }
+        return input;
+    }
+    removeRepeatedTradesFromArray(input) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString(entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString(uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
+            let id = this.safeString(entry, 'id');
+            if (id === undefined) {
+                const price = this.safeString(entry, 'price');
+                const amount = this.safeString(entry, 'amount');
+                const timestamp = this.safeString(entry, 'timestamp');
+                const side = this.safeString(entry, 'side');
+                // unique trade identifier
+                id = 't_' + timestamp.toString() + '_' + side + '_' + price + '_' + amount;
             }
-            else {
-                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString(uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values(uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values;
-        }
-        return input;
+        return values;
     }
     handleUntilOption(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
