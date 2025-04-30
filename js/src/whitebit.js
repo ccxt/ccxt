@@ -580,6 +580,7 @@ export default class whitebit extends Exchange {
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
                 'fee': undefined,
+                'networks': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {

@@ -577,6 +577,7 @@ class whitebit extends whitebit$1 {
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
                 'fee': undefined,
+                'networks': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
