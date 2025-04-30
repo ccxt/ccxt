@@ -40,6 +40,7 @@ export default class upbit extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -1315,7 +1316,7 @@ export default class upbit extends Exchange {
      * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
      * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
-     * @param {string} [params.prevClientOrderId] to identify the previous order, either the id or this field is required in this method.
+     * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
      * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
      * @param {string} [params.newClientOrderId] the order ID that the user can define.
@@ -1325,17 +1326,14 @@ export default class upbit extends Exchange {
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request: Dict = {};
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' type is required in the editOrder method.');
-        }
-        const prevClientOrderId = this.safeString (params, 'prevClientOrderId');
-        params = this.omit (params, 'prevClientOrderId');
+        const prevClientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
         if (id !== undefined) {
             request['prev_order_uuid'] = id;
         } else if (prevClientOrderId !== undefined) {
             request['prev_order_identifier'] = prevClientOrderId;
         } else {
-            throw new ArgumentsRequired (this.id + ' editOrder() is required prevOrderId or prevClientOrderId.');
+            throw new ArgumentsRequired (this.id + ' editOrder() is required id or clientOrderId.');
         }
         if (type === 'limit') {
             if (price === undefined || amount === undefined) {
