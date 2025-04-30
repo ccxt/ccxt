@@ -5402,7 +5402,7 @@ class okx(Exchange, ImplicitAPI):
             return None
         return self.parse_position(position, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
 
         https://www.okx.com/docs-v5/en/#rest-api-account-get-positions

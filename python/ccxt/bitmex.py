@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2182,7 +2182,7 @@ class bitmex(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

@@ -1660,7 +1660,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

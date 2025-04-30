@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2599,7 +2599,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

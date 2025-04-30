@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2673,7 +2673,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

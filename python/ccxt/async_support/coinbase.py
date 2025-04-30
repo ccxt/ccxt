@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
+from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4435,7 +4435,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'success_response', {})
         return self.parse_order(order)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

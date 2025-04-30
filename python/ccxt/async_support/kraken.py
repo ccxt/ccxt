@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3067,7 +3067,7 @@ class kraken(Exchange, ImplicitAPI):
             return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

@@ -3859,7 +3859,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

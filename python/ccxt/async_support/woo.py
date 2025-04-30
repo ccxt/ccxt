@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3165,7 +3165,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         await self.load_markets()
         response = await self.v3PrivateGetPositions(params)
         #

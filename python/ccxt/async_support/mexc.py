@@ -4848,7 +4848,7 @@ class mexc(Exchange, ImplicitAPI):
         response = await self.fetch_positions(None, self.extend(request, params))
         return self.safe_value(response, 0)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
