@@ -580,6 +580,7 @@ class woo extends Exchange {
             $linear = true;
             $inverse = false;
         }
+        $active = $this->safe_string($market, 'is_trading') === '1';
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -595,7 +596,7 @@ class woo extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => $this->safe_string($market, 'is_trading') === '1',
+            'active' => $active,
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
@@ -949,6 +950,7 @@ class woo extends Exchange {
                     'networks' => $resultingNetworks,
                     'deposit' => null,
                     'withdraw' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'deposit' => array(
                             'min' => null,
