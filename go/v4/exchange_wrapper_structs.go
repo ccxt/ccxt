@@ -7,35 +7,30 @@ type Options struct {
     Params *map[string]interface{}
 }
 
-type FetchTickerOptionsStruct struct {
+type FetchTradesOptionsStruct struct {
+    Since *int64
+    Limit *int64
     Params *map[string]interface{}
 }
 
-type FetchTickerOptions func(opts *FetchTickerOptionsStruct)
+type FetchTradesOptions func(opts *FetchTradesOptionsStruct)
 
-func WithFetchTickerParams(params map[string]interface{}) FetchTickerOptions {
-    return func(opts *FetchTickerOptionsStruct) {
-        opts.Params = &params
+func WithFetchTradesSince(since int64) FetchTradesOptions {
+    return func(opts *FetchTradesOptionsStruct) {
+        opts.Since = &since
     }
 }
 
 
-type FetchTickersOptionsStruct struct {
-    Symbols *[]string
-    Params *map[string]interface{}
-}
-
-type FetchTickersOptions func(opts *FetchTickersOptionsStruct)
-
-func WithFetchTickersSymbols(symbols []string) FetchTickersOptions {
-    return func(opts *FetchTickersOptionsStruct) {
-        opts.Symbols = &symbols
+func WithFetchTradesLimit(limit int64) FetchTradesOptions {
+    return func(opts *FetchTradesOptionsStruct) {
+        opts.Limit = &limit
     }
 }
 
 
-func WithFetchTickersParams(params map[string]interface{}) FetchTickersOptions {
-    return func(opts *FetchTickersOptionsStruct) {
+func WithFetchTradesParams(params map[string]interface{}) FetchTradesOptions {
+    return func(opts *FetchTradesOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -99,204 +94,35 @@ func WithFetchOHLCVParams(params map[string]interface{}) FetchOHLCVOptions {
 }
 
 
-type CreateOrderOptionsStruct struct {
-    Price *float64
+type FetchTickerOptionsStruct struct {
     Params *map[string]interface{}
 }
 
-type CreateOrderOptions func(opts *CreateOrderOptionsStruct)
+type FetchTickerOptions func(opts *FetchTickerOptionsStruct)
 
-func WithCreateOrderPrice(price float64) CreateOrderOptions {
-    return func(opts *CreateOrderOptionsStruct) {
-        opts.Price = &price
-    }
-}
-
-
-func WithCreateOrderParams(params map[string]interface{}) CreateOrderOptions {
-    return func(opts *CreateOrderOptionsStruct) {
+func WithFetchTickerParams(params map[string]interface{}) FetchTickerOptions {
+    return func(opts *FetchTickerOptionsStruct) {
         opts.Params = &params
     }
 }
 
 
-type CancelOrderOptionsStruct struct {
-    Symbol *string
+type FetchTickersOptionsStruct struct {
+    Symbols *[]string
     Params *map[string]interface{}
 }
 
-type CancelOrderOptions func(opts *CancelOrderOptionsStruct)
+type FetchTickersOptions func(opts *FetchTickersOptionsStruct)
 
-func WithCancelOrderSymbol(symbol string) CancelOrderOptions {
-    return func(opts *CancelOrderOptionsStruct) {
-        opts.Symbol = &symbol
+func WithFetchTickersSymbols(symbols []string) FetchTickersOptions {
+    return func(opts *FetchTickersOptionsStruct) {
+        opts.Symbols = &symbols
     }
 }
 
 
-func WithCancelOrderParams(params map[string]interface{}) CancelOrderOptions {
-    return func(opts *CancelOrderOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchOrderOptionsStruct struct {
-    Symbol *string
-    Params *map[string]interface{}
-}
-
-type FetchOrderOptions func(opts *FetchOrderOptionsStruct)
-
-func WithFetchOrderSymbol(symbol string) FetchOrderOptions {
-    return func(opts *FetchOrderOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchOrderParams(params map[string]interface{}) FetchOrderOptions {
-    return func(opts *FetchOrderOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchOpenOrdersOptionsStruct struct {
-    Symbol *string
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchOpenOrdersOptions func(opts *FetchOpenOrdersOptionsStruct)
-
-func WithFetchOpenOrdersSymbol(symbol string) FetchOpenOrdersOptions {
-    return func(opts *FetchOpenOrdersOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchOpenOrdersSince(since int64) FetchOpenOrdersOptions {
-    return func(opts *FetchOpenOrdersOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchOpenOrdersLimit(limit int64) FetchOpenOrdersOptions {
-    return func(opts *FetchOpenOrdersOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchOpenOrdersParams(params map[string]interface{}) FetchOpenOrdersOptions {
-    return func(opts *FetchOpenOrdersOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchOrderTradesOptionsStruct struct {
-    Symbol *string
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchOrderTradesOptions func(opts *FetchOrderTradesOptionsStruct)
-
-func WithFetchOrderTradesSymbol(symbol string) FetchOrderTradesOptions {
-    return func(opts *FetchOrderTradesOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchOrderTradesSince(since int64) FetchOrderTradesOptions {
-    return func(opts *FetchOrderTradesOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchOrderTradesLimit(limit int64) FetchOrderTradesOptions {
-    return func(opts *FetchOrderTradesOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchOrderTradesParams(params map[string]interface{}) FetchOrderTradesOptions {
-    return func(opts *FetchOrderTradesOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchMyTradesOptionsStruct struct {
-    Symbol *string
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchMyTradesOptions func(opts *FetchMyTradesOptionsStruct)
-
-func WithFetchMyTradesSymbol(symbol string) FetchMyTradesOptions {
-    return func(opts *FetchMyTradesOptionsStruct) {
-        opts.Symbol = &symbol
-    }
-}
-
-
-func WithFetchMyTradesSince(since int64) FetchMyTradesOptions {
-    return func(opts *FetchMyTradesOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchMyTradesLimit(limit int64) FetchMyTradesOptions {
-    return func(opts *FetchMyTradesOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchMyTradesParams(params map[string]interface{}) FetchMyTradesOptions {
-    return func(opts *FetchMyTradesOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchTradesOptionsStruct struct {
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchTradesOptions func(opts *FetchTradesOptionsStruct)
-
-func WithFetchTradesSince(since int64) FetchTradesOptions {
-    return func(opts *FetchTradesOptionsStruct) {
-        opts.Since = &since
-    }
-}
-
-
-func WithFetchTradesLimit(limit int64) FetchTradesOptions {
-    return func(opts *FetchTradesOptionsStruct) {
-        opts.Limit = &limit
-    }
-}
-
-
-func WithFetchTradesParams(params map[string]interface{}) FetchTradesOptions {
-    return func(opts *FetchTradesOptionsStruct) {
+func WithFetchTickersParams(params map[string]interface{}) FetchTickersOptions {
+    return func(opts *FetchTickersOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -341,6 +167,48 @@ func WithCreateMarketSellOrderWithCostParams(params map[string]interface{}) Crea
 }
 
 
+type CreateOrderOptionsStruct struct {
+    Price *float64
+    Params *map[string]interface{}
+}
+
+type CreateOrderOptions func(opts *CreateOrderOptionsStruct)
+
+func WithCreateOrderPrice(price float64) CreateOrderOptions {
+    return func(opts *CreateOrderOptionsStruct) {
+        opts.Price = &price
+    }
+}
+
+
+func WithCreateOrderParams(params map[string]interface{}) CreateOrderOptions {
+    return func(opts *CreateOrderOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type CancelOrderOptionsStruct struct {
+    Symbol *string
+    Params *map[string]interface{}
+}
+
+type CancelOrderOptions func(opts *CancelOrderOptionsStruct)
+
+func WithCancelOrderSymbol(symbol string) CancelOrderOptions {
+    return func(opts *CancelOrderOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithCancelOrderParams(params map[string]interface{}) CancelOrderOptions {
+    return func(opts *CancelOrderOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type CancelAllOrdersOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}
@@ -357,6 +225,27 @@ func WithCancelAllOrdersSymbol(symbol string) CancelAllOrdersOptions {
 
 func WithCancelAllOrdersParams(params map[string]interface{}) CancelAllOrdersOptions {
     return func(opts *CancelAllOrdersOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchOrderOptionsStruct struct {
+    Symbol *string
+    Params *map[string]interface{}
+}
+
+type FetchOrderOptions func(opts *FetchOrderOptionsStruct)
+
+func WithFetchOrderSymbol(symbol string) FetchOrderOptions {
+    return func(opts *FetchOrderOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchOrderParams(params map[string]interface{}) FetchOrderOptions {
+    return func(opts *FetchOrderOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -394,6 +283,43 @@ func WithFetchOrdersLimit(limit int64) FetchOrdersOptions {
 
 func WithFetchOrdersParams(params map[string]interface{}) FetchOrdersOptions {
     return func(opts *FetchOrdersOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchOpenOrdersOptionsStruct struct {
+    Symbol *string
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchOpenOrdersOptions func(opts *FetchOpenOrdersOptionsStruct)
+
+func WithFetchOpenOrdersSymbol(symbol string) FetchOpenOrdersOptions {
+    return func(opts *FetchOpenOrdersOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchOpenOrdersSince(since int64) FetchOpenOrdersOptions {
+    return func(opts *FetchOpenOrdersOptionsStruct) {
+        opts.Since = &since
+    }
+}
+
+
+func WithFetchOpenOrdersLimit(limit int64) FetchOpenOrdersOptions {
+    return func(opts *FetchOpenOrdersOptionsStruct) {
+        opts.Limit = &limit
+    }
+}
+
+
+func WithFetchOpenOrdersParams(params map[string]interface{}) FetchOpenOrdersOptions {
+    return func(opts *FetchOpenOrdersOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -460,6 +386,43 @@ func WithEditOrderPrice(price float64) EditOrderOptions {
 
 func WithEditOrderParams(params map[string]interface{}) EditOrderOptions {
     return func(opts *EditOrderOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchMyTradesOptionsStruct struct {
+    Symbol *string
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchMyTradesOptions func(opts *FetchMyTradesOptionsStruct)
+
+func WithFetchMyTradesSymbol(symbol string) FetchMyTradesOptions {
+    return func(opts *FetchMyTradesOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchMyTradesSince(since int64) FetchMyTradesOptions {
+    return func(opts *FetchMyTradesOptionsStruct) {
+        opts.Since = &since
+    }
+}
+
+
+func WithFetchMyTradesLimit(limit int64) FetchMyTradesOptions {
+    return func(opts *FetchMyTradesOptionsStruct) {
+        opts.Limit = &limit
+    }
+}
+
+
+func WithFetchMyTradesParams(params map[string]interface{}) FetchMyTradesOptions {
+    return func(opts *FetchMyTradesOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -668,6 +631,43 @@ type TransferOptions func(opts *TransferOptionsStruct)
 
 func WithTransferParams(params map[string]interface{}) TransferOptions {
     return func(opts *TransferOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchOrderTradesOptionsStruct struct {
+    Symbol *string
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchOrderTradesOptions func(opts *FetchOrderTradesOptionsStruct)
+
+func WithFetchOrderTradesSymbol(symbol string) FetchOrderTradesOptions {
+    return func(opts *FetchOrderTradesOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithFetchOrderTradesSince(since int64) FetchOrderTradesOptions {
+    return func(opts *FetchOrderTradesOptionsStruct) {
+        opts.Since = &since
+    }
+}
+
+
+func WithFetchOrderTradesLimit(limit int64) FetchOrderTradesOptions {
+    return func(opts *FetchOrderTradesOptionsStruct) {
+        opts.Limit = &limit
+    }
+}
+
+
+func WithFetchOrderTradesParams(params map[string]interface{}) FetchOrderTradesOptions {
+    return func(opts *FetchOrderTradesOptionsStruct) {
         opts.Params = &params
     }
 }

@@ -555,6 +555,7 @@ class probit extends Exchange {
                 'active' => $active,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'type' => 'crypto',
                 'fee' => $fee,
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($platform, 'precision'))),
                 'limits' => array(

@@ -955,6 +955,8 @@ export default class hitbtc extends Exchange {
             const transferEnabled = this.safeBool (entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue (entry, 'networks', []);
+            const isCrypto = this.safeBool (entry, 'crypto');
+            const type = isCrypto ? 'crypto' : 'fiat';
             const networks: Dict = {};
             let fee = undefined;
             let depositEnabled = undefined;
@@ -1015,6 +1017,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'type': type,
             };
         }
         return result;

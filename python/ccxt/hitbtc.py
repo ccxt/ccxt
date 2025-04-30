@@ -966,6 +966,8 @@ class hitbtc(Exchange, ImplicitAPI):
             transferEnabled = self.safe_bool(entry, 'transfer_enabled', False)
             active = payinEnabled and payoutEnabled and transferEnabled
             rawNetworks = self.safe_value(entry, 'networks', [])
+            isCrypto = self.safe_bool(entry, 'crypto')
+            type = 'crypto' if isCrypto else 'fiat'
             networks: dict = {}
             fee = None
             depositEnabled = None
@@ -1023,6 +1025,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'type': type,
             }
         return result
 
