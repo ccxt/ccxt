@@ -5086,7 +5086,7 @@ class mexc extends Exchange {
         return $this->safe_value($response, 0);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

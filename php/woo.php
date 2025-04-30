@@ -3338,7 +3338,7 @@ class woo extends Exchange {
         return $this->parse_position($response, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $response = $this->v3PrivateGetPositions ($params);
         //
