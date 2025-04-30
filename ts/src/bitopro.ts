@@ -391,7 +391,7 @@ export default class bitopro extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'info': currency,
-                'type': undefined,
+                'type': 'crypto',
                 'name': undefined,
                 'active': deposit && withdraw,
                 'deposit': deposit,
@@ -399,6 +399,7 @@ export default class bitopro extends Exchange {
                 'fee': fee,
                 'precision': undefined,
                 'limits': limits,
+                'networks': undefined,
             };
         }
         return result;
