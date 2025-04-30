@@ -1634,14 +1634,11 @@ public partial class bitget : Exchange
         if (isTrue(isTrue((!isEqual(subType, null))) && isTrue((isEqual(market, null)))))
         {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "SUSDT-FUTURES" : "SCOIN-FUTURES";
-            } else
-            {
-                defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT-FUTURES" : "COIN-FUTURES";
-            }
+            // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+            // if (sandboxMode) {
+            //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            // } else {
+            defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT-FUTURES" : "COIN-FUTURES";
         }
         object productType = this.safeString(parameters, "productType", defaultProductType);
         if (isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(market, null)))))
