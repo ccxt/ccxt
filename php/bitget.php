@@ -1693,12 +1693,12 @@ class bitget extends Exchange {
         $defaultProductType = null;
         if (($subType !== null) && ($market === null)) {
             // set default only if $subType is defined and $market is not defined, since there is also USDC productTypes which are also linear
-            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode) {
-                $defaultProductType = ($subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
-            } else {
-                $defaultProductType = ($subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
-            }
+            // $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            // if ($sandboxMode) {
+            //     $defaultProductType = ($subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            // } else {
+            $defaultProductType = ($subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
+            // }
         }
         $productType = $this->safe_string($params, 'productType', $defaultProductType);
         if (($productType === null) && ($market !== null)) {
