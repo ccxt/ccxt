@@ -391,7 +391,7 @@ export default class bitopro extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'info': currency,
-                'type': 'crypto',
+                'type': undefined,
                 'name': undefined,
                 'active': deposit && withdraw,
                 'deposit': deposit,
