@@ -3220,13 +3220,27 @@ class mexc(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # spot: createOrder
+        # spot
+        #    createOrder
         #
-        #     {
+        #    {
+        #        "symbol": "FARTCOINUSDT",
+        #        "orderId": "C02__342252993005723644225",
+        #        "orderListId": "-1",
+        #        "price": "1.1",
+        #        "origQty": "6.3",
+        #        "type": "IMMEDIATE_OR_CANCEL",
+        #        "side": "SELL",
+        #        "transactTime": "1745852205223"
+        #    }
+        #
+        #    unknown endpoint on spot
+        #
+        #    {
         #         "symbol": "BTCUSDT",
         #         "orderId": "123738410679123456",
         #         "orderListId": -1
-        #     }
+        #    }
         #
         # margin: createOrder
         #
@@ -3388,6 +3402,10 @@ class mexc(Exchange, ImplicitAPI):
             id = order
         else:
             id = self.safe_string_2(order, 'orderId', 'id')
+        timeInForce = self.parse_order_time_in_force(self.safe_string(order, 'timeInForce'))
+        typeRaw = self.safe_string(order, 'type')
+        if timeInForce is None:
+            timeInForce = self.get_tif_from_raw_order_type(typeRaw)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'transactTime'])
@@ -3409,8 +3427,8 @@ class mexc(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,  # TODO: self might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
             'status': self.parse_order_status(self.safe_string_2(order, 'status', 'state')),
             'symbol': market['symbol'],
-            'type': self.parse_order_type(self.safe_string(order, 'type')),
-            'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
+            'type': self.parse_order_type(typeRaw),
+            'timeInForce': timeInForce,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
@@ -3439,6 +3457,9 @@ class mexc(Exchange, ImplicitAPI):
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
+            # on spot, during submission below types are used only accepted order
+            'IMMEDIATE_OR_CANCEL': 'limit',
+            'FILL_OR_KILL': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3465,6 +3486,16 @@ class mexc(Exchange, ImplicitAPI):
             'IOC': 'IOC',
         }
         return self.safe_string(statuses, status, status)
+
+    def get_tif_from_raw_order_type(self, orderType: Str = None):
+        statuses: dict = {
+            'LIMIT': 'GTC',
+            'LIMIT_MAKER': 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'MARKET': 'IOC',
+        }
+        return self.safe_string(statuses, orderType, orderType)
 
     def fetch_account_helper(self, type, params):
         if type == 'spot':
