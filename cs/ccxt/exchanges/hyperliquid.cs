@@ -789,6 +789,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -802,6 +803,10 @@ public partial class hyperliquid : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
         object reqType = ((bool) isTrue((isSpot))) ? "spotClearinghouseState" : "clearinghouseState";
         object request = new Dictionary<string, object>() {
@@ -864,12 +869,19 @@ public partial class hyperliquid : Exchange
             return this.safeBalance(spotBalances);
         }
         object data = this.safeDict(response, "marginSummary", new Dictionary<string, object>() {});
+        object usdcBalance = new Dictionary<string, object>() {
+            { "total", this.safeNumber(data, "accountValue") },
+        };
+        if (isTrue(isTrue((!isEqual(marginMode, null))) && isTrue((isEqual(marginMode, "isolated")))))
+        {
+            ((IDictionary<string,object>)usdcBalance)["free"] = this.safeNumber(response, "withdrawable");
+        } else
+        {
+            ((IDictionary<string,object>)usdcBalance)["used"] = this.safeNumber(data, "totalMarginUsed");
+        }
         object result = new Dictionary<string, object>() {
             { "info", response },
-            { "USDC", new Dictionary<string, object>() {
-                { "total", this.safeNumber(data, "accountValue") },
-                { "used", this.safeNumber(data, "totalMarginUsed") },
-            } },
+            { "USDC", usdcBalance },
         };
         object timestamp = this.safeInteger(response, "time");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;

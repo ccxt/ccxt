@@ -1097,80 +1097,47 @@ class mexc(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            currencyActive = False
-            currencyFee = None
-            currencyWithdrawMin = None
-            currencyWithdrawMax = None
-            depositEnabled = False
-            withdrawEnabled = False
             networks: dict = {}
             chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string_2(chain, 'netWork', 'network')
                 network = self.network_id_to_code(networkId)
-                isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
-                isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
-                active = (isDepositEnabled and isWithdrawEnabled)
-                currencyActive = active or currencyActive
-                withdrawMin = self.safe_string(chain, 'withdrawMin')
-                withdrawMax = self.safe_string(chain, 'withdrawMax')
-                currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
-                currencyWithdrawMax = withdrawMax if (currencyWithdrawMax is None) else currencyWithdrawMax
-                fee = self.safe_number(chain, 'withdrawFee')
-                currencyFee = fee if (currencyFee is None) else currencyFee
-                if Precise.string_gt(currencyWithdrawMin, withdrawMin):
-                    currencyWithdrawMin = withdrawMin
-                if Precise.string_lt(currencyWithdrawMax, withdrawMax):
-                    currencyWithdrawMax = withdrawMax
-                if isDepositEnabled:
-                    depositEnabled = True
-                if isWithdrawEnabled:
-                    withdrawEnabled = True
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': fee,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'depositEnable', False),
+                    'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
+                    'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': withdrawMin,
-                            'max': withdrawMax,
+                            'min': self.safe_string(chain, 'withdrawMin'),
+                            'max': self.safe_string(chain, 'withdrawMax'),
                         },
                     },
                 }
-            networkKeys = list(networks.keys())
-            networkKeysLength = len(networkKeys)
-            if (networkKeysLength == 1) or ('NONE' in networks):
-                defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
-                if defaultNetwork is not None:
-                    currencyFee = defaultNetwork['fee']
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
                 'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': currencyFee,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': currencyWithdrawMin,
-                        'max': currencyWithdrawMax,
-                    },
                 },
+                'type': 'crypto',
                 'networks': networks,
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

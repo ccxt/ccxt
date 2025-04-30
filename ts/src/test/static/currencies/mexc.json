@@ -43,23 +43,16 @@
             ]
         },
         "id": "BTC",
+        "numericId": null,
         "code": "BTC",
+        "precision": null,
+        "type": "crypto",
         "name": "BTC-BSC",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00001,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "0.00007",
-                "max": "100"
-            }
-        },
+        "fee": 0.00000534,
+        "fees": {},
         "networks": {
             "BTC": {
                 "info": {
@@ -126,6 +119,20 @@
                         "max": "100"
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00007,
+                "max": 100
             }
         }
     },
@@ -371,23 +378,16 @@
             ]
         },
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
+        "precision": null,
+        "type": "crypto",
         "name": "USDT",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.5,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "1",
-                "max": "30000000"
-            }
-        },
+        "fee": 0,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": {
@@ -818,6 +818,20 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 30000000
+            }
         }
     },
     "LTC": {
@@ -846,23 +860,16 @@
             ]
         },
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
+        "precision": null,
+        "type": "crypto",
         "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": 0.0001,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "0.05",
-                "max": "5000"
-            }
-        },
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": {
@@ -896,6 +903,20 @@
                         "max": "5000"
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.05,
+                "max": 5000
             }
         }
     },
@@ -1141,23 +1162,16 @@
             ]
         },
         "id": "ETH",
+        "numericId": null,
         "code": "ETH",
+        "precision": null,
+        "type": "crypto",
         "name": "ETH",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00034,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "0.00002",
-                "max": "1000000"
-            }
-        },
+        "fee": 0.00001,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": {
@@ -1588,6 +1602,20 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00002,
+                "max": 1000000
+            }
         }
     },
     "ADA": {
@@ -1616,23 +1644,16 @@
             ]
         },
         "id": "ADA",
+        "numericId": null,
         "code": "ADA",
+        "precision": null,
+        "type": "crypto",
         "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": 1,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "7",
-                "max": "200000"
-            }
-        },
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
@@ -1667,6 +1688,20 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 7,
+                "max": 200000
+            }
         }
     },
     "XRP": {
@@ -1695,23 +1730,16 @@
             ]
         },
         "id": "XRP",
+        "numericId": null,
         "code": "XRP",
+        "precision": null,
+        "type": "crypto",
         "name": "XRP",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": 0.187,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "11",
-                "max": "1000000"
-            }
-        },
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
@@ -1745,6 +1773,20 @@
                         "max": "1000000"
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 11,
+                "max": 1000000
             }
         }
     },
@@ -1972,23 +2014,16 @@
             ]
         },
         "id": "USDC",
+        "numericId": null,
         "code": "USDC",
+        "precision": null,
+        "type": "crypto",
         "name": "usdc",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.5,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": "1",
-                "max": "10000000"
-            }
-        },
+        "fee": 0,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": {
@@ -2319,6 +2354,20 @@
                         "max": "500000"
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 10000000
             }
         }
     }

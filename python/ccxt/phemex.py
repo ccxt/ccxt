@@ -1166,7 +1166,8 @@ class phemex(Exchange, ImplicitAPI):
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
+                'networks': None,
+                'type': 'crypto',
             }
         return result
 

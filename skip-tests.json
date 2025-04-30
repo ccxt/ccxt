@@ -23,10 +23,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "type": "todo",
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "allowNull": ["withdraw", "deposit", "type"]
             },
             "watchOrderBook": {
                 "bid": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
@@ -40,9 +38,6 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
-            },
-            "fetchCurrencies": {
-                "type": "todo"
             }
         }
     },
@@ -75,10 +70,6 @@
     "binancecoinm": {
         "httpsProxy": "http://188.245.226.105:3128",
         "skipMethods": {
-            "loadMarkets": {
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
-            },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
             }
@@ -611,14 +602,8 @@
     "coinbase": {
         "skipMethods": {
             "loadMarkets": {
-                "taker":"is undefined",
-                "maker":"is undefined",
-                "currencyIdAndCode": "some curr not available",
-                "networks": "not available"
+                "currencyIdAndCode": "some curr not available"
             },
-            "fetchTicker": "private",
-            "fetchTickers": "private",
-            "fetchBidsAsks": "private",
             "fetchCurrencies": {
                 "precision": "not provided",
                 "networks": "not provided",
@@ -1635,7 +1620,8 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",

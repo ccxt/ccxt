@@ -46,7 +46,6 @@ const version = '4.4.77';
 
 //-----------------------------------------------------------------------------
 
-import ace from  './src/ace.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
@@ -231,7 +230,6 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
-    'ace':                    ace,
     'alpaca':                 alpaca,
     'apex':                   apex,
     'ascendex':               ascendex,
@@ -557,7 +555,6 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    ace,
     alpaca,
     apex,
     ascendex,
