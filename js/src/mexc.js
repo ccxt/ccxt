@@ -1091,87 +1091,48 @@ export default class mexc extends Exchange {
             const id = this.safeString(currency, 'coin');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            let currencyActive = false;
-            let currencyFee = undefined;
-            let currencyWithdrawMin = undefined;
-            let currencyWithdrawMax = undefined;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
             const networks = {};
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString2(chain, 'netWork', 'network');
                 const network = this.networkIdToCode(networkId);
-                const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
-                const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = active || currencyActive;
-                const withdrawMin = this.safeString(chain, 'withdrawMin');
-                const withdrawMax = this.safeString(chain, 'withdrawMax');
-                currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
-                currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
-                const fee = this.safeNumber(chain, 'withdrawFee');
-                currencyFee = (currencyFee === undefined) ? fee : currencyFee;
-                if (Precise.stringGt(currencyWithdrawMin, withdrawMin)) {
-                    currencyWithdrawMin = withdrawMin;
-                }
-                if (Precise.stringLt(currencyWithdrawMax, withdrawMax)) {
-                    currencyWithdrawMax = withdrawMax;
-                }
-                if (isDepositEnabled) {
-                    depositEnabled = true;
-                }
-                if (isWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': fee,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable', false),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': withdrawMin,
-                            'max': withdrawMax,
+                            'min': this.safeString(chain, 'withdrawMin'),
+                            'max': this.safeString(chain, 'withdrawMax'),
                         },
                     },
                 };
             }
-            const networkKeys = Object.keys(networks);
-            const networkKeysLength = networkKeys.length;
-            if ((networkKeysLength === 1) || ('NONE' in networks)) {
-                const defaultNetwork = this.safeValue2(networks, 'NONE', networkKeysLength - 1);
-                if (defaultNetwork !== undefined) {
-                    currencyFee = defaultNetwork['fee'];
-                }
-            }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
                 'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': currencyFee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': currencyWithdrawMin,
-                        'max': currencyWithdrawMax,
-                    },
                 },
+                'type': 'crypto',
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
