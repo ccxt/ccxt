@@ -961,6 +961,12 @@ class xt(Exchange, ImplicitAPI):
                         },
                     },
                 }
+            typeRaw = self.safe_string(entry, 'type')
+            type: Str = None
+            if typeRaw == 'FT':
+                type = 'crypto'
+            else:
+                type = 'other'
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -972,6 +978,7 @@ class xt(Exchange, ImplicitAPI):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
