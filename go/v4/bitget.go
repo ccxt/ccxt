@@ -1640,12 +1640,11 @@ func  (this *bitget) HandleProductTypeAndParams(optionalArgs ...interface{}) int
     var defaultProductType interface{} = nil
     if IsTrue(IsTrue((!IsEqual(subType, nil))) && IsTrue((IsEqual(market, nil)))) {
         // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-        var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
-        if IsTrue(sandboxMode) {
-            defaultProductType = Ternary(IsTrue((IsEqual(subType, "linear"))), "SUSDT-FUTURES", "SCOIN-FUTURES")
-        } else {
-            defaultProductType = Ternary(IsTrue((IsEqual(subType, "linear"))), "USDT-FUTURES", "COIN-FUTURES")
-        }
+        // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        // if (sandboxMode) {
+        //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+        // } else {
+        defaultProductType = Ternary(IsTrue((IsEqual(subType, "linear"))), "USDT-FUTURES", "COIN-FUTURES")
     }
     var productType interface{} = this.SafeString(params, "productType", defaultProductType)
     if IsTrue(IsTrue((IsEqual(productType, nil))) && IsTrue((!IsEqual(market, nil)))) {
