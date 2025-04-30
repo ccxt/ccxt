@@ -3278,13 +3278,27 @@ public partial class mexc : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // spot: createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol": "FARTCOINUSDT",
+        //        "orderId": "C02__342252993005723644225",
+        //        "orderListId": "-1",
+        //        "price": "1.1",
+        //        "origQty": "6.3",
+        //        "type": "IMMEDIATE_OR_CANCEL",
+        //        "side": "SELL",
+        //        "transactTime": "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
-        //     }
+        //    }
         //
         // margin: createOrder
         //
@@ -3451,6 +3465,12 @@ public partial class mexc : Exchange
         {
             id = this.safeString2(order, "orderId", "id");
         }
+        object timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
+        object typeRaw = this.safeString(order, "type");
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
+        }
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "transactTime"});
@@ -3474,8 +3494,8 @@ public partial class mexc : Exchange
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(this.safeString2(order, "status", "state")) },
             { "symbol", getValue(market, "symbol") },
-            { "type", this.parseOrderType(this.safeString(order, "type")) },
-            { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
+            { "type", this.parseOrderType(typeRaw) },
+            { "timeInForce", timeInForce },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
@@ -3507,6 +3527,8 @@ public partial class mexc : Exchange
             { "MARKET", "market" },
             { "LIMIT", "limit" },
             { "LIMIT_MAKER", "limit" },
+            { "IMMEDIATE_OR_CANCEL", "limit" },
+            { "FILL_OR_KILL", "limit" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -3534,6 +3556,18 @@ public partial class mexc : Exchange
             { "IOC", "IOC" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object getTifFromRawOrderType(object orderType = null)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "LIMIT", "GTC" },
+            { "LIMIT_MAKER", "POST_ONLY" },
+            { "IMMEDIATE_OR_CANCEL", "IOC" },
+            { "FILL_OR_KILL", "FOK" },
+            { "MARKET", "IOC" },
+        };
+        return this.safeString(statuses, orderType, orderType);
     }
 
     public async virtual Task<object> fetchAccountHelper(object type, object parameters)
