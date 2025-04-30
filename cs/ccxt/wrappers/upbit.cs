@@ -334,6 +334,58 @@ public partial class upbit
         return new Order(res);
     }
     /// <summary>
+    /// canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : to identify the previous order, either the id or this field is required in this method.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.newTimeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.newClientOrderId</term>
+    /// <description>
+    /// string : the order ID that the user can define.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.newOrdType</term>
+    /// <description>
+    /// string : this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
