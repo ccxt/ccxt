@@ -75,31 +75,6 @@
                             "currency": null
                         },
                         "fees": []
-                    },
-                    {
-                        "info": {
-                            "id": "498994",
-                            "timestamp": "2019-12-07T04:52:13.422Z",
-                            "direction": "BUY",
-                            "price": "7560.71",
-                            "quantity": "0.005"
-                        },
-                        "id": "498994",
-                        "timestamp": 1575694333422,
-                        "datetime": "2019-12-07T04:52:13.422Z",
-                        "symbol": "BTC/USDT",
-                        "order": null,
-                        "type": null,
-                        "side": "buy",
-                        "price": 7560.71,
-                        "amount": 0.005,
-                        "cost": 37.80355,
-                        "takerOrMaker": null,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": []
                     }
                 ]
             }
