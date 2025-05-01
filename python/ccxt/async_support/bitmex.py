@@ -503,6 +503,7 @@ class bitmex(Exchange, ImplicitAPI):
             maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
             minDepositString = self.safe_string(currency, 'minDepositAmount')
             minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -528,6 +529,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto' if isCrypto else 'other',
             }
         return result
 
