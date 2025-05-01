@@ -35,6 +35,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -74,8 +75,16 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 // for REST exchange test, we might need to wait for 200+ seconds for some exchanges
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
-const timeoutSeconds = wsFlag ? 120 : 5;
+const timeoutSeconds = wsFlag ? 120 : 26;
 
+if (debugKeys['--show-timer']) {
+    const startTime = Date.now ();
+    setInterval (() => {
+        const now = Date.now ();
+        const elapsed = Math.floor((now - startTime) / 1000);
+        log.bright.yellow(`[RUNTESTS_ELAPSED: ${elapsed} s]`);
+    }, 10000);
+}
 
 //  --------------------------------------------------------------------------- //
 
