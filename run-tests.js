@@ -77,15 +77,15 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
 const timeoutSeconds = wsFlag ? 120 : 250;
 
-if (debugKeys['--show-timer']) {
+const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
+
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
     const startTime = Date.now ();
     setInterval (() => {
-        const now = Date.now ();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        log.bright.yellow(`[RUNTESTS_ELAPSED: ${elapsed} s]`);
+        log.bright.yellow(`\t\t\t\t\t[RUNTESTS ${wsFlag} ELAPSED: ${secondsElapsedFrom(startTime)} s]`);
     }, 10000);
 }
-
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
@@ -184,6 +184,7 @@ const exec = (bin, ...args) => {
         }
     }
 
+    const startTime = Date.now ();
     return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
@@ -197,11 +198,17 @@ const exec = (bin, ...args) => {
         })
 
         psSpawn.on ('exit', code => {
+            if (SHOW_TIMER) {
+                output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+            }
             const result = generateResultFromOutput (output, stderr, code)
             return resolver (result) ;
         })
 
     })).catch (e => {
+        if (SHOW_TIMER) {
+            output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+        }
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
