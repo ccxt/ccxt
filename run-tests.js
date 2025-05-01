@@ -83,8 +83,8 @@ const SHOW_TIMER = debugKeys['--show-timer'];
 if (SHOW_TIMER) {
     const startTime = Date.now ();
     setInterval (() => {
-        log.bright.yellow(`\t\t\t\t\t[RUNTESTS ${wsFlag} ELAPSED: ${secondsElapsedFrom(startTime)} s]`);
-    }, 10000);
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ${wsFlag} ELAPSED: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
 }
 //  --------------------------------------------------------------------------- //
 
