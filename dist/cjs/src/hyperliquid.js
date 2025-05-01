@@ -368,6 +368,7 @@ class hyperliquid extends hyperliquid$1 {
                 'withdraw': undefined,
                 'networks': undefined,
                 'fee': undefined,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
