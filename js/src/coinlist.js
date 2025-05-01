@@ -477,6 +477,7 @@ export default class coinlist extends Exchange {
                     'withdraw': { 'min': minWithdrawal, 'max': undefined },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;
