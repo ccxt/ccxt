@@ -548,7 +548,38 @@ export default class whitebit extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.v4PublicGetAssets (params);
         //
-        //  USD: {
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
         //         name: "United States Dollar",
         //         unified_cryptoasset_id: "6955",
         //         can_withdraw: true,
@@ -578,7 +609,8 @@ export default class whitebit extends Exchange {
         //         },
         //         currency_precision: "2",
         //         is_memo: false,
-        //       }
+        //   }
+        // }
         //
         const ids = Object.keys (response);
         const result: Dict = {};
