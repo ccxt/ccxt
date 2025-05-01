@@ -1,20 +1,7 @@
 {
-    "ace": {
-        "skip": "temporary unavailable",
-        "until": "2025-05-20",
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "active":"is undefined"
-            },
-            "orderBook": {
-                "timestamp": "not provided"
-            }
-        }
-    },
     "alpaca": {
-        "skip": "private endpoints",
-        "skipWs": "private endpoints"
+        "skip": "private endpoints, todo",
+        "skipWs": "private endpoints, todo"
     },
     "ascendex": {
         "skipMethods": {
