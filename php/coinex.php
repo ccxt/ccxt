@@ -742,6 +742,7 @@ class coinex extends Exchange {
                     ),
                 ),
                 'networks' => array(),
+                'type' => 'crypto',
                 'info' => $coin,
             );
             for ($j = 0; $j < count($chains); $j++) {
