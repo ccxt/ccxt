@@ -567,6 +567,7 @@ class delta(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             }
         return result
 

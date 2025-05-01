@@ -864,12 +864,14 @@ class kraken(Exchange, ImplicitAPI):
             precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             # assumes all currencies are active except those listed above
             active = self.safe_string(currency, 'status') == 'enabled'
+            isFiat = code.find('.HOLD') >= 0
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': self.safe_string(currency, 'altname'),
                 'active': active,
+                'type': 'fiat' if isFiat else 'crypto',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,

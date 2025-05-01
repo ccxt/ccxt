@@ -655,6 +655,7 @@ class deribit(Exchange, ImplicitAPI):
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'fee_precision'))),
                 'limits': {
