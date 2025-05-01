@@ -757,6 +757,7 @@ class coinex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
                 'info': coin,
             }
             for j in range(0, len(chains)):

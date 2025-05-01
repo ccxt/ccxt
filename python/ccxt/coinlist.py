@@ -489,6 +489,7 @@ class coinlist(Exchange, ImplicitAPI):
                     'withdraw': {'min': minWithdrawal, 'max': None},
                 },
                 'networks': {},
+                'type': 'crypto',
             }
         return result
 

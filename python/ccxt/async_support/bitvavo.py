@@ -613,6 +613,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
