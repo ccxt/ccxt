@@ -1,16 +1,16 @@
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import execute from 'rollup-plugin-execute';
+import commonjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
+import execute from 'rollup-plugin-execute'
 import nodeResolve from '@rollup/plugin-node-resolve'
 
 export default [
   {
-    preserveModules: true,
     input: "./js/ccxt.js",
     output: [
       {
         dir: "./dist/cjs/",
         format: "cjs",
+        preserveModules: true,
       }
     ],
     plugins: [
