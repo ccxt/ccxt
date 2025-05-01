@@ -4787,8 +4787,9 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 * Attached trigger orders are conditional on the primary order being executed.
 * Note, before creating order, ensure an exchange supports this specific functionality, by checking the below values are not null, for example:
 ```
-exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
-exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
+value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+# print(value)
 ```
 
 <!-- tabs:start -->
