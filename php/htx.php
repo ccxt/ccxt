@@ -3404,6 +3404,8 @@ class htx extends Exchange {
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
             $instStatus = $this->safe_string($entry, 'instStatus');
+            $assetType = $this->safe_string($entry, 'assetType');
+            $type = $assetType === '1' ? 'crypto' : 'fiat';
             $currencyActive = $instStatus === 'normal';
             $minPrecision = null;
             $minDeposit = null;
@@ -3463,6 +3465,7 @@ class htx extends Exchange {
                 'withdraw' => $withdraw,
                 'fee' => null,
                 'name' => null,
+                'type' => $type,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
