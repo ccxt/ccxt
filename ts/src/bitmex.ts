@@ -498,6 +498,7 @@ export default class bitmex extends Exchange {
             const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
             const minDepositString = this.safeString (currency, 'minDepositAmount');
             const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
+            const isCrypto = this.safeString (currency, 'currencyType') === 'Crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -523,6 +524,7 @@ export default class bitmex extends Exchange {
                     },
                 },
                 'networks': networks,
+                'type': isCrypto ? 'crypto' : 'other',
             };
         }
         return result;
