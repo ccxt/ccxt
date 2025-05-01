@@ -399,6 +399,7 @@ export default class bitopro extends Exchange {
                 'fee': fee,
                 'precision': undefined,
                 'limits': limits,
+                'networks': undefined,
             };
         }
         return result;
