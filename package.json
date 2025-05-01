@@ -114,7 +114,7 @@
     "postinstall": "node postinstall.js",
     "validate-types": "tsx build/validate-types.ts",
     "runtests": "node run-tests",
-    "live-tests": "node run-tests --useProxy",
+    "live-tests": "node run-tests --useProxy --show-timer",
     "live-tests-rest": "npm run live-tests",
     "live-tests-ws": "npm run live-tests -- --ws",
     "live-tests-rest-ts": "npm run live-tests -- --ts",
