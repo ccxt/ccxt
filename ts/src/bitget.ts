@@ -1697,13 +1697,7 @@ export default class bitget extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
         let defaultProductType = undefined;
         if ((subType !== undefined) && (market === undefined)) {
-            // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-            // if (sandboxMode) {
-            //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
-            // } else {
             defaultProductType = (subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
-            // }
         }
         let productType = this.safeString (params, 'productType', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
