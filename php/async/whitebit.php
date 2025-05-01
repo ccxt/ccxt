@@ -587,6 +587,7 @@ class whitebit extends Exchange {
                     'deposit' => $canDeposit,
                     'withdraw' => $canWithdraw,
                     'fee' => null,
+                    'networks' => null, // todo
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(

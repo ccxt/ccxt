@@ -665,10 +665,12 @@ class coinbase extends coinbase$1 {
             const event = events[i];
             const updates = this.safeValue(event, 'updates', []);
             const marketId = this.safeString(event, 'product_id');
-            const messageHash = 'level2::' + marketId;
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
+            const market = this.safeMarket(marketId);
+            const messageHash = 'level2::' + market['id'];
+            const symbol = market['symbol'];
             const subscription = this.safeValue(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
-            const symbol = this.safeSymbol(marketId);
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
@@ -678,9 +680,6 @@ class coinbase extends coinbase$1 {
                 orderbook['datetime'] = datetime;
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
-                if (messageHash.endsWith('USD')) {
-                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
             else if (type === 'update') {
                 const orderbook = this.orderbooks[symbol];
@@ -689,9 +688,6 @@ class coinbase extends coinbase$1 {
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
-                if (messageHash.endsWith('USD')) {
-                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
         }
     }

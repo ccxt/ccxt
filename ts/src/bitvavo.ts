@@ -608,6 +608,7 @@ export default class bitvavo extends Exchange {
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,

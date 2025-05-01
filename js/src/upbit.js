@@ -41,6 +41,7 @@ export default class upbit extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -1300,6 +1301,125 @@ export default class upbit extends Exchange {
     }
     /**
      * @method
+     * @name upbit#editOrder
+     * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+     * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+     * @param {string} id the uuid of the previous order you want to edit.
+     * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
+     * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+     * @param {string} side the side of the new order. it must be the same as the side of the previous order.
+     * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+     * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint.
+     * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
+     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newClientOrderId] the order ID that the user can define.
+     * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        const prevClientOrderId = this.safeString(params, 'clientOrderId');
+        params = this.omit(params, 'clientOrderId');
+        if (id !== undefined) {
+            request['prev_order_uuid'] = id;
+        }
+        else if (prevClientOrderId !== undefined) {
+            request['prev_order_identifier'] = prevClientOrderId;
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' editOrder() is required id or clientOrderId.');
+        }
+        if (type === 'limit') {
+            if (price === undefined || amount === undefined) {
+                throw new ArgumentsRequired(this.id + ' editOrder() is required price and amount to create limit type order.');
+            }
+            request['new_ord_type'] = 'limit';
+            request['new_price'] = this.priceToPrecision(symbol, price);
+            request['new_volume'] = this.amountToPrecision(symbol, amount);
+        }
+        else if (type === 'market') {
+            if (side === 'buy') {
+                request['new_ord_type'] = 'price';
+                const orderPrice = this.calcOrderPrice(symbol, amount, price, params);
+                request['new_price'] = orderPrice;
+            }
+            else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired(this.id + ' editOrder() is required amount to create market sell type order.');
+                }
+                request['new_ord_type'] = 'market';
+                request['new_volume'] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        else {
+            throw new InvalidOrder(this.id + ' editOrder() supports only limit or market types in the type argument.');
+        }
+        const customType = this.safeString2(params, 'newOrdType', 'new_ord_type');
+        if (customType === 'best') {
+            params = this.omit(params, ['newOrdType', 'new_ord_type']);
+            request['new_ord_type'] = 'best';
+            if (side === 'buy') {
+                const orderPrice = this.calcOrderPrice(symbol, amount, price, params);
+                request['new_price'] = orderPrice;
+            }
+            else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired(this.id + ' editOrder() is required amount to create best sell order.');
+                }
+                request['new_volume'] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        const clientOrderId = this.safeString(params, 'newClientOrderId');
+        if (clientOrderId !== undefined) {
+            request['new_identifier'] = clientOrderId;
+        }
+        if (request['new_ord_type'] !== 'market' && request['new_ord_type'] !== 'price') {
+            const timeInForce = this.safeStringLower2(params, 'newTimeInForce', 'new_time_in_force');
+            params = this.omit(params, ['newTimeInForce', 'new_time_in_force']);
+            if (timeInForce !== undefined) {
+                request['new_time_in_force'] = timeInForce;
+            }
+            else {
+                if (request['new_ord_type'] === 'best') {
+                    throw new ArgumentsRequired(this.id + ' the best type order is required timeInForce.');
+                }
+            }
+        }
+        params = this.omit(params, ['newClientOrderId', 'cost']);
+        // console.log ('check the each request params: ', request);
+        const response = await this.privatePostOrdersCancelAndNew(this.extend(request, params));
+        //   {
+        //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+        //     side: 'bid',                                         //previous order data
+        //     ord_type: 'limit',                                   //previous order data
+        //     price: '100000000',                                  //previous order data
+        //     state: 'wait',                                       //previous order data
+        //     market: 'KRW-BTC',                                   //previous order data
+        //     created_at: '2025-04-01T15:30:47+09:00',             //previous order data
+        //     volume: '0.00008',                                   //previous order data
+        //     remaining_volume: '0.00008',                         //previous order data
+        //     reserved_fee: '4',                                   //previous order data
+        //     remaining_fee: '4',                                  //previous order data
+        //     paid_fee: '0',                                       //previous order data
+        //     locked: '8004',                                      //previous order data
+        //     executed_volume: '0',                                //previous order data
+        //     trades_count: '0',                                   //previous order data
+        //     identifier: '21',                                    //previous order data
+        //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+        //     new_order_identifier: '22'                               // new order data
+        //   }
+        const result = {};
+        result['uuid'] = this.safeString(response, 'new_order_uuid');
+        result['identifier'] = this.safeString(response, 'new_order_identifier');
+        result['side'] = this.safeString(response, 'side');
+        result['market'] = this.safeString(response, 'market');
+        return this.parseOrder(result);
+    }
+    /**
+     * @method
      * @name upbit#fetchDeposits
      * @see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
      * @description fetch all deposits made to an account
@@ -1618,6 +1738,26 @@ export default class upbit extends Exchange {
         //         "time_in_force": "ioc"
         //     }
         //
+        //     {
+        //        uuid: '63b38774-27db-4439-ac20-1be16a24d18e',
+        //        side: 'bid',
+        //        ord_type: 'limit',
+        //        price: '100000000',
+        //        state: 'wait',
+        //        market: 'KRW-BTC',
+        //        created_at: '2025-04-01T15:30:47+09:00',
+        //        volume: '0.00008',
+        //        remaining_volume: '0.00008',
+        //        reserved_fee: '4',
+        //        remaining_fee: '4',
+        //        paid_fee: '0',
+        //        locked: '8004',
+        //        executed_volume: '0',
+        //        trades_count: '0',
+        //        identifier: '21',
+        //        new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //        new_order_identifier: '22'
+        //      }
         const id = this.safeString(order, 'uuid');
         let side = this.safeString(order, 'side');
         if (side === 'bid') {

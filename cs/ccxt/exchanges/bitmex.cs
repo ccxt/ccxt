@@ -480,6 +480,7 @@ public partial class bitmex : Exchange
             object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
             object minDepositString = this.safeString(currency, "minDepositAmount");
             object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+            object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
@@ -505,6 +506,7 @@ public partial class bitmex : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
             };
         }
         return result;

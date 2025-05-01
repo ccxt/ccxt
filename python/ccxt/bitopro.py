@@ -404,6 +404,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'fee': fee,
                 'precision': None,
                 'limits': limits,
+                'networks': None,
             }
         return result
 

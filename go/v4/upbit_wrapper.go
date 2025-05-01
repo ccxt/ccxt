@@ -450,6 +450,53 @@ func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 }
 /**
  * @method
+ * @name upbit#editOrder
+ * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+ * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+ * @param {string} id the uuid of the previous order you want to edit.
+ * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
+ * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+ * @param {string} side the side of the new order. it must be the same as the side of the previous order.
+ * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+ * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+ * @param {object} [params] extra parameters specific to the exchange API endpoint.
+ * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
+ * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+ * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.newClientOrderId] the order ID that the user can define.
+ * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Upbit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+    opts := EditOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var price interface{} = nil
+    if opts.Price != nil {
+        price = *opts.Price
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
+    if IsError(res) {
+        return Order{}, CreateReturnError(res)
+    }
+    return NewOrder(res), nil
+}
+/**
+ * @method
  * @name upbit#fetchDeposits
  * @see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
  * @description fetch all deposits made to an account

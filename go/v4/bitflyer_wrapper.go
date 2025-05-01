@@ -461,7 +461,7 @@ func (this *Bitflyer) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
-func (this *Bitflyer) FetchPositions(options ...FetchPositionsOptions) (map[string]interface{}, error) {
+func (this *Bitflyer) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
     opts := FetchPositionsOptionsStruct{}
 
@@ -480,9 +480,9 @@ func (this *Bitflyer) FetchPositions(options ...FetchPositionsOptions) (map[stri
     }
     res := <- this.Core.FetchPositions(symbols, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return nil, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewPositionArray(res), nil
 }
 /**
  * @method

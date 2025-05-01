@@ -376,6 +376,7 @@ class hyperliquid extends Exchange {
                     'withdraw' => null,
                     'networks' => null,
                     'fee' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -2640,7 +2641,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

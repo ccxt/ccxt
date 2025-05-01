@@ -597,6 +597,7 @@ public partial class bitvavo : Exchange
                 { "networks", networks },
                 { "fee", withdrawFee },
                 { "precision", precision },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },

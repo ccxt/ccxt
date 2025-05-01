@@ -465,6 +465,7 @@ public partial class whitebit : Exchange
                 { "deposit", canDeposit },
                 { "withdraw", canWithdraw },
                 { "fee", null },
+                { "networks", null },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {

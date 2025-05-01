@@ -381,6 +381,7 @@ class coinbase extends Exchange {
                 'fetchBalance' => 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
+                'aliasCbMarketIds' => array(),
             ),
             'features' => array(
                 'default' => array(
@@ -1553,8 +1554,35 @@ class coinbase extends Exchange {
             for ($i = 0; $i < count($perpetualData); $i++) {
                 $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
             }
-            return $result;
+            // remove aliases
+            $this->options['aliasCbMarketIds'] = array();
+            $newMarkets = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $market = $result[$i];
+                $info = $this->safe_value($market, 'info', array());
+                $realMarketIds = $this->safe_list($info, 'alias_to', array());
+                $length = count($realMarketIds);
+                if ($length > 0) {
+                    $this->options['aliasCbMarketIds'][$market['id']] = $realMarketIds[0];
+                    $this->options['aliasCbMarketIds'][$market['symbol']] = $realMarketIds[0];
+                } else {
+                    $newMarkets[] = $market;
+                }
+            }
+            return $newMarkets;
         }) ();
+    }
+
+    public function market(string $symbol): array {
+        $finalSymbol = $this->safe_string($this->options['aliasCbMarketIds'], $symbol, $symbol);
+        return parent::market($finalSymbol);
+    }
+
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        if (is_array($this->options['aliasCbMarketIds']) && array_key_exists($marketId, $this->options['aliasCbMarketIds'])) {
+            return $this->market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function parse_spot_market($market, $feeTier): array {
@@ -1972,6 +2000,7 @@ class coinbase extends Exchange {
                     'withdraw' => null,
                     'fee' => null,
                     'precision' => null,
+                    'networks' => array(),
                     'limits' => array(
                         'amount' => array(
                             'min' => $this->safe_number($currency, 'min_size'),
@@ -2314,10 +2343,11 @@ class coinbase extends Exchange {
             $askVolume = $this->safe_number($asks[0], 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_number($ticker, 'price');
         $datetime = $this->safe_string($ticker, 'time');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'bid' => $bid,
@@ -4739,7 +4769,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

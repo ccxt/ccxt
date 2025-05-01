@@ -1572,6 +1572,7 @@
             {
                 "description": "fetchDeposits",
                 "method": "fetchDeposits",
+                "disabledGO": true,
                 "input": [],
                 "httpResponse": {
                     "result": {
