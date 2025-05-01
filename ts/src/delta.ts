@@ -570,6 +570,7 @@ export default class delta extends Exchange {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;
