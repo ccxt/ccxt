@@ -75,7 +75,7 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 // for REST exchange test, we might need to wait for 200+ seconds for some exchanges
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
-const timeoutSeconds = wsFlag ? 120 : 26;
+const timeoutSeconds = wsFlag ? 120 : 250;
 
 if (debugKeys['--show-timer']) {
     const startTime = Date.now ();
