@@ -1213,6 +1213,7 @@ class poloniex extends Exchange {
                     'withdraw' => $withdrawEnabled,
                     'fee' => $this->parse_number($feeString),
                     'precision' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'amount' => array(
                             'min' => null,

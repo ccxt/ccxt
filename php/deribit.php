@@ -647,6 +647,7 @@ class deribit extends Exchange {
                 'active' => null,
                 'deposit' => null,
                 'withdraw' => null,
+                'type' => 'crypto',
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
                 'limits' => array(

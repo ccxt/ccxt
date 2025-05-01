@@ -367,6 +367,7 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
+                'type' => 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

@@ -573,6 +573,7 @@ class delta extends Exchange {
                         ),
                     ),
                     'networks' => array(),
+                    'type' => 'crypto',
                 );
             }
             return $result;
