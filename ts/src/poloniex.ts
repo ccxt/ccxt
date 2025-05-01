@@ -1218,6 +1218,7 @@ export default class poloniex extends Exchange {
                     'withdraw': withdrawEnabled,
                     'fee': this.parseNumber (feeString),
                     'precision': undefined,
+                    'type': 'crypto',
                     'limits': {
                         'amount': {
                             'min': undefined,
