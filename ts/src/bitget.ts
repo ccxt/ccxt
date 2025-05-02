@@ -2092,7 +2092,7 @@ export default class bitget extends Exchange {
                     'withdraw': this.safeString (chain, 'withdrawable') === 'true',
                     'deposit': this.safeString (chain, 'rechargeable') === 'true',
                     'fee': this.safeNumber (chain, 'withdrawFee'),
-                    'precision': this.safeNumber (chain, 'withdrawMinScale'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
                 };
             }
             result[code] = this.safeCurrencyStructure ({
