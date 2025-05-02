@@ -576,7 +576,7 @@ export default class ascendex extends Exchange {
             } else if (status === 'Normal') {
                 depositEnabled = true;
                 withdrawEnabled = true;
-            } else if (status === 'NoTransaction') {
+            } else if (status === 'NoTransaction' || statusCode === 'NoTransaction') {
                 depositEnabled = true;
                 withdrawEnabled = false;
             } else if (status === 'NoDeposit') {
