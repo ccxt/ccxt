@@ -833,7 +833,8 @@ class bitrue(Exchange, ImplicitAPI):
                 'withdraw': withdraw,
                 'networks': networks,
                 'fee': self.parse_number(minWithdrawFeeString),
-                # 'fees': fees,
+                'fees': None,
+                'type': 'crypto',
                 'limits': {
                     'withdraw': {
                         'min': self.parse_number(minWithdrawString),

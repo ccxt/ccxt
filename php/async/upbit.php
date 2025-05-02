@@ -40,6 +40,7 @@ class upbit extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -1333,6 +1334,121 @@ class upbit extends Exchange {
         }) ();
     }
 
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             *
+             * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+             *
+             * canceled existing order and create new order. It's only generated same $side and $symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+             * @param {string} $id the uuid of the previous order you want to edit.
+             * @param {string} $symbol the $symbol of the new order. it must be the same $symbol of the previous order.
+             * @param {string} $type the $type of the new order. only limit or market is accepted. if $params->newOrdType is set to best, a best-$type order will be created regardless of the value of $type->
+             * @param {string} $side the $side of the new order. it must be the same $side of the previous order.
+             * @param {number} $amount the $amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in $params->
+             * @param {number} $price the $price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in $params->
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint.
+             * @param {string} [$params->clientOrderId] to identify the previous order, either the $id or this field is property_exists($this, required) method.
+             * @param {float} [$params->cost] for market buy and best buy orders, the quote quantity that can be used alternative for the $amount->
+             * @param {string} [$params->newTimeInForce] 'IOC' or 'FOK'. only for limit or best $type orders. this field is required when the order $type is 'best'.
+             * @param {string} [$params->newClientOrderId] the order ID that the user can define.
+             * @param {string} [$params->newOrdType] this field only accepts limit, $price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $prevClientOrderId = $this->safe_string($params, 'clientOrderId');
+            $params = $this->omit($params, 'clientOrderId');
+            if ($id !== null) {
+                $request['prev_order_uuid'] = $id;
+            } elseif ($prevClientOrderId !== null) {
+                $request['prev_order_identifier'] = $prevClientOrderId;
+            } else {
+                throw new ArgumentsRequired($this->id . ' editOrder() is required $id or $clientOrderId->');
+            }
+            if ($type === 'limit') {
+                if ($price === null || $amount === null) {
+                    throw new ArgumentsRequired($this->id . ' editOrder() is required $price and $amount to create limit $type order.');
+                }
+                $request['new_ord_type'] = 'limit';
+                $request['new_price'] = $this->price_to_precision($symbol, $price);
+                $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
+            } elseif ($type === 'market') {
+                if ($side === 'buy') {
+                    $request['new_ord_type'] = 'price';
+                    $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                    $request['new_price'] = $orderPrice;
+                } else {
+                    if ($amount === null) {
+                        throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create market sell $type order.');
+                    }
+                    $request['new_ord_type'] = 'market';
+                    $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
+                }
+            } else {
+                throw new InvalidOrder($this->id . ' editOrder() supports only limit or market types in the $type argument.');
+            }
+            $customType = $this->safe_string_2($params, 'newOrdType', 'new_ord_type');
+            if ($customType === 'best') {
+                $params = $this->omit($params, array( 'newOrdType', 'new_ord_type' ));
+                $request['new_ord_type'] = 'best';
+                if ($side === 'buy') {
+                    $orderPrice = $this->calc_order_price($symbol, $amount, $price, $params);
+                    $request['new_price'] = $orderPrice;
+                } else {
+                    if ($amount === null) {
+                        throw new ArgumentsRequired($this->id . ' editOrder() is required $amount to create best sell order.');
+                    }
+                    $request['new_volume'] = $this->amount_to_precision($symbol, $amount);
+                }
+            }
+            $clientOrderId = $this->safe_string($params, 'newClientOrderId');
+            if ($clientOrderId !== null) {
+                $request['new_identifier'] = $clientOrderId;
+            }
+            if ($request['new_ord_type'] !== 'market' && $request['new_ord_type'] !== 'price') {
+                $timeInForce = $this->safe_string_lower_2($params, 'newTimeInForce', 'new_time_in_force');
+                $params = $this->omit($params, array( 'newTimeInForce', 'new_time_in_force' ));
+                if ($timeInForce !== null) {
+                    $request['new_time_in_force'] = $timeInForce;
+                } else {
+                    if ($request['new_ord_type'] === 'best') {
+                        throw new ArgumentsRequired($this->id . ' the best $type order is required $timeInForce->');
+                    }
+                }
+            }
+            $params = $this->omit($params, array( 'newClientOrderId', 'cost' ));
+            // var_dump ('check the each $request $params => ', $request);
+            $response = Async\await($this->privatePostOrdersCancelAndNew ($this->extend($request, $params)));
+            //   {
+            //     uuid => '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+            //     $side => 'bid',                                         //previous order data
+            //     ord_type => 'limit',                                   //previous order data
+            //     $price => '100000000',                                  //previous order data
+            //     state => 'wait',                                       //previous order data
+            //     market => 'KRW-BTC',                                   //previous order data
+            //     created_at => '2025-04-01T15:30:47+09:00',             //previous order data
+            //     volume => '0.00008',                                   //previous order data
+            //     remaining_volume => '0.00008',                         //previous order data
+            //     reserved_fee => '4',                                   //previous order data
+            //     remaining_fee => '4',                                  //previous order data
+            //     paid_fee => '0',                                       //previous order data
+            //     locked => '8004',                                      //previous order data
+            //     executed_volume => '0',                                //previous order data
+            //     trades_count => '0',                                   //previous order data
+            //     identifier => '21',                                    //previous order data
+            //     new_order_uuid => 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+            //     new_order_identifier => '22'                               // new order data
+            //   }
+            $result = array();
+            $result['uuid'] = $this->safe_string($response, 'new_order_uuid');
+            $result['identifier'] = $this->safe_string($response, 'new_order_identifier');
+            $result['side'] = $this->safe_string($response, 'side');
+            $result['market'] = $this->safe_string($response, 'market');
+            return $this->parse_order($result);
+        }) ();
+    }
+
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -1668,6 +1784,26 @@ class upbit extends Exchange {
         //         "time_in_force" => "ioc"
         //     }
         //
+        //     {
+        //        uuid => '63b38774-27db-4439-ac20-1be16a24d18e',
+        //        $side => 'bid',
+        //        ord_type => 'limit',
+        //        $price => '100000000',
+        //        state => 'wait',
+        //        $market => 'KRW-BTC',
+        //        created_at => '2025-04-01T15:30:47+09:00',
+        //        volume => '0.00008',
+        //        remaining_volume => '0.00008',
+        //        reserved_fee => '4',
+        //        remaining_fee => '4',
+        //        paid_fee => '0',
+        //        locked => '8004',
+        //        executed_volume => '0',
+        //        trades_count => '0',
+        //        $identifier => '21',
+        //        new_order_uuid => 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //        new_order_identifier => '22'
+        //      }
         $id = $this->safe_string($order, 'uuid');
         $side = $this->safe_string($order, 'side');
         if ($side === 'bid') {

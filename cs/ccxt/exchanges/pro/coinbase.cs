@@ -736,10 +736,12 @@ public partial class coinbase : ccxt.coinbase
             object eventVar = getValue(events, i);
             object updates = this.safeValue(eventVar, "updates", new List<object>() {});
             object marketId = this.safeString(eventVar, "product_id");
-            object messageHash = add("level2::", marketId);
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
+            object market = this.safeMarket(marketId);
+            object messageHash = add("level2::", getValue(market, "id"));
+            object symbol = getValue(market, "symbol");
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             object limit = this.safeInteger(subscription, "limit");
-            object symbol = this.safeSymbol(marketId);
             object type = this.safeString(eventVar, "type");
             if (isTrue(isEqual(type, "snapshot")))
             {
@@ -750,10 +752,6 @@ public partial class coinbase : ccxt.coinbase
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
                 ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             } else if (isTrue(isEqual(type, "update")))
             {
                 object orderbook = getValue(this.orderbooks, symbol);
@@ -762,10 +760,6 @@ public partial class coinbase : ccxt.coinbase
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
         }
     }

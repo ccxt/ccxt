@@ -486,6 +486,7 @@ class coinlist extends Exchange {
                         'withdraw' => array( 'min' => $minWithdrawal, 'max' => null ),
                     ),
                     'networks' => array(),
+                    'type' => 'crypto',
                 );
             }
             return $result;

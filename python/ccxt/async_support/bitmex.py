@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -503,6 +503,7 @@ class bitmex(Exchange, ImplicitAPI):
             maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
             minDepositString = self.safe_string(currency, 'minDepositAmount')
             minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -528,6 +529,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto' if isCrypto else 'other',
             }
         return result
 
@@ -2182,7 +2184,7 @@ class bitmex(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

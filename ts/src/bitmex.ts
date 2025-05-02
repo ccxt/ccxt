@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -498,6 +498,7 @@ export default class bitmex extends Exchange {
             const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
             const minDepositString = this.safeString (currency, 'minDepositAmount');
             const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
+            const isCrypto = this.safeString (currency, 'currencyType') === 'Crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -523,6 +524,7 @@ export default class bitmex extends Exchange {
                     },
                 },
                 'networks': networks,
+                'type': isCrypto ? 'crypto' : 'other',
             };
         }
         return result;
@@ -2310,7 +2312,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.privateGetPosition (params);
         //

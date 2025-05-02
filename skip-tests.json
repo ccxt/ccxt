@@ -1,20 +1,7 @@
 {
-    "ace": {
-        "skip": "temporary unavailable",
-        "until": "2025-05-20",
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "active":"is undefined"
-            },
-            "orderBook": {
-                "timestamp": "not provided"
-            }
-        }
-    },
     "alpaca": {
-        "skip": "private endpoints",
-        "skipWs": "private endpoints"
+        "skip": "private endpoints, todo",
+        "skipWs": "private endpoints, todo"
     },
     "ascendex": {
         "skipMethods": {
@@ -70,10 +57,6 @@
     "binancecoinm": {
         "httpsProxy": "http://188.245.226.105:3128",
         "skipMethods": {
-            "loadMarkets": {
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
-            },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
             }
@@ -1624,7 +1607,8 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",

@@ -599,6 +599,7 @@ class bitvavo extends bitvavo$1 {
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,

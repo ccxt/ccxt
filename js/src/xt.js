@@ -953,6 +953,14 @@ export default class xt extends Exchange {
                     },
                 };
             }
+            const typeRaw = this.safeString(entry, 'type');
+            let type = undefined;
+            if (typeRaw === 'FT') {
+                type = 'crypto';
+            }
+            else {
+                type = 'other';
+            }
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -964,6 +972,7 @@ export default class xt extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,

@@ -1213,6 +1213,7 @@ class poloniex extends Exchange {
                     'withdraw' => $withdrawEnabled,
                     'fee' => $this->parse_number($feeString),
                     'precision' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -3428,7 +3429,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

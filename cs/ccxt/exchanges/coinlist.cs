@@ -456,6 +456,7 @@ public partial class coinlist : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
             };
         }
         return result;

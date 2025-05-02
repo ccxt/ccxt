@@ -542,18 +542,69 @@ class whitebit extends Exchange {
          */
         $response = $this->v4PublicGetAssets ($params);
         //
-        //      "BTC" => array(
-        //          "name" => "Bitcoin",
-        //          "unified_cryptoasset_id" => 1,
-        //          "can_withdraw" => true,
-        //          "can_deposit" => true,
-        //          "min_withdraw" => "0.001",
-        //          "max_withdraw" => "2",
-        //          "maker_fee" => "0.1",
-        //          "taker_fee" => "0.1",
-        //          "min_deposit" => "0.0001",
-        //           "max_deposit" => "0",
-        //       ),
+        // {
+        //   BTC => array(
+        //     $name => "Bitcoin",
+        //     unified_cryptoasset_id => "1",
+        //     can_withdraw => true,
+        //     can_deposit => true,
+        //     min_withdraw => "0.0003",
+        //     max_withdraw => "0",
+        //     maker_fee => "0.1",
+        //     taker_fee => "0.1",
+        //     min_deposit => "0.0001",
+        //     max_deposit => "0",
+        //     networks => array(
+        //         deposits => array( "BTC", ),
+        //         withdraws => array( "BTC", ),
+        //         default => "BTC",
+        //     ),
+        //     confirmations => array(
+        //         BTC => "2",
+        //     ),
+        //     limits => array(
+        //         deposit => array(
+        //            BTC => array( min => "0.0001", ),
+        //         ),
+        //         withdraw => array(
+        //            BTC => array( min => "0.0003", ),
+        //         ),
+        //     ),
+        //     currency_precision => "8",
+        //     is_memo => false,
+        //   ),
+        //   USD => {
+        //         $name => "United States Dollar",
+        //         unified_cryptoasset_id => "6955",
+        //         can_withdraw => true,
+        //         can_deposit => true,
+        //         min_withdraw => "10",
+        //         max_withdraw => "10000",
+        //         maker_fee => "0.1",
+        //         taker_fee => "0.1",
+        //         min_deposit => "10",
+        //         max_deposit => "10000",
+        //         networks => array(
+        //           deposits => array( "USD", ),
+        //           withdraws => array( "USD", ),
+        //           default => "USD",
+        //         ),
+        //         providers => array(
+        //           deposits => array( "ADVCASH", ),
+        //           withdraws => array( "ADVCASH", ),
+        //         ),
+        //         limits => array(
+        //           deposit => array(
+        //             USD => array(  max => "10000", min => "10", ),
+        //           ),
+        //           withdraw => array(
+        //             USD => array( max => "10000",  min => "10", ),
+        //           ),
+        //         ),
+        //         currency_precision => "2",
+        //         is_memo => false,
+        //   }
+        // }
         //
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
@@ -566,6 +617,7 @@ class whitebit extends Exchange {
             $canWithdraw = $this->safe_bool($currency, 'can_withdraw', true);
             $active = $canDeposit && $canWithdraw;
             $code = $this->safe_currency_code($id);
+            $hasProvider = (is_array($currency) && array_key_exists('providers', $currency));
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -575,6 +627,8 @@ class whitebit extends Exchange {
                 'deposit' => $canDeposit,
                 'withdraw' => $canWithdraw,
                 'fee' => null,
+                'networks' => null, // todo
+                'type' => $hasProvider ? 'fiat' : 'crypto',
                 'precision' => null,
                 'limits' => array(
                     'amount' => array(

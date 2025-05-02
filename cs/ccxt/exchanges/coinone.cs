@@ -252,6 +252,7 @@ public partial class coinone : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
             };
         }
         return result;
