@@ -221,9 +221,6 @@
             },
             "orderBook": {
                 "bid": "frequently, zero amount is set in some orderbook entry"
-            },
-            "watchTrades":{
-                "timestamp": "it could be ahead of the current time"
             }
         }
     },

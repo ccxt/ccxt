@@ -1209,6 +1209,7 @@ export default class bitmart extends Exchange {
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1239,6 +1240,8 @@ export default class bitmart extends Exchange {
                 }
             }
             const currencyCode = this.safeCurrencyCode (currencyId);
+            const x = this.safeString (currency, 'recharge_minsize');
+            const y = Precise.stringGt (x, '0.00000001');
             let entry = this.safeDict (result, currencyCode);
             if (entry === undefined) {
                 entry = {
