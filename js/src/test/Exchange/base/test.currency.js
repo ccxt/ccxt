@@ -18,9 +18,8 @@ function testCurrency(exchange, skippedProperties, method, entry) {
     if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        // these two fields are being dynamically added a bit below
-        // format['withdraw'] = true; // withdraw enabled
-        // format['deposit'] = true; // deposit enabled
+        format['withdraw'] = true; // withdraw enabled
+        format['deposit'] = true; // deposit enabled
         format['precision'] = exchange.parseNumber('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         format['fee'] = exchange.parseNumber('0.001');
         format['networks'] = {};
@@ -34,16 +33,17 @@ function testCurrency(exchange, skippedProperties, method, entry) {
                 'max': exchange.parseNumber('1000'),
             },
         };
-        // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
-        if (currencyType !== undefined) {
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'type', ['fiat', 'crypto', 'leveraged', 'other']);
-        }
+        format['type'] = 'crypto'; // crypto, fiat, leverage, other
+        testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'type', ['fiat', 'crypto', 'leveraged', 'other', undefined]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType === 'crypto' || !('depositForNonCrypto' in skippedProperties)) {
-            format['deposit'] = true;
+        if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
+            emptyAllowedFor.push('deposit');
         }
-        if (currencyType === 'crypto' || !('withdrawForNonCrypto' in skippedProperties)) {
-            format['withdraw'] = true;
+        if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
+            emptyAllowedFor.push('withdraw');
+        }
+        if (currencyType === 'leveraged' || currencyType === 'other') {
+            emptyAllowedFor.push('precision');
         }
     }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);

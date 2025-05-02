@@ -28,6 +28,7 @@ public partial class upbit : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
@@ -256,8 +257,6 @@ public partial class upbit : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchTickersMaxLength", 4096 },
-                { "fetchOrderBooksMaxLength", 4096 },
                 { "tradingFeesByQuoteCurrency", new Dictionary<string, object>() {
                     { "KRW", 0.0005 },
                 } },
@@ -643,12 +642,6 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(symbols, null)))
         {
             ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), getValue(this.options, "fetchOrderBooksMaxLength"))))
-            {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols ("), ((object)getArrayLength(ids)).ToString()), " characters) exceeding max URL length ("), ((object)getValue(this.options, "fetchOrderBooksMaxLength")).ToString()), " characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
-            }
         } else
         {
             ids = this.marketIds(symbols);
@@ -1180,6 +1173,36 @@ public partial class upbit : Exchange
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
+    public virtual object calcOrderPrice(object symbol, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object quoteAmount = null;
+        object createMarketBuyOrderRequiresPrice = this.safeValue(this.options, "createMarketBuyOrderRequiresPrice");
+        object cost = this.safeString(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            quoteAmount = this.costToPrecision(symbol, cost);
+        } else if (isTrue(createMarketBuyOrderRequiresPrice))
+        {
+            if (isTrue(isTrue(isEqual(price, null)) || isTrue(isEqual(amount, null))))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+            }
+            object amountString = this.numberToString(amount);
+            object priceString = this.numberToString(price);
+            object costRequest = Precise.stringMul(amountString, priceString);
+            quoteAmount = this.costToPrecision(symbol, costRequest);
+        } else
+        {
+            if (isTrue(isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
+            }
+            quoteAmount = this.costToPrecision(symbol, amount);
+        }
+        return quoteAmount;
+    }
+
     /**
      * @method
      * @name upbit#createOrder
@@ -1187,13 +1210,14 @@ public partial class upbit : Exchange
      * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
      * @see https://global-docs.upbit.com/reference/order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'
+     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1210,7 +1234,7 @@ public partial class upbit : Exchange
             orderSide = "ask";
         } else
         {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() allows buy or sell side only!")) ;
+            throw new InvalidOrder ((string)add(this.id, " createOrder() supports only buy or sell in the side argument.")) ;
         }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1218,59 +1242,72 @@ public partial class upbit : Exchange
         };
         if (isTrue(isEqual(type, "limit")))
         {
+            if (isTrue(isTrue(isEqual(price, null)) || isTrue(isEqual(amount, null))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " the limit type order in createOrder() is required price and amount.")) ;
+            }
+            ((IDictionary<string,object>)request)["ord_type"] = "limit";
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-        }
-        if (isTrue(isTrue((isEqual(type, "market"))) && isTrue((isEqual(side, "buy")))))
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+        } else if (isTrue(isEqual(type, "market")))
         {
-            // for market buy it requires the amount of quote currency to spend
-            object quoteAmount = null;
-            object createMarketBuyOrderRequiresPrice = true;
-            var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
-            parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-            object cost = this.safeNumber(parameters, "cost");
-            parameters = this.omit(parameters, "cost");
-            if (isTrue(!isEqual(cost, null)))
+            if (isTrue(isEqual(side, "buy")))
             {
-                quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
-            {
-                if (isTrue(isEqual(price, null)))
-                {
-                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
-                } else
-                {
-                    object amountString = this.numberToString(amount);
-                    object priceString = this.numberToString(price);
-                    object costRequest = Precise.stringMul(amountString, priceString);
-                    quoteAmount = this.costToPrecision(symbol, costRequest);
-                }
+                ((IDictionary<string,object>)request)["ord_type"] = "price";
+                object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                ((IDictionary<string,object>)request)["price"] = orderPrice;
             } else
             {
-                quoteAmount = this.costToPrecision(symbol, amount);
+                if (isTrue(isEqual(amount, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " the market sell type order in createOrder() is required amount.")) ;
+                }
+                ((IDictionary<string,object>)request)["ord_type"] = "market";
+                ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
             }
-            ((IDictionary<string,object>)request)["ord_type"] = "price";
-            ((IDictionary<string,object>)request)["price"] = quoteAmount;
         } else
         {
-            ((IDictionary<string,object>)request)["ord_type"] = type;
-            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+            throw new InvalidOrder ((string)add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "identifier");
+        object customType = this.safeString2(parameters, "ordType", "ord_type");
+        if (isTrue(isEqual(customType, "best")))
+        {
+            parameters = this.omit(parameters, new List<object>() {"ordType", "ord_type"});
+            ((IDictionary<string,object>)request)["ord_type"] = "best";
+            if (isTrue(isEqual(side, "buy")))
+            {
+                object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                ((IDictionary<string,object>)request)["price"] = orderPrice;
+            } else
+            {
+                if (isTrue(isEqual(amount, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " the best sell type order in createOrder() is required amount.")) ;
+                }
+                ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["identifier"] = clientOrderId;
         }
-        if (isTrue(!isEqual(type, "market")))
+        if (isTrue(isTrue(!isEqual(getValue(request, "ord_type"), "market")) && isTrue(!isEqual(getValue(request, "ord_type"), "price"))))
         {
             object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            parameters = this.omit(parameters, "timeInForce");
+            parameters = this.omit(parameters, new List<object>() {"timeInForce"});
             if (isTrue(!isEqual(timeInForce, null)))
             {
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            } else
+            {
+                if (isTrue(isEqual(getValue(request, "ord_type"), "best")))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " the best type order in createOrder() is required timeInForce.")) ;
+                }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "identifier"});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cost"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
         //
         //     {
@@ -1333,6 +1370,140 @@ public partial class upbit : Exchange
         //     }
         //
         return this.parseOrder(response);
+    }
+
+    /**
+     * @method
+     * @name upbit#editOrder
+     * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+     * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+     * @param {string} id the uuid of the previous order you want to edit.
+     * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
+     * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+     * @param {string} side the side of the new order. it must be the same as the side of the previous order.
+     * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+     * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint.
+     * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
+     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newClientOrderId] the order ID that the user can define.
+     * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object prevClientOrderId = this.safeString(parameters, "clientOrderId");
+        parameters = this.omit(parameters, "clientOrderId");
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["prev_order_uuid"] = id;
+        } else if (isTrue(!isEqual(prevClientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["prev_order_identifier"] = prevClientOrderId;
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() is required id or clientOrderId.")) ;
+        }
+        if (isTrue(isEqual(type, "limit")))
+        {
+            if (isTrue(isTrue(isEqual(price, null)) || isTrue(isEqual(amount, null))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " editOrder() is required price and amount to create limit type order.")) ;
+            }
+            ((IDictionary<string,object>)request)["new_ord_type"] = "limit";
+            ((IDictionary<string,object>)request)["new_price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
+        } else if (isTrue(isEqual(type, "market")))
+        {
+            if (isTrue(isEqual(side, "buy")))
+            {
+                ((IDictionary<string,object>)request)["new_ord_type"] = "price";
+                object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                ((IDictionary<string,object>)request)["new_price"] = orderPrice;
+            } else
+            {
+                if (isTrue(isEqual(amount, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " editOrder() is required amount to create market sell type order.")) ;
+                }
+                ((IDictionary<string,object>)request)["new_ord_type"] = "market";
+                ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
+            }
+        } else
+        {
+            throw new InvalidOrder ((string)add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
+        }
+        object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
+        if (isTrue(isEqual(customType, "best")))
+        {
+            parameters = this.omit(parameters, new List<object>() {"newOrdType", "new_ord_type"});
+            ((IDictionary<string,object>)request)["new_ord_type"] = "best";
+            if (isTrue(isEqual(side, "buy")))
+            {
+                object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                ((IDictionary<string,object>)request)["new_price"] = orderPrice;
+            } else
+            {
+                if (isTrue(isEqual(amount, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " editOrder() is required amount to create best sell order.")) ;
+                }
+                ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        object clientOrderId = this.safeString(parameters, "newClientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["new_identifier"] = clientOrderId;
+        }
+        if (isTrue(isTrue(!isEqual(getValue(request, "new_ord_type"), "market")) && isTrue(!isEqual(getValue(request, "new_ord_type"), "price"))))
+        {
+            object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
+            parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force"});
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                ((IDictionary<string,object>)request)["new_time_in_force"] = timeInForce;
+            } else
+            {
+                if (isTrue(isEqual(getValue(request, "new_ord_type"), "best")))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " the best type order is required timeInForce.")) ;
+                }
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "cost"});
+        // console.log ('check the each request params: ', request);
+        object response = await this.privatePostOrdersCancelAndNew(this.extend(request, parameters));
+        //   {
+        //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+        //     side: 'bid',                                         //previous order data
+        //     ord_type: 'limit',                                   //previous order data
+        //     price: '100000000',                                  //previous order data
+        //     state: 'wait',                                       //previous order data
+        //     market: 'KRW-BTC',                                   //previous order data
+        //     created_at: '2025-04-01T15:30:47+09:00',             //previous order data
+        //     volume: '0.00008',                                   //previous order data
+        //     remaining_volume: '0.00008',                         //previous order data
+        //     reserved_fee: '4',                                   //previous order data
+        //     remaining_fee: '4',                                  //previous order data
+        //     paid_fee: '0',                                       //previous order data
+        //     locked: '8004',                                      //previous order data
+        //     executed_volume: '0',                                //previous order data
+        //     trades_count: '0',                                   //previous order data
+        //     identifier: '21',                                    //previous order data
+        //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+        //     new_order_identifier: '22'                               // new order data
+        //   }
+        object result = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)result)["uuid"] = this.safeString(response, "new_order_uuid");
+        ((IDictionary<string,object>)result)["identifier"] = this.safeString(response, "new_order_identifier");
+        ((IDictionary<string,object>)result)["side"] = this.safeString(response, "side");
+        ((IDictionary<string,object>)result)["market"] = this.safeString(response, "market");
+        return this.parseOrder(result);
     }
 
     /**
@@ -1676,6 +1847,26 @@ public partial class upbit : Exchange
         //         "time_in_force": "ioc"
         //     }
         //
+        //     {
+        //        uuid: '63b38774-27db-4439-ac20-1be16a24d18e',
+        //        side: 'bid',
+        //        ord_type: 'limit',
+        //        price: '100000000',
+        //        state: 'wait',
+        //        market: 'KRW-BTC',
+        //        created_at: '2025-04-01T15:30:47+09:00',
+        //        volume: '0.00008',
+        //        remaining_volume: '0.00008',
+        //        reserved_fee: '4',
+        //        remaining_fee: '4',
+        //        paid_fee: '0',
+        //        locked: '8004',
+        //        executed_volume: '0',
+        //        trades_count: '0',
+        //        identifier: '21',
+        //        new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+        //        new_order_identifier: '22'
+        //      }
         object id = this.safeString(order, "uuid");
         object side = this.safeString(order, "side");
         if (isTrue(isEqual(side, "bid")))
@@ -1685,6 +1876,7 @@ public partial class upbit : Exchange
         {
             side = "sell";
         }
+        object identifier = this.safeString(order, "identifier");
         object type = this.safeString(order, "ord_type");
         object timestamp = this.parse8601(this.safeString(order, "created_at"));
         object status = this.parseOrderStatus(this.safeString(order, "state"));
@@ -1748,7 +1940,7 @@ public partial class upbit : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
-            { "clientOrderId", null },
+            { "clientOrderId", identifier },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },

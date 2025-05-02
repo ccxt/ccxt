@@ -27,6 +27,26 @@ public partial class coincatch
         return (Int64)res;
     }
     /// <summary>
+    /// fetch deposit and withdraw fees
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coincatch.github.io/github.io/en/spot/#get-coin-list"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// retrieves data on all markets for the exchange
     /// </summary>
     /// <remarks>

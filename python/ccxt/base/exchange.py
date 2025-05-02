@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.77'
+__version__ = '4.4.78'
 
 # -----------------------------------------------------------------------------
 
@@ -3020,7 +3020,7 @@ class Exchange(object):
                 # find lowest precision(which is more desired)
                 precision = self.safe_string(network, 'precision')
                 precisionMain = self.safe_string(currency, 'precision')
-                if precisionMain is None or Precise.string_lt(precision, precisionMain):
+                if precisionMain is None or Precise.string_gt(precision, precisionMain):
                     currency['precision'] = self.parse_number(precision)
                 # limits
                 limits = self.safe_dict(network, 'limits')

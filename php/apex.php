@@ -264,6 +264,7 @@ class apex extends Exchange {
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
+                        'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
@@ -542,6 +543,7 @@ class apex extends Exchange {
                 'info' => $currency,
                 'code' => $code,
                 'id' => $currencyId,
+                'type' => 'crypto',
                 'name' => $name,
                 'active' => $deposit && $withdraw,
                 'deposit' => $deposit,
@@ -730,8 +732,6 @@ class apex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
         $percentage = $this->safe_string($ticker, 'price24hPcnt');
-        $percent = Precise::string_mul($percentage, '100');
-        $open = Precise::string_div($last, Precise::string_mul('1', $percentage), 8);
         $quoteVolume = $this->safe_string($ticker, 'turnover24h');
         $baseVolume = $this->safe_string($ticker, 'volume24h');
         $high = $this->safe_string($ticker, 'highPrice24h');
@@ -747,12 +747,12 @@ class apex extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percent,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
@@ -1852,7 +1852,7 @@ class apex extends Exchange {
         return $data;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

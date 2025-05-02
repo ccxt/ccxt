@@ -563,6 +563,7 @@ class probit(Exchange, ImplicitAPI):
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'type': 'crypto',
                 'fee': fee,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
                 'limits': {

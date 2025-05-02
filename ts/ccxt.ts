@@ -40,13 +40,12 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.77';
+const version = '4.4.78';
 
 (Exchange as any).ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
-import ace from  './src/ace.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
@@ -222,6 +221,7 @@ import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import probitPro from  './src/pro/probit.js'
+import tradeogrePro from  './src/pro/tradeogre.js'
 import upbitPro from  './src/pro/upbit.js'
 import vertexPro from  './src/pro/vertex.js'
 import whitebitPro from  './src/pro/whitebit.js'
@@ -230,7 +230,6 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
-    'ace':                    ace,
     'alpaca':                 alpaca,
     'apex':                   apex,
     'ascendex':               ascendex,
@@ -406,6 +405,7 @@ const pro = {
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'probit':                 probitPro,
+    'tradeogre':              tradeogrePro,
     'upbit':                  upbitPro,
     'vertex':                 vertexPro,
     'whitebit':               whitebitPro,
@@ -555,7 +555,6 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    ace,
     alpaca,
     apex,
     ascendex,

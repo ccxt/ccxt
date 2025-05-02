@@ -1329,28 +1329,41 @@ public partial class bitget : Exchange
                     { "fillResponseFromRequest", true },
                 } },
                 { "fetchOHLCV", new Dictionary<string, object>() {
-                    { "spot", new Dictionary<string, object>() {
-                        { "method", "publicSpotGetV2SpotMarketCandles" },
-                    } },
-                    { "swap", new Dictionary<string, object>() {
-                        { "method", "publicMixGetV2MixMarketCandles" },
-                    } },
-                    { "maxDaysPerTimeframe", new Dictionary<string, object>() {
+                    { "maxRecentDaysPerTimeframe", new Dictionary<string, object>() {
                         { "1m", 30 },
                         { "3m", 30 },
                         { "5m", 30 },
-                        { "10m", 30 },
-                        { "15m", 52 },
-                        { "30m", 62 },
-                        { "1h", 83 },
-                        { "2h", 120 },
+                        { "15m", 30 },
+                        { "30m", 30 },
+                        { "1h", 60 },
                         { "4h", 240 },
                         { "6h", 360 },
-                        { "12h", 360 },
-                        { "1d", 300 },
-                        { "3d", 300 },
-                        { "1w", 300 },
-                        { "1M", 300 },
+                        { "12h", 720 },
+                        { "1d", 1440 },
+                        { "3d", multiply(1440, 3) },
+                        { "1w", multiply(1440, 7) },
+                        { "1M", multiply(1440, 30) },
+                    } },
+                    { "spot", new Dictionary<string, object>() {
+                        { "maxLimitPerTimeframe", new Dictionary<string, object>() {
+                            { "1d", 300 },
+                            { "3d", 100 },
+                            { "1w", 100 },
+                            { "1M", 100 },
+                        } },
+                        { "method", "publicSpotGetV2SpotMarketCandles" },
+                    } },
+                    { "swap", new Dictionary<string, object>() {
+                        { "maxLimitPerTimeframe", new Dictionary<string, object>() {
+                            { "4h", 540 },
+                            { "6h", 360 },
+                            { "12h", 180 },
+                            { "1d", 90 },
+                            { "3d", 30 },
+                            { "1w", 13 },
+                            { "1M", 4 },
+                        } },
+                        { "method", "publicMixGetV2MixMarketCandles" },
                     } },
                 } },
                 { "fetchTrades", new Dictionary<string, object>() {
@@ -1360,6 +1373,9 @@ public partial class bitget : Exchange
                     { "swap", new Dictionary<string, object>() {
                         { "method", "publicMixGetV2MixMarketFillsHistory" },
                     } },
+                } },
+                { "fetchFundingRate", new Dictionary<string, object>() {
+                    { "method", "publicMixGetV2MixMarketCurrentFundRate" },
                 } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "spot" },
@@ -1541,7 +1557,7 @@ public partial class bitget : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 1000 },
+                        { "limit", 200 },
                     } },
                 } },
                 { "forPerps", new Dictionary<string, object>() {
@@ -1618,14 +1634,11 @@ public partial class bitget : Exchange
         if (isTrue(isTrue((!isEqual(subType, null))) && isTrue((isEqual(market, null)))))
         {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (isTrue(sandboxMode))
-            {
-                defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "SUSDT-FUTURES" : "SCOIN-FUTURES";
-            } else
-            {
-                defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT-FUTURES" : "COIN-FUTURES";
-            }
+            // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+            // if (sandboxMode) {
+            //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            // } else {
+            defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT-FUTURES" : "COIN-FUTURES";
         }
         object productType = this.safeString(parameters, "productType", defaultProductType);
         if (isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(market, null)))))
@@ -3604,30 +3617,32 @@ public partial class bitget : Exchange
         object market = this.market(symbol);
         object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
         object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
-        object msInDay = 86400000;
-        object duration = multiply(this.parseTimeframe(timeframe), 1000);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
+        object msInDay = 86400000;
+        object now = this.milliseconds();
+        object duration = multiply(this.parseTimeframe(timeframe), 1000);
         object until = this.safeInteger(parameters, "until");
         object limitDefined = !isEqual(limit, null);
         object sinceDefined = !isEqual(since, null);
         object untilDefined = !isEqual(until, null);
         parameters = this.omit(parameters, new List<object>() {"until"});
-        object response = null;
-        object now = this.milliseconds();
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        object ohlcOptions = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
-        object retrievableDaysMap = this.safeDict(ohlcOptions, "maxDaysPerTimeframe", new Dictionary<string, object>() {});
-        object maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        object endpointTsBoundary = subtract(now, multiply((subtract(maxRetrievableDaysForRecent, 1)), msInDay));
+        object key = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
+        object ohlcOptions = this.safeDict(getValue(this.options, "fetchOHLCV"), key, new Dictionary<string, object>() {});
+        object maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new Dictionary<string, object>() {});
+        object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
+        object recentEndpointDaysMap = this.safeDict(getValue(this.options, "fetchOHLCV"), "maxRecentDaysPerTimeframe", new Dictionary<string, object>() {});
+        object recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
+        object recentEndpointBoundaryTs = subtract(now, multiply((subtract(recentEndpointAvailableDays, 1)), msInDay));
         if (isTrue(limitDefined))
         {
             limit = mathMin(limit, maxLimitForRecentEndpoint);
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            limit = mathMin(limit, maxLimitForThisTimeframe);
         } else
         {
             limit = defaultLimit;
@@ -3656,20 +3671,36 @@ public partial class bitget : Exchange
                 calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
             }
         }
-        object historicalEndpointNeeded = isTrue((!isEqual(calculatedStartTime, null))) && isTrue((isLessThanOrEqual(calculatedStartTime, endpointTsBoundary)));
-        if (isTrue(historicalEndpointNeeded))
+        // if historical endpoint is needed, we should re-set the variables
+        object historicalEndpointNeeded = false;
+        if (isTrue(isTrue((isTrue(!isEqual(calculatedStartTime, null)) && isTrue(isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)))) || isTrue(useHistoryEndpoint)))
         {
+            historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
-            if (isTrue(limitDefined))
+            limit = mathMin(limit, maxLimitForHistoryEndpoint);
+            limitMultipliedDuration = multiply(limit, duration);
+            calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
+            ((IDictionary<string,object>)request)["startTime"] = calculatedStartTime;
+            // for contract, maximum 90 days allowed between start-end times
+            if (!isTrue(getValue(market, "spot")))
             {
-                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimitForHistoryEndpoint);
+                object maxDistanceDaysForContracts = 90;
+                // only correct if request is larger
+                if (isTrue(isGreaterThan(subtract(calculatedEndTime, calculatedStartTime), multiply(maxDistanceDaysForContracts, msInDay))))
+                {
+                    calculatedEndTime = this.sum(calculatedStartTime, multiply(maxDistanceDaysForContracts, msInDay));
+                    ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
+                }
             }
         }
+        // we need to set limit to safely cover the period
+        ((IDictionary<string,object>)request)["limit"] = limit;
         // make request
+        object response = null;
         if (isTrue(getValue(market, "spot")))
         {
             // checks if we need history endpoint
-            if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
+            if (isTrue(historicalEndpointNeeded))
             {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
@@ -3678,18 +3709,6 @@ public partial class bitget : Exchange
             }
         } else
         {
-            object maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
-            // only correct the request to fix 90 days if until was auto-calculated
-            if (isTrue(sinceDefined))
-            {
-                if (!isTrue(untilDefined))
-                {
-                    ((IDictionary<string,object>)request)["endTime"] = mathMin(calculatedEndTime, this.sum(since, multiply(maxDistanceDaysForContracts, msInDay)));
-                } else if (isTrue(isGreaterThan(subtract(calculatedEndTime, calculatedStartTime), multiply(maxDistanceDaysForContracts, msInDay))))
-                {
-                    throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() between start and end must be less than "), ((object)maxDistanceDaysForContracts).ToString()), " days")) ;
-                }
-            }
             object priceType = null;
             var priceTypeparametersVariable = this.handleParamString(parameters, "price");
             priceType = ((IList<object>)priceTypeparametersVariable)[0];
@@ -3709,7 +3728,7 @@ public partial class bitget : Exchange
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
             {
-                if (isTrue(isTrue(historicalEndpointNeeded) || isTrue(useHistoryEndpoint)))
+                if (isTrue(historicalEndpointNeeded))
                 {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 } else
@@ -7247,8 +7266,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -7268,21 +7289,19 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "productType", productType },
         };
-        object response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700811542124,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "fundingRate": "0.000106"
-        //             }
-        //         ]
-        //     }
-        //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(method, "publicMixGetV2MixMarketCurrentFundRate")))
+        {
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicMixGetV2MixMarketFundingTime")))
+        {
+            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRate(getValue(data, 0), market);
     }
 
@@ -7354,11 +7373,23 @@ public partial class bitget : Exchange
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000013",
+        //         "fundingRateInterval": "8",
+        //         "nextUpdate": "1745510400000",
+        //         "minFundingRate": "-0.003",
+        //         "maxFundingRate": "0.003"
+        //     }
+        //
+        // fetchFundingRate: publicMixGetV2MixMarketFundingTime
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1745424000000",
+        //         "ratePeriod": "8"
         //     }
         //
         // fetchFundingInterval
@@ -7368,7 +7399,9 @@ public partial class bitget : Exchange
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
+        //
         // fetchFundingRates
+        //
         //     {
         //         "symbol": "BTCUSD",
         //         "lastPr": "29904.5",
@@ -7394,10 +7427,11 @@ public partial class bitget : Exchange
         //         "open24h": "0",
         //         "markPrice": "12345"
         //     }
+        //
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object fundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        object interval = this.safeString(contract, "ratePeriod");
+        object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         object timestamp = this.safeInteger(contract, "ts");
         object markPrice = this.safeNumber(contract, "markPrice");
         object indexPrice = this.safeNumber(contract, "indexPrice");

@@ -480,6 +480,7 @@ public partial class bitmex : Exchange
             object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
             object minDepositString = this.safeString(currency, "minDepositAmount");
             object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+            object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
@@ -505,6 +506,7 @@ public partial class bitmex : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
             };
         }
         return result;
@@ -739,7 +741,7 @@ public partial class bitmex : Exchange
         object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         object linear = ((bool) isTrue(contract)) ? (!isTrue(isInverse) && !isTrue(isQuanto)) : null;
         object status = this.safeString(market, "state");
-        object active = !isEqual(status, "Unlisted");
+        object active = isEqual(status, "Open"); // Open, Settled, Unlisted
         object expiry = null;
         object expiryDatetime = null;
         object symbol = null;
@@ -758,10 +760,10 @@ public partial class bitmex : Exchange
                 object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
                 contractSize = this.parseNumber(multiplierString);
             }
-            if (isTrue(future))
+            expiryDatetime = this.safeString(market, "expiry");
+            expiry = this.parse8601(expiryDatetime);
+            if (isTrue(!isEqual(expiry, null)))
             {
-                expiryDatetime = this.safeString(market, "expiry");
-                expiry = this.parse8601(expiryDatetime);
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
         } else

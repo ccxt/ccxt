@@ -563,6 +563,7 @@ class delta extends delta$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

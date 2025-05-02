@@ -382,13 +382,14 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
  * @see https://global-docs.upbit.com/reference/order
  * @param {string} symbol unified symbol of the market to create an order in
- * @param {string} type 'market' or 'limit'
+ * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
- * @param {string} [params.timeInForce] 'IOC' or 'FOK'
+ * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
+ * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Upbit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -442,6 +443,53 @@ func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
         params = *opts.Params
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
+    if IsError(res) {
+        return Order{}, CreateReturnError(res)
+    }
+    return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name upbit#editOrder
+ * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+ * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+ * @param {string} id the uuid of the previous order you want to edit.
+ * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
+ * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+ * @param {string} side the side of the new order. it must be the same as the side of the previous order.
+ * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+ * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+ * @param {object} [params] extra parameters specific to the exchange API endpoint.
+ * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
+ * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+ * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.newClientOrderId] the order ID that the user can define.
+ * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Upbit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+    opts := EditOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var price interface{} = nil
+    if opts.Price != nil {
+        price = *opts.Price
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
     if IsError(res) {
         return Order{}, CreateReturnError(res)
     }

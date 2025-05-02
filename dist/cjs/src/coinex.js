@@ -745,6 +745,7 @@ class coinex extends coinex$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
                 'info': coin,
             };
             for (let j = 0; j < chains.length; j++) {

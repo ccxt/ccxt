@@ -896,6 +896,8 @@ class testMainClass:
     async def test_request_statically(self, exchange, method, data, type, skip_keys):
         output = None
         request_url = None
+        if self.info:
+            dump('[INFO] STATIC REQUEST TEST:', method, ':', data['description'])
         try:
             if not is_sync():
                 await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
@@ -918,6 +920,8 @@ class testMainClass:
     async def test_response_statically(self, exchange, method, skip_keys, data):
         expected_result = exchange.safe_value(data, 'parsedResponse')
         mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
+        if self.info:
+            dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description'])
         try:
             if not is_sync():
                 unified_result = await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))

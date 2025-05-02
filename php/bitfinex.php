@@ -2794,7 +2794,7 @@ class bitfinex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

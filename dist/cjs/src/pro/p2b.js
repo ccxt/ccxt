@@ -494,11 +494,11 @@ class p2b extends p2b$1 {
     }
     onError(client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary();
-        this.onError(client, error);
+        super.onError(client, error);
     }
     onClose(client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary();
-        this.onClose(client, error);
+        super.onClose(client, error);
     }
 }
 

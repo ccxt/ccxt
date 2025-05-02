@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.apex import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -275,6 +275,7 @@ class apex(Exchange, ImplicitAPI):
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -544,6 +545,7 @@ class apex(Exchange, ImplicitAPI):
                 'info': currency,
                 'code': code,
                 'id': currencyId,
+                'type': 'crypto',
                 'name': name,
                 'active': deposit and withdraw,
                 'deposit': deposit,
@@ -728,8 +730,6 @@ class apex(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         percentage = self.safe_string(ticker, 'price24hPcnt')
-        percent = Precise.string_mul(percentage, '100')
-        open = Precise.string_div(last, Precise.string_mul('1', percentage), 8)
         quoteVolume = self.safe_string(ticker, 'turnover24h')
         baseVolume = self.safe_string(ticker, 'volume24h')
         high = self.safe_string(ticker, 'highPrice24h')
@@ -745,12 +745,12 @@ class apex(Exchange, ImplicitAPI):
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percent,
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -1769,7 +1769,7 @@ class apex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return data
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

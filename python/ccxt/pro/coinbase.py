@@ -641,10 +641,12 @@ class coinbase(ccxt.async_support.coinbase):
             event = events[i]
             updates = self.safe_value(event, 'updates', [])
             marketId = self.safe_string(event, 'product_id')
-            messageHash = 'level2::' + marketId
+            # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            market = self.safe_market(marketId)
+            messageHash = 'level2::' + market['id']
+            symbol = market['symbol']
             subscription = self.safe_value(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
-            symbol = self.safe_symbol(marketId)
             type = self.safe_string(event, 'type')
             if type == 'snapshot':
                 self.orderbooks[symbol] = self.order_book({}, limit)
@@ -654,8 +656,6 @@ class coinbase(ccxt.async_support.coinbase):
                 orderbook['datetime'] = datetime
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
-                if messageHash.endswith('USD'):
-                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
             elif type == 'update':
                 orderbook = self.orderbooks[symbol]
                 self.handle_order_book_helper(orderbook, updates)
@@ -663,8 +663,6 @@ class coinbase(ccxt.async_support.coinbase):
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
-                if messageHash.endswith('USD'):
-                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
 
     def handle_subscription_status(self, client, message):
         #
