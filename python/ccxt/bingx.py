@@ -804,7 +804,7 @@ class bingx(Exchange, ImplicitAPI):
                     'limits': limits,
                 }
             active = depositEnabled or withdrawEnabled
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
@@ -816,7 +816,7 @@ class bingx(Exchange, ImplicitAPI):
                 'networks': networks,
                 'fee': fee,
                 'limits': defaultLimits,
-            }
+            })
         return result
 
     def fetch_spot_markets(self, params) -> List[Market]:
