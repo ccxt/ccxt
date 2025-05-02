@@ -509,6 +509,7 @@ class ascendex extends Exchange {
         //         "data":array(
         //             {
         //                 "assetCode":"BTT",
+        //                 "displayName" => "BTT",
         //                 "borrowAssetCode":"BTT-B",
         //                 "interestAssetCode":"BTT-I",
         //                 "nativeScale":0,
@@ -529,12 +530,13 @@ class ascendex extends Exchange {
         //         "data":array(
         //             {
         //                 "assetCode":"LTCBULL",
+        //                 "displayName" => "LTCBULL",
         //                 "nativeScale":4,
         //                 "numConfirmations":20,
         //                 "withdrawFee":"0.2",
         //                 "minWithdrawalAmt":"1.0",
         //                 "statusCode":"Normal",
-        //                 "statusMessage":""
+        //                 "statusMessage":""  // hideFromWalletTx
         //             }
         //         )
         //     }
@@ -556,8 +558,24 @@ class ascendex extends Exchange {
             $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
             $precision = $this->parse_number($this->parse_precision($scale));
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
-            $status = $this->safe_string_2($currency, 'status', 'statusCode');
+            $status = $this->safe_string($currency, 'status');
+            $statusCode = $this->safe_string($currency, 'statusCode');
             $active = ($status === 'Normal');
+            $depositEnabled = null;
+            $withdrawEnabled = null;
+            if ($status === 'Delisted' || $statusCode === 'hideFromWalletTx') {
+                $depositEnabled = false;
+                $withdrawEnabled = false;
+            } elseif ($status === 'Normal') {
+                $depositEnabled = true;
+                $withdrawEnabled = true;
+            } elseif ($status === 'NoTransaction' || $statusCode === 'NoTransaction') {
+                $depositEnabled = true;
+                $withdrawEnabled = false;
+            } elseif ($status === 'NoDeposit') {
+                $depositEnabled = false;
+                $withdrawEnabled = true;
+            }
             $marginInside = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
             $result[$code] = array(
                 'id' => $id,
@@ -567,8 +585,8 @@ class ascendex extends Exchange {
                 'margin' => $marginInside,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
-                'deposit' => null,
-                'withdraw' => null,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(

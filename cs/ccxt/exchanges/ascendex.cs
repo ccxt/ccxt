@@ -502,6 +502,7 @@ public partial class ascendex : Exchange
         //         "data":[
         //             {
         //                 "assetCode":"BTT",
+        //                 "displayName": "BTT",
         //                 "borrowAssetCode":"BTT-B",
         //                 "interestAssetCode":"BTT-I",
         //                 "nativeScale":0,
@@ -522,12 +523,13 @@ public partial class ascendex : Exchange
         //         "data":[
         //             {
         //                 "assetCode":"LTCBULL",
+        //                 "displayName": "LTCBULL",
         //                 "nativeScale":4,
         //                 "numConfirmations":20,
         //                 "withdrawFee":"0.2",
         //                 "minWithdrawalAmt":"1.0",
         //                 "statusCode":"Normal",
-        //                 "statusMessage":""
+        //                 "statusMessage":""  // hideFromWalletTx
         //             }
         //         ]
         //     }
@@ -553,8 +555,28 @@ public partial class ascendex : Exchange
             object scale = this.safeString2(currency, "precisionScale", "nativeScale");
             object precision = this.parseNumber(this.parsePrecision(scale));
             object fee = this.safeNumber2(currency, "withdrawFee", "withdrawalFee");
-            object status = this.safeString2(currency, "status", "statusCode");
+            object status = this.safeString(currency, "status");
+            object statusCode = this.safeString(currency, "statusCode");
             object active = (isEqual(status, "Normal"));
+            object depositEnabled = null;
+            object withdrawEnabled = null;
+            if (isTrue(isTrue(isEqual(status, "Delisted")) || isTrue(isEqual(statusCode, "hideFromWalletTx"))))
+            {
+                depositEnabled = false;
+                withdrawEnabled = false;
+            } else if (isTrue(isEqual(status, "Normal")))
+            {
+                depositEnabled = true;
+                withdrawEnabled = true;
+            } else if (isTrue(isTrue(isEqual(status, "NoTransaction")) || isTrue(isEqual(statusCode, "NoTransaction"))))
+            {
+                depositEnabled = true;
+                withdrawEnabled = false;
+            } else if (isTrue(isEqual(status, "NoDeposit")))
+            {
+                depositEnabled = false;
+                withdrawEnabled = true;
+            }
             object marginInside = (inOp(currency, "borrowAssetCode"));
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
@@ -564,8 +586,8 @@ public partial class ascendex : Exchange
                 { "margin", marginInside },
                 { "name", this.safeString(currency, "assetName") },
                 { "active", active },
-                { "deposit", null },
-                { "withdraw", null },
+                { "deposit", depositEnabled },
+                { "withdraw", withdrawEnabled },
                 { "fee", fee },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {

@@ -3449,6 +3449,8 @@ export default class htx extends Exchange {
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString(entry, 'instStatus');
+            const assetType = this.safeString(entry, 'assetType');
+            const type = assetType === '1' ? 'crypto' : 'fiat';
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
             let minDeposit = undefined;
@@ -3508,6 +3510,7 @@ export default class htx extends Exchange {
                 'withdraw': withdraw,
                 'fee': undefined,
                 'name': undefined,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,

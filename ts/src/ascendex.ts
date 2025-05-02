@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -516,6 +516,7 @@ export default class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "assetCode":"BTT",
+        //                 "displayName": "BTT",
         //                 "borrowAssetCode":"BTT-B",
         //                 "interestAssetCode":"BTT-I",
         //                 "nativeScale":0,
@@ -536,12 +537,13 @@ export default class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "assetCode":"LTCBULL",
+        //                 "displayName": "LTCBULL",
         //                 "nativeScale":4,
         //                 "numConfirmations":20,
         //                 "withdrawFee":"0.2",
         //                 "minWithdrawalAmt":"1.0",
         //                 "statusCode":"Normal",
-        //                 "statusMessage":""
+        //                 "statusMessage":""  // hideFromWalletTx
         //             }
         //         ]
         //     }
@@ -563,8 +565,24 @@ export default class ascendex extends Exchange {
             const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
             const precision = this.parseNumber (this.parsePrecision (scale));
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString2 (currency, 'status', 'statusCode');
+            const status = this.safeString (currency, 'status');
+            const statusCode = this.safeString (currency, 'statusCode');
             const active = (status === 'Normal');
+            let depositEnabled: Bool = undefined;
+            let withdrawEnabled: Bool = undefined;
+            if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
+                depositEnabled = false;
+                withdrawEnabled = false;
+            } else if (status === 'Normal') {
+                depositEnabled = true;
+                withdrawEnabled = true;
+            } else if (status === 'NoTransaction' || statusCode === 'NoTransaction') {
+                depositEnabled = true;
+                withdrawEnabled = false;
+            } else if (status === 'NoDeposit') {
+                depositEnabled = false;
+                withdrawEnabled = true;
+            }
             const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
@@ -574,8 +592,8 @@ export default class ascendex extends Exchange {
                 'margin': marginInside,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
