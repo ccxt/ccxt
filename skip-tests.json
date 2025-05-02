@@ -233,8 +233,7 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided",
-                "type": "todo"
+                "precision":"not provided"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
