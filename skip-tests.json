@@ -685,7 +685,8 @@
                 "baseVolume": "quote scale isn't right"
             },
             "fetchCurrencies": {
-                "type": "todo"
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
             }
         }
     },
