@@ -2202,7 +2202,7 @@ export default class htx extends Exchange {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray (ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray (ticker['bid'])) {
                 bid = this.safeString (ticker['bid'], 0);
                 bidVolume = this.safeString (ticker['bid'], 1);
             } else {
