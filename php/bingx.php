@@ -794,7 +794,7 @@ class bingx extends Exchange {
                 );
             }
             $active = $depositEnabled || $withdrawEnabled;
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
@@ -806,7 +806,7 @@ class bingx extends Exchange {
                 'networks' => $networks,
                 'fee' => $fee,
                 'limits' => $defaultLimits,
-            );
+            ));
         }
         return $result;
     }
