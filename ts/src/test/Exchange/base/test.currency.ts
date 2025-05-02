@@ -48,7 +48,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     const networks = exchange.safeDict (entry, 'networks', {});
     const networkKeys = Object.keys (networks);
     const networkKeysLength = networkKeys.length;
-    if (networkKeysLength === 0 && ('skipEmptyNetworks' in skippedProperties)) {
+    if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
         return;
     }
     //
