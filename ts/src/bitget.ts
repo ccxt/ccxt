@@ -2067,7 +2067,7 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode (id);
             const chains = this.safeValue (entry, 'chains', []);
             const networks: Dict = {};
-            if (id === 'ZKLITEETH') {
+            if (code === 'ZKLITEETH') {
                 continue; // buggy exception entry
             }
             for (let j = 0; j < chains.length; j++) {
