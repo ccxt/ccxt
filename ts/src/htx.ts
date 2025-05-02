@@ -2211,7 +2211,7 @@ export default class htx extends Exchange {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray (ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray (ticker['ask'])) {
                 ask = this.safeString (ticker['ask'], 0);
                 askVolume = this.safeString (ticker['ask'], 1);
             } else {
