@@ -516,6 +516,7 @@ export default class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "assetCode":"BTT",
+        //                 "displayName": "BTT",
         //                 "borrowAssetCode":"BTT-B",
         //                 "interestAssetCode":"BTT-I",
         //                 "nativeScale":0,
@@ -536,12 +537,13 @@ export default class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "assetCode":"LTCBULL",
+        //                 "displayName": "LTCBULL",
         //                 "nativeScale":4,
         //                 "numConfirmations":20,
         //                 "withdrawFee":"0.2",
         //                 "minWithdrawalAmt":"1.0",
         //                 "statusCode":"Normal",
-        //                 "statusMessage":""
+        //                 "statusMessage":""  // hideFromWalletTx
         //             }
         //         ]
         //     }
@@ -563,11 +565,15 @@ export default class ascendex extends Exchange {
             const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
             const precision = this.parseNumber (this.parsePrecision (scale));
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString2 (currency, 'status', 'statusCode');
+            const status = this.safeString (currency, 'status');
+            const statusCode = this.safeString (currency, 'statusCode');
             const active = (status === 'Normal');
             let depositEnabled: Bool = undefined;
             let withdrawEnabled: Bool = undefined;
-            if (active) {
+            if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
+                depositEnabled = false;
+                withdrawEnabled = false;
+            } else if (status === 'Normal') {
                 depositEnabled = true;
                 withdrawEnabled = true;
             } else if (status === 'NoTransaction') {
@@ -576,9 +582,6 @@ export default class ascendex extends Exchange {
             } else if (status === 'NoDeposit') {
                 depositEnabled = false;
                 withdrawEnabled = true;
-            } else if (status === 'Delisted') {
-                depositEnabled = false;
-                withdrawEnabled = false;
             }
             const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
