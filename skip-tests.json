@@ -201,7 +201,6 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
                 "currencyIdAndCode": "broken currencies",
                 "type": "todo"
             },
