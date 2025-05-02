@@ -7,7 +7,7 @@ import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
-import { InvalidOrder } from '../base/errors.js';
+import { NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -220,7 +220,7 @@ export default class upbit extends upbitRest {
      */
     async watchOHLCV (symbol: string, timeframe = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (timeframe !== '1s') {
-            throw new InvalidOrder (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
+            throw new NotSupported (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
         }
         const timeFrameOHLCV = 'candle.' + timeframe;
         return await this.watchPublic (symbol, timeFrameOHLCV);
