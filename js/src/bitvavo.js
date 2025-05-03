@@ -346,6 +346,7 @@ export default class bitvavo extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': undefined, // this will be required soon for order-related endpoints
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -1187,6 +1188,11 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'createOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
         return this.extend(request, params);
     }
     /**
@@ -1286,6 +1292,11 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'editOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1321,6 +1332,11 @@ export default class bitvavo extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
+        }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
         }
         return this.extend(request, params);
     }
