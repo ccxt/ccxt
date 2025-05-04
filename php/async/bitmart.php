@@ -1225,6 +1225,7 @@ class bitmart extends Exchange {
             //                 {
             //                     "currency" => "BTC",
             //                     "name" => "Bitcoin",
+            //                     "recharge_minsize" => '0.00000001',
             //                     "contract_address" => null,
             //                     "network" => "BTC",
             //                     "withdraw_enabled" => true,
@@ -1246,7 +1247,8 @@ class bitmart extends Exchange {
                 $fullId = $this->safe_string($currency, 'currency');
                 $currencyId = $fullId;
                 $networkId = $this->safe_string($currency, 'network');
-                if (mb_strpos($fullId, 'NFT') === false) {
+                $isNtf = (mb_strpos($fullId, 'NFT') !== false);
+                if (!$isNtf) {
                     $parts = explode('-', $fullId);
                     $currencyId = $this->safe_string($parts, 0);
                     $second = $this->safe_string($parts, 1);
@@ -1267,6 +1269,7 @@ class bitmart extends Exchange {
                         'withdraw' => null,
                         'active' => null,
                         'networks' => array(),
+                        'type' => $isNtf ? 'other' : 'crypto',
                     );
                 }
                 $networkCode = $this->network_id_to_code($networkId);
