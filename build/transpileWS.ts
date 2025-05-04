@@ -250,7 +250,7 @@ class CCXTProTranspiler extends Transpiler {
             }
         }
 
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || !!exchanges.length)
 
         if (transpilingSingleExchange) {
             return;
