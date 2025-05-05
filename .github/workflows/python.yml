@@ -49,11 +49,7 @@ jobs:
       run: ./utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-py
-    - name: Transpile to Python
-      if: env.important_modified == 'true'
-      run: npm run force-transpile-fast-py
     - name: Transpile to Python (specific)
-      if: env.important_modified == 'false'
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
