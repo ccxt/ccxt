@@ -657,6 +657,8 @@ class derive extends Exchange {
             } else {
                 $optionType = 'call';
             }
+            $linear = true;
+            $inverse = false;
         }
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -2147,7 +2149,7 @@ class derive extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

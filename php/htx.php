@@ -3381,7 +3381,7 @@ class htx extends Exchange {
         //                        "withdrawQuotaPerYear" => null,
         //                        "withdrawQuotaTotal" => null,
         //                        "withdrawFeeType" => "fixed",
-        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "transactFeeWithdraw" => "11.1654",
         //                        "addrWithTag" => false,
         //                        "addrDepositTag" => false
         //                    }
@@ -3404,6 +3404,8 @@ class htx extends Exchange {
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
             $instStatus = $this->safe_string($entry, 'instStatus');
+            $assetType = $this->safe_string($entry, 'assetType');
+            $type = $assetType === '1' ? 'crypto' : 'fiat';
             $currencyActive = $instStatus === 'normal';
             $minPrecision = null;
             $minDeposit = null;
@@ -3463,6 +3465,7 @@ class htx extends Exchange {
                 'withdraw' => $withdraw,
                 'fee' => null,
                 'name' => null,
+                'type' => $type,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -7747,7 +7750,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

@@ -1,5 +1,5 @@
 import Exchange from './abstract/oxfun.js';
-import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers, Position } from './base/types.js';
 /**
  * @class oxfun
  * @augments Exchange
@@ -301,8 +301,8 @@ export default class oxfun extends Exchange {
      * @param {boolean} [params.subAcc]
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    parsePosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name oxfun#createOrder

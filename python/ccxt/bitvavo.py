@@ -361,6 +361,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': None,  # self will be required soon for order-related endpoints
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -613,6 +614,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
@@ -1166,6 +1168,10 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'createOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1259,6 +1265,10 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'editOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
         request['market'] = market['id']
         return request
 
@@ -1293,6 +1303,10 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
         return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

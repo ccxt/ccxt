@@ -22,9 +22,8 @@ public partial class testMainClass : BaseTest
         {
             ((IDictionary<string,object>)format)["info"] = new Dictionary<string, object>() {};
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            // these two fields are being dynamically added a bit below
-            // format['withdraw'] = true; // withdraw enabled
-            // format['deposit'] = true; // deposit enabled
+            ((IDictionary<string,object>)format)["withdraw"] = true; // withdraw enabled
+            ((IDictionary<string,object>)format)["deposit"] = true; // deposit enabled
             ((IDictionary<string,object>)format)["precision"] = exchange.parseNumber("0.0001"); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
             ((IDictionary<string,object>)format)["fee"] = exchange.parseNumber("0.001");
             ((IDictionary<string,object>)format)["networks"] = new Dictionary<string, object>() {};
@@ -38,23 +37,34 @@ public partial class testMainClass : BaseTest
                     { "max", exchange.parseNumber("1000") },
                 } },
             };
-            // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
-            if (isTrue(!isEqual(currencyType, null)))
-            {
-                testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"fiat", "crypto", "leveraged", "other"});
-            }
+            ((IDictionary<string,object>)format)["type"] = "crypto"; // crypto, fiat, leverage, other
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"fiat", "crypto", "leveraged", "other", null}); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if (isTrue(isTrue(isEqual(currencyType, "crypto")) || !isTrue((inOp(skippedProperties, "depositForNonCrypto")))))
+            if (isTrue(isTrue(!isEqual(currencyType, "crypto")) && isTrue((inOp(skippedProperties, "depositForNonCrypto")))))
             {
-                ((IDictionary<string,object>)format)["deposit"] = true;
+                ((IList<object>)emptyAllowedFor).Add("deposit");
             }
-            if (isTrue(isTrue(isEqual(currencyType, "crypto")) || !isTrue((inOp(skippedProperties, "withdrawForNonCrypto")))))
+            if (isTrue(isTrue(!isEqual(currencyType, "crypto")) && isTrue((inOp(skippedProperties, "withdrawForNonCrypto")))))
             {
-                ((IDictionary<string,object>)format)["withdraw"] = true;
+                ((IList<object>)emptyAllowedFor).Add("withdraw");
+            }
+            if (isTrue(isTrue(isEqual(currencyType, "leveraged")) || isTrue(isEqual(currencyType, "other"))))
+            {
+                ((IList<object>)emptyAllowedFor).Add("precision");
             }
         }
-        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        //
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
+        // check if empty networks should be skipped
+        object networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networkKeysLength = getArrayLength(networkKeys);
+        if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
+        {
+            return;
+        }
+        //
+        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
         testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");

@@ -559,6 +559,7 @@ export default class probit extends Exchange {
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'type': 'crypto',
                 'fee': fee,
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (platform, 'precision'))),
                 'limits': {

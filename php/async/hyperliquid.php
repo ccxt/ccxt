@@ -376,6 +376,7 @@ class hyperliquid extends Exchange {
                     'withdraw' => null,
                     'networks' => null,
                     'fee' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -793,12 +794,15 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $isSpot = ($type === 'spot');
             $reqType = ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
             $request = array(
@@ -857,12 +861,17 @@ class hyperliquid extends Exchange {
                 return $this->safe_balance($spotBalances);
             }
             $data = $this->safe_dict($response, 'marginSummary', array());
+            $usdcBalance = array(
+                'total' => $this->safe_number($data, 'accountValue'),
+            );
+            if (($marginMode !== null) && ($marginMode === 'isolated')) {
+                $usdcBalance['free'] = $this->safe_number($response, 'withdrawable');
+            } else {
+                $usdcBalance['used'] = $this->safe_number($data, 'totalMarginUsed');
+            }
             $result = array(
                 'info' => $response,
-                'USDC' => array(
-                    'total' => $this->safe_number($data, 'accountValue'),
-                    'used' => $this->safe_number($data, 'totalMarginUsed'),
-                ),
+                'USDC' => $usdcBalance,
             );
             $timestamp = $this->safe_integer($response, 'time');
             $result['timestamp'] = $timestamp;
@@ -2632,7 +2641,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

@@ -719,16 +719,9 @@ class paradex extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $request = array();
-            if ($symbols !== null) {
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                    $request['market'] = $this->market_id($symbols[0]);
-                } else {
-                    $request['market'] = $this->market_id($symbols);
-                }
-            } else {
-                $request['market'] = 'ALL';
-            }
+            $request = array(
+                'market' => 'ALL',
+            );
             $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
             //
             //     {
@@ -1946,7 +1939,7 @@ class paradex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

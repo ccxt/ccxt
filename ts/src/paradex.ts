@@ -712,16 +712,9 @@ export default class paradex extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request: Dict = {};
-        if (symbols !== undefined) {
-            if (Array.isArray (symbols)) {
-                request['market'] = this.marketId (symbols[0]);
-            } else {
-                request['market'] = this.marketId (symbols);
-            }
-        } else {
-            request['market'] = 'ALL';
-        }
+        const request: Dict = {
+            'market': 'ALL',
+        };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         //
         //     {
@@ -1911,7 +1904,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.authenticateRest ();
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

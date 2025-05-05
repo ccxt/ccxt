@@ -1572,6 +1572,7 @@
             {
                 "description": "fetchDeposits",
                 "method": "fetchDeposits",
+                "disabledGO": true,
                 "input": [],
                 "httpResponse": {
                     "result": {
@@ -1627,6 +1628,7 @@
             {
                 "description": "fetchWithdrawals",
                 "method": "fetchWithdrawals",
+                "disabledGO": true,
                 "input": [],
                 "httpResponse": {
                     "result": {

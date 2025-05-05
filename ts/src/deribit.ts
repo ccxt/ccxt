@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -652,6 +652,7 @@ export default class deribit extends Exchange {
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'fee_precision'))),
                 'limits': {
@@ -1343,8 +1344,21 @@ export default class deribit extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const code = this.safeString2 (params, 'code', 'currency');
+        let code = this.safeString2 (params, 'code', 'currency');
+        let type = undefined;
         params = this.omit (params, [ 'code' ]);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                if (code !== undefined && code !== market['base']) {
+                    throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                }
+                if (code === undefined) {
+                    code = market['base'];
+                    type = market['type'];
+                }
+            }
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
         }
@@ -1352,6 +1366,19 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
+        if (type !== undefined) {
+            let requestType = undefined;
+            if (type === 'spot') {
+                requestType = 'spot';
+            } else if (type === 'future' || (type === 'contract')) {
+                requestType = 'future';
+            } else if (type === 'option') {
+                requestType = 'option';
+            }
+            if (requestType !== undefined) {
+                request['kind'] = requestType;
+            }
+        }
         const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
         //
         //     {
@@ -2768,7 +2795,7 @@ export default class deribit extends Exchange {
      * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const code = this.safeString (params, 'currency');
         const request: Dict = {};

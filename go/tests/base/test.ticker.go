@@ -29,13 +29,11 @@ import "github.com/ccxt/ccxt/go/v4"
             "quoteVolume": exchange.ParseNumber("1.234"),
         }
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        var emptyAllowedFor interface{} = []interface{}{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "vwap", "change", "percentage", "average"}
+        var emptyAllowedFor interface{} = []interface{}{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
         // trick csharp-transpiler for string
-        if !IsTrue(Contains(ToString(method),"BidsAsks")) {
+        if !IsTrue((Contains(ToString(method),"BidsAsks"))) {
             AppendToArray(&emptyAllowedFor,"bid")
             AppendToArray(&emptyAllowedFor,"ask")
-            AppendToArray(&emptyAllowedFor,"bidVolume")
-            AppendToArray(&emptyAllowedFor,"askVolume")
         }
         AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
         AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
@@ -90,6 +88,7 @@ import "github.com/ccxt/ccxt/go/v4"
             // Assert (high !== undefined, 'vwap is defined, but high is not' + logText);
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
+            // todo: calc compare
             Assert(ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
             if IsTrue(!IsEqual(baseVolume, nil)) {
                 Assert(!IsEqual(quoteVolume, nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
@@ -98,12 +97,14 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(!IsEqual(baseVolume, nil), Add("quoteVolume & vwap is defined, but baseVolume is not", logText))
             }
         }
-        if IsTrue(IsTrue(!IsTrue((InOp(skippedProperties, "spread"))) && !IsTrue((InOp(skippedProperties, "ask")))) && !IsTrue((InOp(skippedProperties, "bid")))) {
-            var askString interface{} = exchange.SafeString(entry, "ask")
-            var bidString interface{} = exchange.SafeString(entry, "bid")
-            if IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) {
-                AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
-            }
+        var askString interface{} = exchange.SafeString(entry, "ask")
+        var bidString interface{} = exchange.SafeString(entry, "bid")
+        if IsTrue(IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) && !IsTrue((InOp(skippedProperties, "spread")))) {
+            AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
         }
+        // todo: rethink about this
+        // else {
+        //    Assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+        // }
         AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)
     }

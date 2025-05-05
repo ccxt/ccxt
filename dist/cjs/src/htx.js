@@ -3423,7 +3423,7 @@ class htx extends htx$1 {
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3446,6 +3446,8 @@ class htx extends htx$1 {
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString(entry, 'instStatus');
+            const assetType = this.safeString(entry, 'assetType');
+            const type = assetType === '1' ? 'crypto' : 'fiat';
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
             let minDeposit = undefined;
@@ -3505,6 +3507,7 @@ class htx extends htx$1 {
                 'withdraw': withdraw,
                 'fee': undefined,
                 'name': undefined,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,

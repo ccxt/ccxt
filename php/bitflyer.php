@@ -245,6 +245,7 @@ class bitflyer extends Exchange {
         //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
         //         // forex $swap
         //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
+        //
         //         // $future
         //         array(
         //             "product_code" => "BTCJPY11FEB2022",
@@ -874,7 +875,7 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

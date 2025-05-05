@@ -10,14 +10,14 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         ExchangeItf := &Exchange{}
         ExchangeItf.Init(exchangeArgs)
         return ExchangeItf, true
-    case "ace":
-        aceItf := &ace{}
-        aceItf.Init(exchangeArgs)
-        return aceItf, true
     case "alpaca":
         alpacaItf := &alpaca{}
         alpacaItf.Init(exchangeArgs)
         return alpacaItf, true
+    case "apex":
+        apexItf := &apex{}
+        apexItf.Init(exchangeArgs)
+        return apexItf, true
     case "ascendex":
         ascendexItf := &ascendex{}
         ascendexItf.Init(exchangeArgs)
@@ -62,18 +62,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bitbnsItf := &bitbns{}
         bitbnsItf.Init(exchangeArgs)
         return bitbnsItf, true
-    case "bitcoincom":
-        bitcoincomItf := &bitcoincom{}
-        bitcoincomItf.Init(exchangeArgs)
-        return bitcoincomItf, true
     case "bitfinex":
         bitfinexItf := &bitfinex{}
         bitfinexItf.Init(exchangeArgs)
         return bitfinexItf, true
-    case "bitfinex1":
-        bitfinex1Itf := &bitfinex1{}
-        bitfinex1Itf.Init(exchangeArgs)
-        return bitfinex1Itf, true
     case "bitflyer":
         bitflyerItf := &bitflyer{}
         bitflyerItf.Init(exchangeArgs)
@@ -98,10 +90,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bitoproItf := &bitopro{}
         bitoproItf.Init(exchangeArgs)
         return bitoproItf, true
-    case "bitpanda":
-        bitpandaItf := &bitpanda{}
-        bitpandaItf.Init(exchangeArgs)
-        return bitpandaItf, true
     case "bitrue":
         bitrueItf := &bitrue{}
         bitrueItf.Init(exchangeArgs)

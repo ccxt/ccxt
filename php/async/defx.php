@@ -622,7 +622,7 @@ class defx extends Exchange {
             'active' => $this->safe_string($market, 'status', '') === 'active',
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $this->safe_number($fees, 'taker'),
             'maker' => $this->safe_number($fees, 'maker'),
             'contractSize' => $this->parse_number('1'),
@@ -1581,7 +1581,7 @@ class defx extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

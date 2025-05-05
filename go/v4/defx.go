@@ -639,7 +639,7 @@ func  (this *defx) ParseMarket(market interface{}) interface{}  {
         "active": IsEqual(this.SafeString(market, "status", ""), "active"),
         "contract": true,
         "linear": true,
-        "inverse": nil,
+        "inverse": false,
         "taker": this.SafeNumber(fees, "taker"),
         "maker": this.SafeNumber(fees, "maker"),
         "contractSize": this.ParseNumber("1"),

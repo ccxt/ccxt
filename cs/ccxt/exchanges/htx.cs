@@ -3424,7 +3424,7 @@ public partial class htx : Exchange
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3448,6 +3448,8 @@ public partial class htx : Exchange
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             object instStatus = this.safeString(entry, "instStatus");
+            object assetType = this.safeString(entry, "assetType");
+            object type = ((bool) isTrue(isEqual(assetType, "1"))) ? "crypto" : "fiat";
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
             object minDeposit = null;
@@ -3509,6 +3511,7 @@ public partial class htx : Exchange
                 { "withdraw", withdraw },
                 { "fee", null },
                 { "name", null },
+                { "type", type },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },

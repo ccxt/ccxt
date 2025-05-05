@@ -329,6 +329,7 @@ public partial class coinbase : Exchange
                 { "fetchBalance", "v2PrivateGetAccounts" },
                 { "fetchTime", "v2PublicGetTime" },
                 { "user_native_currency", "USD" },
+                { "aliasCbMarketIds", new Dictionary<string, object>() {} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -1564,7 +1565,40 @@ public partial class coinbase : Exchange
         {
             ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
         }
-        return result;
+        // remove aliases
+        ((IDictionary<string,object>)this.options)["aliasCbMarketIds"] = new Dictionary<string, object>() {};
+        object newMarkets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        {
+            object market = getValue(result, i);
+            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            object realMarketIds = this.safeList(info, "alias_to", new List<object>() {});
+            object length = getArrayLength(realMarketIds);
+            if (isTrue(isGreaterThan(length, 0)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "aliasCbMarketIds"))[(string)getValue(market, "id")] = getValue(realMarketIds, 0);
+                ((IDictionary<string,object>)getValue(this.options, "aliasCbMarketIds"))[(string)getValue(market, "symbol")] = getValue(realMarketIds, 0);
+            } else
+            {
+                ((IList<object>)newMarkets).Add(market);
+            }
+        }
+        return newMarkets;
+    }
+
+    public override object market(object symbol)
+    {
+        object finalSymbol = this.safeString(getValue(this.options, "aliasCbMarketIds"), symbol, symbol);
+        return base.market(finalSymbol);
+    }
+
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    {
+        if (isTrue(inOp(getValue(this.options, "aliasCbMarketIds"), marketId)))
+        {
+            return this.market(marketId);
+        }
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     public virtual object parseSpotMarket(object market, object feeTier)
@@ -1986,6 +2020,7 @@ public partial class coinbase : Exchange
                 { "withdraw", null },
                 { "fee", null },
                 { "precision", null },
+                { "networks", new Dictionary<string, object>() {} },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", this.safeNumber(currency, "min_size") },
@@ -2344,10 +2379,11 @@ public partial class coinbase : Exchange
             askVolume = this.safeNumber(getValue(asks, 0), "size");
         }
         object marketId = this.safeString(ticker, "product_id");
+        market = this.safeMarket(marketId, market);
         object last = this.safeNumber(ticker, "price");
         object datetime = this.safeString(ticker, "time");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", getValue(market, "symbol") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "bid", bid },

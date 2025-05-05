@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3270,7 +3270,7 @@ class htx(Exchange, ImplicitAPI):
         #                        "withdrawQuotaPerYear": null,
         #                        "withdrawQuotaTotal": null,
         #                        "withdrawFeeType": "fixed",
-        #                        "transactFeeWithdraw": "11.1653",
+        #                        "transactFeeWithdraw": "11.1654",
         #                        "addrWithTag": False,
         #                        "addrDepositTag": False
         #                    }
@@ -3293,6 +3293,8 @@ class htx(Exchange, ImplicitAPI):
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
             instStatus = self.safe_string(entry, 'instStatus')
+            assetType = self.safe_string(entry, 'assetType')
+            type = assetType == 'crypto' if '1' else 'fiat'
             currencyActive = instStatus == 'normal'
             minPrecision = None
             minDeposit = None
@@ -3350,6 +3352,7 @@ class htx(Exchange, ImplicitAPI):
                 'withdraw': withdraw,
                 'fee': None,
                 'name': None,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -7337,7 +7340,7 @@ class htx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

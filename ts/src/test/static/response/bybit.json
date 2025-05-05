@@ -2510,6 +2510,70 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for a BTC option symbol",
+                "method": "fetchTickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT-250530-70000-C"
+                  ]
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"SUCCESS","result":{"category":"option","list":[{"symbol":"BTC-30MAY25-68000-P-USDT","bid1Price":"1975","bid1Size":"3","bid1Iv":"0.547","ask1Price":"2050","ask1Size":"0.11","ask1Iv":"0.556","lastPrice":"2030","highPrice24h":"2030","lowPrice24h":"1660","markPrice":"2015.39438867","indexPrice":"78750.38868972","markIv":"0.552","underlyingPrice":"79369.63","openInterest":"11.35","turnover24h":"77346.8492","volume24h":"0.96","totalVolume":"27","totalTurnover":"2287307","delta":"-0.19818258","gamma":"0.00001689","vega":"83.17386614","theta":"-44.39180536","predictedDeliveryPrice":"0","change24h":"-0.19284295"},{"symbol":"BTC-30MAY25-70000-C-USDT","bid1Price":"11595","bid1Size":"9.93","bid1Iv":"0.5126","ask1Price":"12150","ask1Size":"9.9","ask1Iv":"0.5729","lastPrice":"16160","highPrice24h":"0","lowPrice24h":"0","markPrice":"11860.81425623","indexPrice":"78750.38868972","markIv":"0.5419","underlyingPrice":"79369.63","openInterest":"1.09","turnover24h":"0","volume24h":"0","totalVolume":"2","totalTurnover":"100536","delta":"0.76359856","gamma":"0.00001905","vega":"92.10112644","theta":"-48.26013817","predictedDeliveryPrice":"0","change24h":"0"},{"symbol":"BTC-30MAY25-78000-C-USDT","bid1Price":"6695","bid1Size":"7.19","bid1Iv":"0.5073","ask1Price":"6825","ask1Size":"2.88","ask1Iv":"0.5184","lastPrice":"7485","highPrice24h":"7600","lowPrice24h":"6980","markPrice":"6782.24582537","indexPrice":"78750.38868972","markIv":"0.5149","underlyingPrice":"79369.63","openInterest":"2.37","turnover24h":"86663.4896","volume24h":"1.08","totalVolume":"12","totalTurnover":"956200","delta":"0.57405918","gamma":"0.0000255","vega":"117.11592428","theta":"-58.30550261","predictedDeliveryPrice":"0","change24h":"0.21806347"}]},"retExtInfo":{},"time":1744124642786},
+                "parsedResponse": {
+                  "BTC/USDT:USDT-250530-70000-C": {
+                        "symbol": "BTC/USDT:USDT-250530-70000-C",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": 11595,
+                        "bidVolume": 9.93,
+                        "ask": 12150,
+                        "askVolume": 9.9,
+                        "vwap": null,
+                        "open": null,
+                        "close": 16160,
+                        "last": 16160,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "markPrice": 11860.81425623,
+                        "indexPrice": 78750.38868972,
+                        "info": {
+                            "symbol": "BTC-30MAY25-70000-C-USDT",
+                            "bid1Price": "11595",
+                            "bid1Size": "9.93",
+                            "bid1Iv": "0.5126",
+                            "ask1Price": "12150",
+                            "ask1Size": "9.9",
+                            "ask1Iv": "0.5729",
+                            "lastPrice": "16160",
+                            "highPrice24h": "0",
+                            "lowPrice24h": "0",
+                            "markPrice": "11860.81425623",
+                            "indexPrice": "78750.38868972",
+                            "markIv": "0.5419",
+                            "underlyingPrice": "79369.63",
+                            "openInterest": "1.09",
+                            "turnover24h": "0",
+                            "volume24h": "0",
+                            "totalVolume": "2",
+                            "totalTurnover": "100536",
+                            "delta": "0.76359856",
+                            "gamma": "0.00001905",
+                            "vega": "92.10112644",
+                            "theta": "-48.26013817",
+                            "predictedDeliveryPrice": "0",
+                            "change24h": "0"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch ledger",

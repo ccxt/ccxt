@@ -1181,6 +1181,7 @@ public partial class huobijp : Exchange
                 { "withdraw", withdrawEnabled },
                 { "fee", null },
                 { "precision", precision },
+                { "networks", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", precision },

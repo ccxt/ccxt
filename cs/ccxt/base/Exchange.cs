@@ -164,6 +164,12 @@ public partial class Exchange
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
+        var proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
+        if (proxyUrl != null) {
+            proxyUrl = proxyUrl.ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl (url).ToString();
+        }
+
         if (this.verbose)
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
@@ -1130,6 +1136,17 @@ public partial class Exchange
             return result;
         }
     }
+
+    public async Task<object> getZKContractSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
 
 }
 

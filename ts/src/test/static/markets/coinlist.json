@@ -457,5 +457,66 @@
             ]
         },
         "created": 1626220800000
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC-PERP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "active": true,
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "BTC-PERP",
+            "base_currency": "BTC",
+            "is_trader_geofenced": false,
+            "expiry_name": null,
+            "expiry_time": null,
+            "list_time": "2024-09-16T00:00:00.000Z",
+            "type": "perp-swap",
+            "series_code": "BTC",
+            "long_name": "Bitcoin",
+            "asset_class": "CRYPTO",
+            "minimum_price_increment": "0.01",
+            "minimum_size_increment": "0.0001",
+            "quote_currency": "USDT",
+            "multiplier": "1",
+            "contract_frequency": "FGHJKMNQUVXZ",
+            "index_code": ".BTC-USDT",
+            "price_band_threshold_market": "0.05",
+            "price_band_threshold_limit": "0.25",
+            "maintenance_initial_ratio": "0.500000000000000000",
+            "liquidation_initial_ratio": "0.500000000000000000",
+            "last_price": "84196.78000000",
+            "fair_price": "85441.32000000",
+            "index_price": "85478.16000000",
+            "mark_price": "85443.04000000",
+            "mark_price_dollarizer": "0.99980000",
+            "funding_interval": {"hours": 8},
+            "funding_rate_index_code": ".BTC-USDT-FR8H",
+            "initial_margin_base": "0.200000000000000000",
+            "initial_margin_per_contract": "0.160000000000000000",
+            "position_limit": "5.0000"
+        },
+        "created": 1726444800000
     }
 }

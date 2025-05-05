@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -86,7 +86,7 @@ export default class bitmart extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -108,6 +108,7 @@ export default class bitmart extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -213,6 +214,7 @@ export default class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         // sub-account endpoints
@@ -265,6 +267,7 @@ export default class bitmart extends Exchange {
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5, // weight is not provided by the exchange, is set as ordinary order
                         'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -1200,12 +1203,13 @@ export default class bitmart extends Exchange {
         //     {
         //         "message": "OK",
         //         "code": 1000,
-        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         //         "data": {
         //             "currencies": [
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1227,7 +1231,8 @@ export default class bitmart extends Exchange {
             const fullId = this.safeString (currency, 'currency');
             let currencyId = fullId;
             let networkId = this.safeString (currency, 'network');
-            if (fullId.indexOf ('NFT') < 0) {
+            const isNtf = (fullId.indexOf ('NFT') >= 0);
+            if (!isNtf) {
                 const parts = fullId.split ('-');
                 currencyId = this.safeString (parts, 0);
                 const second = this.safeString (parts, 1);
@@ -1248,6 +1253,7 @@ export default class bitmart extends Exchange {
                     'withdraw': undefined,
                     'active': undefined,
                     'networks': {},
+                    'type': isNtf ? 'other' : 'crypto',
                 };
             }
             const networkCode = this.networkIdToCode (networkId);
@@ -4040,10 +4046,12 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeInteger (transaction, 'apply_time');
         let currencyId = this.safeString (transaction, 'currency');
         let networkId: Str = undefined;
-        if (currencyId.indexOf ('NFT') < 0) {
-            const parts = currencyId.split ('-');
-            currencyId = this.safeString (parts, 0);
-            networkId = this.safeString (parts, 1);
+        if (currencyId !== undefined) {
+            if (currencyId.indexOf ('NFT') < 0) {
+                const parts = currencyId.split ('-');
+                currencyId = this.safeString (parts, 0);
+                networkId = this.safeString (parts, 1);
+            }
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -4895,7 +4903,7 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market = undefined;
         let symbolsLength = undefined;
@@ -5488,6 +5496,69 @@ export default class bitmart extends Exchange {
             }
         }
         return addresses;
+    }
+
+    /**
+     * @method
+     * @name bitmart#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let positionMode = undefined;
+        if (hedged) {
+            positionMode = 'hedge_mode';
+        } else {
+            positionMode = 'one_way_mode';
+        }
+        const request: Dict = {
+            'position_mode': positionMode,
+        };
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return await this.privatePostContractPrivateSetPositionMode (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+     * @param {string} symbol not used
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.privateGetContractPrivateGetPositionMode (params);
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        const positionMode = this.safeString (data, 'position_mode');
+        return {
+            'info': response,
+            'hedged': (positionMode === 'hedge_mode'),
+        };
     }
 
     nonce () {

@@ -637,6 +637,8 @@ class derive extends derive$1 {
             else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure({
             'id': marketId,

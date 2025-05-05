@@ -641,7 +641,7 @@ export default class hyperliquid extends hyperliquidRest {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': this.safeString (trade, 'oid'),
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,

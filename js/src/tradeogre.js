@@ -21,7 +21,7 @@ export default class tradeogre extends Exchange {
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -532,6 +532,7 @@ export default class tradeogre extends Exchange {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger(response, 's');
         return orderbook;
     }
     parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {

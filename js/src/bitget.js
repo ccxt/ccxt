@@ -1374,28 +1374,44 @@ export default class bitget extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'fetchOHLCV': {
-                    'spot': {
-                        'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
-                    },
-                    'swap': {
-                        'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
-                    },
-                    'maxDaysPerTimeframe': {
+                    // ### Timeframe settings ###
+                    // after testing, the below values are real ones, because the values provided by API DOCS are wrong
+                    // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
+                    'maxRecentDaysPerTimeframe': {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 30,
-                        '15m': 52,
-                        '30m': 62,
-                        '1h': 83,
-                        '2h': 120,
+                        '15m': 30,
+                        '30m': 30,
+                        '1h': 60,
                         '4h': 240,
                         '6h': 360,
-                        '12h': 360,
-                        '1d': 300,
-                        '3d': 300,
-                        '1w': 300,
-                        '1M': 300,
+                        '12h': 720,
+                        '1d': 1440,
+                        '3d': 1440 * 3,
+                        '1w': 1440 * 7,
+                        '1M': 1440 * 30,
+                    },
+                    'spot': {
+                        'maxLimitPerTimeframe': {
+                            '1d': 300,
+                            '3d': 100,
+                            '1w': 100,
+                            '1M': 100,
+                        },
+                        'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
+                    },
+                    'swap': {
+                        'maxLimitPerTimeframe': {
+                            '4h': 540,
+                            '6h': 360,
+                            '12h': 180,
+                            '1d': 90,
+                            '3d': 30,
+                            '1w': 13,
+                            '1M': 4,
+                        },
+                        'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                 },
                 'fetchTrades': {
@@ -1405,6 +1421,9 @@ export default class bitget extends Exchange {
                     'swap': {
                         'method': 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
                     },
+                },
+                'fetchFundingRate': {
+                    'method': 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
                     'spot': 'spot',
@@ -1602,7 +1621,7 @@ export default class bitget extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                        'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
                 },
                 'forPerps': {
@@ -1677,13 +1696,12 @@ export default class bitget extends Exchange {
         let defaultProductType = undefined;
         if ((subType !== undefined) && (market === undefined)) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-            if (sandboxMode) {
-                defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
-            }
-            else {
-                defaultProductType = (subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
-            }
+            // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+            // if (sandboxMode) {
+            //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            // } else {
+            defaultProductType = (subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
+            // }
         }
         let productType = this.safeString(params, 'productType', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
@@ -1925,7 +1943,7 @@ export default class bitget extends Exchange {
             const priceDecimals = this.safeInteger(market, 'pricePlace');
             const amountDecimals = this.safeInteger(market, 'volumePlace');
             const priceStep = this.safeString(market, 'priceEndStep');
-            const amountStep = this.safeString(market, 'minTradeNum');
+            const amountStep = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise(priceStep);
             precise.decimals = Math.max(precise.decimals, priceDecimals);
             precise.reduce();
@@ -2015,33 +2033,37 @@ export default class bitget extends Exchange {
     async fetchCurrencies(params = {}) {
         const response = await this.publicSpotGetV2SpotPublicCoins(params);
         //
-        //     {
-        //         "code": "00000",
-        //         "data": [
-        //             {
-        //                 "chains": [
-        //                     {
-        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
-        //                         "chain": "BTC",
-        //                         "depositConfirm": "1",
-        //                         "extraWithdrawFee": "0",
-        //                         "minDepositAmount": "0.0001",
-        //                         "minWithdrawAmount": "0.005",
-        //                         "needTag": "false",
-        //                         "rechargeable": "true",
-        //                         "withdrawConfirm": "1",
-        //                         "withdrawFee": "0.0004",
-        //                         "withdrawable": "true"
-        //                     },
-        //                 ],
-        //                 "coin": "BTC",
-        //                 "coinId": "1",
-        //                 "transfer": "true""
-        //             }
-        //         ],
-        //         "msg": "success",
-        //         "requestTime": "1700120731773"
-        //     }
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": "1746195617812",
+        //        "data": [
+        //            {
+        //                "coinId": "1456",
+        //                "coin": "NEIROETH",
+        //                "transfer": "false",
+        //                "chains": [
+        //                    {
+        //                        "chain": "ERC20",
+        //                        "needTag": "false",
+        //                        "withdrawable": "true",
+        //                        "rechargeable": "true",
+        //                        "withdrawFee": "44.91017965",
+        //                        "extraWithdrawFee": "0",
+        //                        "depositConfirm": "12",
+        //                        "withdrawConfirm": "64",
+        //                        "minDepositAmount": "0.06",
+        //                        "minWithdrawAmount": "60",
+        //                        "browserUrl": "https://etherscan.io/tx/",
+        //                        "contractAddress": "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+        //                        "withdrawStep": "0",
+        //                        "withdrawMinScale": "8",
+        //                        "congestion": "normal"
+        //                    }
+        //                ],
+        //                "areaCoin": "no"
+        //            },
+        //            ...
         //
         const result = {};
         const data = this.safeValue(response, 'data', []);
@@ -2051,11 +2073,6 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode(id);
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
-            let deposit = false;
-            let withdraw = false;
-            let minWithdrawString = undefined;
-            let minDepositString = undefined;
-            let minWithdrawFeeString = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
@@ -2063,56 +2080,38 @@ export default class bitget extends Exchange {
                 if (network !== undefined) {
                     network = network.toUpperCase();
                 }
-                const withdrawEnabled = this.safeString(chain, 'withdrawable');
-                const canWithdraw = withdrawEnabled === 'true';
-                withdraw = (canWithdraw) ? canWithdraw : withdraw;
-                const depositEnabled = this.safeString(chain, 'rechargeable');
-                const canDeposit = depositEnabled === 'true';
-                deposit = (canDeposit) ? canDeposit : deposit;
-                const networkWithdrawFeeString = this.safeString(chain, 'withdrawFee');
-                if (networkWithdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise.stringMin(networkWithdrawFeeString, minWithdrawFeeString);
-                }
-                const networkMinWithdrawString = this.safeString(chain, 'minWithdrawAmount');
-                if (networkMinWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise.stringMin(networkMinWithdrawString, minWithdrawString);
-                }
-                const networkMinDepositString = this.safeString(chain, 'minDepositAmount');
-                if (networkMinDepositString !== undefined) {
-                    minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin(networkMinDepositString, minDepositString);
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': this.parseNumber(networkMinWithdrawString),
+                            'min': this.safeNumber(chain, 'minWithdrawAmount'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.parseNumber(networkMinDepositString),
+                            'min': this.safeNumber(chain, 'minDepositAmount'),
                             'max': undefined,
                         },
                     },
-                    'active': canWithdraw && canDeposit,
-                    'withdraw': canWithdraw,
-                    'deposit': canDeposit,
-                    'fee': this.parseNumber(networkWithdrawFeeString),
-                    'precision': undefined,
+                    'active': undefined,
+                    'withdraw': this.safeString(chain, 'withdrawable') === 'true',
+                    'deposit': this.safeString(chain, 'rechargeable') === 'true',
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawMinScale'))),
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'id': id,
                 'code': code,
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
@@ -2120,16 +2119,16 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.parseNumber(minDepositString),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'created': undefined,
-            };
+            });
         }
         return result;
     }
@@ -2448,18 +2447,20 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchWithdrawals', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100);
         }
-        if (code === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchWithdrawals() requires a `code` argument');
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
         }
-        const currency = this.currency(code);
         if (since === undefined) {
             since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
-            'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds(),
         };
+        if (currency !== undefined) {
+            request['coin'] = currency['id'];
+        }
         [request, params] = this.handleUntilOption('endTime', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3285,7 +3286,7 @@ export default class bitget extends Exchange {
             }
         }
         else {
-            request['businessType'] = 'contract';
+            request['businessType'] = 'mix';
         }
         const response = await this.privateCommonGetV2CommonTradeRate(this.extend(request, params));
         //
@@ -3490,34 +3491,36 @@ export default class bitget extends Exchange {
         const market = this.market(symbol);
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
-        const msInDay = 86400000;
-        const duration = this.parseTimeframe(timeframe) * 1000;
         const request = {
             'symbol': market['id'],
             'granularity': this.safeString(timeframes, timeframe, timeframe),
         };
+        const msInDay = 86400000;
+        const now = this.milliseconds();
+        const duration = this.parseTimeframe(timeframe) * 1000;
         const until = this.safeInteger(params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
         params = this.omit(params, ['until']);
-        let response = undefined;
-        const now = this.milliseconds();
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const ohlcOptions = this.safeDict(this.options, 'fetchOHLCV', {});
-        const retrievableDaysMap = this.safeDict(ohlcOptions, 'maxDaysPerTimeframe', {});
-        const maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay;
+        const key = market['spot'] ? 'spot' : 'swap';
+        const ohlcOptions = this.safeDict(this.options['fetchOHLCV'], key, {});
+        const maxLimitPerTimeframe = this.safeDict(ohlcOptions, 'maxLimitPerTimeframe', {});
+        const maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
+        const recentEndpointDaysMap = this.safeDict(this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
+        const recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
+        const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
         if (limitDefined) {
             limit = Math.min(limit, maxLimitForRecentEndpoint);
-            request['limit'] = limit;
+            limit = Math.min(limit, maxLimitForThisTimeframe);
         }
         else {
             limit = defaultLimit;
         }
-        const limitMultipliedDuration = limit * duration;
+        let limitMultipliedDuration = limit * duration;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime = undefined;
@@ -3538,17 +3541,32 @@ export default class bitget extends Exchange {
                 // we do not need to set "startTime" here
             }
         }
-        const historicalEndpointNeeded = (calculatedStartTime !== undefined) && (calculatedStartTime <= endpointTsBoundary);
-        if (historicalEndpointNeeded) {
+        // if historical endpoint is needed, we should re-set the variables
+        let historicalEndpointNeeded = false;
+        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || useHistoryEndpoint) {
+            historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
-            if (limitDefined) {
-                request['limit'] = Math.min(limit, maxLimitForHistoryEndpoint);
+            limit = Math.min(limit, maxLimitForHistoryEndpoint);
+            limitMultipliedDuration = limit * duration;
+            calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+            request['startTime'] = calculatedStartTime;
+            // for contract, maximum 90 days allowed between start-end times
+            if (!market['spot']) {
+                const maxDistanceDaysForContracts = 90;
+                // only correct if request is larger
+                if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
+                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceDaysForContracts * msInDay);
+                    request['endTime'] = calculatedEndTime;
+                }
             }
         }
+        // we need to set limit to safely cover the period
+        request['limit'] = limit;
         // make request
+        let response = undefined;
         if (market['spot']) {
             // checks if we need history endpoint
-            if (historicalEndpointNeeded || useHistoryEndpoint) {
+            if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -3556,16 +3574,6 @@ export default class bitget extends Exchange {
             }
         }
         else {
-            const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
-            // only correct the request to fix 90 days if until was auto-calculated
-            if (sinceDefined) {
-                if (!untilDefined) {
-                    request['endTime'] = Math.min(calculatedEndTime, this.sum(since, maxDistanceDaysForContracts * msInDay));
-                }
-                else if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
-                    throw new BadRequest(this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString() + ' days');
-                }
-            }
             let priceType = undefined;
             [priceType, params] = this.handleParamString(params, 'price');
             let productType = undefined;
@@ -3580,7 +3588,7 @@ export default class bitget extends Exchange {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             }
             else {
-                if (historicalEndpointNeeded || useHistoryEndpoint) {
+                if (historicalEndpointNeeded) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 }
                 else {
@@ -6817,8 +6825,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
@@ -6833,21 +6843,47 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'productType': productType,
         };
-        const response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700811542124,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "fundingRate": "0.000106"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue(response, 'data', []);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+        let response = undefined;
+        if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1745500709429,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "fundingRate": "-0.000013",
+            //                 "fundingRateInterval": "8",
+            //                 "nextUpdate": "1745510400000",
+            //                 "minFundingRate": "-0.003",
+            //                 "maxFundingRate": "0.003"
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        else if (method === 'publicMixGetV2MixMarketFundingTime') {
+            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1745402092428,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "nextFundingTime": "1745424000000",
+            //                 "ratePeriod": "8"
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRate(data[0], market);
     }
     /**
@@ -6911,11 +6947,23 @@ export default class bitget extends Exchange {
     }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000013",
+        //         "fundingRateInterval": "8",
+        //         "nextUpdate": "1745510400000",
+        //         "minFundingRate": "-0.003",
+        //         "maxFundingRate": "0.003"
+        //     }
+        //
+        // fetchFundingRate: publicMixGetV2MixMarketFundingTime
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1745424000000",
+        //         "ratePeriod": "8"
         //     }
         //
         // fetchFundingInterval
@@ -6925,7 +6973,9 @@ export default class bitget extends Exchange {
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
+        //
         // fetchFundingRates
+        //
         //     {
         //         "symbol": "BTCUSD",
         //         "lastPr": "29904.5",
@@ -6951,10 +7001,11 @@ export default class bitget extends Exchange {
         //         "open24h": "0",
         //         "markPrice": "12345"
         //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
-        const fundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
-        const interval = this.safeString(contract, 'ratePeriod');
+        const fundingTimestamp = this.safeInteger2(contract, 'nextFundingTime', 'nextUpdate');
+        const interval = this.safeString2(contract, 'ratePeriod', 'fundingRateInterval');
         const timestamp = this.safeInteger(contract, 'ts');
         const markPrice = this.safeNumber(contract, 'markPrice');
         const indexPrice = this.safeNumber(contract, 'indexPrice');

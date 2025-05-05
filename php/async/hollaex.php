@@ -493,6 +493,7 @@ class hollaex extends Exchange {
                         ),
                     ),
                     'networks' => array(),
+                    'type' => 'crypto',
                 );
             }
             return $result;

@@ -1815,7 +1815,7 @@ func  (this *timex) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
             "currency": feeCurrency,
         }
     }
-    return map[string]interface{} {
+    return this.SafeTrade(map[string]interface{} {
         "info": trade,
         "id": id,
         "timestamp": timestamp,
@@ -1829,7 +1829,7 @@ func  (this *timex) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
         "cost": cost,
         "takerOrMaker": takerOrMaker,
         "fee": fee,
-    }
+    })
 }
 func  (this *timex) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}  {
     //
