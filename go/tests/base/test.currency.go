@@ -46,8 +46,17 @@ import "github.com/ccxt/ccxt/go/v4"
                 AppendToArray(&emptyAllowedFor,"precision")
             }
         }
-        AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+        //
         AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "code"))
+        // check if empty networks should be skipped
+        var networks interface{} = exchange.SafeDict(entry, "networks", map[string]interface{} {})
+        var networkKeys interface{} = ObjectKeys(networks)
+        var networkKeysLength interface{} =     GetArrayLength(networkKeys)
+        if IsTrue(IsTrue(IsEqual(networkKeysLength, 0)) && IsTrue((InOp(skippedProperties, "skipCurrenciesWithoutNetworks")))) {
+            return
+        }
+        //
+        AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
         //
         CheckPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0")
