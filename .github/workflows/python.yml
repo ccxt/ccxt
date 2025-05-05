@@ -192,6 +192,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --reinstall ca-certificates -y
           sudo update-ca-certificates -f
+          pip install --upgrade certifi
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --python-async
