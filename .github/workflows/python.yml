@@ -187,12 +187,28 @@ jobs:
         run: pip install -r ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
+
+
+
+      - name: Test connection with curl
+        run: |
+          echo "TESTTTT with curl..."
+          curl -v 'https://api.hbdm.com/linear-swap-api/v1/swap_contract_info?business_type=all'
+
+
       - name: Update CA Certificates
         run: |
           sudo apt-get update
           pip install --upgrade certifi
           sudo apt-get install --reinstall ca-certificates -y
           sudo update-ca-certificates --fresh # Add --fresh for good measure
+      - name: Check SSL environment and certifi path
+        run: |
+          echo "--- Checking Environment Variables ---"
+          # ... (same checks as before) ...
+          echo "--- Checking Python SSL/Certifi Paths ---"
+          python -c "import certifi; print(f'Certifi path used by certifi: {certifi.where()}')"
+          python -c "import ssl; paths=ssl.get_default_verify_paths(); print(f'SSL default CA file: {paths.cafile}'); print(f'SSL default CA path: {paths.capath}')"
       - name: Check api.hbdm.com Certificate Chain
         run: |
           echo "Checking certificate for api.hbdm.com..."

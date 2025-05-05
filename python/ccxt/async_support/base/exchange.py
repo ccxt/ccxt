@@ -113,7 +113,7 @@ class Exchange(BaseExchange):
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
-            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if self.verify else self.verify
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
