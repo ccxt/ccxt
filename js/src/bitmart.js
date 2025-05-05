@@ -1206,6 +1206,7 @@ export default class bitmart extends Exchange {
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1227,7 +1228,8 @@ export default class bitmart extends Exchange {
             const fullId = this.safeString(currency, 'currency');
             let currencyId = fullId;
             let networkId = this.safeString(currency, 'network');
-            if (fullId.indexOf('NFT') < 0) {
+            const isNtf = (fullId.indexOf('NFT') >= 0);
+            if (!isNtf) {
                 const parts = fullId.split('-');
                 currencyId = this.safeString(parts, 0);
                 const second = this.safeString(parts, 1);
@@ -1248,6 +1250,7 @@ export default class bitmart extends Exchange {
                     'withdraw': undefined,
                     'active': undefined,
                     'networks': {},
+                    'type': isNtf ? 'other' : 'crypto',
                 };
             }
             const networkCode = this.networkIdToCode(networkId);

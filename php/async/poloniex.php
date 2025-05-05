@@ -1236,6 +1236,7 @@ class poloniex extends Exchange {
                         'withdraw' => $withdrawEnabled,
                         'fee' => $this->parse_number($feeString),
                         'precision' => null,
+                        'type' => 'crypto',
                         'limits' => array(
                             'amount' => array(
                                 'min' => null,
@@ -1900,7 +1901,7 @@ class poloniex extends Exchange {
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $response = null;
-            if (!$market['spot']) {
+            if ($marketType !== 'spot') {
                 $raw = Async\await($this->swapPrivateGetV3TradeOrderOpens ($this->extend($request, $params)));
                 //
                 //    {
@@ -3508,7 +3509,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -703,14 +703,9 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
-        if symbols is not None:
-            if isinstance(symbols, list):
-                request['market'] = self.market_id(symbols[0])
-            else:
-                request['market'] = self.market_id(symbols)
-        else:
-            request['market'] = 'ALL'
+        request: dict = {
+            'market': 'ALL',
+        }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
         #
         #     {
@@ -1820,7 +1815,7 @@ class paradex(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([market['symbol']], params)
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

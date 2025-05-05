@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -521,6 +521,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "data":[
         #             {
         #                 "assetCode":"BTT",
+        #                 "displayName": "BTT",
         #                 "borrowAssetCode":"BTT-B",
         #                 "interestAssetCode":"BTT-I",
         #                 "nativeScale":0,
@@ -541,12 +542,13 @@ class ascendex(Exchange, ImplicitAPI):
         #         "data":[
         #             {
         #                 "assetCode":"LTCBULL",
+        #                 "displayName": "LTCBULL",
         #                 "nativeScale":4,
         #                 "numConfirmations":20,
         #                 "withdrawFee":"0.2",
         #                 "minWithdrawalAmt":"1.0",
         #                 "statusCode":"Normal",
-        #                 "statusMessage":""
+        #                 "statusMessage":""  # hideFromWalletTx
         #             }
         #         ]
         #     }
@@ -568,8 +570,23 @@ class ascendex(Exchange, ImplicitAPI):
             scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
             precision = self.parse_number(self.parse_precision(scale))
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
-            status = self.safe_string_2(currency, 'status', 'statusCode')
+            status = self.safe_string(currency, 'status')
+            statusCode = self.safe_string(currency, 'statusCode')
             active = (status == 'Normal')
+            depositEnabled: Bool = None
+            withdrawEnabled: Bool = None
+            if status == 'Delisted' or statusCode == 'hideFromWalletTx':
+                depositEnabled = False
+                withdrawEnabled = False
+            elif status == 'Normal':
+                depositEnabled = True
+                withdrawEnabled = True
+            elif status == 'NoTransaction' or statusCode == 'NoTransaction':
+                depositEnabled = True
+                withdrawEnabled = False
+            elif status == 'NoDeposit':
+                depositEnabled = False
+                withdrawEnabled = True
             marginInside = ('borrowAssetCode' in currency)
             result[code] = {
                 'id': id,
@@ -579,8 +596,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'margin': marginInside,
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
-                'deposit': None,
-                'withdraw': None,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -2632,7 +2649,7 @@ class ascendex(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols

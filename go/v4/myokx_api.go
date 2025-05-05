@@ -2679,6 +2679,22 @@ func (this *myokx) PrivateGetAccountSubaccountInterestLimits (args ...interface{
    return ch
 }
 
+func (this *myokx) PrivateGetUsersSubaccountApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetUsersSubaccountApikey", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *myokx) PrivateGetTradingBotGridOrdersAlgoPending (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -4562,6 +4578,54 @@ func (this *myokx) PrivatePostAccountSubaccountSetLoanAllocation (args ...interf
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostAccountSubaccountSetLoanAllocation", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *myokx) PrivatePostUsersSubaccountCreateSubaccount (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountCreateSubaccount", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *myokx) PrivatePostUsersSubaccountSubaccountApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountSubaccountApikey", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *myokx) PrivatePostUsersSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountDeleteApikey", parameters))
        PanicOnError(ch)
    }()
    return ch

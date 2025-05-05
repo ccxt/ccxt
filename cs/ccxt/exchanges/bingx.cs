@@ -800,7 +800,7 @@ public partial class bingx : Exchange
                 };
             }
             object active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", code },
                 { "id", currencyId },
@@ -812,7 +812,7 @@ public partial class bingx : Exchange
                 { "networks", networks },
                 { "fee", fee },
                 { "limits", defaultLimits },
-            };
+            });
         }
         return result;
     }

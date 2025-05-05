@@ -1316,6 +1316,10 @@ public partial class testMainClass
     {
         object output = null;
         object requestUrl = null;
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC REQUEST TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1351,6 +1355,10 @@ public partial class testMainClass
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))

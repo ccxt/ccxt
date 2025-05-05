@@ -352,6 +352,7 @@ public partial class okx : Exchange
                         { "asset/subaccount/managed-subaccount-bills", divide(5, 3) },
                         { "users/entrust-subaccount-list", 10 },
                         { "account/subaccount/interest-limits", 4 },
+                        { "users/subaccount/apikey", 10 },
                         { "tradingBot/grid/orders-algo-pending", 1 },
                         { "tradingBot/grid/orders-algo-history", 1 },
                         { "tradingBot/grid/orders-algo-details", 1 },
@@ -472,6 +473,9 @@ public partial class okx : Exchange
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
                         { "account/subaccount/set-loan-allocation", 4 },
+                        { "users/subaccount/create-subaccount", 10 },
+                        { "users/subaccount/subaccount-apikey", 10 },
+                        { "users/subaccount/delete-apikey", 10 },
                         { "tradingBot/grid/order-algo", 1 },
                         { "tradingBot/grid/amend-order-algo", 1 },
                         { "tradingBot/grid/stop-order-algo", 1 },
@@ -868,6 +872,11 @@ public partial class okx : Exchange
                     { "59506", typeof(ExchangeError) },
                     { "59507", typeof(ExchangeError) },
                     { "59508", typeof(AccountSuspended) },
+                    { "59515", typeof(ExchangeError) },
+                    { "59516", typeof(ExchangeError) },
+                    { "59517", typeof(ExchangeError) },
+                    { "59518", typeof(ExchangeError) },
+                    { "59519", typeof(ExchangeError) },
                     { "59642", typeof(BadRequest) },
                     { "59643", typeof(ExchangeError) },
                     { "60001", typeof(AuthenticationError) },
@@ -1527,8 +1536,8 @@ public partial class okx : Exchange
         object swap = (isEqual(type, "swap"));
         object option = (isEqual(type, "option"));
         object contract = isTrue(isTrue(swap) || isTrue(future)) || isTrue(option);
-        object baseId = this.safeString(market, "baseCcy");
-        object quoteId = this.safeString(market, "quoteCcy");
+        object baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
+        object quoteId = this.safeString(market, "quoteCcy", "");
         object settleId = this.safeString(market, "settleCcy");
         object settle = this.safeCurrencyCode(settleId);
         object underlying = this.safeString(market, "uly");
@@ -1546,20 +1555,29 @@ public partial class okx : Exchange
         object optionType = null;
         if (isTrue(contract))
         {
-            symbol = add(add(symbol, ":"), settle);
+            if (isTrue(!isEqual(settle, null)))
+            {
+                symbol = add(add(symbol, ":"), settle);
+            }
             if (isTrue(future))
             {
                 expiry = this.safeInteger(market, "expTime");
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(symbol, "-"), ymd);
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(symbol, "-"), ymd);
+                }
             } else if (isTrue(option))
             {
                 expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
-                object ymd = this.yymmdd(expiry);
-                symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
-                optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                if (isTrue(!isEqual(expiry, null)))
+                {
+                    object ymd = this.yymmdd(expiry);
+                    symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
+                    optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
+                }
             }
         }
         object tickSize = this.safeString(market, "tickSz");

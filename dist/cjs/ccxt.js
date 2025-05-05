@@ -12,8 +12,8 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
-var ace = require('./src/ace.js');
 var alpaca = require('./src/alpaca.js');
+var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
@@ -120,6 +120,7 @@ var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
+var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
@@ -183,6 +184,7 @@ var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
+var tradeogre$1 = require('./src/pro/tradeogre.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
@@ -192,11 +194,11 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.75';
+const version = '4.4.78';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
-    'ace': ace,
     'alpaca': alpaca,
+    'apex': apex,
     'ascendex': ascendex,
     'bequant': bequant,
     'bigone': bigone,
@@ -305,6 +307,7 @@ const exchanges = {
 };
 const pro = {
     'alpaca': alpaca$1,
+    'apex': apex$1,
     'ascendex': ascendex$1,
     'bequant': bequant$1,
     'binance': binance$1,
@@ -368,6 +371,7 @@ const pro = {
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'probit': probit$1,
+    'tradeogre': tradeogre$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
     'whitebit': whitebit$1,
@@ -425,8 +429,8 @@ exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
-exports.ace = ace;
 exports.alpaca = alpaca;
+exports.apex = apex;
 exports.ascendex = ascendex;
 exports.bequant = bequant;
 exports.bigone = bigone;

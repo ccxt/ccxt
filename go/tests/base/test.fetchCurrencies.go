@@ -11,22 +11,23 @@ import "github.com/ccxt/ccxt/go/v4"
                     defer close(ch)
                     defer ReturnPanicError(ch)
                         var method interface{} = "fetchCurrencies"
-                // const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
             
                 currencies:= (<-exchange.FetchCurrencies())
                 PanicOnError(currencies)
                 // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
                 var numInactiveCurrencies interface{} = 0
-                // const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
-                // const requiredActiveCurrencies = [ 'BTC', 'ETH', 'USDT', 'USDC' ];
+                var maxInactiveCurrenciesPercentage interface{} = 60 // no more than X% currencies should be inactive
+                var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
+                // todo: remove undefined check
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
                     var currenciesLength interface{} =         GetArrayLength(values)
                     // ensure exchange returns enough length of currencies
-                    // Assert (currenciesLength > 5, exchange.Getid() + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+                    Assert(IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
                     // allow skipped exchanges
-                    // const skipActive = ('active' in skippedProperties);
+                    var skipActive interface{} =         (InOp(skippedProperties, "activeCurrenciesQuota"))
+                    var skipMajorCurrencyCheck interface{} =         (InOp(skippedProperties, "activeMajorCurrencies"))
                     // loop
                     for i := 0; IsLessThan(i, currenciesLength); i++ {
                         var currency interface{} = GetValue(values, i)
@@ -36,7 +37,18 @@ import "github.com/ccxt/ccxt/go/v4"
                         if IsTrue(IsEqual(active, false)) {
                             numInactiveCurrencies = Add(numInactiveCurrencies, 1)
                         }
+                        // ensure that major currencies are active and enabled for deposit and withdrawal
+                        var code interface{} = exchange.SafeString(currency, "code", nil)
+                        var withdraw interface{} = exchange.SafeBool(currency, "withdraw")
+                        var deposit interface{} = exchange.SafeBool(currency, "deposit")
+                        if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
+                            Assert(IsTrue(skipMajorCurrencyCheck) || IsTrue((IsTrue(withdraw) && IsTrue(deposit))), Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled"))
+                        }
                     }
+                    // check at least X% of currencies are active
+                    var inactiveCurrenciesPercentage interface{} = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
+                    Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
+                    DetectCurrencyConflicts(exchange, currencies)
                 }
             
                 ch <- true
@@ -45,3 +57,20 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
+    func DetectCurrencyConflicts(exchange ccxt.IExchange, currencyValues interface{}) interface{}  {
+        // detect if there are currencies with different ids for the same code
+        var ids interface{} = map[string]interface{} {}
+        var keys interface{} = ObjectKeys(currencyValues)
+        for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+            var key interface{} = GetValue(keys, i)
+            var currency interface{} = GetValue(currencyValues, key)
+            var code interface{} = GetValue(currency, "code")
+            if !IsTrue((InOp(ids, code))) {
+                AddElementToObject(ids, code, GetValue(currency, "id"))
+            } else {
+                var isDifferent interface{} = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
+                Assert(!IsTrue(isDifferent), Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
+            }
+        }
+        return true
+    }

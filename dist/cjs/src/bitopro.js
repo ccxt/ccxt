@@ -395,6 +395,7 @@ class bitopro extends bitopro$1 {
                 'fee': fee,
                 'precision': undefined,
                 'limits': limits,
+                'networks': undefined,
             };
         }
         return result;

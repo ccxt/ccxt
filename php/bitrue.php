@@ -818,7 +818,8 @@ class bitrue extends Exchange {
                 'withdraw' => $withdraw,
                 'networks' => $networks,
                 'fee' => $this->parse_number($minWithdrawFeeString),
-                // 'fees' => fees,
+                'fees' => null,
+                'type' => 'crypto',
                 'limits' => array(
                     'withdraw' => array(
                         'min' => $this->parse_number($minWithdrawString),

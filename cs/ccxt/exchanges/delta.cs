@@ -271,6 +271,10 @@ public partial class delta : Exchange
             expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
         }
+        if (isTrue(!isEqual(expiry, null)))
+        {
+            expiry = add(add(slice(expiry, 4, null), slice(expiry, 2, 4)), slice(expiry, 0, 2));
+        }
         object settle = quote;
         object strike = this.safeString(optionParts, 2);
         object datetime = this.convertExpireDate(expiry);
@@ -502,6 +506,7 @@ public partial class delta : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
             };
         }
         return result;

@@ -373,6 +373,7 @@ public partial class bitopro : Exchange
                 { "fee", fee },
                 { "precision", null },
                 { "limits", limits },
+                { "networks", null },
             };
         }
         return result;

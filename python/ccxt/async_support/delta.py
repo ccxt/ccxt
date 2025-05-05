@@ -357,6 +357,8 @@ class delta(Exchange, ImplicitAPI):
             base = self.safe_string(optionParts, 1)
             expiry = self.safe_string(optionParts, 3)
             optionType = self.safe_string(optionParts, 0)
+        if expiry is not None:
+            expiry = expiry[4:] + expiry[2:4] + expiry[0:2]
         settle = quote
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
@@ -567,6 +569,7 @@ class delta(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             }
         return result
 
@@ -1660,7 +1663,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

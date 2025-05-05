@@ -50,6 +50,10 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    const allowEmptySkips = exchange.safeList (skippedProperties, 'allowNull', []);
+    if (emptyAllowedFor !== undefined) {
+        emptyAllowedFor = concat (emptyAllowedFor, allowEmptySkips);
+    }
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);
         const realLength = entry.length;
@@ -555,6 +559,24 @@ function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUr
     exchange.socksProxy = socksProxy;
 }
 
+function concat (a: any[] = undefined, b: any[] = undefined) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if (a === undefined) {
+        return b;
+    } else if (b === undefined) {
+        return a;
+    } else {
+        const result = [];
+        for (let i = 0; i < a.length; i++) {
+            result.push (a[i]);
+        }
+        for (let j = 0; j < b.length; j++) {
+            result.push (b[j]);
+        }
+        return result;
+    }
+}
+
 function assertNonEmtpyArray (exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint: Str = undefined) {
     let logText = logTemplate (exchange, method, entry);
     if (hint !== undefined) {
@@ -616,4 +638,5 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    concat,
 };

@@ -10,7 +10,7 @@ public partial class binance : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "binance" },
             { "name", "Binance" },
-            { "countries", new List<object>() {"JP", "MT"} },
+            { "countries", new List<object>() {} },
             { "rateLimit", 50 },
             { "certified", true },
             { "pro", true },

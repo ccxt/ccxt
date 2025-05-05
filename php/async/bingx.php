@@ -807,7 +807,7 @@ class bingx extends Exchange {
                     );
                 }
                 $active = $depositEnabled || $withdrawEnabled;
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'code' => $code,
                     'id' => $currencyId,
@@ -819,7 +819,7 @@ class bingx extends Exchange {
                     'networks' => $networks,
                     'fee' => $fee,
                     'limits' => $defaultLimits,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2497,7 +2497,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

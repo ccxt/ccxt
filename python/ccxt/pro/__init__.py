@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.75'
+__version__ = '4.4.78'
 
 # ----------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@ from ccxt.async_support.base.exchange import Exchange  # noqa: F401
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
+from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -76,6 +77,7 @@ from ccxt.pro.paradex import paradex                                      # noqa
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
+from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
@@ -85,6 +87,7 @@ from ccxt.pro.xt import xt                                                # noqa
 
 exchanges = [
     'alpaca',
+    'apex',
     'ascendex',
     'bequant',
     'binance',
@@ -148,6 +151,7 @@ exchanges = [
     'phemex',
     'poloniex',
     'probit',
+    'tradeogre',
     'upbit',
     'vertex',
     'whitebit',

@@ -20,7 +20,7 @@ func  (this *upbit) Describe() interface{}  {
         "name": "Upbit",
         "countries": []interface{}{"KR"},
         "version": "v1",
-        "rateLimit": 1000,
+        "rateLimit": 50,
         "pro": true,
         "has": map[string]interface{} {
             "CORS": true,
@@ -36,6 +36,7 @@ func  (this *upbit) Describe() interface{}  {
             "createMarketOrderWithCost": false,
             "createMarketSellOrderWithCost": false,
             "createOrder": true,
+            "editOrder": true,
             "fetchBalance": true,
             "fetchCanceledOrders": true,
             "fetchClosedOrders": true,
@@ -66,7 +67,7 @@ func  (this *upbit) Describe() interface{}  {
             "fetchTickers": true,
             "fetchTrades": true,
             "fetchTradingFee": true,
-            "fetchTradingFees": false,
+            "fetchTradingFees": true,
             "fetchTransactions": false,
             "fetchWithdrawal": true,
             "fetchWithdrawals": true,
@@ -101,12 +102,67 @@ func  (this *upbit) Describe() interface{}  {
         },
         "api": map[string]interface{} {
             "public": map[string]interface{} {
-                "get": []interface{}{"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"},
+                "get": map[string]interface{} {
+                    "market/all": 2,
+                    "candles/{timeframe}": 2,
+                    "candles/{timeframe}/{unit}": 2,
+                    "candles/seconds": 2,
+                    "candles/minutes/{unit}": 2,
+                    "candles/minutes/1": 2,
+                    "candles/minutes/3": 2,
+                    "candles/minutes/5": 2,
+                    "candles/minutes/10": 2,
+                    "candles/minutes/15": 2,
+                    "candles/minutes/30": 2,
+                    "candles/minutes/60": 2,
+                    "candles/minutes/240": 2,
+                    "candles/days": 2,
+                    "candles/weeks": 2,
+                    "candles/months": 2,
+                    "candles/years": 2,
+                    "trades/ticks": 2,
+                    "ticker": 2,
+                    "ticker/all": 2,
+                    "orderbook": 2,
+                    "orderbook/supported_levels": 2,
+                },
             },
             "private": map[string]interface{} {
-                "get": []interface{}{"accounts", "orders/chance", "order", "orders", "orders/closed", "orders/open", "orders/uuids", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"},
-                "post": []interface{}{"orders", "withdraws/coin", "withdraws/krw", "deposits/generate_coin_address"},
-                "delete": []interface{}{"order"},
+                "get": map[string]interface{} {
+                    "accounts": 0.67,
+                    "orders/chance": 0.67,
+                    "order": 0.67,
+                    "orders/closed": 0.67,
+                    "orders/open": 0.67,
+                    "orders/uuids": 0.67,
+                    "withdraws": 0.67,
+                    "withdraw": 0.67,
+                    "withdraws/chance": 0.67,
+                    "withdraws/coin_addresses": 0.67,
+                    "deposits": 0.67,
+                    "deposits/chance/coin": 0.67,
+                    "deposit": 0.67,
+                    "deposits/coin_addresses": 0.67,
+                    "deposits/coin_address": 0.67,
+                    "travel_rule/vasps": 0.67,
+                    "status/wallet": 0.67,
+                    "api_keys": 0.67,
+                },
+                "post": map[string]interface{} {
+                    "orders": 2.5,
+                    "orders/cancel_and_new": 2.5,
+                    "withdraws/coin": 0.67,
+                    "withdraws/krw": 0.67,
+                    "deposits/krw": 0.67,
+                    "deposits/generate_coin_address": 0.67,
+                    "travel_rule/deposit/uuid": 0.67,
+                    "travel_rule/deposit/txid": 0.67,
+                },
+                "delete": map[string]interface{} {
+                    "order": 0.67,
+                    "orders/open": 40,
+                    "orders/uuids": 0.67,
+                },
             },
         },
         "fees": map[string]interface{} {
@@ -209,8 +265,6 @@ func  (this *upbit) Describe() interface{}  {
         },
         "options": map[string]interface{} {
             "createMarketBuyOrderRequiresPrice": true,
-            "fetchTickersMaxLength": 4096,
-            "fetchOrderBooksMaxLength": 4096,
             "tradingFeesByQuoteCurrency": map[string]interface{} {
                 "KRW": 0.0005,
             },
@@ -230,13 +284,13 @@ func  (this *upbit) FetchCurrency(code interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2718 := (<-this.LoadMarkets())
-            PanicOnError(retRes2718)
+            retRes2868 := (<-this.LoadMarkets())
+            PanicOnError(retRes2868)
             var currency interface{} = this.Currency(code)
         
-                retRes27315 :=  (<-this.FetchCurrencyById(GetValue(currency, "id"), params))
-                PanicOnError(retRes27315)
-                ch <- retRes27315
+                retRes28815 :=  (<-this.FetchCurrencyById(GetValue(currency, "id"), params))
+                PanicOnError(retRes28815)
+                ch <- retRes28815
                 return nil
         
             }()
@@ -354,13 +408,13 @@ func  (this *upbit) FetchMarket(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3698 := (<-this.LoadMarkets())
-            PanicOnError(retRes3698)
+            retRes3848 := (<-this.LoadMarkets())
+            PanicOnError(retRes3848)
             var market interface{} = this.Market(symbol)
         
-                retRes37115 :=  (<-this.FetchMarketById(GetValue(market, "id"), params))
-                PanicOnError(retRes37115)
-                ch <- retRes37115
+                retRes38615 :=  (<-this.FetchMarketById(GetValue(market, "id"), params))
+                PanicOnError(retRes38615)
+                ch <- retRes38615
                 return nil
         
             }()
@@ -608,8 +662,8 @@ func  (this *upbit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5858 := (<-this.LoadMarkets())
-            PanicOnError(retRes5858)
+            retRes6008 := (<-this.LoadMarkets())
+            PanicOnError(retRes6008)
         
             response:= (<-this.PrivateGetAccounts(params))
             PanicOnError(response)
@@ -654,16 +708,11 @@ func  (this *upbit) FetchOrderBooks(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6138 := (<-this.LoadMarkets())
-            PanicOnError(retRes6138)
+            retRes6288 := (<-this.LoadMarkets())
+            PanicOnError(retRes6288)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, ",")
-                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-                if IsTrue(IsGreaterThan(GetArrayLength(ids), GetValue(this.Options, "fetchOrderBooksMaxLength"))) {
-                    var numIds interface{} =             GetArrayLength(this.Ids)
-                    panic(ExchangeError(Add(Add(Add(Add(Add(Add(Add(this.Id, " fetchOrderBooks() has "), ToString(numIds)), " symbols ("), ToString(GetArrayLength(ids))), " characters) exceeding max URL length ("), ToString(GetValue(this.Options, "fetchOrderBooksMaxLength"))), " characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks")))
-                }
             } else {
                 ids = this.MarketIds(symbols)
                 ids = Join(ids, ",")
@@ -830,17 +879,12 @@ func  (this *upbit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7588 := (<-this.LoadMarkets())
-            PanicOnError(retRes7588)
+            retRes7688 := (<-this.LoadMarkets())
+            PanicOnError(retRes7688)
             symbols = this.MarketSymbols(symbols)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, ",")
-                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-                if IsTrue(IsGreaterThan(GetArrayLength(ids), GetValue(this.Options, "fetchTickersMaxLength"))) {
-                    var numIds interface{} =             GetArrayLength(this.Ids)
-                    panic(ExchangeError(Add(Add(Add(this.Id, " fetchTickers() has "), ToString(numIds)), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers")))
-                }
             } else {
                 ids = this.MarketIds(symbols)
                 ids = Join(ids, ",")
@@ -1014,8 +1058,8 @@ func  (this *upbit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes9118 := (<-this.LoadMarkets())
-            PanicOnError(retRes9118)
+            retRes9168 := (<-this.LoadMarkets())
+            PanicOnError(retRes9168)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 200
@@ -1073,8 +1117,8 @@ func  (this *upbit) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9568 := (<-this.LoadMarkets())
-            PanicOnError(retRes9568)
+            retRes9618 := (<-this.LoadMarkets())
+            PanicOnError(retRes9618)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1136,6 +1180,44 @@ func  (this *upbit) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
             }()
             return ch
         }
+/**
+ * @method
+ * @name upbit#fetchTradingFees
+ * @description fetch the trading fees for markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+ */
+func  (this *upbit) FetchTradingFees(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes10258 := (<-this.LoadMarkets())
+            PanicOnError(retRes10258)
+        
+            fetchMarketResponse:= (<-this.FetchMarkets(params))
+            PanicOnError(fetchMarketResponse)
+            var response interface{} = map[string]interface{} {}
+            for i := 0; IsLessThan(i, GetArrayLength(fetchMarketResponse)); i++ {
+                var element interface{} = map[string]interface{} {}
+                AddElementToObject(element, "maker", this.SafeNumber(GetValue(fetchMarketResponse, i), "maker"))
+                AddElementToObject(element, "taker", this.SafeNumber(GetValue(fetchMarketResponse, i), "taker"))
+                AddElementToObject(element, "symbol", this.SafeString(GetValue(fetchMarketResponse, i), "symbol"))
+                AddElementToObject(element, "percentage", true)
+                AddElementToObject(element, "tierBased", false)
+                AddElementToObject(element, "info", GetValue(fetchMarketResponse, i))
+                AddElementToObject(response, this.SafeString(GetValue(fetchMarketResponse, i), "symbol"), element)
+            }
+        
+            ch <- response
+            return nil
+        
+            }()
+            return ch
+        }
 func  (this *upbit) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
@@ -1182,8 +1264,8 @@ func  (this *upbit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10518 := (<-this.LoadMarkets())
-            PanicOnError(retRes10518)
+            retRes10808 := (<-this.LoadMarkets())
+            PanicOnError(retRes10808)
             var market interface{} = this.Market(symbol)
             var timeframePeriod interface{} = this.ParseTimeframe(timeframe)
             var timeframeValue interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1248,6 +1330,32 @@ func  (this *upbit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             }()
             return ch
         }
+func  (this *upbit) CalcOrderPrice(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+    price := GetArg(optionalArgs, 0, nil)
+    _ = price
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    _ = params
+    var quoteAmount interface{} = nil
+    var createMarketBuyOrderRequiresPrice interface{} = this.SafeValue(this.Options, "createMarketBuyOrderRequiresPrice")
+    var cost interface{} = this.SafeString(params, "cost")
+    if IsTrue(!IsEqual(cost, nil)) {
+        quoteAmount = this.CostToPrecision(symbol, cost)
+    } else if IsTrue(createMarketBuyOrderRequiresPrice) {
+        if IsTrue(IsTrue(IsEqual(price, nil)) || IsTrue(IsEqual(amount, nil))) {
+            panic(InvalidOrder(Add(this.Id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")))
+        }
+        var amountString interface{} = this.NumberToString(amount)
+        var priceString interface{} = this.NumberToString(price)
+        var costRequest interface{} = Precise.StringMul(amountString, priceString)
+        quoteAmount = this.CostToPrecision(symbol, costRequest)
+    } else {
+        if IsTrue(IsEqual(amount, nil)) {
+            panic(ArgumentsRequired(Add(this.Id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")))
+        }
+        quoteAmount = this.CostToPrecision(symbol, amount)
+    }
+    return quoteAmount
+}
 /**
  * @method
  * @name upbit#createOrder
@@ -1255,13 +1363,14 @@ func  (this *upbit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
  * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
  * @see https://global-docs.upbit.com/reference/order
  * @param {string} symbol unified symbol of the market to create an order in
- * @param {string} type 'market' or 'limit'
+ * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
- * @param {string} [params.timeInForce] 'IOC' or 'FOK'
+ * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
+ * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func  (this *upbit) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
@@ -1274,8 +1383,8 @@ func  (this *upbit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11258 := (<-this.LoadMarkets())
-            PanicOnError(retRes11258)
+            retRes11788 := (<-this.LoadMarkets())
+            PanicOnError(retRes11788)
             var market interface{} = this.Market(symbol)
             var orderSide interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {
@@ -1283,56 +1392,64 @@ func  (this *upbit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             } else if IsTrue(IsEqual(side, "sell")) {
                 orderSide = "ask"
             } else {
-                panic(InvalidOrder(Add(this.Id, " createOrder() allows buy or sell side only!")))
+                panic(InvalidOrder(Add(this.Id, " createOrder() supports only buy or sell in the side argument.")))
             }
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
                 "side": orderSide,
             }
             if IsTrue(IsEqual(typeVar, "limit")) {
-                AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-            }
-            if IsTrue(IsTrue((IsEqual(typeVar, "market"))) && IsTrue((IsEqual(side, "buy")))) {
-                // for market buy it requires the amount of quote currency to spend
-                var quoteAmount interface{} = nil
-                var createMarketBuyOrderRequiresPrice interface{} = true
-                createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable,0);
-                params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable,1)
-                var cost interface{} = this.SafeNumber(params, "cost")
-                params = this.Omit(params, "cost")
-                if IsTrue(!IsEqual(cost, nil)) {
-                    quoteAmount = this.CostToPrecision(symbol, cost)
-                } else if IsTrue(createMarketBuyOrderRequiresPrice) {
-                    if IsTrue(IsEqual(price, nil)) {
-                        panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")))
-                    } else {
-                        var amountString interface{} = this.NumberToString(amount)
-                        var priceString interface{} = this.NumberToString(price)
-                        var costRequest interface{} = Precise.StringMul(amountString, priceString)
-                        quoteAmount = this.CostToPrecision(symbol, costRequest)
-                    }
-                } else {
-                    quoteAmount = this.CostToPrecision(symbol, amount)
+                if IsTrue(IsTrue(IsEqual(price, nil)) || IsTrue(IsEqual(amount, nil))) {
+                    panic(ArgumentsRequired(Add(this.Id, " the limit type order in createOrder() is required price and amount.")))
                 }
-                AddElementToObject(request, "ord_type", "price")
-                AddElementToObject(request, "price", quoteAmount)
-            } else {
-                AddElementToObject(request, "ord_type", typeVar)
+                AddElementToObject(request, "ord_type", "limit")
+                AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                 AddElementToObject(request, "volume", this.AmountToPrecision(symbol, amount))
+            } else if IsTrue(IsEqual(typeVar, "market")) {
+                if IsTrue(IsEqual(side, "buy")) {
+                    AddElementToObject(request, "ord_type", "price")
+                    var orderPrice interface{} = this.CalcOrderPrice(symbol, amount, price, params)
+                    AddElementToObject(request, "price", orderPrice)
+                } else {
+                    if IsTrue(IsEqual(amount, nil)) {
+                        panic(ArgumentsRequired(Add(this.Id, " the market sell type order in createOrder() is required amount.")))
+                    }
+                    AddElementToObject(request, "ord_type", "market")
+                    AddElementToObject(request, "volume", this.AmountToPrecision(symbol, amount))
+                }
+            } else {
+                panic(InvalidOrder(Add(this.Id, " createOrder() supports only limit or market types in the type argument.")))
             }
-            var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "identifier")
+            var customType interface{} = this.SafeString2(params, "ordType", "ord_type")
+            if IsTrue(IsEqual(customType, "best")) {
+                params = this.Omit(params, []interface{}{"ordType", "ord_type"})
+                AddElementToObject(request, "ord_type", "best")
+                if IsTrue(IsEqual(side, "buy")) {
+                    var orderPrice interface{} = this.CalcOrderPrice(symbol, amount, price, params)
+                    AddElementToObject(request, "price", orderPrice)
+                } else {
+                    if IsTrue(IsEqual(amount, nil)) {
+                        panic(ArgumentsRequired(Add(this.Id, " the best sell type order in createOrder() is required amount.")))
+                    }
+                    AddElementToObject(request, "volume", this.AmountToPrecision(symbol, amount))
+                }
+            }
+            var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
             if IsTrue(!IsEqual(clientOrderId, nil)) {
                 AddElementToObject(request, "identifier", clientOrderId)
             }
-            if IsTrue(!IsEqual(typeVar, "market")) {
+            if IsTrue(IsTrue(!IsEqual(GetValue(request, "ord_type"), "market")) && IsTrue(!IsEqual(GetValue(request, "ord_type"), "price"))) {
                 var timeInForce interface{} = this.SafeStringLower2(params, "timeInForce", "time_in_force")
-                params = this.Omit(params, "timeInForce")
+                params = this.Omit(params, []interface{}{"timeInForce"})
                 if IsTrue(!IsEqual(timeInForce, nil)) {
                     AddElementToObject(request, "time_in_force", timeInForce)
+                } else {
+                    if IsTrue(IsEqual(GetValue(request, "ord_type"), "best")) {
+                        panic(ArgumentsRequired(Add(this.Id, " the best type order in createOrder() is required timeInForce.")))
+                    }
                 }
             }
-            params = this.Omit(params, []interface{}{"clientOrderId", "identifier"})
+            params = this.Omit(params, []interface{}{"clientOrderId", "cost"})
         
             response:= (<-this.PrivatePostOrders(this.Extend(request, params)))
             PanicOnError(response)
@@ -1383,8 +1500,8 @@ func  (this *upbit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12168 := (<-this.LoadMarkets())
-            PanicOnError(retRes12168)
+            retRes12798 := (<-this.LoadMarkets())
+            PanicOnError(retRes12798)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -1419,6 +1536,137 @@ func  (this *upbit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
         }
 /**
  * @method
+ * @name upbit#editOrder
+ * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+ * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+ * @param {string} id the uuid of the previous order you want to edit.
+ * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
+ * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
+ * @param {string} side the side of the new order. it must be the same as the side of the previous order.
+ * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
+ * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
+ * @param {object} [params] extra parameters specific to the exchange API endpoint.
+ * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
+ * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
+ * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.newClientOrderId] the order ID that the user can define.
+ * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func  (this *upbit) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    amount := GetArg(optionalArgs, 0, nil)
+            _ = amount
+            price := GetArg(optionalArgs, 1, nil)
+            _ = price
+            params := GetArg(optionalArgs, 2, map[string]interface{} {})
+            _ = params
+        
+            retRes13268 := (<-this.LoadMarkets())
+            PanicOnError(retRes13268)
+            var request interface{} = map[string]interface{} {}
+            var prevClientOrderId interface{} = this.SafeString(params, "clientOrderId")
+            params = this.Omit(params, "clientOrderId")
+            if IsTrue(!IsEqual(id, nil)) {
+                AddElementToObject(request, "prev_order_uuid", id)
+            } else if IsTrue(!IsEqual(prevClientOrderId, nil)) {
+                AddElementToObject(request, "prev_order_identifier", prevClientOrderId)
+            } else {
+                panic(ArgumentsRequired(Add(this.Id, " editOrder() is required id or clientOrderId.")))
+            }
+            if IsTrue(IsEqual(typeVar, "limit")) {
+                if IsTrue(IsTrue(IsEqual(price, nil)) || IsTrue(IsEqual(amount, nil))) {
+                    panic(ArgumentsRequired(Add(this.Id, " editOrder() is required price and amount to create limit type order.")))
+                }
+                AddElementToObject(request, "new_ord_type", "limit")
+                AddElementToObject(request, "new_price", this.PriceToPrecision(symbol, price))
+                AddElementToObject(request, "new_volume", this.AmountToPrecision(symbol, amount))
+            } else if IsTrue(IsEqual(typeVar, "market")) {
+                if IsTrue(IsEqual(side, "buy")) {
+                    AddElementToObject(request, "new_ord_type", "price")
+                    var orderPrice interface{} = this.CalcOrderPrice(symbol, amount, price, params)
+                    AddElementToObject(request, "new_price", orderPrice)
+                } else {
+                    if IsTrue(IsEqual(amount, nil)) {
+                        panic(ArgumentsRequired(Add(this.Id, " editOrder() is required amount to create market sell type order.")))
+                    }
+                    AddElementToObject(request, "new_ord_type", "market")
+                    AddElementToObject(request, "new_volume", this.AmountToPrecision(symbol, amount))
+                }
+            } else {
+                panic(InvalidOrder(Add(this.Id, " editOrder() supports only limit or market types in the type argument.")))
+            }
+            var customType interface{} = this.SafeString2(params, "newOrdType", "new_ord_type")
+            if IsTrue(IsEqual(customType, "best")) {
+                params = this.Omit(params, []interface{}{"newOrdType", "new_ord_type"})
+                AddElementToObject(request, "new_ord_type", "best")
+                if IsTrue(IsEqual(side, "buy")) {
+                    var orderPrice interface{} = this.CalcOrderPrice(symbol, amount, price, params)
+                    AddElementToObject(request, "new_price", orderPrice)
+                } else {
+                    if IsTrue(IsEqual(amount, nil)) {
+                        panic(ArgumentsRequired(Add(this.Id, " editOrder() is required amount to create best sell order.")))
+                    }
+                    AddElementToObject(request, "new_volume", this.AmountToPrecision(symbol, amount))
+                }
+            }
+            var clientOrderId interface{} = this.SafeString(params, "newClientOrderId")
+            if IsTrue(!IsEqual(clientOrderId, nil)) {
+                AddElementToObject(request, "new_identifier", clientOrderId)
+            }
+            if IsTrue(IsTrue(!IsEqual(GetValue(request, "new_ord_type"), "market")) && IsTrue(!IsEqual(GetValue(request, "new_ord_type"), "price"))) {
+                var timeInForce interface{} = this.SafeStringLower2(params, "newTimeInForce", "new_time_in_force")
+                params = this.Omit(params, []interface{}{"newTimeInForce", "new_time_in_force"})
+                if IsTrue(!IsEqual(timeInForce, nil)) {
+                    AddElementToObject(request, "new_time_in_force", timeInForce)
+                } else {
+                    if IsTrue(IsEqual(GetValue(request, "new_ord_type"), "best")) {
+                        panic(ArgumentsRequired(Add(this.Id, " the best type order is required timeInForce.")))
+                    }
+                }
+            }
+            params = this.Omit(params, []interface{}{"newClientOrderId", "cost"})
+            // console.log ('check the each request params: ', request);
+        
+            response:= (<-this.PrivatePostOrdersCancelAndNew(this.Extend(request, params)))
+            PanicOnError(response)
+            //   {
+            //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
+            //     side: 'bid',                                         //previous order data
+            //     ord_type: 'limit',                                   //previous order data
+            //     price: '100000000',                                  //previous order data
+            //     state: 'wait',                                       //previous order data
+            //     market: 'KRW-BTC',                                   //previous order data
+            //     created_at: '2025-04-01T15:30:47+09:00',             //previous order data
+            //     volume: '0.00008',                                   //previous order data
+            //     remaining_volume: '0.00008',                         //previous order data
+            //     reserved_fee: '4',                                   //previous order data
+            //     remaining_fee: '4',                                  //previous order data
+            //     paid_fee: '0',                                       //previous order data
+            //     locked: '8004',                                      //previous order data
+            //     executed_volume: '0',                                //previous order data
+            //     trades_count: '0',                                   //previous order data
+            //     identifier: '21',                                    //previous order data
+            //     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
+            //     new_order_identifier: '22'                               // new order data
+            //   }
+            var result interface{} = map[string]interface{} {}
+            AddElementToObject(result, "uuid", this.SafeString(response, "new_order_uuid"))
+            AddElementToObject(result, "identifier", this.SafeString(response, "new_order_identifier"))
+            AddElementToObject(result, "side", this.SafeString(response, "side"))
+            AddElementToObject(result, "market", this.SafeString(response, "market"))
+        
+            ch <- this.ParseOrder(result)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
  * @name upbit#fetchDeposits
  * @see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
  * @description fetch all deposits made to an account
@@ -1442,8 +1690,8 @@ func  (this *upbit) FetchDeposits(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12558 := (<-this.LoadMarkets())
-            PanicOnError(retRes12558)
+            retRes14318 := (<-this.LoadMarkets())
+            PanicOnError(retRes14318)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1500,8 +1748,8 @@ func  (this *upbit) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13008 := (<-this.LoadMarkets())
-            PanicOnError(retRes13008)
+            retRes14768 := (<-this.LoadMarkets())
+            PanicOnError(retRes14768)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -1560,8 +1808,8 @@ func  (this *upbit) FetchWithdrawals(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes13408 := (<-this.LoadMarkets())
-            PanicOnError(retRes13408)
+            retRes15168 := (<-this.LoadMarkets())
+            PanicOnError(retRes15168)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1619,8 +1867,8 @@ func  (this *upbit) FetchWithdrawal(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13858 := (<-this.LoadMarkets())
-            PanicOnError(retRes13858)
+            retRes15618 := (<-this.LoadMarkets())
+            PanicOnError(retRes15618)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -1810,6 +2058,26 @@ func  (this *upbit) ParseOrder(order interface{}, optionalArgs ...interface{}) i
     //         "time_in_force": "ioc"
     //     }
     //
+    //     {
+    //        uuid: '63b38774-27db-4439-ac20-1be16a24d18e',
+    //        side: 'bid',
+    //        ord_type: 'limit',
+    //        price: '100000000',
+    //        state: 'wait',
+    //        market: 'KRW-BTC',
+    //        created_at: '2025-04-01T15:30:47+09:00',
+    //        volume: '0.00008',
+    //        remaining_volume: '0.00008',
+    //        reserved_fee: '4',
+    //        remaining_fee: '4',
+    //        paid_fee: '0',
+    //        locked: '8004',
+    //        executed_volume: '0',
+    //        trades_count: '0',
+    //        identifier: '21',
+    //        new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
+    //        new_order_identifier: '22'
+    //      }
     market := GetArg(optionalArgs, 0, nil)
     _ = market
     var id interface{} = this.SafeString(order, "uuid")
@@ -1819,6 +2087,7 @@ func  (this *upbit) ParseOrder(order interface{}, optionalArgs ...interface{}) i
     } else {
         side = "sell"
     }
+    var identifier interface{} = this.SafeString(order, "identifier")
     var typeVar interface{} = this.SafeString(order, "ord_type")
     var timestamp interface{} = this.Parse8601(this.SafeString(order, "created_at"))
     var status interface{} = this.ParseOrderStatus(this.SafeString(order, "state"))
@@ -1875,7 +2144,7 @@ func  (this *upbit) ParseOrder(order interface{}, optionalArgs ...interface{}) i
     return this.SafeOrder(map[string]interface{} {
         "info": order,
         "id": id,
-        "clientOrderId": nil,
+        "clientOrderId": identifier,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
         "lastTradeTimestamp": lastTradeTimestamp,
@@ -1922,8 +2191,8 @@ func  (this *upbit) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16688 := (<-this.LoadMarkets())
-            PanicOnError(retRes16688)
+            retRes18658 := (<-this.LoadMarkets())
+            PanicOnError(retRes18658)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1991,8 +2260,8 @@ func  (this *upbit) FetchClosedOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17178 := (<-this.LoadMarkets())
-            PanicOnError(retRes17178)
+            retRes19148 := (<-this.LoadMarkets())
+            PanicOnError(retRes19148)
             var request interface{} = map[string]interface{} {
                 "state": "done",
             }
@@ -2069,8 +2338,8 @@ func  (this *upbit) FetchCanceledOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17738 := (<-this.LoadMarkets())
-            PanicOnError(retRes17738)
+            retRes19708 := (<-this.LoadMarkets())
+            PanicOnError(retRes19708)
             var request interface{} = map[string]interface{} {
                 "state": "cancel",
             }
@@ -2141,8 +2410,8 @@ func  (this *upbit) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes18278 := (<-this.LoadMarkets())
-            PanicOnError(retRes18278)
+            retRes20248 := (<-this.LoadMarkets())
+            PanicOnError(retRes20248)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -2218,8 +2487,8 @@ func  (this *upbit) FetchDepositAddresses(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes18888 := (<-this.LoadMarkets())
-            PanicOnError(retRes18888)
+            retRes20858 := (<-this.LoadMarkets())
+            PanicOnError(retRes20858)
         
             response:= (<-this.PrivateGetDepositsCoinAddresses(params))
             PanicOnError(response)
@@ -2292,8 +2561,8 @@ func  (this *upbit) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes19478 := (<-this.LoadMarkets())
-            PanicOnError(retRes19478)
+            retRes21448 := (<-this.LoadMarkets())
+            PanicOnError(retRes21448)
             var currency interface{} = this.Currency(code)
             var networkCode interface{} = nil
             networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params);
@@ -2340,8 +2609,8 @@ func  (this *upbit) CreateDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes19798 := (<-this.LoadMarkets())
-            PanicOnError(retRes19798)
+            retRes21768 := (<-this.LoadMarkets())
+            PanicOnError(retRes21768)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
@@ -2402,8 +2671,8 @@ func  (this *upbit) Withdraw(code interface{}, amount interface{}, address inter
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes20238 := (<-this.LoadMarkets())
-            PanicOnError(retRes20238)
+            retRes22208 := (<-this.LoadMarkets())
+            PanicOnError(retRes22208)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "amount": amount,

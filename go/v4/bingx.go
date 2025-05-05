@@ -818,7 +818,7 @@ func  (this *bingx) FetchCurrencies(optionalArgs ...interface{}) <- chan interfa
         })
                 }
                 var active interface{} = IsTrue(depositEnabled) || IsTrue(withdrawEnabled)
-                AddElementToObject(result, code, map[string]interface{} {
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "info": entry,
             "code": code,
             "id": currencyId,
@@ -830,7 +830,7 @@ func  (this *bingx) FetchCurrencies(optionalArgs ...interface{}) <- chan interfa
             "networks": networks,
             "fee": fee,
             "limits": defaultLimits,
-        })
+        }))
             }
         
             ch <- result

@@ -705,10 +705,12 @@ class coinbase extends \ccxt\async\coinbase {
             $event = $events[$i];
             $updates = $this->safe_value($event, 'updates', array());
             $marketId = $this->safe_string($event, 'product_id');
-            $messageHash = 'level2::' . $marketId;
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            $market = $this->safe_market($marketId);
+            $messageHash = 'level2::' . $market['id'];
+            $symbol = $market['symbol'];
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
-            $symbol = $this->safe_symbol($marketId);
             $type = $this->safe_string($event, 'type');
             if ($type === 'snapshot') {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -718,9 +720,6 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['datetime'] = $datetime;
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             } elseif ($type === 'update') {
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_order_book_helper($orderbook, $updates);
@@ -728,9 +727,6 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
         }
     }

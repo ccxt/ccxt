@@ -321,6 +321,7 @@ class coinone extends Exchange {
                     ),
                 ),
                 'networks' => array(),
+                'type' => 'crypto',
             );
         }
         return $result;
