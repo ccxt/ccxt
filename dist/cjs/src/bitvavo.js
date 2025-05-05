@@ -343,6 +343,7 @@ class bitvavo extends bitvavo$1 {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': undefined, // this will be required soon for order-related endpoints
             },
             'precisionMode': number.SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -1184,6 +1185,11 @@ class bitvavo extends bitvavo$1 {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'createOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
         return this.extend(request, params);
     }
     /**
@@ -1283,6 +1289,11 @@ class bitvavo extends bitvavo$1 {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'editOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1318,6 +1329,11 @@ class bitvavo extends bitvavo$1 {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
+        }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
         }
         return this.extend(request, params);
     }

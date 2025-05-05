@@ -219,9 +219,6 @@
             },
             "orderBook": {
                 "bid": "frequently, zero amount is set in some orderbook entry"
-            },
-            "watchTrades":{
-                "timestamp": "it could be ahead of the current time"
             }
         }
     },
@@ -234,8 +231,7 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided",
-                "type": "todo"
+                "precision":"not provided"
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",

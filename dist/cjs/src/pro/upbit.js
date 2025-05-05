@@ -4,6 +4,7 @@ var upbit$1 = require('../upbit.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
+var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -17,6 +18,7 @@ class upbit extends upbit$1 {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchBalance': true,
@@ -192,6 +194,26 @@ class upbit extends upbit$1 {
         const orderbook = await this.watchPublic(symbol, 'orderbook');
         return orderbook.limit();
     }
+    /**
+     * @method
+     * @name upbit#watchOHLCV
+     * @description watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+     * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+     * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     */
+    async watchOHLCV(symbol, timeframe = '1s', since = undefined, limit = undefined, params = {}) {
+        if (timeframe !== '1s') {
+            throw new errors.NotSupported(this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
+        }
+        const timeFrameOHLCV = 'candle.' + timeframe;
+        return await this.watchPublic(symbol, timeFrameOHLCV);
+    }
     handleTicker(client, message) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
@@ -317,6 +339,26 @@ class upbit extends upbit$1 {
         const marketId = this.safeString(message, 'code');
         const messageHash = 'trade:' + marketId;
         client.resolve(stored, messageHash);
+    }
+    handleOHLCV(client, message) {
+        // {
+        //     type: 'candle.1s',
+        //     code: 'KRW-USDT',
+        //     candle_date_time_utc: '2025-04-22T09:50:34',
+        //     candle_date_time_kst: '2025-04-22T18:50:34',
+        //     opening_price: 1438,
+        //     high_price: 1438,
+        //     low_price: 1438,
+        //     trade_price: 1438,
+        //     candle_acc_trade_volume: 1145.8935,
+        //     candle_acc_trade_price: 1647794.853,
+        //     timestamp: 1745315434125,
+        //     stream_type: 'REALTIME'
+        //   }
+        const marketId = this.safeString(message, 'code');
+        const messageHash = 'candle.1s:' + marketId;
+        const ohlcv = this.parseOHLCV(message);
+        client.resolve(ohlcv, messageHash);
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
@@ -633,6 +675,7 @@ class upbit extends upbit$1 {
             'trade': this.handleTrades,
             'myOrder': this.handleMyOrder,
             'myAsset': this.handleBalance,
+            'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString(message, 'type');
         const method = this.safeValue(methods, methodName);
