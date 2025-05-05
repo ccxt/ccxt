@@ -3429,7 +3429,7 @@ class htx extends Exchange {
             //                        "withdrawQuotaPerYear" => null,
             //                        "withdrawQuotaTotal" => null,
             //                        "withdrawFeeType" => "fixed",
-            //                        "transactFeeWithdraw" => "11.1653",
+            //                        "transactFeeWithdraw" => "11.1654",
             //                        "addrWithTag" => false,
             //                        "addrDepositTag" => false
             //                    }
