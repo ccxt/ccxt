@@ -538,7 +538,8 @@ func  (this *upbit) FetchMarketById(id interface{}, optionalArgs ...interface{})
 /**
  * @method
  * @name upbit#fetchMarkets
- * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
+ * @see https://global-docs.upbit.com/reference/listing-market-list
  * @description retrieves data on all markets for upbit
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -649,7 +650,8 @@ func  (this *upbit) ParseBalance(response interface{}) interface{}  {
 /**
  * @method
  * @name upbit#fetchBalance
- * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EA%B3%84%EC%A2%8C-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
+ * @see https://global-docs.upbit.com/reference/overall-account-inquiry
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -662,8 +664,8 @@ func  (this *upbit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6008 := (<-this.LoadMarkets())
-            PanicOnError(retRes6008)
+            retRes6028 := (<-this.LoadMarkets())
+            PanicOnError(retRes6028)
         
             response:= (<-this.PrivateGetAccounts(params))
             PanicOnError(response)
@@ -689,7 +691,8 @@ func  (this *upbit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
 /**
  * @method
  * @name upbit#fetchOrderBooks
- * @see https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/호가-정보-조회
+ * @see https://global-docs.upbit.com/reference/order-book-list
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
  * @param {int} [limit] not used by upbit fetchOrderBooks ()
@@ -708,8 +711,8 @@ func  (this *upbit) FetchOrderBooks(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6288 := (<-this.LoadMarkets())
-            PanicOnError(retRes6288)
+            retRes6318 := (<-this.LoadMarkets())
+            PanicOnError(retRes6318)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
                 ids = Join(this.Ids, ",")
@@ -776,7 +779,8 @@ func  (this *upbit) FetchOrderBooks(optionalArgs ...interface{}) <- chan interfa
 /**
  * @method
  * @name upbit#fetchOrderBook
- * @see https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/호가-정보-조회
+ * @see https://global-docs.upbit.com/reference/order-book-list
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -863,7 +867,8 @@ func  (this *upbit) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 /**
  * @method
  * @name upbit#fetchTickers
- * @see https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
+ * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
+ * @see https://global-docs.upbit.com/reference/tickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -879,8 +884,8 @@ func  (this *upbit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7688 := (<-this.LoadMarkets())
-            PanicOnError(retRes7688)
+            retRes7738 := (<-this.LoadMarkets())
+            PanicOnError(retRes7738)
             symbols = this.MarketSymbols(symbols)
             var ids interface{} = nil
             if IsTrue(IsEqual(symbols, nil)) {
@@ -939,7 +944,8 @@ func  (this *upbit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
 /**
  * @method
  * @name upbit#fetchTicker
- * @see https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
+ * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
+ * @see https://global-docs.upbit.com/reference/tickers
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1038,7 +1044,8 @@ func  (this *upbit) ParseTrade(trade interface{}, optionalArgs ...interface{}) i
 /**
  * @method
  * @name upbit#fetchTrades
- * @see https://docs.upbit.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+ * @see https://docs.upbit.com/kr/reference/최근-체결-내역
+ * @see https://global-docs.upbit.com/reference/today-trades-history
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1058,8 +1065,8 @@ func  (this *upbit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes9168 := (<-this.LoadMarkets())
-            PanicOnError(retRes9168)
+            retRes9238 := (<-this.LoadMarkets())
+            PanicOnError(retRes9238)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 200
@@ -1103,7 +1110,8 @@ func  (this *upbit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
 /**
  * @method
  * @name upbit#fetchTradingFee
- * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4
+ * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+ * @see https://global-docs.upbit.com/reference/available-order-information
  * @description fetch the trading fees for a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1117,8 +1125,8 @@ func  (this *upbit) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9618 := (<-this.LoadMarkets())
-            PanicOnError(retRes9618)
+            retRes9698 := (<-this.LoadMarkets())
+            PanicOnError(retRes9698)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1195,8 +1203,8 @@ func  (this *upbit) FetchTradingFees(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10258 := (<-this.LoadMarkets())
-            PanicOnError(retRes10258)
+            retRes10338 := (<-this.LoadMarkets())
+            PanicOnError(retRes10338)
         
             fetchMarketResponse:= (<-this.FetchMarkets(params))
             PanicOnError(fetchMarketResponse)
@@ -1241,7 +1249,8 @@ func  (this *upbit) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) i
 /**
  * @method
  * @name upbit#fetchOHLCV
- * @see https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1
+ * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
+ * @see https://global-docs.upbit.com/reference/minutes
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1264,8 +1273,8 @@ func  (this *upbit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10808 := (<-this.LoadMarkets())
-            PanicOnError(retRes10808)
+            retRes10898 := (<-this.LoadMarkets())
+            PanicOnError(retRes10898)
             var market interface{} = this.Market(symbol)
             var timeframePeriod interface{} = this.ParseTimeframe(timeframe)
             var timeframeValue interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1360,7 +1369,7 @@ func  (this *upbit) CalcOrderPrice(symbol interface{}, amount interface{}, optio
  * @method
  * @name upbit#createOrder
  * @description create a trade order
- * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+ * @see https://docs.upbit.com/kr/reference/주문하기
  * @see https://global-docs.upbit.com/reference/order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
@@ -1383,8 +1392,8 @@ func  (this *upbit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11788 := (<-this.LoadMarkets())
-            PanicOnError(retRes11788)
+            retRes11878 := (<-this.LoadMarkets())
+            PanicOnError(retRes11878)
             var market interface{} = this.Market(symbol)
             var orderSide interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {
@@ -1483,7 +1492,8 @@ func  (this *upbit) CreateOrder(symbol interface{}, typeVar interface{}, side in
 /**
  * @method
  * @name upbit#cancelOrder
- * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
+ * @see https://docs.upbit.com/kr/reference/주문-취소
+ * @see https://global-docs.upbit.com/reference/order-cancel
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol not used by upbit cancelOrder ()
@@ -1500,8 +1510,8 @@ func  (this *upbit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12798 := (<-this.LoadMarkets())
-            PanicOnError(retRes12798)
+            retRes12898 := (<-this.LoadMarkets())
+            PanicOnError(retRes12898)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -1537,7 +1547,8 @@ func  (this *upbit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
 /**
  * @method
  * @name upbit#editOrder
- * @see https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8
+ * @see https://docs.upbit.com/kr/reference/취소-후-재주문
+ * @see https://global-docs.upbit.com/reference/cancel-and-new
  * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
  * @param {string} id the uuid of the previous order you want to edit.
  * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
@@ -1565,8 +1576,8 @@ func  (this *upbit) EditOrder(id interface{}, symbol interface{}, typeVar interf
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes13268 := (<-this.LoadMarkets())
-            PanicOnError(retRes13268)
+            retRes13378 := (<-this.LoadMarkets())
+            PanicOnError(retRes13378)
             var request interface{} = map[string]interface{} {}
             var prevClientOrderId interface{} = this.SafeString(params, "clientOrderId")
             params = this.Omit(params, "clientOrderId")
@@ -1668,7 +1679,8 @@ func  (this *upbit) EditOrder(id interface{}, symbol interface{}, typeVar interf
 /**
  * @method
  * @name upbit#fetchDeposits
- * @see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
+ * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
  * @description fetch all deposits made to an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -1690,8 +1702,8 @@ func  (this *upbit) FetchDeposits(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes14318 := (<-this.LoadMarkets())
-            PanicOnError(retRes14318)
+            retRes14438 := (<-this.LoadMarkets())
+            PanicOnError(retRes14438)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1731,6 +1743,7 @@ func  (this *upbit) FetchDeposits(optionalArgs ...interface{}) <- chan interface
  * @method
  * @name upbit#fetchDeposit
  * @description fetch information on a deposit
+ * @see https://docs.upbit.com/kr/reference/개별-입금-조회
  * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
  * @param {string} id the unique id for the deposit
  * @param {string} [code] unified currency code of the currency deposited
@@ -1748,8 +1761,8 @@ func  (this *upbit) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes14768 := (<-this.LoadMarkets())
-            PanicOnError(retRes14768)
+            retRes14898 := (<-this.LoadMarkets())
+            PanicOnError(retRes14898)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -1786,7 +1799,8 @@ func  (this *upbit) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-
 /**
  * @method
  * @name upbit#fetchWithdrawals
- * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/전체-출금-조회
+ * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
  * @description fetch all withdrawals made from an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -1808,8 +1822,8 @@ func  (this *upbit) FetchWithdrawals(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes15168 := (<-this.LoadMarkets())
-            PanicOnError(retRes15168)
+            retRes15308 := (<-this.LoadMarkets())
+            PanicOnError(retRes15308)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1850,6 +1864,7 @@ func  (this *upbit) FetchWithdrawals(optionalArgs ...interface{}) <- chan interf
  * @method
  * @name upbit#fetchWithdrawal
  * @description fetch data on a currency withdrawal via the withdrawal id
+ * @see https://docs.upbit.com/kr/reference/개별-출금-조회
  * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
  * @param {string} id the unique id for the withdrawal
  * @param {string} [code] unified currency code of the currency withdrawn
@@ -1867,8 +1882,8 @@ func  (this *upbit) FetchWithdrawal(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes15618 := (<-this.LoadMarkets())
-            PanicOnError(retRes15618)
+            retRes15768 := (<-this.LoadMarkets())
+            PanicOnError(retRes15768)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -2169,6 +2184,7 @@ func  (this *upbit) ParseOrder(order interface{}, optionalArgs ...interface{}) i
  * @method
  * @name upbit#fetchOpenOrders
  * @description fetch all unfilled currently open orders
+ * @see https://docs.upbit.com/kr/reference/대기-주문-조회
  * @see https://global-docs.upbit.com/reference/open-order
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2191,8 +2207,8 @@ func  (this *upbit) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes18658 := (<-this.LoadMarkets())
-            PanicOnError(retRes18658)
+            retRes18818 := (<-this.LoadMarkets())
+            PanicOnError(retRes18818)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -2238,6 +2254,7 @@ func  (this *upbit) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
  * @method
  * @name upbit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
+ * @see https://docs.upbit.com/kr/reference/종료-주문-조회
  * @see https://global-docs.upbit.com/reference/closed-order
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2260,8 +2277,8 @@ func  (this *upbit) FetchClosedOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes19148 := (<-this.LoadMarkets())
-            PanicOnError(retRes19148)
+            retRes19318 := (<-this.LoadMarkets())
+            PanicOnError(retRes19318)
             var request interface{} = map[string]interface{} {
                 "state": "done",
             }
@@ -2316,6 +2333,7 @@ func  (this *upbit) FetchClosedOrders(optionalArgs ...interface{}) <- chan inter
  * @method
  * @name upbit#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
+ * @see https://docs.upbit.com/kr/reference/종료-주문-조회
  * @see https://global-docs.upbit.com/reference/closed-order
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -2338,8 +2356,8 @@ func  (this *upbit) FetchCanceledOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes19708 := (<-this.LoadMarkets())
-            PanicOnError(retRes19708)
+            retRes19888 := (<-this.LoadMarkets())
+            PanicOnError(retRes19888)
             var request interface{} = map[string]interface{} {
                 "state": "cancel",
             }
@@ -2393,7 +2411,8 @@ func  (this *upbit) FetchCanceledOrders(optionalArgs ...interface{}) <- chan int
 /**
  * @method
  * @name upbit#fetchOrder
- * @see https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/개별-주문-조회
+ * @see https://global-docs.upbit.com/reference/individual-order-inquiry
  * @description fetches information on an order made by the user
  * @param {string} id order id
  * @param {string} symbol not used by upbit fetchOrder
@@ -2410,8 +2429,8 @@ func  (this *upbit) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes20248 := (<-this.LoadMarkets())
-            PanicOnError(retRes20248)
+            retRes20438 := (<-this.LoadMarkets())
+            PanicOnError(retRes20438)
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -2471,7 +2490,8 @@ func  (this *upbit) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
 /**
  * @method
  * @name upbit#fetchDepositAddresses
- * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
+ * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
  * @description fetch deposit addresses for multiple currencies and chain types
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2487,8 +2507,8 @@ func  (this *upbit) FetchDepositAddresses(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes20858 := (<-this.LoadMarkets())
-            PanicOnError(retRes20858)
+            retRes21058 := (<-this.LoadMarkets())
+            PanicOnError(retRes21058)
         
             response:= (<-this.PrivateGetDepositsCoinAddresses(params))
             PanicOnError(response)
@@ -2546,7 +2566,8 @@ func  (this *upbit) ParseDepositAddress(depositAddress interface{}, optionalArgs
 /**
  * @method
  * @name upbit#fetchDepositAddress
- * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+ * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
+ * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2561,8 +2582,8 @@ func  (this *upbit) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes21448 := (<-this.LoadMarkets())
-            PanicOnError(retRes21448)
+            retRes21658 := (<-this.LoadMarkets())
+            PanicOnError(retRes21658)
             var currency interface{} = this.Currency(code)
             var networkCode interface{} = nil
             networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params);
@@ -2595,7 +2616,8 @@ func  (this *upbit) FetchDepositAddress(code interface{}, optionalArgs ...interf
 /**
  * @method
  * @name upbit#createDepositAddress
- * @see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+ * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
+ * @see https://global-docs.upbit.com/reference/deposit-address-generation
  * @description create a currency deposit address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2609,8 +2631,8 @@ func  (this *upbit) CreateDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes21768 := (<-this.LoadMarkets())
-            PanicOnError(retRes21768)
+            retRes21988 := (<-this.LoadMarkets())
+            PanicOnError(retRes21988)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
@@ -2648,8 +2670,8 @@ func  (this *upbit) CreateDepositAddress(code interface{}, optionalArgs ...inter
 /**
  * @method
  * @name upbit#withdraw
- * @see https://docs.upbit.com/reference/디지털자산-출금하기
- * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
+ * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
+ * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
  * @description make a withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
@@ -2671,8 +2693,8 @@ func  (this *upbit) Withdraw(code interface{}, amount interface{}, address inter
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes22208 := (<-this.LoadMarkets())
-            PanicOnError(retRes22208)
+            retRes22428 := (<-this.LoadMarkets())
+            PanicOnError(retRes22428)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "amount": amount,
