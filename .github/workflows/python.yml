@@ -24,6 +24,12 @@ jobs:
       if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+    # Add this step before any step that needs network access
+    # where the certificate error might occur (e.g., curl, git clone, pip install)
+    - name: Update CA Certificates
+      run: |
+        sudo apt-get update
+        sudo apt-get install --reinstall ca-certificates -y
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
