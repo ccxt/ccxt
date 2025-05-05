@@ -419,7 +419,9 @@ export default class aftermath extends Exchange {
         // }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger (response, 'nonce');
+        return orderbook;
     }
 
     /**
