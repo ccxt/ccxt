@@ -217,7 +217,7 @@ jobs:
           # echo | openssl s_client -connect api.hbdm.com:443 -showcerts -servername api.hbdm.com < /dev/null
       - name: Live tests
         if: env.important_modified == 'true'
-        run: ./run-tests-simul.sh --python-async
+        run: ./run-tests-simul.sh --python-async htx
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --python-async "${{ env.rest_files }}" "${{ env.ws_files }}"
+        run: ./run-tests-simul.sh --python-async  htx "${{ env.rest_files }}" "${{ env.ws_files }}"
