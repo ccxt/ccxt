@@ -4785,10 +4785,11 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 * By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Not supported by all exchanges. If the below method returns value, then it means the exchange supports it:
+* Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
 ```
-value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported, which would also show whether `limit` price is supported
-if (value !== None) {
+value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss')
+print(value) # this will also show whether `limit` price is supported in stoploss or not
+if (value is not None) {
     result = await exchange.create_order(...)
 } else {
     print("Embedded stop-loss not supported")
