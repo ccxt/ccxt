@@ -1,5 +1,5 @@
 setuptools>=60.9.0
-certifi>=2018.1.18
+certifi>=2023.6.15
 requests>=2.32.2
 cryptography>=2.6.1
 typing_extensions>=4.4.0
