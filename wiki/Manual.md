@@ -4795,9 +4795,9 @@ if (value !== None) {
 }
 ```
 * Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
-  
+
 *Note: This is still under unification and is work in progress*
-  
+
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
