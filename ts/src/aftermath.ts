@@ -128,6 +128,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchCurrencies
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/currencies
      * @description fetches all available currencies on an exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
@@ -172,6 +173,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchMarkets
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/markets
      * @description retrieves data on all markets for woo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -290,6 +292,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTradingFee
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/markets
      * @description fetch the trading fees for a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -316,6 +319,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTicker
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/ticker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -386,6 +390,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOrderBook
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/orderbook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -420,6 +425,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTrades
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/trades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -462,6 +468,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOHLCV
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/ohlcv
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -503,6 +510,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchBalance
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/balance
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] account object ID, required
@@ -554,6 +562,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchAccounts
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/accounts
      * @description query for accounts owned by the walletAddress. An Account is needed for all trading methods.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Array} a list of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#accounts}
@@ -589,8 +598,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOpenOrders
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/my_pending_orders
      * @description fetch all unfilled currently open orders
-     * @see https://api-docs-v3.idex.io/#get-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -634,6 +643,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchPositions
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Read/iperps_api%3A%3Accxt%3A%3Afetch%3A%3Apositions
      * @description fetch all open positions
      * @param {string[]} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -683,8 +693,9 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#createOrders
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_create_orders
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_create_orders
      * @description create a list of trade orders
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account id to use, required
@@ -746,6 +757,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#cancelOrders
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_cancel_orders
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_cancel_orders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
@@ -851,6 +864,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#addMargin
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_allocate
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_allocate
      * @description add margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
@@ -897,6 +912,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#reduceMargin
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_deallocate
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_deallocate
      * @description remove margin from a position
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to remove
@@ -943,6 +960,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#transfer
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_deposit
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_deposit
      * @description transfer currency internally between wallets on the same account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -998,6 +1017,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#withdraw
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Build/build_withdraw
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Submit/submit_withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
