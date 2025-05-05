@@ -3271,7 +3271,7 @@ class htx(Exchange, ImplicitAPI):
         #                        "withdrawQuotaPerYear": null,
         #                        "withdrawQuotaTotal": null,
         #                        "withdrawFeeType": "fixed",
-        #                        "transactFeeWithdraw": "11.1653",
+        #                        "transactFeeWithdraw": "11.1654",
         #                        "addrWithTag": False,
         #                        "addrDepositTag": False
         #                    }
