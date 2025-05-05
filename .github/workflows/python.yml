@@ -187,6 +187,11 @@ jobs:
         run: pip install -r ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: Update CA Certificates
+        run: |
+          sudo apt-get update
+          sudo apt-get install --reinstall ca-certificates -y
+          sudo update-ca-certificates -f
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --python-async

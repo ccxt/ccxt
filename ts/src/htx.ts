@@ -2175,7 +2175,7 @@ export default class htx extends Exchange {
         //         "close":  2.3909,
         //         "amount":  628.992,
         //         "vol":  1493.71841095,
-        //         "count":  2088,
+        //         "count":  2089,
         //         "bid":  2.3643,
         //         "bidSize":  0.7136,
         //         "ask":  2.4061,
