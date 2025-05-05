@@ -199,9 +199,9 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
                 "currencyIdAndCode": "broken currencies",
-                "type": "todo"
+                "type": "todo",
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
             },
             "ticker": {
 		        "open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
@@ -1117,6 +1117,8 @@
         }
     },
     "htx": {
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "limits":"messed",
@@ -1550,7 +1552,7 @@
     "p2b": {
         "skip": "temp issues",
         "skipWs": "flaky",
-        "httpsProxy": "http://51.83.140.52:11230",
+        "httpsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": "invalid URL",
             "fetchTrades": "requires order id"

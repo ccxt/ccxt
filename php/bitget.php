@@ -2022,47 +2022,46 @@ class bitget extends Exchange {
          */
         $response = $this->publicSpotGetV2SpotPublicCoins ($params);
         //
-        //     {
-        //         "code" => "00000",
-        //         "data" => array(
-        //             {
-        //                 "chains" => array(
-        //                     array(
-        //                         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
-        //                         "chain" => "BTC",
-        //                         "depositConfirm" => "1",
-        //                         "extraWithdrawFee" => "0",
-        //                         "minDepositAmount" => "0.0001",
-        //                         "minWithdrawAmount" => "0.005",
-        //                         "needTag" => "false",
-        //                         "rechargeable" => "true",
-        //                         "withdrawConfirm" => "1",
-        //                         "withdrawFee" => "0.0004",
-        //                         "withdrawable" => "true"
-        //                     ),
-        //                 ),
-        //                 "coin" => "BTC",
-        //                 "coinId" => "1",
-        //                 "transfer" => "true""
-        //             }
-        //         ),
-        //         "msg" => "success",
-        //         "requestTime" => "1700120731773"
-        //     }
+        //    {
+        //        "code" => "00000",
+        //        "msg" => "success",
+        //        "requestTime" => "1746195617812",
+        //        "data" => array(
+        //            {
+        //                "coinId" => "1456",
+        //                "coin" => "NEIROETH",
+        //                "transfer" => "false",
+        //                "chains" => [
+        //                    array(
+        //                        "chain" => "ERC20",
+        //                        "needTag" => "false",
+        //                        "withdrawable" => "true",
+        //                        "rechargeable" => "true",
+        //                        "withdrawFee" => "44.91017965",
+        //                        "extraWithdrawFee" => "0",
+        //                        "depositConfirm" => "12",
+        //                        "withdrawConfirm" => "64",
+        //                        "minDepositAmount" => "0.06",
+        //                        "minWithdrawAmount" => "60",
+        //                        "browserUrl" => "https://etherscan.io/tx/",
+        //                        "contractAddress" => "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+        //                        "withdrawStep" => "0",
+        //                        "withdrawMinScale" => "8",
+        //                        "congestion" => "normal"
+        //                    }
+        //                ),
+        //                "areaCoin" => "no"
+        //            ),
+        //            ...
         //
         $result = array();
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+            $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
             $code = $this->safe_currency_code($id);
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
-            $deposit = false;
-            $withdraw = false;
-            $minWithdrawString = null;
-            $minDepositString = null;
-            $minWithdrawFeeString = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -2070,56 +2069,38 @@ class bitget extends Exchange {
                 if ($network !== null) {
                     $network = strtoupper($network);
                 }
-                $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
-                $canWithdraw = $withdrawEnabled === 'true';
-                $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
-                $depositEnabled = $this->safe_string($chain, 'rechargeable');
-                $canDeposit = $depositEnabled === 'true';
-                $deposit = ($canDeposit) ? $canDeposit : $deposit;
-                $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
-                if ($networkWithdrawFeeString !== null) {
-                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
-                }
-                $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
-                if ($networkMinWithdrawString !== null) {
-                    $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
-                }
-                $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
-                if ($networkMinDepositString !== null) {
-                    $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
-                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->parse_number($networkMinWithdrawString),
+                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->parse_number($networkMinDepositString),
+                            'min' => $this->safe_number($chain, 'minDepositAmount'),
                             'max' => null,
                         ),
                     ),
-                    'active' => $canWithdraw && $canDeposit,
-                    'withdraw' => $canWithdraw,
-                    'deposit' => $canDeposit,
-                    'fee' => $this->parse_number($networkWithdrawFeeString),
-                    'precision' => null,
+                    'active' => null,
+                    'withdraw' => $this->safe_string($chain, 'withdrawable') === 'true',
+                    'deposit' => $this->safe_string($chain, 'rechargeable') === 'true',
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'id' => $id,
                 'code' => $code,
                 'networks' => $networks,
                 'type' => null,
                 'name' => null,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $this->parse_number($minWithdrawFeeString),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
                 'precision' => null,
                 'limits' => array(
                     'amount' => array(
@@ -2127,16 +2108,16 @@ class bitget extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minWithdrawString),
+                        'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $this->parse_number($minDepositString),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
                 'created' => null,
-            );
+            ));
         }
         return $result;
     }
