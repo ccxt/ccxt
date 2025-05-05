@@ -195,6 +195,12 @@ jobs:
           pip install --upgrade certifi
           echo "CERTIFI VERIONNNNNNN:"
           pip show certifi
+      - name: Check api.hbdm.com Certificate Chain
+        run: |
+          echo "Checking certificate for api.hbdm.com..."
+          echo | openssl s_client -connect api.hbdm.com:443 -showcerts -servername api.hbdm.com
+          # Optional: Also check the exact endpoint if it matters (usually doesn't for cert)
+          # echo | openssl s_client -connect api.hbdm.com:443 -showcerts -servername api.hbdm.com < /dev/null
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --python-async
