@@ -190,11 +190,9 @@ jobs:
       - name: Update CA Certificates
         run: |
           sudo apt-get update
-          sudo apt-get install --reinstall ca-certificates -y
-          sudo update-ca-certificates -f
           pip install --upgrade certifi
-          echo "CERTIFI VERIONNNNNNN:"
-          pip show certifi
+          sudo apt-get install --reinstall ca-certificates -y
+          sudo update-ca-certificates --fresh # Add --fresh for good measure
       - name: Check api.hbdm.com Certificate Chain
         run: |
           echo "Checking certificate for api.hbdm.com..."
