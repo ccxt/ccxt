@@ -4785,13 +4785,17 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 * By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Note, before creating order, ensure an exchange supports this specific functionality, by checking the below values are not null, for example:
+* Not supported by all exchanges. If the below method returns value, then it means the exchange supports it:
 ```
 value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
 value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
 # print(value)
 ```
+* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
+  
+* Note: This is still under unification and is work in progress*
 
+  
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
