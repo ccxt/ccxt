@@ -39,13 +39,11 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         'quoteVolume': exchange.parse_number('1.234'),
     }
     # todo: atm, many exchanges fail, so temporarily decrease stict mode
-    empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average']
+    empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'bidVolume', 'askVolume', 'vwap', 'change', 'percentage', 'average']
     # trick csharp-transpiler for string
-    if not 'BidsAsks' in str(method):
+    if not ('BidsAsks' in str(method)):
         empty_allowed_for.append('bid')
         empty_allowed_for.append('ask')
-        empty_allowed_for.append('bidVolume')
-        empty_allowed_for.append('askVolume')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     log_text = test_shared_methods.log_template(exchange, method, entry)
@@ -95,14 +93,18 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         # assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         # assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         # assert (vwap >= low && vwap <= high)
+        # todo: calc compare
         assert Precise.string_ge(vwap, '0'), 'vwap is not greater than zero' + log_text
         if base_volume is not None:
             assert quote_volume is not None, 'baseVolume & vwap is defined, but quoteVolume is not' + log_text
         if quote_volume is not None:
             assert base_volume is not None, 'quoteVolume & vwap is defined, but baseVolume is not' + log_text
-    if not ('spread' in skipped_properties) and not ('ask' in skipped_properties) and not ('bid' in skipped_properties):
-        ask_string = exchange.safe_string(entry, 'ask')
-        bid_string = exchange.safe_string(entry, 'bid')
-        if (ask_string is not None) and (bid_string is not None):
-            test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
+    ask_string = exchange.safe_string(entry, 'ask')
+    bid_string = exchange.safe_string(entry, 'bid')
+    if (ask_string is not None) and (bid_string is not None) and not ('spread' in skipped_properties):
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
+    # todo: rethink about this
+    # else {
+    #    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+    # }
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)

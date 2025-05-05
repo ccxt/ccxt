@@ -101,6 +101,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     # check taker/maker
+    # todo: check not all to be within 0-1.0
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'taker', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
