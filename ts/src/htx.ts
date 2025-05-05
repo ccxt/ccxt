@@ -2189,7 +2189,7 @@ export default class htx extends Exchange {
         //         "askSize": 0.707776,
         //         "bid": 16829.5,
         //         "bidSize": 1.685945,
-        //         "quoteTime": 1671941599612,
+        //         "quoteTime": 1671941599613,
         //         "symbol": "btcusdt"
         //     }
         //
