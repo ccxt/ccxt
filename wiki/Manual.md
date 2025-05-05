@@ -4787,9 +4787,12 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 * Attached trigger orders are conditional on the primary order being executed.
 * Not supported by all exchanges. If the below method returns value, then it means the exchange supports it:
 ```
-value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
-value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
-# print(value)
+value = exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported, which would also show whether `limit` price is supported
+if (value !== None) {
+    result = await exchange.create_order(...)
+} else {
+    print("Embedded stop-loss not supported")
+}
 ```
 * Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
   
