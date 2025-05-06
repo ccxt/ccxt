@@ -2227,7 +2227,7 @@ func  (this *htx) ParseTicker(ticker interface{}, optionalArgs ...interface{}) i
     var ask interface{} = nil
     var askVolume interface{} = nil
     if IsTrue(InOp(ticker, "bid")) {
-        if IsTrue(IsArray(GetValue(ticker, "bid"))) {
+        if IsTrue(IsTrue(!IsEqual(GetValue(ticker, "bid"), nil)) && IsTrue(IsArray(GetValue(ticker, "bid")))) {
             bid = this.SafeString(GetValue(ticker, "bid"), 0)
             bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
         } else {
@@ -2236,7 +2236,7 @@ func  (this *htx) ParseTicker(ticker interface{}, optionalArgs ...interface{}) i
         }
     }
     if IsTrue(InOp(ticker, "ask")) {
-        if IsTrue(IsArray(GetValue(ticker, "ask"))) {
+        if IsTrue(IsTrue(!IsEqual(GetValue(ticker, "ask"), nil)) && IsTrue(IsArray(GetValue(ticker, "ask")))) {
             ask = this.SafeString(GetValue(ticker, "ask"), 0)
             askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
         } else {
