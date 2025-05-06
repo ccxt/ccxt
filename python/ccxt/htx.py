@@ -2172,14 +2172,14 @@ class htx(Exchange, ImplicitAPI):
         ask = None
         askVolume = None
         if 'bid' in ticker:
-            if isinstance(ticker['bid'], list):
+            if ticker['bid'] is not None and isinstance(ticker['bid'], list):
                 bid = self.safe_string(ticker['bid'], 0)
                 bidVolume = self.safe_string(ticker['bid'], 1)
             else:
                 bid = self.safe_string(ticker, 'bid')
                 bidVolume = self.safe_string(ticker, 'bidSize')
         if 'ask' in ticker:
-            if isinstance(ticker['ask'], list):
+            if ticker['ask'] is not None and isinstance(ticker['ask'], list):
                 ask = self.safe_string(ticker['ask'], 0)
                 askVolume = self.safe_string(ticker['ask'], 1)
             else:
