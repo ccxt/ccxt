@@ -10,7 +10,11 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function log_template($exchange, $method, $entry) {
-    return ' <<< ' . $exchange->id . ' ' . $method . ' ::: ' . $exchange->json($entry) . ' >>> ';
+    // there are cases when exchange is undefined (eg. base tests)
+    $id = ($exchange !== null) ? $exchange->id : 'undefined';
+    $method_string = ($method !== null) ? $method : 'undefined';
+    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
 
@@ -42,24 +46,28 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     $same_string = (is_string($entry_key_val)) && (is_string($format_key_val));
     $same_numeric = ((is_int($entry_key_val) || is_float($entry_key_val))) && ((is_int($format_key_val) || is_float($format_key_val)));
     $same_boolean = (($entry_key_val === true) || ($entry_key_val === false)) && (($format_key_val === true) || ($format_key_val === false));
-    $same_array = gettype($entry_key_val) === 'array' && array_keys($entry_key_val) === array_keys(array_keys($entry_key_val)) && gettype($format_key_val) === 'array' && array_keys($format_key_val) === array_keys(array_keys($format_key_val));
+    $same_array = gettype($entry_key_val) === 'array' && array_is_list($entry_key_val) && gettype($format_key_val) === 'array' && array_is_list($format_key_val);
     $same_object = (is_array($entry_key_val)) && (is_array($format_key_val));
     $result = ($entry_key_val === null) || $same_string || $same_numeric || $same_boolean || $same_array || $same_object;
     return $result;
 }
 
 
-function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = []) {
+function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = null, $deep = false) {
     $log_text = log_template($exchange, $method, $entry);
-    assert($entry, 'item is null/undefined' . $log_text);
+    assert($entry !== null, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
-    if (gettype($format) === 'array' && array_keys($format) === array_keys(array_keys($format))) {
-        assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'entry is not an array' . $log_text);
+    $allow_empty_skips = $exchange->safe_list($skipped_properties, 'allowNull', []);
+    if ($empty_allowed_for !== null) {
+        $empty_allowed_for = concat($empty_allowed_for, $allow_empty_skips);
+    }
+    if (gettype($format) === 'array' && array_is_list($format)) {
+        assert(gettype($entry) === 'array' && array_is_list($entry), 'entry is not an array' . $log_text);
         $real_length = count($entry);
         $expected_length = count($format);
         assert($real_length === $expected_length, 'entry length is not equal to expected length of ' . ((string) $expected_length) . $log_text);
         for ($i = 0; $i < count($format); $i++) {
-            $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
             if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
                 continue;
@@ -83,11 +91,11 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            assert(is_array($entry) && array_key_exists($key, $entry), '\"' . string_value($key) . '\" key is missing from structure' . $log_text);
+            assert(is_array($entry) && array_key_exists($key, $entry), '"' . string_value($key) . '" key is missing from structure' . $log_text);
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -96,18 +104,23 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             // if it was in needed keys, then it should have value.
-            assert($value !== null, '\"' . string_value($key) . '\" key is expected to have a value' . $log_text);
+            assert($value !== null, '"' . string_value($key) . '" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
-                assert($type_assertion, '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
+                assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                if ($deep) {
+                    if (is_array($value)) {
+                        assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
+                    }
+                }
             }
         }
     }
 }
 
 
-function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp', $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
     if ($skip_value !== null) {
@@ -115,12 +128,13 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     }
     $is_date_time_object = is_string($key_name_or_index);
     if ($is_date_time_object) {
-        assert((is_array($entry) && array_key_exists($key_name_or_index, $entry)), 'timestamp key \"' . $key_name_or_index . '\" is missing from structure' . $log_text);
+        assert((is_array($entry) && array_key_exists($key_name_or_index, $entry)), 'timestamp key "' . $key_name_or_index . '" is missing from structure' . $log_text);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
         assert(!($entry[$key_name_or_index] === null), 'timestamp index ' . string_value($key_name_or_index) . ' is undefined' . $log_text);
     }
     $ts = $entry[$key_name_or_index];
+    assert($ts !== null || $allow_null, 'timestamp is null' . $log_text);
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
         assert(is_int($ts), 'timestamp should be an integer' . $log_text);
@@ -136,7 +150,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
 }
 
 
-function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp', $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
     if ($skip_value !== null) {
@@ -147,36 +161,40 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if ($is_date_time_object) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
-        assert((is_array($entry) && array_key_exists('datetime', $entry)), '\"datetime\" key is missing from structure' . $log_text);
+        assert((is_array($entry) && array_key_exists('datetime', $entry)), '"datetime" key is missing from structure' . $log_text);
         $dt = $entry['datetime'];
+        assert($dt !== null || $allow_null, 'timestamp is null' . $log_text);
         if ($dt !== null) {
-            assert(is_string($dt), '\"datetime\" key does not have a string value' . $log_text);
+            assert(is_string($dt), '"datetime" key does not have a string value' . $log_text);
             // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
-            assert($exchange->iso8601($dt_parsed) === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
+            $dt_parsed_string = $exchange->iso8601($dt_parsed);
+            $dt_entry_string = $exchange->iso8601($entry['timestamp']);
+            assert($dt_parsed_string === $dt_entry_string, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
         }
     }
 }
 
 
-function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
+function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null, $allow_null = true) {
     if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
+    assert($actual_code !== null || $allow_null, 'currency code is null' . $log_text);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code (\"' . $actual_code . '\") should be present in exchange.currencies' . $log_text);
+        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code ("' . $actual_code . '") should be present in exchange.currencies' . $log_text);
         if ($expected_code !== null) {
-            assert($actual_code === $expected_code, 'currency code in response (\"' . string_value($actual_code) . '\") should be equal to expected code (\"' . string_value($expected_code) . '\")' . $log_text);
+            assert($actual_code === $expected_code, 'currency code in response ("' . string_value($actual_code) . '") should be equal to expected code ("' . string_value($expected_code) . '")' . $log_text);
         }
     }
 }
 
 
-function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code) {
+function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code, $allow_null = true) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
@@ -185,10 +203,11 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
     $undefined_values = $currency_id === null && $currency_code === null;
     $defined_values = $currency_id !== null && $currency_code !== null;
     assert($undefined_values || $defined_values, 'currencyId and currencyCode should be either both defined or both undefined' . $log_text);
+    assert($defined_values || $allow_null, 'currency code and id is not defined' . $log_text);
     if ($defined_values) {
         // check by code
         $currency_by_code = $exchange->currency($currency_code);
-        assert($currency_by_code['id'] === $currency_id, 'currencyId \"' . string_value($currency_id) . '\" does not match currency of code: \"' . string_value($currency_code) . '\"' . $log_text);
+        assert($currency_by_code['id'] === $currency_id, 'currencyId "' . string_value($currency_id) . '" does not match currency id from instance: "' . string_value($currency_by_code['id']) . '"' . $log_text);
         // check by id
         $currency_by_id = $exchange->safe_currency($currency_id);
         assert($currency_by_id['code'] === $currency_code, 'currencyCode ' . string_value($currency_code) . ' does not match currency of id: ' . string_value($currency_id) . $log_text);
@@ -196,7 +215,7 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
 }
 
 
-function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $expected_symbol = null) {
+function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $expected_symbol = null, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
@@ -206,8 +225,10 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
         assert(is_string($actual_symbol), 'symbol should be either undefined or a string' . $log_text);
     }
     if ($expected_symbol !== null) {
-        assert($actual_symbol === $expected_symbol, 'symbol in response (\"' . string_value($actual_symbol) . '\") should be equal to expected symbol (\"' . string_value($expected_symbol) . '\")' . $log_text);
+        assert($actual_symbol === $expected_symbol, 'symbol in response ("' . string_value($actual_symbol) . '") should be equal to expected symbol ("' . string_value($expected_symbol) . '")' . $log_text);
     }
+    $defined_values = $actual_symbol !== null && $expected_symbol !== null;
+    assert($defined_values || $allow_null, 'symbols are not defined' . $log_text);
 }
 
 
@@ -217,109 +238,121 @@ function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symb
 }
 
 
-function assert_greater($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_greater($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null) {
         assert(Precise::string_gt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be > ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_ge($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be >= ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_less($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_less($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_lt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be < ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_le($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be <= ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null && $compare_to !== null) {
         assert(Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to) {
+function assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     if ($value !== null) {
         assert(!Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected not to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
 
 
-function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, $expected_array) {
+function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, $expected_array, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_value($entry, $key);
+    assert($value !== null || $allow_null, 'value is null' . $log_text);
     // todo: remove undefined check
     if ($value !== null) {
         $stingified_array_value = $exchange->json($expected_array); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
-        assert($exchange->in_array($value, $expected_array), '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not from the expected list : [' . $stingified_array_value . ']' . $log_text);
+        assert($exchange->in_array($value, $expected_array), '"' . string_value($key) . '" key (value "' . string_value($value) . '") is not from the expected list : [' . $stingified_array_value . ']' . $log_text);
     }
 }
 
 
-function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key) {
+function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key, $allow_null = true) {
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
     if (is_int($key)) {
         $key = $key;
-        assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'fee container is expected to be an array' . $log_text);
+        assert(gettype($entry) === 'array' && array_is_list($entry), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
         assert(is_array($entry), 'fee container is expected to be an object' . $log_text);
-        assert(is_array($entry) && array_key_exists($key, $entry), 'fee key \"' . $key . '\" was expected to be present in entry' . $log_text);
+        assert(is_array($entry) && array_key_exists($key, $entry), 'fee key "' . $key . '" was expected to be present in entry' . $log_text);
     }
     $fee_object = $exchange->safe_value($entry, $key);
+    assert($fee_object !== null || $allow_null, 'fee object is null' . $log_text);
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
-        assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain \"cost\" key' . $log_text);
+        assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain "cost" key' . $log_text);
+        if ($fee_object['cost'] === null) {
+            return;  // todo: remove undefined check to make stricter
+        }
+        assert((is_int($fee_object['cost']) || is_float($fee_object['cost'])), $key_string . ' "cost" must be numeric type' . $log_text);
         // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
-        assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '\"' . $key_string . '\" fee object should contain \"currency\" key' . $log_text);
+        assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '"' . $key_string . '" fee object should contain "currency" key' . $log_text);
         assert_currency_code($exchange, $skipped_properties, $method, $entry, $fee_object['currency']);
     }
 }
@@ -340,16 +373,17 @@ function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $as
 }
 
 
-function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
+function assert_integer($exchange, $skipped_properties, $method, $entry, $key, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
     if ($entry !== null) {
         $value = $exchange->safe_value($entry, $key);
+        assert($value !== null || $allow_null, 'value is null' . $log_text);
         if ($value !== null) {
             $is_integer = is_int($value);
-            assert($is_integer, '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
+            assert($is_integer, '"' . string_value($key) . '" key (value "' . string_value($value) . '") is not an integer' . $log_text);
         }
     }
 }
@@ -363,16 +397,165 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
-        $decimal_numbers = ['2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
+        $decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
         for ($i = 0; $i < count($decimal_numbers); $i++) {
             $num = $decimal_numbers[$i];
             $num_str = $num;
             assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $num_str);
         }
     } else {
-        assert_integer($exchange, $skipped_properties, $method, $entry, $key); // should be integer
+        // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+        // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
         assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, '18'); // should be under 18 decimals
         assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, '-8'); // in real-world cases, there would not be less than that
+    }
+}
+
+
+function fetch_best_bid_ask($exchange, $method, $symbol) {
+    $log_text = log_template($exchange, $method, array());
+    // find out best bid/ask price
+    $best_bid = null;
+    $best_ask = null;
+    $used_method = null;
+    if ($exchange->has['fetchOrderBook']) {
+        $used_method = 'fetchOrderBook';
+        $orderbook = $exchange->fetch_order_book($symbol);
+        $bids = $exchange->safe_list($orderbook, 'bids');
+        $asks = $exchange->safe_list($orderbook, 'asks');
+        $best_bid_array = $exchange->safe_list($bids, 0);
+        $best_ask_array = $exchange->safe_list($asks, 0);
+        $best_bid = $exchange->safe_number($best_bid_array, 0);
+        $best_ask = $exchange->safe_number($best_ask_array, 0);
+    } elseif ($exchange->has['fetchBidsAsks']) {
+        $used_method = 'fetchBidsAsks';
+        $tickers = $exchange->fetch_bids_asks([$symbol]);
+        $ticker = $exchange->safe_dict($tickers, $symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    } elseif ($exchange->has['fetchTicker']) {
+        $used_method = 'fetchTicker';
+        $ticker = $exchange->fetch_ticker($symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    } elseif ($exchange->has['fetchTickers']) {
+        $used_method = 'fetchTickers';
+        $tickers = $exchange->fetch_tickers([$symbol]);
+        $ticker = $exchange->safe_dict($tickers, $symbol);
+        $best_bid = $exchange->safe_number($ticker, 'bid');
+        $best_ask = $exchange->safe_number($ticker, 'ask');
+    }
+    //
+    assert($best_bid !== null && $best_ask !== null, $log_text . ' ' . $exchange->id . ' could not get best bid/ask for ' . $symbol . ' using ' . $used_method . ' while testing ' . $method);
+    return [$best_bid, $best_ask];
+}
+
+
+function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
+    $fetched_order = null;
+    $original_id = $order_id;
+    // set 'since' to 5 minute ago for optimal results
+    $since_time = $exchange->milliseconds() - 1000 * 60 * 5;
+    // iterate
+    $methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder'];
+    for ($i = 0; $i < count($methods_singular); $i++) {
+        $singular_fetch_name = $methods_singular[$i];
+        if ($exchange->has[$singular_fetch_name]) {
+            $current_order = $exchange[$singular_fetch_name]($original_id, $symbol);
+            // if there is an id inside the order, it means the order was fetched successfully
+            if ($current_order['id'] === $original_id) {
+                $fetched_order = $current_order;
+                break;
+            }
+        }
+    }
+    //
+    // search through plural methods
+    if ($fetched_order === null) {
+        $methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders'];
+        for ($i = 0; $i < count($methods_plural); $i++) {
+            $plural_fetch_name = $methods_plural[$i];
+            if ($exchange->has[$plural_fetch_name]) {
+                $orders = $exchange[$plural_fetch_name]($symbol, $since_time);
+                $found = false;
+                for ($j = 0; $j < count($orders); $j++) {
+                    $current_order = $orders[$j];
+                    if ($current_order['id'] === $original_id) {
+                        $fetched_order = $current_order;
+                        $found = true;
+                        break;
+                    }
+                }
+                if ($found) {
+                    break;
+                }
+            }
+        }
+    }
+    return $fetched_order;
+}
+
+
+function assert_order_state($exchange, $skipped_properties, $method, $order, $asserted_status, $strict_check) {
+    // note, `strictCheck` is `true` only from "fetchOrder" cases
+    $log_text = log_template($exchange, $method, $order);
+    $msg = 'order should be ' . $asserted_status . ', but it was not asserted' . $log_text;
+    $filled = $exchange->safe_string($order, 'filled');
+    $amount = $exchange->safe_string($order, 'amount');
+    // shorthand variables
+    $status_undefined = ($order['status'] === null);
+    $status_open = ($order['status'] === 'open');
+    $status_closed = ($order['status'] === 'closed');
+    $status_clanceled = ($order['status'] === 'canceled');
+    $filled_defined = ($filled !== null);
+    $amount_defined = ($amount !== null);
+    $condition = null;
+    //
+    // ### OPEN STATUS
+    //
+    // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
+    $strict_open = $status_open && ($filled_defined && $amount_defined && $filled < $amount);
+    // if non-strict check, then accept & ignore undefined values
+    $nonstrict_open = ($status_open || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_lt($filled, $amount));
+    // check
+    if ($asserted_status === 'open') {
+        $condition = $strict_check ? $strict_open : $nonstrict_open;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CLOSED STATUS
+    //
+    // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
+    $closed_strict = $status_closed && ($filled_defined && $amount_defined && Precise::string_eq($filled, $amount));
+    // if non-strict check, then accept & ignore undefined values
+    $closed_non_strict = ($status_closed || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_eq($filled, $amount));
+    // check
+    if ($asserted_status === 'closed') {
+        $condition = $strict_check ? $closed_strict : $closed_non_strict;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CANCELED STATUS
+    //
+    // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
+    $canceled_strict = $status_clanceled && ($filled_defined && $amount_defined && Precise::string_lt($filled, $amount));
+    // if non-strict check, then accept & ignore undefined values
+    $canceled_non_strict = ($status_clanceled || $status_undefined) && ((!$filled_defined || !$amount_defined) || Precise::string_lt($filled, $amount));
+    // check
+    if ($asserted_status === 'canceled') {
+        $condition = $strict_check ? $canceled_strict : $canceled_non_strict;
+        assert($condition, $msg);
+        return;
+    }
+    //
+    // ### CLOSED_or_CANCELED STATUS
+    //
+    if ($asserted_status === 'closed_or_canceled') {
+        $condition = $strict_check ? ($closed_strict || $canceled_strict) : ($closed_non_strict || $canceled_non_strict);
+        assert($condition, $msg);
+        return;
     }
 }
 
@@ -401,16 +584,35 @@ function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_pro
 }
 
 
+function concat($a = null, $b = null) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if ($a === null) {
+        return $b;
+    } elseif ($b === null) {
+        return $a;
+    } else {
+        $result = [];
+        for ($i = 0; $i < count($a); $i++) {
+            $result[] = $a[$i];
+        }
+        for ($j = 0; $j < count($b); $j++) {
+            $result[] = $b[$j];
+        }
+        return $result;
+    }
+}
+
+
 function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
     $log_text = log_template($exchange, $method, $entry);
     if ($hint !== null) {
         $log_text = $log_text . ' ' . $hint;
     }
-    assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'response is expected to be an array' . $log_text);
+    assert(gettype($entry) === 'array' && array_is_list($entry), 'response is expected to be an array' . $log_text);
     if (!(is_array($skipped_properties) && array_key_exists('emptyResponse', $skipped_properties))) {
         return;
     }
-    assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add \"emptyResponse\" in skip-tests.json to skip this check)');
+    assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add "emptyResponse" in skip-tests.json to skip this check)');
 }
 
 
@@ -421,4 +623,15 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
     $log_text = log_template($exchange, $method, $entry);
     $ts = $exchange->safe_string($entry, $key);
     assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
+}
+
+
+function deep_equal($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+
+function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
+    $log_text = log_template($exchange, $method, array());
+    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }

@@ -28,7 +28,7 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                 $now = $exchange->milliseconds();
                 continue;
             }
-            assert(gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
+            assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
             $now = $exchange->milliseconds();
             $symbol = null;
             for ($i = 0; $i < count($response); $i++) {

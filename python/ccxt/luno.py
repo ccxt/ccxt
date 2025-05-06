@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'luno',
@@ -35,6 +35,7 @@ class luno(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
@@ -43,6 +44,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -183,12 +185,92 @@ class luno(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': None,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for luno
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/Markets
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/Markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -276,7 +358,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+        https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -325,7 +409,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
+        https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -346,8 +432,10 @@ class luno(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
+        https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -433,7 +521,6 @@ class luno(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'filled': filled,
@@ -448,7 +535,10 @@ class luno(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+
+        :param str id: order id
         :param str symbol: not used by luno fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -460,7 +550,7 @@ class luno(Exchange, ImplicitAPI):
         response = self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_orders_by_state(self, state=None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request: dict = {}
         market = None
@@ -476,7 +566,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -488,7 +580,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -500,7 +594,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -549,7 +645,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -571,7 +669,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -680,7 +780,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -713,7 +815,9 @@ class luno(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+
+        https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -774,7 +878,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -820,7 +926,9 @@ class luno(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -850,8 +958,10 @@ class luno(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
+        https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -887,7 +997,9 @@ class luno(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
+
+        https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -920,15 +1032,17 @@ class luno(Exchange, ImplicitAPI):
         }
         return self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         self.load_accounts()
@@ -995,13 +1109,14 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry, currency: Currency = None):
+    def parse_ledger_entry(self, entry, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
         timestamp = self.safe_integer(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
@@ -1027,7 +1142,8 @@ class luno(Exchange, ImplicitAPI):
             direction = 'in'
         elif Precise.string_lt(balance_delta, '0') or Precise.string_lt(available_delta, '0'):
             direction = 'out'
-        return {
+        return self.safe_ledger_entry({
+            'info': entry,
             'id': id,
             'direction': direction,
             'account': account_id,
@@ -1035,14 +1151,123 @@ class luno(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_to_numeric(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': self.parse_number(before),
-            'after': self.parse_number(after),
+            'before': self.parse_to_numeric(before),
+            'after': self.parse_to_numeric(after),
             'status': status,
             'fee': None,
-            'info': entry,
+        }, currency)
+
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        create a currency deposit address
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: an optional name for the new address
+        :param int [params.account_id]: an optional account id for the new address
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = self.privatePostFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.address]: a specific cryptocurrency address to retrieve
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = self.privateGetFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        currencyId = self.safe_string_upper(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': depositAddress,
+            'currency': code,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'name'),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

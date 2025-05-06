@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class p2b
@@ -75,9 +75,8 @@ class p2b extends p2b$1 {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -183,6 +182,71 @@ class p2b extends p2b$1 {
                     ],
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 1,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1 / 12,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
@@ -231,15 +295,15 @@ class p2b extends p2b$1 {
             'options': {},
         });
     }
+    /**
+     * @method
+     * @name p2b#fetchMarkets
+     * @description retrieves data on all markets for bigone
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchMarkets
-         * @description retrieves data on all markets for bigone
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetMarkets(params);
         //
         //    {
@@ -332,16 +396,16 @@ class p2b extends p2b$1 {
             'info': market,
         };
     }
+    /**
+     * @method
+     * @name p2b#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const response = await this.publicGetTickers(params);
         //
@@ -372,16 +436,16 @@ class p2b extends p2b$1 {
         const result = this.safeValue(response, 'result', {});
         return this.parseTickers(result, symbols);
     }
+    /**
+     * @method
+     * @name p2b#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -472,20 +536,20 @@ class p2b extends p2b$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name p2b#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2bfutures#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -524,19 +588,19 @@ class p2b extends p2b$1 {
         const timestamp = this.safeIntegerProduct(response, 'current_time', 1000);
         return this.parseOrderBook(result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
+    /**
+     * @method
+     * @name p2b#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] 1-100, default=50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} params.lastId order id
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} params.lastId order id
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const lastId = this.safeInteger(params, 'lastId');
         if (lastId === undefined) {
@@ -641,20 +705,20 @@ class p2b extends p2b$1 {
             },
         }, market);
     }
+    /**
+     * @method
+     * @name p2b#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 1m, 1h, or 1d
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] 1-500, default=50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.offset] default=0, with this value the last candles are returned
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe 1m, 1h, or 1d
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] 1-500, default=50
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.offset] default=0, with this value the last candles are returned
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -712,15 +776,15 @@ class p2b extends p2b$1 {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name p2b#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostAccountBalances(params);
         //
@@ -774,20 +838,20 @@ class p2b extends p2b$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name p2b#createOrder
+     * @description create a trade order
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#createOrder
-         * @description create a trade order
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         if (type === 'market') {
             throw new errors.BadRequest(this.id + ' createOrder () can only accept orders with type "limit"');
@@ -825,17 +889,17 @@ class p2b extends p2b$1 {
         const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
     }
+    /**
+     * @method
+     * @name p2b#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#cancelOrder
-         * @description cancels an open order
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -871,21 +935,21 @@ class p2b extends p2b$1 {
         const result = this.safeDict(response, 'result');
         return this.parseOrder(result);
     }
+    /**
+     * @method
+     * @name p2b#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.offset] 0-10000, default=0
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders () requires the symbol argument');
         }
@@ -926,22 +990,22 @@ class p2b extends p2b$1 {
         const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
+    /**
+     * @method
+     * @name p2b#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] 1-100, default=50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.offset] 0-10000, default=0
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.offset] 0-10000, default=0
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
         const request = {
@@ -978,22 +1042,22 @@ class p2b extends p2b$1 {
         const records = this.safeList(result, 'records', []);
         return this.parseTrades(records, market, since, limit);
     }
+    /**
+     * @method
+     * @name p2b#fetchMyTrades
+     * @description fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+     * @param {int} [limit] 1-100, default=50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.offset] 0-10000, default=0
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchMyTrades
-         * @description fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
-         * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1054,22 +1118,22 @@ class p2b extends p2b$1 {
         const deals = this.safeList(result, 'deals', []);
         return this.parseTrades(deals, market, since, limit);
     }
+    /**
+     * @method
+     * @name p2b#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
+     * @param {int} [limit] 1-100, default=50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.offset] 0-10000, default=0
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name p2b#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
-         * @param {int} [limit] 1-100, default=50
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
@@ -1193,7 +1257,7 @@ class p2b extends p2b$1 {
             'postOnly': undefined,
             'side': this.safeString(order, 'side'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString(order, 'amount'),
             'cost': undefined,
             'average': undefined,

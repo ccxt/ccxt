@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class latoken(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(latoken, self).describe(), {
             'id': 'latoken',
             'name': 'Latoken',
@@ -60,6 +60,12 @@ class latoken(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFees': False,
+                'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
@@ -242,15 +248,85 @@ class latoken(Exchange, ImplicitAPI):
                     'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,  # todo: for non-trigger orders
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+
+        https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -265,7 +341,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for latoken
-        :see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+
+        https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -491,7 +569,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+
+        https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -552,7 +632,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
+
+        https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -635,7 +717,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
+
+        https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -672,7 +756,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+
+        https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -787,7 +873,9 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
+
+        https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -817,8 +905,10 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
-        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
+
+        https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+        https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -887,8 +977,10 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
-        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+
+        https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+        https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1031,7 +1123,6 @@ class latoken(Exchange, ImplicitAPI):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        triggerPrice = self.safe_string(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1046,8 +1137,7 @@ class latoken(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1060,8 +1150,10 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1112,10 +1204,12 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+        https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1176,8 +1270,11 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+
+        :param str id: order id
         :param str [symbol]: not used by latoken fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching a trigger order
@@ -1219,8 +1316,10 @@ class latoken(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1228,8 +1327,8 @@ class latoken(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.condition]: "GTC", "IOC", or  "FOK"
         :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1276,8 +1375,10 @@ class latoken(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
-        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+        https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
+
         :param str id: order id
         :param str symbol: not used by latoken cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1309,8 +1410,10 @@ class latoken(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
-        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+
+        https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+        https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling trigger orders
@@ -1352,9 +1455,11 @@ class latoken(Exchange, ImplicitAPI):
 
     async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
+ @deprecated
         use fetchDepositsWithdrawals instead
-        :see: https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+
+        https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+
         :param str code: unified currency code for the currency of the transactions, default is None
         :param int [since]: timestamp in ms of the earliest transaction, default is None
         :param int [limit]: max number of transactions to return, default is None
@@ -1465,6 +1570,7 @@ class latoken(Exchange, ImplicitAPI):
         statuses: dict = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
+            'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
@@ -1476,10 +1582,12 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+
+        https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
@@ -1526,9 +1634,11 @@ class latoken(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
-        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
-        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
+
+        https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+        https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+        https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from

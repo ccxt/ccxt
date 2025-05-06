@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -15,7 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class okcoin(ccxt.async_support.okcoin):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okcoin, self).describe(), {
             'has': {
                 'ws': True,
@@ -24,6 +24,7 @@ class okcoin(ccxt.async_support.okcoin):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': True,
                 'watchOHLCV': True,
             },
@@ -72,6 +73,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -88,6 +92,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -166,6 +173,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -241,6 +251,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -303,6 +316,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -457,6 +473,9 @@ class okcoin(ccxt.async_support.okcoin):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -573,7 +592,7 @@ class okcoin(ccxt.async_support.okcoin):
         client.resolve(message, 'authenticated')
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # okex does not support built-in ws protocol-level ping-pong
         # instead it requires custom text-based ping-pong
         return 'ping'

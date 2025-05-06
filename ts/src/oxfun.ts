@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class oxfun extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'oxfun',
             'name': 'OXFUN',
@@ -62,14 +62,14 @@ export default class oxfun extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -79,7 +79,7 @@ export default class oxfun extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -118,6 +118,7 @@ export default class oxfun extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -244,6 +245,74 @@ export default class oxfun extends Exchange {
                     'Optimism': 'OPTIMISM',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': {
+                        'max': 10, // todo
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000, // todo
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo?
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '-0010': OperationFailed, // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
@@ -315,15 +384,15 @@ export default class oxfun extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchMarkets
+     * @description retrieves data on all markets for bitmex
+     * @see https://docs.ox.fun/?json#get-v3-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name oxfun#fetchMarkets
-         * @description retrieves data on all markets for bitmex
-         * @see https://docs.ox.fun/?json#get-v3-markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const [ responseFromMarkets, responseFromTickers ] = await Promise.all ([ this.publicGetV3Markets (params), this.publicGetV3Tickers (params) ]);
         const marketsFromMarkets = this.safeList (responseFromMarkets, 'data', []);
         //
@@ -496,15 +565,15 @@ export default class oxfun extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.ox.fun/?json#get-v3-assets
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        /**
-         * @method
-         * @name oxfun#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://docs.ox.fun/?json#get-v3-assets
-         * @param {dict} [params] extra parameters specific to the exchange API endpoint
-         * @returns {dict} an associative dictionary of currencies
-         */
         const response = await this.publicGetV3Assets (params);
         //
         //     {
@@ -722,16 +791,16 @@ export default class oxfun extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.ox.fun/?json#get-v3-tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name oxfun#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.ox.fun/?json#get-v3-tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV3Tickers (params);
@@ -786,16 +855,16 @@ export default class oxfun extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.ox.fun/?json#get-v3-tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name oxfun#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.ox.fun/?json#get-v3-tickers
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -868,24 +937,25 @@ export default class oxfun extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
             'quoteVolume': undefined, // the exchange returns cost in OX
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.ox.fun/?json#get-v3-candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch (default 24 hours ago)
+     * @param {int} [limit] the maximum amount of candles to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name oxfun#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.ox.fun/?json#get-v3-candles
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch (default 24 hours ago)
-         * @param {int} [limit] the maximum amount of candles to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
@@ -960,17 +1030,17 @@ export default class oxfun extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.ox.fun/?json#get-v3-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 5, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name oxfun#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.ox.fun/?json#get-v3-depth
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (default 5, max 100)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1009,16 +1079,16 @@ export default class oxfun extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchFundingRates
-         * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-         * @description fetch the current funding rates
-         * @param {string[]} symbols unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
+    /**
+     * @method
+     * @name oxfun#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV3FundingEstimates (params);
@@ -1041,18 +1111,16 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined) {
+    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
         //
         //     {
         //         "marketCode": "OX-USD-SWAP-LIN",
         //         "fundingAt": "1715515200000",
         //         "estFundingRate": "0.000200000"
-        //     },
-        //
+        //     }
         //
         const symbol = this.safeString (fundingRate, 'marketCode');
         market = this.market (symbol);
@@ -1075,22 +1143,23 @@ export default class oxfun extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchFundingRateHistory
+     * @description Fetches the history of funding rates
+     * @see https://docs.ox.fun/?json#get-v3-funding-rates
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchFundingRateHistory
-         * @description Fetches the history of funding rates
-         * @see https://docs.ox.fun/?json#get-v3-funding-rates
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
-         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1160,19 +1229,19 @@ export default class oxfun extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchFundingHistory
+     * @description fetches the history of funding payments
+     * @see https://docs.ox.fun/?json#get-v3-funding
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchFundingHistory
-         * @description fetches the history of funding payments
-         * @see https://docs.ox.fun/?json#get-v3-funding
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
-         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1251,16 +1320,16 @@ export default class oxfun extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
-         * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
-         * @param {string[]} [symbols] list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-         */
+    /**
+     * @method
+     * @name oxfun#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+     * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
         const response = await this.publicGetV3LeverageTiers (params);
         //
@@ -1308,7 +1377,7 @@ export default class oxfun extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'marketCode');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         marketCode: 'SOL-USD-SWAP-LIN',
@@ -1333,6 +1402,7 @@ export default class oxfun extends Exchange {
             const tier = listOfTiers[j];
             tiers.push ({
                 'tier': this.safeNumber (tier, 'tier'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber (tier, 'positionFloor'),
                 'maxNotional': this.safeNumber (tier, 'positionCap'),
@@ -1341,22 +1411,22 @@ export default class oxfun extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.ox.fun/?json#get-v3-exchange-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name oxfun#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.ox.fun/?json#get-v3-exchange-trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
-         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1396,19 +1466,19 @@ export default class oxfun extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.ox.fun/?json#get-v3-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://docs.ox.fun/?json#get-v3-trades
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let market: Market = undefined;
@@ -1513,17 +1583,17 @@ export default class oxfun extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.ox.fun/?json#get-v3-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.asset] currency id, if empty the exchange returns info about all currencies
+     * @param {string} [params.subAcc] Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name oxfun#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.ox.fun/?json#get-v3-balances
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.asset] currency id, if empty the exchange returns info about all currencies
-         * @param {string} [params.subAcc] Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetV3Balances (params);
         //
@@ -1612,15 +1682,15 @@ export default class oxfun extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchAccounts
+     * @description fetch subaccounts associated with a profile
+     * @see https://docs.ox.fun/?json#get-v3-account-names
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        /**
-         * @method
-         * @name oxfun#fetchAccounts
-         * @description fetch subaccounts associated with a profile
-         * @see https://docs.ox.fun/?json#get-v3-account-names
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
         await this.loadMarkets ();
         // this endpoint can only be called using API keys paired with the parent account! Returns all active subaccounts.
         const response = await this.privateGetV3AccountNames (params);
@@ -1655,19 +1725,19 @@ export default class oxfun extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name oxfun#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.ox.fun/?json#post-v3-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account id to transfer from
+     * @param {string} toAccount account id to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        /**
-         * @method
-         * @name oxfun#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://docs.ox.fun/?json#post-v3-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account id to transfer from
-         * @param {string} toAccount account id to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         // transferring funds between sub-accounts is restricted to API keys linked to the parent account.
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1699,19 +1769,19 @@ export default class oxfun extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.ox.fun/?json#get-v3-transfer
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchTransfers
-         * @description fetch a history of internal transfers made on an account
-         * @see https://docs.ox.fun/?json#get-v3-transfer
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         // API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
         await this.loadMarkets ();
         const request: Dict = {};
@@ -1791,17 +1861,17 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://docs.ox.fun/?json#get-v3-deposit-addresses
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.network] network for fetch deposit address
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
+    /**
+     * @method
+     * @name oxfun#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.ox.fun/?json#get-v3-deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const networkCode = this.safeString (params, 'network');
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
@@ -1822,34 +1892,34 @@ export default class oxfun extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}
         //
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.ox.fun/?json#get-v3-deposit
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        /**
-         * @method
-         * @name oxfun#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.ox.fun/?json#get-v3-deposit
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1893,19 +1963,19 @@ export default class oxfun extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.ox.fun/?json#get-v3-withdrawal
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        /**
-         * @method
-         * @name oxfun#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://docs.ox.fun/?json#get-v3-withdrawal
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -2053,7 +2123,7 @@ export default class oxfun extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseDepositStatus (status) {
@@ -2076,25 +2146,25 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitflex#withdraw
-         * @description make a withdrawal
-         * @see https://docs.bitflex.com/spot#withdraw
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {string} [params.network] network for withdraw
-         * @param {bool} [params.externalFee] if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} [params.tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
-         * @param {string} [params.code] 2FA code
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
+    /**
+     * @method
+     * @name oxfun#withdraw
+     * @description make a withdrawal
+     * @see https://docs.ox.fun/?json#post-v3-withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for withdraw
+     * @param {bool} [params.externalFee] if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
+     * @param {string} [params.code] 2FA code
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2135,17 +2205,17 @@ export default class oxfun extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#fetchPositions
-         * @description fetch all open positions
-         * @see https://docs.ox.fun/?json#get-v3-positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.subAcc]
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
+    /**
+     * @method
+     * @name oxfun#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.ox.fun/?json#get-v3-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.subAcc]
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         // Calling this endpoint using an API key pair linked to the parent account with the parameter "subAcc"
         // allows the caller to include positions of additional sub-accounts in the response.
         // This feature does not work when using API key pairs linked to a sub-account
@@ -2253,31 +2323,31 @@ export default class oxfun extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name oxfun#createOrder
+     * @description create a trade order
+     * @see https://docs.ox.fun/?json#post-v3-orders-place
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+     * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+     * @param {string} [params.responseType] FULL or ACK
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
+     * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+     * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
+     * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+     * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name oxfun#createOrder
-         * @description create a trade order
-         * @see https://docs.ox.fun/?json#post-v3-orders-place
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] a unique id for the order
-         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
-         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-         * @param {string} [params.responseType] FULL or ACK
-         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
-         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
-         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
-         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'responseType': this.safeString (params, 'responseType', 'FULL'),
@@ -2413,19 +2483,19 @@ export default class oxfun extends Exchange {
         return this.parseOrder (order);
     }
 
+    /**
+     * @method
+     * @name oxfun#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.ox.fun/?json#post-v3-orders-place
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.timestamp] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
+     * @param {int} [params.recvWindow] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+     * @param {string} [params.responseType] *for all orders* FULL or ACK
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name oxfun#createOrders
-         * @description create a list of trade orders
-         * @see https://docs.ox.fun/?json#post-v3-orders-place
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.timestamp] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
-         * @param {int} [params.recvWindow] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-         * @param {string} [params.responseType] *for all orders* FULL or ACK
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -2506,17 +2576,17 @@ export default class oxfun extends Exchange {
         return this.extend (request, params);
     }
 
+    /**
+     * @method
+     * @name oxfun#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://open.big.one/docs/spot_orders.html#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        /**
-         * @method
-         * @name oxfun#createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @see https://open.big.one/docs/spot_orders.html#create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -2528,18 +2598,18 @@ export default class oxfun extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchOrder
+     * @see https://docs.ox.fun/?json#get-v3-orders-status
+     * @description fetches information on an order made by the user
+     * @param {string} id a unique id for the order
+     * @param {string} [symbol] not used by oxfun fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.clientOrderId] the client order id of the order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name oxfun#fetchOrder
-         * @see https://docs.ox.fun/?json#get-v3-orders-status
-         * @description fetches information on an order made by the user
-         * @param {string} id a unique id for the order
-         * @param {string} [symbol] not used by oxfun fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] the client order id of the order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'orderId': id,
@@ -2572,20 +2642,20 @@ export default class oxfun extends Exchange {
         return this.parseOrder (data);
     }
 
+    /**
+     * @method
+     * @name oxfun#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.ox.fun/?json#get-v3-orders-working
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.orderId] a unique id for the order
+     * @param {int} [params.clientOrderId] the client order id of the order
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name oxfun#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://docs.ox.fun/?json#get-v3-orders-working
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.orderId] a unique id for the order
-         * @param {int} [params.clientOrderId] the client order id of the order
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let market: Market = undefined;
@@ -2597,21 +2667,21 @@ export default class oxfun extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name oxfun#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.timestamp] in milliseconds
+     * @param {int} [params.recvWindow] in milliseconds
+     * @param {string} [params.responseType] 'FULL' or 'ACK'
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] a unique id for the order
-         * @param {int} [params.timestamp] in milliseconds
-         * @param {int} [params.recvWindow] in milliseconds
-         * @param {string} [params.responseType] 'FULL' or 'ACK'
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2636,16 +2706,16 @@ export default class oxfun extends Exchange {
         return this.parseOrder (order);
     }
 
+    /**
+     * @method
+     * @name oxfun#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.ox.fun/?json#delete-v3-orders-cancel-all
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from exchange
+     */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel-all
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from exchange
-         */
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -2665,20 +2735,20 @@ export default class oxfun extends Exchange {
         return await this.privateDeleteV3OrdersCancelAll (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name oxfun#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.timestamp] in milliseconds
+     * @param {int} [params.recvWindow] in milliseconds
+     * @param {string} [params.responseType] 'FULL' or 'ACK'
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#cancelOrders
-         * @description cancel multiple orders
-         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
-         * @param {string[]} ids order ids
-         * @param {string} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.timestamp] in milliseconds
-         * @param {int} [params.recvWindow] in milliseconds
-         * @param {string} [params.responseType] 'FULL' or 'ACK'
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -2925,7 +2995,7 @@ export default class oxfun extends Exchange {
                 'AccessKey': this.apiKey,
                 'Timestamp': datetime,
                 'Signature': signature,
-                'Nonce': nonce,
+                'Nonce': nonce.toString (),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -37,7 +37,7 @@
                         "price": 61165.7,
                         "amount": 0.0012,
                         "cost": 73.39884,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "symbol": "BTC-USDT",
                             "auction_code": "BTC-USDT-2024-03-01T00:02:31.000Z",
@@ -96,6 +96,8 @@
                     "average": null,
                     "baseVolume": 2.5014,
                     "quoteVolume": 179840.0702,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "type": "spot",
                         "last_price": "73366.28000000",
@@ -115,6 +117,50 @@
                         "lowest_price_24h": "68679.78000000"
                     },
                     "last": 73366.28
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch the funding rate for a swap symbol",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {"last":{"funding_rate":"-0.00043841","funding_time":"2025-04-15T04:00:00.000Z"},"next":{"funding_rate":"-0.00046952","funding_time":"2025-04-15T12:00:00.000Z"},"indicative":{"funding_rate":"-0.0004336","funding_time":"2025-04-15T20:00:00.000Z"},"timestamp":"2025-04-15T07:42:58.014Z"},
+                "parsedResponse": {
+                  "info": {
+                    "last": {
+                      "funding_rate": "-0.00043841",
+                      "funding_time": "2025-04-15T04:00:00.000Z"
+                    },
+                    "next": {
+                      "funding_rate": "-0.00046952",
+                      "funding_time": "2025-04-15T12:00:00.000Z"
+                    },
+                    "indicative": {
+                      "funding_rate": "-0.0004336",
+                      "funding_time": "2025-04-15T20:00:00.000Z"
+                    },
+                    "timestamp": "2025-04-15T07:42:58.014Z"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": null,
+                  "indexPrice": null,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": 1744702978014,
+                  "datetime": "2025-04-15T07:42:58.014Z",
+                  "fundingRate": -0.00046952,
+                  "fundingTimestamp": 1744718400000,
+                  "fundingDatetime": "2025-04-15T12:00:00.000Z",
+                  "nextFundingRate": -0.0004336,
+                  "nextFundingTimestamp": 1744747200000,
+                  "nextFundingDatetime": "2025-04-15T20:00:00.000Z",
+                  "previousFundingRate": -0.00043841,
+                  "previousFundingTimestamp": 1744689600000,
+                  "previousFundingDatetime": "2025-04-15T04:00:00.000Z",
+                  "interval": "8h"
                 }
             }
         ],

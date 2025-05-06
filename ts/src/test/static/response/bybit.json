@@ -2,6 +2,477 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "linear OI",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "limit": 1
+                    }
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"OK","result":{"symbol":"BTCUSDT","category":"linear","list":[{"openInterest":"62129.45500000","timestamp":"1739725200000"}],"nextPageCursor":"lastid%3D10860016%26lasttime%3D1739725200"},"retExtInfo":{},"time":1739725954780},
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": 62129.455,
+                    "openInterestValue": null,
+                    "timestamp": 1739725200000,
+                    "datetime": "2025-02-16T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "62129.45500000",
+                        "timestamp": "1739725200000",
+                        "nextPageCursor": "lastid%3D10860016%26lasttime%3D1739725200"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            },
+            {
+                "description": "inverse OI",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC",
+                    {
+                        "limit": 1
+                    }
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"OK","result":{"symbol":"BTCUSD","category":"inverse","list":[{"openInterest":"1536179414.00000000","timestamp":"1739725200000"}],"nextPageCursor":"lastid%3D10860957%26lasttime%3D1739725200"},"retExtInfo":{},"time":1739725850253},
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "openInterestAmount": null,
+                    "openInterestValue": 1536179414,
+                    "timestamp": 1739725200000,
+                    "datetime": "2025-02-16T17:00:00.000Z",
+                    "info": {
+                        "openInterest": "1536179414.00000000",
+                        "timestamp": "1739725200000",
+                        "nextPageCursor": "lastid%3D10860957%26lasttime%3D1739725200"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+    "fetchBalance": [
+            {
+                "description": "balance after availableToWithdraw update",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "list": [
+                            {
+                                "totalEquity": "92255.96988644",
+                                "accountIMRate": "0.0006",
+                                "totalMarginBalance": "90042.2788482",
+                                "totalInitialMargin": "54.3100333",
+                                "accountType": "UNIFIED",
+                                "totalAvailableBalance": "89987.9688149",
+                                "accountMMRate": "0",
+                                "totalPerpUPL": "-21.66812467",
+                                "totalWalletBalance": "90060.46626531",
+                                "accountLTV": "0",
+                                "totalMaintenanceMargin": "7.38826721",
+                                "coin": [
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "5848.53933918",
+                                        "totalPositionMM": "0.33266212",
+                                        "usdValue": "5849.59207626",
+                                        "unrealisedPnl": "0.3392",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "3.18541012",
+                                        "walletBalance": "5848.20013918",
+                                        "cumRealisedPnl": "6393.66232648",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "USDC"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "0.85581394",
+                                        "totalPositionMM": "0",
+                                        "usdValue": "82669.24739887",
+                                        "unrealisedPnl": "0",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "0",
+                                        "walletBalance": "0.85581394",
+                                        "cumRealisedPnl": "-0.00190505",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "BTC"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "0.09174816",
+                                        "totalPositionMM": "0",
+                                        "usdValue": "294.05285546",
+                                        "unrealisedPnl": "0",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "0",
+                                        "walletBalance": "0.09174816",
+                                        "cumRealisedPnl": "-0.000001",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "ETH"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "38.68128",
+                                        "totalPositionMM": "0",
+                                        "usdValue": "37.93302931",
+                                        "unrealisedPnl": "0",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "0",
+                                        "walletBalance": "38.68128",
+                                        "cumRealisedPnl": "-0.03872",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "ADA"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "38.47905187",
+                                        "totalPositionMM": "0.02068388",
+                                        "usdValue": "98.98308977",
+                                        "unrealisedPnl": "-1.573407",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "0.19805874",
+                                        "walletBalance": "40.05245888",
+                                        "cumRealisedPnl": "-0.56741988",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "XRP"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "3304.29766609",
+                                        "totalPositionMM": "7.00285644",
+                                        "usdValue": "3304.05314806",
+                                        "unrealisedPnl": "-17.9613",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "50.61831144",
+                                        "walletBalance": "3322.25896609",
+                                        "cumRealisedPnl": "-10225.43901403",
+                                        "locked": "42",
+                                        "marginCollateral": true,
+                                        "coin": "USDT"
+                                    },
+                                    {
+                                        "availableToBorrow": "",
+                                        "bonus": "0",
+                                        "accruedInterest": "0",
+                                        "availableToWithdraw": "",
+                                        "totalOrderIM": "0",
+                                        "equity": "0.02101953",
+                                        "totalPositionMM": "0",
+                                        "usdValue": "2.10828867",
+                                        "unrealisedPnl": "0",
+                                        "collateralSwitch": true,
+                                        "spotHedgingQty": "0",
+                                        "borrowAmount": "0.000000000000000000",
+                                        "totalPositionIM": "0",
+                                        "walletBalance": "0.02101953",
+                                        "cumRealisedPnl": "-0.00001428",
+                                        "locked": "0",
+                                        "marginCollateral": true,
+                                        "coin": "LTC"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1736866023302"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {
+                            "list": [
+                                {
+                                    "totalEquity": "92255.96988644",
+                                    "accountIMRate": "0.0006",
+                                    "totalMarginBalance": "90042.2788482",
+                                    "totalInitialMargin": "54.3100333",
+                                    "accountType": "UNIFIED",
+                                    "totalAvailableBalance": "89987.9688149",
+                                    "accountMMRate": "0",
+                                    "totalPerpUPL": "-21.66812467",
+                                    "totalWalletBalance": "90060.46626531",
+                                    "accountLTV": "0",
+                                    "totalMaintenanceMargin": "7.38826721",
+                                    "coin": [
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "5848.53933918",
+                                            "totalPositionMM": "0.33266212",
+                                            "usdValue": "5849.59207626",
+                                            "unrealisedPnl": "0.3392",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "3.18541012",
+                                            "walletBalance": "5848.20013918",
+                                            "cumRealisedPnl": "6393.66232648",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "USDC"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "0.85581394",
+                                            "totalPositionMM": "0",
+                                            "usdValue": "82669.24739887",
+                                            "unrealisedPnl": "0",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "0",
+                                            "walletBalance": "0.85581394",
+                                            "cumRealisedPnl": "-0.00190505",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "BTC"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "0.09174816",
+                                            "totalPositionMM": "0",
+                                            "usdValue": "294.05285546",
+                                            "unrealisedPnl": "0",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "0",
+                                            "walletBalance": "0.09174816",
+                                            "cumRealisedPnl": "-0.000001",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "ETH"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "38.68128",
+                                            "totalPositionMM": "0",
+                                            "usdValue": "37.93302931",
+                                            "unrealisedPnl": "0",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "0",
+                                            "walletBalance": "38.68128",
+                                            "cumRealisedPnl": "-0.03872",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "ADA"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "38.47905187",
+                                            "totalPositionMM": "0.02068388",
+                                            "usdValue": "98.98308977",
+                                            "unrealisedPnl": "-1.573407",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "0.19805874",
+                                            "walletBalance": "40.05245888",
+                                            "cumRealisedPnl": "-0.56741988",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "XRP"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "3304.29766609",
+                                            "totalPositionMM": "7.00285644",
+                                            "usdValue": "3304.05314806",
+                                            "unrealisedPnl": "-17.9613",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "50.61831144",
+                                            "walletBalance": "3322.25896609",
+                                            "cumRealisedPnl": "-10225.43901403",
+                                            "locked": "42",
+                                            "marginCollateral": true,
+                                            "coin": "USDT"
+                                        },
+                                        {
+                                            "availableToBorrow": "",
+                                            "bonus": "0",
+                                            "accruedInterest": "0",
+                                            "availableToWithdraw": "",
+                                            "totalOrderIM": "0",
+                                            "equity": "0.02101953",
+                                            "totalPositionMM": "0",
+                                            "usdValue": "2.10828867",
+                                            "unrealisedPnl": "0",
+                                            "collateralSwitch": true,
+                                            "spotHedgingQty": "0",
+                                            "borrowAmount": "0.000000000000000000",
+                                            "totalPositionIM": "0",
+                                            "walletBalance": "0.02101953",
+                                            "cumRealisedPnl": "-0.00001428",
+                                            "locked": "0",
+                                            "marginCollateral": true,
+                                            "coin": "LTC"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "retExtInfo": {},
+                        "time": "1736866023302"
+                    },
+                    "timestamp": 1736866023302,
+                    "datetime": "2025-01-14T14:47:03.302Z",
+                    "USDC": {
+                        "free": 5845.01472906,
+                        "used": 3.18541012,
+                        "total": 5848.20013918,
+                        "debt": 0
+                    },
+                    "BTC": {
+                        "free": 0.85581394,
+                        "used": 0,
+                        "total": 0.85581394,
+                        "debt": 0
+                    },
+                    "ETH": {
+                        "free": 0.09174816,
+                        "used": 0,
+                        "total": 0.09174816,
+                        "debt": 0
+                    },
+                    "ADA": {
+                        "free": 38.68128,
+                        "used": 0,
+                        "total": 38.68128,
+                        "debt": 0
+                    },
+                    "XRP": {
+                        "free": 39.85440014,
+                        "used": 0.19805874,
+                        "total": 40.05245888,
+                        "debt": 0
+                    },
+                    "USDT": {
+                        "free": 3229.64065465,
+                        "used": 92.61831144,
+                        "total": 3322.25896609,
+                        "debt": 0
+                    },
+                    "LTC": {
+                        "free": 0.02101953,
+                        "used": 0,
+                        "total": 0.02101953,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDC": 5845.01472906,
+                        "BTC": 0.85581394,
+                        "ETH": 0.09174816,
+                        "ADA": 38.68128,
+                        "XRP": 39.85440014,
+                        "USDT": 3229.64065465,
+                        "LTC": 0.02101953
+                    },
+                    "used": {
+                        "USDC": 3.18541012,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "ADA": 0,
+                        "XRP": 0.19805874,
+                        "USDT": 92.61831144,
+                        "LTC": 0
+                    },
+                    "total": {
+                        "USDC": 5848.20013918,
+                        "BTC": 0.85581394,
+                        "ETH": 0.09174816,
+                        "ADA": 38.68128,
+                        "XRP": 40.05245888,
+                        "USDT": 3322.25896609,
+                        "LTC": 0.02101953
+                    },
+                    "debt": {
+                        "USDC": 0,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "ADA": 0,
+                        "XRP": 0,
+                        "USDT": 0,
+                        "LTC": 0
+                    }
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create spot order",
@@ -497,6 +968,158 @@
         ],
         "fetchClosedOrder": [
             {
+                "description": "fetchOrder created using the cost",
+                "method": "fetchClosedOrder",
+                "input": [
+                    "1823584718894229760",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777",
+                        "category": "spot",
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "orderType": "Market",
+                                "orderLinkId": "1823584718911006976",
+                                "slLimitPrice": "0",
+                                "orderId": "1823584718894229760",
+                                "cancelType": "UNKNOWN",
+                                "avgPrice": "91760.9",
+                                "stopOrderType": "",
+                                "lastPriceOnCreated": "",
+                                "orderStatus": "Filled",
+                                "takeProfit": "0",
+                                "cumExecValue": "49.91792960",
+                                "smpType": "None",
+                                "triggerDirection": "0",
+                                "blockTradeId": "",
+                                "rejectReason": "EC_NoError",
+                                "isLeverage": "0",
+                                "price": "0",
+                                "orderIv": "",
+                                "createdTime": "1732124238777",
+                                "tpTriggerBy": "",
+                                "positionIdx": "0",
+                                "trailingPercentage": "0",
+                                "timeInForce": "IOC",
+                                "leavesValue": "0.08207040",
+                                "basePrice": "91676.16",
+                                "updatedTime": "1732124238788",
+                                "side": "Buy",
+                                "smpGroup": "0",
+                                "triggerPrice": "0.00",
+                                "tpLimitPrice": "0",
+                                "trailingValue": "0",
+                                "cumExecFee": "0.000000544",
+                                "slTriggerBy": "",
+                                "leavesQty": "0.000000",
+                                "closeOnTrigger": false,
+                                "placeType": "",
+                                "cumExecQty": "0.000544",
+                                "reduceOnly": false,
+                                "activationPrice": "0",
+                                "qty": "50.00000000",
+                                "stopLoss": "0",
+                                "marketUnit": "quoteCoin",
+                                "smpOrderId": "",
+                                "triggerBy": "",
+                                "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1732124607365"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "orderType": "Market",
+                        "orderLinkId": "1823584718911006976",
+                        "slLimitPrice": "0",
+                        "orderId": "1823584718894229760",
+                        "cancelType": "UNKNOWN",
+                        "avgPrice": "91760.9",
+                        "stopOrderType": "",
+                        "lastPriceOnCreated": "",
+                        "orderStatus": "Filled",
+                        "takeProfit": "0",
+                        "cumExecValue": "49.91792960",
+                        "smpType": "None",
+                        "triggerDirection": "0",
+                        "blockTradeId": "",
+                        "rejectReason": "EC_NoError",
+                        "isLeverage": "0",
+                        "price": "0",
+                        "orderIv": "",
+                        "createdTime": "1732124238777",
+                        "tpTriggerBy": "",
+                        "positionIdx": "0",
+                        "trailingPercentage": "0",
+                        "timeInForce": "IOC",
+                        "leavesValue": "0.08207040",
+                        "basePrice": "91676.16",
+                        "updatedTime": "1732124238788",
+                        "side": "Buy",
+                        "smpGroup": "0",
+                        "triggerPrice": "0.00",
+                        "tpLimitPrice": "0",
+                        "trailingValue": "0",
+                        "cumExecFee": "0.000000544",
+                        "slTriggerBy": "",
+                        "leavesQty": "0.000000",
+                        "closeOnTrigger": false,
+                        "placeType": "",
+                        "cumExecQty": "0.000544",
+                        "reduceOnly": false,
+                        "activationPrice": "0",
+                        "qty": "50.00000000",
+                        "stopLoss": "0",
+                        "marketUnit": "quoteCoin",
+                        "smpOrderId": "",
+                        "triggerBy": "",
+                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
+                    },
+                    "id": "1823584718894229760",
+                    "clientOrderId": "1823584718911006976",
+                    "timestamp": 1732124238777,
+                    "datetime": "2024-11-20T17:37:18.777Z",
+                    "lastTradeTimestamp": 1732124238788,
+                    "lastUpdateTimestamp": 1732124238788,
+                    "symbol": "BTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 91760.9,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.000544,
+                    "cost": 49.9179296,
+                    "average": 91760.9,
+                    "filled": 0.000544,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "cost": 5.44e-7,
+                        "currency": "BTC"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 5.44e-7,
+                            "currency": "BTC"
+                        }
+                    ]
+                }
+            },
+            {
                 "description": "swap closed order",
                 "method": "fetchClosedOrder",
                 "input": [
@@ -630,7 +1253,7 @@
                     "remaining": 0,
                     "status": "closed",
                     "fee": {
-                        "cost": "0.00385935",
+                        "cost": 0.00385935,
                         "currency": "USDT"
                     },
                     "trades": [],
@@ -906,7 +1529,8 @@
                         "side": "long",
                         "percentage": null,
                         "stopLossPrice": null,
-                        "takeProfitPrice": null
+                        "takeProfitPrice": null,
+                        "hedged": false
                     }
                 ]
             }
@@ -1022,7 +1646,8 @@
                     "side": null,
                     "percentage": null,
                     "stopLossPrice": null,
-                    "takeProfitPrice": null
+                    "takeProfitPrice": null,
+                    "hedged": false
                 }
             }
         ],
@@ -1784,7 +2409,7 @@
                         "price": 51444.4,
                         "amount": 0.972,
                         "cost": 50003.9568,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -1851,9 +2476,11 @@
                     "previousClose": null,
                     "change": 1296.9,
                     "percentage": 2.5861,
-                    "average": 50795.95,
+                    "average": 50795.9,
                     "baseVolume": 47293.887,
                     "quoteVolume": 2352063794.0035,
+                    "markPrice": 51444.40,
+                    "indexPrice": 51469.95,
                     "info": {
                         "symbol": "BTCUSDT",
                         "lastPrice": "51444.40",
@@ -1879,6 +2506,70 @@
                         "ask1Price": "51444.40",
                         "bid1Size": "55.841",
                         "basis": ""
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for a BTC option symbol",
+                "method": "fetchTickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT-250530-70000-C"
+                  ]
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"SUCCESS","result":{"category":"option","list":[{"symbol":"BTC-30MAY25-68000-P-USDT","bid1Price":"1975","bid1Size":"3","bid1Iv":"0.547","ask1Price":"2050","ask1Size":"0.11","ask1Iv":"0.556","lastPrice":"2030","highPrice24h":"2030","lowPrice24h":"1660","markPrice":"2015.39438867","indexPrice":"78750.38868972","markIv":"0.552","underlyingPrice":"79369.63","openInterest":"11.35","turnover24h":"77346.8492","volume24h":"0.96","totalVolume":"27","totalTurnover":"2287307","delta":"-0.19818258","gamma":"0.00001689","vega":"83.17386614","theta":"-44.39180536","predictedDeliveryPrice":"0","change24h":"-0.19284295"},{"symbol":"BTC-30MAY25-70000-C-USDT","bid1Price":"11595","bid1Size":"9.93","bid1Iv":"0.5126","ask1Price":"12150","ask1Size":"9.9","ask1Iv":"0.5729","lastPrice":"16160","highPrice24h":"0","lowPrice24h":"0","markPrice":"11860.81425623","indexPrice":"78750.38868972","markIv":"0.5419","underlyingPrice":"79369.63","openInterest":"1.09","turnover24h":"0","volume24h":"0","totalVolume":"2","totalTurnover":"100536","delta":"0.76359856","gamma":"0.00001905","vega":"92.10112644","theta":"-48.26013817","predictedDeliveryPrice":"0","change24h":"0"},{"symbol":"BTC-30MAY25-78000-C-USDT","bid1Price":"6695","bid1Size":"7.19","bid1Iv":"0.5073","ask1Price":"6825","ask1Size":"2.88","ask1Iv":"0.5184","lastPrice":"7485","highPrice24h":"7600","lowPrice24h":"6980","markPrice":"6782.24582537","indexPrice":"78750.38868972","markIv":"0.5149","underlyingPrice":"79369.63","openInterest":"2.37","turnover24h":"86663.4896","volume24h":"1.08","totalVolume":"12","totalTurnover":"956200","delta":"0.57405918","gamma":"0.0000255","vega":"117.11592428","theta":"-58.30550261","predictedDeliveryPrice":"0","change24h":"0.21806347"}]},"retExtInfo":{},"time":1744124642786},
+                "parsedResponse": {
+                  "BTC/USDT:USDT-250530-70000-C": {
+                        "symbol": "BTC/USDT:USDT-250530-70000-C",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": 11595,
+                        "bidVolume": 9.93,
+                        "ask": 12150,
+                        "askVolume": 9.9,
+                        "vwap": null,
+                        "open": null,
+                        "close": 16160,
+                        "last": 16160,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "markPrice": 11860.81425623,
+                        "indexPrice": 78750.38868972,
+                        "info": {
+                            "symbol": "BTC-30MAY25-70000-C-USDT",
+                            "bid1Price": "11595",
+                            "bid1Size": "9.93",
+                            "bid1Iv": "0.5126",
+                            "ask1Price": "12150",
+                            "ask1Size": "9.9",
+                            "ask1Iv": "0.5729",
+                            "lastPrice": "16160",
+                            "highPrice24h": "0",
+                            "lowPrice24h": "0",
+                            "markPrice": "11860.81425623",
+                            "indexPrice": "78750.38868972",
+                            "markIv": "0.5419",
+                            "underlyingPrice": "79369.63",
+                            "openInterest": "1.09",
+                            "turnover24h": "0",
+                            "volume24h": "0",
+                            "totalVolume": "2",
+                            "totalTurnover": "100536",
+                            "delta": "0.76359856",
+                            "gamma": "0.00001905",
+                            "vega": "92.10112644",
+                            "theta": "-48.26013817",
+                            "predictedDeliveryPrice": "0",
+                            "change24h": "0"
+                        }
                     }
                 }
             }
@@ -1933,11 +2624,14 @@
                         "account": null,
                         "referenceAccount": null,
                         "referenceId": null,
-                        "status": null,
+                        "status": "ok",
                         "amount": 0.0006935,
                         "before": 94.05001087,
                         "after": 94.05070437,
-                        "fee": 0,
+                        "fee": {
+                            "currency":"USDT",
+                            "cost":0
+                        },
                         "direction": "out",
                         "timestamp": 1707897600000,
                         "datetime": "2024-02-14T08:00:00.000Z",
@@ -2508,6 +3202,414 @@
                     "rate": -0.000881
                   }
                 ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "success",
+                  "result": {
+                    "list": [
+                      {
+                        "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                        "coin": "USDT",
+                        "amount": "10",
+                        "fromAccountType": "UNIFIED",
+                        "toAccountType": "FUND",
+                        "timestamp": "1722865698000",
+                        "status": "SUCCESS",
+                        "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                      }
+                    ],
+                    "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                  },
+                  "retExtInfo": {},
+                  "time": "1722866135254"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                      "coin": "USDT",
+                      "amount": "10",
+                      "fromAccountType": "UNIFIED",
+                      "toAccountType": "FUND",
+                      "timestamp": "1722865698000",
+                      "status": "SUCCESS",
+                      "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                    },
+                    "id": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                    "timestamp": 1722865698000,
+                    "datetime": "2024-08-05T13:48:18.000Z",
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "unified",
+                    "toAccount": "fund",
+                    "status": "ok"
+                  }
+                ]
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "position history",
+                "method": "fetchPositionHistory",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "nextPageCursor": "bcb03fc1-6bfe-4464-954c-4b017aea5286%3A1724408566765%2Cbcb03fc1-6bfe-4464-954c-4b017aea5286%3A1724408566765",
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "orderType": "Market",
+                        "leverage": "10",
+                        "updatedTime": "1724408566765",
+                        "side": "Sell",
+                        "orderId": "bcb03fc1-6bfe-4464-954c-4b017aea5286",
+                        "closedPnl": "-0.43582528",
+                        "avgEntryPrice": "55937.5",
+                        "qty": "0.001",
+                        "cumEntryValue": "55.9375",
+                        "createdTime": "1724408566762",
+                        "orderPrice": "52784.9",
+                        "closedSize": "0.001",
+                        "avgExitPrice": "55563",
+                        "execType": "Trade",
+                        "fillCount": "1",
+                        "cumExitValue": "55.563"
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1724408577788"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTCUSDT",
+                      "orderType": "Market",
+                      "leverage": "10",
+                      "updatedTime": "1724408566765",
+                      "side": "Sell",
+                      "orderId": "bcb03fc1-6bfe-4464-954c-4b017aea5286",
+                      "closedPnl": "-0.43582528",
+                      "avgEntryPrice": "55937.5",
+                      "qty": "0.001",
+                      "cumEntryValue": "55.9375",
+                      "createdTime": "1724408566762",
+                      "orderPrice": "52784.9",
+                      "closedSize": "0.001",
+                      "avgExitPrice": "55563",
+                      "execType": "Trade",
+                      "fillCount": "1",
+                      "cumExitValue": "55.563"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1724408566762,
+                    "datetime": "2024-08-23T10:22:46.762Z",
+                    "lastUpdateTimestamp": 1724408566765,
+                    "initialMargin": 55.9375,
+                    "initialMarginPercentage": 1.0067400968270253,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 55937.5,
+                    "notional": 55.563,
+                    "leverage": 10,
+                    "unrealizedPnl": null,
+                    "realizedPnl": -0.43582528,
+                    "contracts": 0.001,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": null,
+                    "lastPrice": 55563,
+                    "collateral": null,
+                    "marginMode": null,
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "hedged": false
+                  }
+                ]
+            }
+        ],
+        "fetchBorrowRateHistory":[
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "input": [
+                  "USDT",
+                  1729241283000
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "list": [
+                      {
+                        "timestamp": "1729245600000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003433654",
+                        "vipLevel": "No VIP"
+                      },
+                      {
+                        "timestamp": "1729242000000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003238239",
+                        "vipLevel": "No VIP"
+                      },
+                      {
+                        "timestamp": "1729238400000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003140500",
+                        "vipLevel": "No VIP"
+                      }
+                    ]
+                  },
+                  "retExtInfo": "{}",
+                  "time": "1729247936685"
+                },
+                "parsedResponse": [
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003238239,
+                    "period": 3600000,
+                    "timestamp": 1729242000000,
+                    "datetime": "2024-10-18T09:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729242000000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003238239",
+                      "vipLevel": "No VIP"
+                    }
+                  },
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003433654,
+                    "period": 3600000,
+                    "timestamp": 1729245600000,
+                    "datetime": "2024-10-18T10:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729245600000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003433654",
+                      "vipLevel": "No VIP"
+                    }
+                  }
+                ]
+              }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68641.30",
+                        "indexPrice": "68650.75",
+                        "markPrice": "68649.90",
+                        "prevPrice24h": "68042.70",
+                        "price24hPcnt": "0.008797",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69145.90",
+                        "openInterest": "69655.813",
+                        "openInterestValue": "4781864596.87",
+                        "turnover24h": "7940401914.5025",
+                        "volume24h": "115859.1120",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "14.246",
+                        "bid1Price": "68641.20",
+                        "ask1Price": "68641.30",
+                        "bid1Size": "0.043",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730729903941
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730729903941"
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "info": {
+                      "symbol": "BTCUSDT",
+                      "lastPrice": "68641.30",
+                      "indexPrice": "68650.75",
+                      "markPrice": "68649.90",
+                      "prevPrice24h": "68042.70",
+                      "price24hPcnt": "0.008797",
+                      "highPrice24h": "69497.00",
+                      "lowPrice24h": "67456.10",
+                      "prevPrice1h": "69145.90",
+                      "openInterest": "69655.813",
+                      "openInterestValue": "4781864596.87",
+                      "turnover24h": "7940401914.5025",
+                      "volume24h": "115859.1120",
+                      "fundingRate": "0.0001",
+                      "nextFundingTime": "1730736000000",
+                      "predictedDeliveryPrice": "",
+                      "basisRate": "",
+                      "deliveryFeeRate": "",
+                      "deliveryTime": "0",
+                      "ask1Size": "14.246",
+                      "bid1Price": "68641.20",
+                      "ask1Price": "68641.30",
+                      "bid1Size": "0.043",
+                      "basis": "",
+                      "preOpenPrice": "",
+                      "preQty": "",
+                      "curPreListingPhase": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 68649.9,
+                    "indexPrice": 68650.75,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1730729903941,
+                    "datetime": "2024-11-04T14:18:23.941Z",
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1730736000000,
+                    "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                  }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68577.50",
+                        "indexPrice": "68599.90",
+                        "markPrice": "68591.46",
+                        "prevPrice24h": "67993.80",
+                        "price24hPcnt": "0.008584",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69200.10",
+                        "openInterest": "69604.924",
+                        "openInterestValue": "4774303360.35",
+                        "turnover24h": "7939403499.8677",
+                        "volume24h": "115843.2740",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "7.927",
+                        "bid1Price": "68577.40",
+                        "ask1Price": "68577.50",
+                        "bid1Size": "6.371",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730730080834
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730730080834"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSDT",
+                    "lastPrice": "68577.50",
+                    "indexPrice": "68599.90",
+                    "markPrice": "68591.46",
+                    "prevPrice24h": "67993.80",
+                    "price24hPcnt": "0.008584",
+                    "highPrice24h": "69497.00",
+                    "lowPrice24h": "67456.10",
+                    "prevPrice1h": "69200.10",
+                    "openInterest": "69604.924",
+                    "openInterestValue": "4774303360.35",
+                    "turnover24h": "7939403499.8677",
+                    "volume24h": "115843.2740",
+                    "fundingRate": "0.0001",
+                    "nextFundingTime": "1730736000000",
+                    "predictedDeliveryPrice": "",
+                    "basisRate": "",
+                    "deliveryFeeRate": "",
+                    "deliveryTime": "0",
+                    "ask1Size": "7.927",
+                    "bid1Price": "68577.40",
+                    "ask1Price": "68577.50",
+                    "bid1Size": "6.371",
+                    "basis": "",
+                    "preOpenPrice": "",
+                    "preQty": "",
+                    "curPreListingPhase": ""
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": 68591.46,
+                  "indexPrice": 68599.9,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": 1730730080834,
+                  "datetime": "2024-11-04T14:21:20.834Z",
+                  "fundingRate": 0.0001,
+                  "fundingTimestamp": 1730736000000,
+                  "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                  "nextFundingRate": null,
+                  "nextFundingTimestamp": null,
+                  "nextFundingDatetime": null,
+                  "previousFundingRate": null,
+                  "previousFundingTimestamp": null,
+                  "previousFundingDatetime": null,
+                  "interval": "8h"
+                }
             }
         ]
     }

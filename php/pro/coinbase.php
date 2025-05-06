@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinbase extends \ccxt\async\coinbase {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -59,9 +59,12 @@ class coinbase extends \ccxt\async\coinbase {
             /**
              * @ignore
              * subscribes to a websocket channel
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
+             *
              * @param {string} $name the $name of the channel
-             * @param {string|string[]} [$symbol] unified $market $symbol
+             * @param {boolean} $isPrivate whether the channel is private or not
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
@@ -100,8 +103,11 @@ class coinbase extends \ccxt\async\coinbase {
             /**
              * @ignore
              * subscribes to a websocket channel
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
+             *
              * @param {string} $name the $name of the channel
+             * @param {boolean} $isPrivate whether the channel is private or not
              * @param {string[]} [$symbols] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
@@ -162,7 +168,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+             *
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -176,7 +184,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+             *
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -377,7 +387,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-$trades-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -399,7 +411,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular symbol
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-$trades-channel
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -422,7 +436,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+             *
              * @param {string} [$symbol] unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -443,7 +459,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -462,7 +480,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -685,10 +705,12 @@ class coinbase extends \ccxt\async\coinbase {
             $event = $events[$i];
             $updates = $this->safe_value($event, 'updates', array());
             $marketId = $this->safe_string($event, 'product_id');
-            $messageHash = 'level2::' . $marketId;
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            $market = $this->safe_market($marketId);
+            $messageHash = 'level2::' . $market['id'];
+            $symbol = $market['symbol'];
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
-            $symbol = $this->safe_symbol($marketId);
             $type = $this->safe_string($event, 'type');
             if ($type === 'snapshot') {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -698,9 +720,6 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['datetime'] = $datetime;
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             } elseif ($type === 'update') {
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_order_book_helper($orderbook, $updates);
@@ -708,9 +727,6 @@ class coinbase extends \ccxt\async\coinbase {
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['symbol'] = $symbol;
                 $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
         }
     }

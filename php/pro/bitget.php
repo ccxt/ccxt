@@ -10,13 +10,14 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\ChecksumError;
+use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitget extends \ccxt\async\bitget {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -36,6 +37,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchPositions' => true,
@@ -45,6 +47,10 @@ class bitget extends \ccxt\async\bitget {
                     'ws' => array(
                         'public' => 'wss://ws.bitget.com/v2/ws/public',
                         'private' => 'wss://ws.bitget.com/v2/ws/private',
+                    ),
+                    'demo' => array(
+                        'public' => 'wss://wspap.bitget.com/v2/ws/public',
+                        'private' => 'wss://wspap.bitget.com/v2/ws/private',
                     ),
                 ),
             ),
@@ -66,6 +72,9 @@ class bitget extends \ccxt\async\bitget {
                 ),
                 'watchOrderBook' => array(
                     'checksum' => true,
+                ),
+                'watchTrades' => array(
+                    'ignoreDuplicates' => true,
                 ),
             ),
             'streaming' => array(
@@ -113,8 +122,10 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             *
              * @param {string} $symbol unified $symbol of the $market to watch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -134,12 +145,31 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the ticker channel
+             *
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             *
+             * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_channel($symbol, 'ticker', 'ticker', $params));
+        }) ();
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             *
              * @param {string[]} $symbols unified $symbol of the $market to watch the $tickers for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -203,6 +233,7 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701842994341
         //     }
         //
+        $this->handle_bid_ask($client, $message);
         $ticker = $this->parse_ws_ticker($message);
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
@@ -316,12 +347,83 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             *
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $instType = null;
+            list($instType, $params) = $this->get_inst_type($market, $params);
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $marketInner = $this->market($symbol);
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'ticker',
+                    'instId' => $marketInner['id'],
+                );
+                $topics[] = $args;
+                $messageHashes[] = 'bidask:' . $symbol;
+            }
+            $tickers = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$tickers['symbol']] = $tickers;
+                return $result;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $ticker = $this->parse_ws_bid_ask($message);
+        $symbol = $ticker['symbol'];
+        $this->bidsasks[$symbol] = $ticker;
+        $messageHash = 'bidask:' . $symbol;
+        $client->resolve ($ticker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($message, $market = null) {
+        $arg = $this->safe_value($message, 'arg', array());
+        $data = $this->safe_value($message, 'data', array());
+        $ticker = $this->safe_value($data, 0, array());
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        $instType = $this->safe_string($arg, 'instType');
+        $marketType = ($instType === 'SPOT') ? 'spot' : 'contract';
+        $marketId = $this->safe_string($ticker, 'instId');
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'askPr'),
+            'askVolume' => $this->safe_string($ticker, 'askSz'),
+            'bid' => $this->safe_string($ticker, 'bidPr'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSz'),
+            'info' => $ticker,
+        ), $market);
+    }
+
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -347,6 +449,27 @@ class bitget extends \ccxt\async\bitget {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unsubscribe from the ohlcv $channel
+             *
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+             *
+             * @param {string} $symbol unified $symbol of the market to unwatch the ohlcv for
+             * @param {string} [$timeframe] the period for the ratio, default is 1 minute
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $timeframes = $this->safe_dict($this->options, 'timeframes');
+            $interval = $this->safe_string($timeframes, $timeframe);
+            $channel = 'candle' . $interval;
+            return Async\await($this->un_watch_channel($symbol, $channel, 'candles:' . $timeframe, $params));
         }) ();
     }
 
@@ -438,8 +561,10 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -449,12 +574,54 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the orderbook $channel
+             *
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->limit] orderbook $limit, default is null
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $channel = 'books';
+            $limit = $this->safe_integer($params, 'limit');
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
+                $params = $this->omit($params, 'limit');
+                $channel .= (string) $limit;
+            }
+            return Async\await($this->un_watch_channel($symbol, $channel, 'orderbook', $params));
+        }) ();
+    }
+
+    public function un_watch_channel(string $symbol, string $channel, string $messageHashTopic, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $channel, $messageHashTopic, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
+            $instType = null;
+            list($instType, $params) = $this->get_inst_type($market, $params);
+            $args = array(
+                'instType' => $instType,
+                'channel' => $channel,
+                'instId' => $market['id'],
+            );
+            return Async\await($this->un_watch_public($messageHash, $args, $params));
+        }) ();
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -550,7 +717,7 @@ class bitget extends \ccxt\async\bitget {
             $this->handle_deltas($storedOrderBook['bids'], $bids);
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
             if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
@@ -572,10 +739,11 @@ class bitget extends \ccxt\async\bitget {
                 $calculatedChecksum = $this->crc32($payload, true);
                 $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
-                    unset($client->subscriptions[$messageHash]);
-                    unset($this->orderbooks[$symbol]);
-                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
-                    $client->reject ($error, $messageHash);
+                    // if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    //     // unset($client->subscriptions[$messageHash]);
+                    //     // unset($this->orderbooks[$symbol]);
+                    // }
+                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash);
                     return;
                 }
             }
@@ -586,6 +754,14 @@ class bitget extends \ccxt\async\bitget {
             $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
+    }
+
+    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
+        return Async\async(function () use ($client, $symbol, $messageHash) {
+            Async\await($this->un_watch_order_book($symbol));
+            $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            $client->reject ($error, $messageHash);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -606,8 +782,10 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -622,9 +800,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             *
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -657,7 +837,30 @@ class bitget extends \ccxt\async\bitget {
                 $tradeSymbol = $this->safe_string($first, 'symbol');
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+                $filtered = $this->remove_repeated_trades_from_array($result);
+                $filtered = $this->sort_by($filtered, 'timestamp');
+                return $filtered;
+            }
+            return $result;
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the trades channel
+             *
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             *
+             * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} status of the unwatch request
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_channel($symbol, 'trade', 'trade', $params));
         }) ();
     }
 
@@ -800,8 +1003,12 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch all open positions
+             *
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+             *
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
@@ -873,15 +1080,12 @@ class bitget extends \ccxt\async\bitget {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions))) {
+        $action = $this->safe_string($message, 'action');
+        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions)) || ($action === 'snapshot')) {
             $this->positions[$instType] = new ArrayCacheBySymbolBySide ();
         }
         $cache = $this->positions[$instType];
         $rawPositions = $this->safe_value($message, 'data', array());
-        $dataLength = count($rawPositions);
-        if ($dataLength === 0) {
-            return;
-        }
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
@@ -977,16 +1181,18 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
              * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
              * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] *contract only* set to true for watching trigger $orders
+             * @param {boolean} [$params->trigger] *contract only* set to true for watching trigger $orders
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
              * @param {string} [$params->type] 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'
@@ -1011,7 +1217,7 @@ class bitget extends \ccxt\async\bitget {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
             if (($type === 'spot' || $type === 'margin') && ($symbol === null)) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
+                $marketId = 'default';
             }
             if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
                 $messageHash = $messageHash . ':' . $subType;
@@ -1023,8 +1229,12 @@ class bitget extends \ccxt\async\bitget {
                 $messageHash = $messageHash . ':usdcfutures'; // non unified $channel
             }
             $instType = null;
-            list($instType, $params) = $this->get_inst_type($market, $params);
-            if ($type === 'spot') {
+            if ($market === null && $type === 'spot') {
+                $instType = 'SPOT';
+            } else {
+                list($instType, $params) = $this->get_inst_type($market, $params);
+            }
+            if ($type === 'spot' && ($symbol !== null)) {
                 $subscriptionHash = $subscriptionHash . ':' . $symbol;
             }
             if ($isTrigger) {
@@ -1378,7 +1588,9 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches $trades made by the user
+             *
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+             *
              * @param {str} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1393,8 +1605,14 @@ class bitget extends \ccxt\async\bitget {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
             $instType = null;
-            list($instType, $params) = $this->get_inst_type($market, $params);
+            if ($market === null && $type === 'spot') {
+                $instType = 'SPOT';
+            } else {
+                list($instType, $params) = $this->get_inst_type($market, $params);
+            }
             $subscriptionHash = 'fill:' . $instType;
             $args = array(
                 'instType' => $instType,
@@ -1504,10 +1722,12 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
              * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
              * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
              * @param {string} [$params->instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
@@ -1629,8 +1849,34 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public($messageHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $args, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
+                'args' => array( $args ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
+    public function un_watch_public($messageHash, $args, $params = array ()) {
+        return Async\async(function () use ($messageHash, $args, $params) {
+            $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
+            $request = array(
+                'op' => 'unsubscribe',
                 'args' => array( $args ),
             );
             $message = $this->extend($request, $params);
@@ -1641,6 +1887,14 @@ class bitget extends \ccxt\async\bitget {
     public function watch_public_multiple($messageHashes, $argsArray, $params = array ()) {
         return Async\async(function () use ($messageHashes, $argsArray, $params) {
             $url = $this->urls['api']['ws']['public'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $argsArrayFirst = $this->safe_dict($argsArray, 0, array());
+                $instType = $this->safe_string($argsArrayFirst, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['public'];
+                }
+            }
             $request = array(
                 'op' => 'subscribe',
                 'args' => $argsArray,
@@ -1653,7 +1907,7 @@ class bitget extends \ccxt\async\bitget {
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->safe_string($params, 'url');
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $future = $client->future ($messageHash);
@@ -1683,8 +1937,15 @@ class bitget extends \ccxt\async\bitget {
 
     public function watch_private($messageHash, $subscriptionHash, $args, $params = array ()) {
         return Async\async(function () use ($messageHash, $subscriptionHash, $args, $params) {
-            Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
+            $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
+            if ($sandboxMode) {
+                $instType = $this->safe_string($args, 'instType');
+                if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
+                    $url = $this->urls['api']['demo']['private'];
+                }
+            }
+            Async\await($this->authenticate(array( 'url' => $url )));
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),
@@ -1767,6 +2028,17 @@ class bitget extends \ccxt\async\bitget {
         //        "event" => "subscribe",
         //        "arg" => array( instType => 'SPOT', channel => "account", instId => "default" )
         //    }
+        // unsubscribe
+        //    {
+        //        "op":"unsubscribe",
+        //        "args":array(
+        //          {
+        //            "instType":"USDT-FUTURES",
+        //            "channel":"ticker",
+        //            "instId":"BTCUSDT"
+        //          }
+        //        )
+        //    }
         //
         if ($this->handle_error_message($client, $message)) {
             return;
@@ -1787,6 +2059,10 @@ class bitget extends \ccxt\async\bitget {
         }
         if ($event === 'subscribe') {
             $this->handle_subscription_status($client, $message);
+            return;
+        }
+        if ($event === 'unsubscribe') {
+            $this->handle_un_subscription_status($client, $message);
             return;
         }
         $methods = array(
@@ -1817,7 +2093,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 
@@ -1833,6 +2109,149 @@ class bitget extends \ccxt\async\bitget {
         //        "arg" => array( instType => 'SPOT', channel => "account", instId => "default" )
         //    }
         //
+        return $message;
+    }
+
+    public function handle_order_book_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"books","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
+        $subMessageHash = 'orderbook:' . $symbol;
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . ' orderbook ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_trades_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"trade","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:trade:' . $market['symbol'];
+        $subMessageHash = 'trade:' . $symbol;
+        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+            unset($this->trades[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . ' trades ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_ticker_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"trade","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
+        $subMessageHash = 'ticker:' . $symbol;
+        if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+            unset($this->tickers[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . ' ticker ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_ohlcv_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $channel = $this->safe_string($arg, 'channel');
+        $interval = str_replace('candle', '', $channel);
+        $timeframes = $this->safe_value($this->options, 'timeframes');
+        $timeframe = $this->find_timeframe($interval, $timeframes);
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:candles:' . $timeframe . ':' . $market['symbol'];
+        $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
+        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        }
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+    }
+
+    public function handle_un_subscription_status(Client $client, $message) {
+        //
+        //  {
+        //      "op":"unsubscribe",
+        //      "args":array(
+        //        array(
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"ticker",
+        //          "instId":"BTCUSDT"
+        //        ),
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"candle1m",
+        //          "instId":"BTCUSDT"
+        //        }
+        //      )
+        //  }
+        //  or
+        // array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"books","instId":"BTCUSDT"))
+        //
+        $argsList = $this->safe_list($message, 'args');
+        if ($argsList === null) {
+            $argsList = array( $this->safe_dict($message, 'arg', array()) );
+        }
+        for ($i = 0; $i < count($argsList); $i++) {
+            $arg = $argsList[$i];
+            $channel = $this->safe_string($arg, 'channel');
+            if ($channel === 'books') {
+                // for now only unWatchOrderBook is supporteod
+                $this->handle_order_book_un_subscription($client, $message);
+            } elseif ($channel === 'trade') {
+                $this->handle_trades_un_subscription($client, $message);
+            } elseif ($channel === 'ticker') {
+                $this->handle_ticker_un_subscription($client, $message);
+            } elseif (str_starts_with($channel, 'candle')) {
+                $this->handle_ohlcv_un_subscription($client, $message);
+            }
+        }
         return $message;
     }
 }

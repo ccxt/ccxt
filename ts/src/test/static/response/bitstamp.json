@@ -40,7 +40,7 @@
                         "price": 73254,
                         "amount": 0.00055284,
                         "cost": 40.49774136,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -84,9 +84,11 @@
                     "previousClose": null,
                     "change": 1837,
                     "percentage": 2.5711006606203113,
-                    "average": 72366.5,
+                    "average": 72366,
                     "baseVolume": 135.29692054,
                     "quoteVolume": 9586192.71102062,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "timestamp": "1710328241",
                         "open": "71448",

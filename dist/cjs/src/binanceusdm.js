@@ -3,7 +3,7 @@
 var binance = require('./binance.js');
 var errors = require('./base/errors.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class binanceusdm extends binance {
     describe() {
@@ -11,7 +11,7 @@ class binanceusdm extends binance {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a',
                 'doc': [
                     'https://binance-docs.github.io/apidocs/futures/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
@@ -31,7 +31,7 @@ class binanceusdm extends binance {
                 'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
-                // tier amount, maintenance margin, initial margin
+                // tier amount, maintenance margin, initial margin,
                 'leverageBrackets': undefined,
                 'marginTypes': {},
                 'marginModes': {},

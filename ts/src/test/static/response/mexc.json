@@ -2,6 +2,190 @@
     "exchange": "mexc",
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "spot market buy order",
+                "method": "createOrder",
+                "input": [
+                  "ATLAS/USDT",
+                  "market",
+                  "buy",
+                  1000
+                ],
+                "httpResponse": {
+                  "symbol": "ATLASUSDT",
+                  "orderId": "C02__474424498318368768043",
+                  "orderListId": "-1",
+                  "price": "0.003143",
+                  "origQty": "1000",
+                  "type": "MARKET",
+                  "side": "BUY",
+                  "transactTime": "1728893850646"
+                },
+                "parsedResponse": {
+                  "id": "C02__474424498318368768043",
+                  "clientOrderId": null,
+                  "timestamp": 1728893850646,
+                  "datetime": "2024-10-14T08:17:30.646Z",
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "ATLAS/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "side": "buy",
+                  "price": 0.003143,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "average": null,
+                  "amount": 1000,
+                  "cost": null,
+                  "filled": null,
+                  "remaining": null,
+                  "fee": null,
+                  "trades": [],
+                  "info": {
+                    "symbol": "ATLASUSDT",
+                    "orderId": "C02__474424498318368768043",
+                    "orderListId": "-1",
+                    "price": "0.003143",
+                    "origQty": "1000",
+                    "type": "MARKET",
+                    "side": "BUY",
+                    "transactTime": "1728893850646"
+                  },
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "postOnly": null,
+                  "reduceOnly": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
+                "description": "tif IOC",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "ADAUSDT",
+                    "orderId": "C02__545584045430513665029",
+                    "orderListId": "-1",
+                    "price": "2",
+                    "origQty": "0.5",
+                    "type": "IMMEDIATE_OR_CANCEL",
+                    "side": "BUY",
+                    "transactTime": "1745859608758"
+                },
+                "parsedResponse": {
+                    "id": "C02__545584045430513665029",
+                    "clientOrderId": null,
+                    "timestamp": 1745859608758,
+                    "datetime": "2025-04-28T17:00:08.758Z",
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ADA/USDT",
+                    "type": "limit",
+                    "timeInForce": "IOC",
+                    "side": "buy",
+                    "price": 2,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "symbol": "ADAUSDT",
+                        "orderId": "C02__545584045430513665029",
+                        "orderListId": "-1",
+                        "price": "2",
+                        "origQty": "0.5",
+                        "type": "IMMEDIATE_OR_CANCEL",
+                        "side": "BUY",
+                        "transactTime": "1745859608758"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "tif FOK",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "ADAUSDT",
+                    "orderId": "C02__545583953424261120029",
+                    "orderListId": "-1",
+                    "price": "2",
+                    "origQty": "0.5",
+                    "type": "FILL_OR_KILL",
+                    "side": "BUY",
+                    "transactTime": "1745859586822"
+                },
+                "parsedResponse": {
+                    "id": "C02__545583953424261120029",
+                    "clientOrderId": null,
+                    "timestamp": 1745859586822,
+                    "datetime": "2025-04-28T16:59:46.822Z",
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ADA/USDT",
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "side": "buy",
+                    "price": 2,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "symbol": "ADAUSDT",
+                        "orderId": "C02__545583953424261120029",
+                        "orderListId": "-1",
+                        "price": "2",
+                        "origQty": "0.5",
+                        "type": "FILL_OR_KILL",
+                        "side": "BUY",
+                        "transactTime": "1745859586822"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Spot orderbook",
@@ -48,42 +232,108 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch USDT address (should return ERC20 address)",
+                "description": "fetch USDT address (should return erc20)",
                 "method": "fetchDepositAddress",
                 "input": [
-                    "USDT"
+                  "USDT"
                 ],
                 "httpResponse": [
-                    {
-                        "coin": "USDT",
-                        "network": "BNB Smart Chain(BEP20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    },
-                    {
-                        "coin": "USDT",
-                        "network": "Ethereum(ERC20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    },
-                    {
-                        "coin": "USDT",
-                        "network": "Tron(TRC20)",
-                        "address": "YYYYEEEE",
-                        "memo": null
-                    }
+                  {
+                    "coin": "USDT",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "memo": null,
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "chainDisplayName": "BNB Smart Chain(BEP20)",
+                    "netWork": "BSC"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Ethereum(ERC20)",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "memo": null,
+                    "chainName": "Ethereum(ERC20)",
+                    "chainDisplayName": "Ethereum(ERC20)",
+                    "netWork": "ETH"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Tron(TRC20)",
+                    "address": "TGKyBGx7m3QGNJcteeS1eEr7eVMJQB3afC",
+                    "memo": null,
+                    "chainName": "Tron(TRC20)",
+                    "chainDisplayName": "Tron(TRC20)",
+                    "netWork": "TRX"
+                  }
                 ],
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "XXXXXXXXXXXXYYY",
-                    "tag": null,
-                    "network": "ERC20",
                     "info": {
                         "coin": "USDT",
                         "network": "Ethereum(ERC20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    }
+                        "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                        "memo": null,
+                        "chainName": "Ethereum(ERC20)",
+                        "chainDisplayName": "Ethereum(ERC20)",
+                        "netWork": "ETH"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetch usdt trc20 address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "coin": "USDT",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "address": "0x49a2c0925196e4dcf05a45367fa91153190fbaab",
+                    "memo": null,
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "chainDisplayName": "BNB Smart Chain(BEP20)",
+                    "netWork": "BSC"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Ethereum(ERC20)",
+                    "address": "0x49a2c0925196e4dcf05a45367fa91153190fbaab",
+                    "memo": null,
+                    "chainName": "Ethereum(ERC20)",
+                    "chainDisplayName": "Ethereum(ERC20)",
+                    "netWork": "ETH"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Tron(TRC20)",
+                    "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                    "memo": null,
+                    "chainName": "Tron(TRC20)",
+                    "chainDisplayName": "Tron(TRC20)",
+                    "netWork": "TRX"
+                  }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "coin": "USDT",
+                        "network": "Tron(TRC20)",
+                        "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                        "memo": null,
+                        "chainName": "Tron(TRC20)",
+                        "chainDisplayName": "Tron(TRC20)",
+                        "netWork": "TRX"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                    "tag": null
                 }
             }
         ],
@@ -151,8 +401,8 @@
                         },
                         "fees": [
                             {
-                                "cost": 0,
-                                "currency": "USDT"
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ]
                     }
@@ -276,7 +526,7 @@
                         "price": 73238.7,
                         "amount": 0.000112,
                         "cost": 8.2027344,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "a": null,
                             "f": null,
@@ -334,9 +584,11 @@
                     "previousClose": 72149.26,
                     "change": 1248.51,
                     "percentage": 1.73,
-                    "average": 72773.515,
+                    "average": 72773.51,
                     "baseVolume": 7729.258925,
                     "quoteVolume": 554877037.44,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTCUSDT",
                         "priceChange": "1248.51",

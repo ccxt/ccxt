@@ -29,6 +29,7 @@ const langKeys = {
     '--python-async': false, // run Python 3 async tests only
     '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
+    '--go': false,      // run GO tests only
 }
 
 const debugKeys = {
@@ -43,6 +44,8 @@ const exchangeSpecificFlags = {
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,
+    '--request': false,
+    '--response': false,
 }
 
 let exchanges = []
@@ -172,20 +175,24 @@ const exec = (bin, ...args) => {
             }
     }
 
-    return timeout (timeoutSeconds, new Promise (return_ => {
+    return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
 
-        psSpawn.on ('exit', code => return_ (generateResultFromOutput (output, stderr, code)) )
+        psSpawn.on ('exit', code => {
+            const result = generateResultFromOutput (output, stderr, code)
+            return resolver (result) ;
+        })
 
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
-            return generateResultFromOutput (output, stderr, 0);
+            const result = generateResultFromOutput (output, stderr, 0);
+            return result;
         }
         return {
             failed: true,
@@ -268,7 +275,8 @@ const testExchange = async (exchange) => {
         { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
-        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php',  '--sync',  ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
+        { key: '--go',           language: 'GO',           exec: [ 'cd go/ && go run tests/main.go',          ...args] },
     ];
 
     // select tests based on cli arguments
@@ -290,19 +298,19 @@ const testExchange = async (exchange) => {
         selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
 
-    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
-    , failed         = completeTests.find (test => test.failed)
-    , hasWarnings    = completeTests.find (test => test.warnings.length)
-    , warnings       = completeTests.reduce (
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)));
+    const failed         = completeTests.find (test => test.failed);
+    const hasWarnings    = completeTests.find (test => test.warnings.length);
+    const warnings       = completeTests.reduce (
         (total, { warnings }) => {
-            return total.concat(['\n\n']).concat (warnings)
+            return warnings.length ? total.concat(['\n\n']).concat (warnings) : []
         }, []
-    )
-    , infos       = completeTests.reduce (
+    );
+    const infos          = completeTests.reduce (
         (total, { infos }) => {
-            return total.concat(['\n\n']).concat (infos)
+            return infos.length ? total.concat(['\n\n']).concat (infos) : []
         }, []
-    )
+    );
 
     // Print interactive log output
     let logMessage = '';

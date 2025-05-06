@@ -10,6 +10,8 @@ public partial class Exchange
     {
         public TaskCompletionSource<object> tcs = null;
 
+        private static readonly Object obj = new Object();
+
         public Task<object> task = null;
         public Future()
         {
@@ -19,17 +21,25 @@ public partial class Exchange
 
         public void resolve(object data = null)
         {
-            if (!this.tcs.Task.IsCompleted)
+            lock (obj)
             {
-                this.tcs.SetResult(data);
+                if (!this.tcs.Task.IsCompleted)
+                {
+                    if (this.tcs.Task.Status == TaskStatus.RanToCompletion)
+                    {
+                        return;
+                    }
+                    this.tcs.SetResult(data);
+                }
+                // this.tcs = new TaskCompletionSource<object>(); // reset
+                // this.task = this.tcs.Task;
             }
-            // this.tcs = new TaskCompletionSource<object>(); // reset
-            // this.task = this.tcs.Task;
         }
 
         public void reject(object data)
         {
-            this.tcs.SetException(new Exception(data.ToString()));
+            var exception = (data is Exception) ? data as System.Exception : new Exception(data.ToString()); 
+            this.tcs.SetException(exception);
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }

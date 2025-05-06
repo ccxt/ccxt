@@ -18,7 +18,7 @@ public partial class testMainClass : BaseTest
             object response = null;
             try
             {
-                response = await exchange.watchPositions(symbol);
+                response = await exchange.watchPositions(new List<object>() {symbol});
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

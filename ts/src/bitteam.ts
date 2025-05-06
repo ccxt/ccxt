@@ -14,7 +14,7 @@ import { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class bitteam extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',
@@ -130,7 +130,7 @@ export default class bitteam extends Exchange {
                 '1d': '1D',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
+                'logo': 'https://github.com/user-attachments/assets/b41b5e0d-98e5-4bd3-8a6e-aeb230a4a135',
                 'api': {
                     'history': 'https://history.bit.team',
                     'public': 'https://bit.team',
@@ -220,6 +220,84 @@ export default class bitteam extends Exchange {
                     'BUSD': true,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '400002': BadSymbol, // {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
@@ -245,15 +323,15 @@ export default class bitteam extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchMarkets
+     * @description retrieves data on all markets for bitteam
+     * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name bitteam#fetchMarkets
-         * @description retrieves data on all markets for bitteam
-         * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetTradeApiCcxtPairs (params);
         //
         //     {
@@ -416,15 +494,15 @@ export default class bitteam extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        /**
-         * @method
-         * @name bitteam#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const response = await this.publicGetTradeApiCurrencies (params);
         //
         //     {
@@ -630,18 +708,18 @@ export default class bitteam extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name bitteam#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
@@ -703,17 +781,17 @@ export default class bitteam extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitteam#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -752,19 +830,19 @@ export default class bitteam extends Exchange {
         return orderbook;
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
+     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitteam#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'all');
         const request: Dict = {
@@ -866,17 +944,17 @@ export default class bitteam extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchOrder
+     * @description fetches information on an order
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+     * @param {int|string} id order id
+     * @param {string} symbol not used by bitteam fetchOrder ()
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name bitteam#fetchOrder
-         * @description fetches information on an order
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
-         * @param {int|string} id order id
-         * @param {string} symbol not used by bitteam fetchOrder ()
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'id': id,
@@ -927,18 +1005,18 @@ export default class bitteam extends Exchange {
         return this.parseOrder (result, market);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitteam#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'type': 'active',
@@ -946,18 +1024,18 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of closed order structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitteam#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of closed order structures to retrieve (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'type': 'closed',
@@ -965,18 +1043,18 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'type': 'cancelled',
@@ -984,20 +1062,20 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name bitteam#createOrder
+     * @description create a trade order
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#createOrder
-         * @description create a trade order
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1041,17 +1119,17 @@ export default class bitteam extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    /**
+     * @method
+     * @name bitteam#cancelOrder
+     * @description cancels an open order
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
+     * @param {string} id order id
+     * @param {string} symbol not used by bitteam cancelOrder ()
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#cancelOrder
-         * @description cancels an open order
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
-         * @param {string} id order id
-         * @param {string} symbol not used by bitteam cancelOrder ()
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'id': id,
@@ -1069,16 +1147,16 @@ export default class bitteam extends Exchange {
         return this.parseOrder (result);
     }
 
+    /**
+     * @method
+     * @name bitteam#cancelAllOrders
+     * @description cancel open orders of market
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#cancelAllOrders
-         * @description cancel open orders of market
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = {};
@@ -1206,7 +1284,6 @@ export default class bitteam extends Exchange {
         const side = this.safeString (order, 'side');
         const feeRaw = this.safeValue (order, 'fee');
         const price = this.safeString (order, 'price');
-        const stopPrice = this.safeString (order, 'stopPrice');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
         let fee = undefined;
@@ -1232,8 +1309,7 @@ export default class bitteam extends Exchange {
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString (order, 'stopPrice'),
             'average': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1278,16 +1354,16 @@ export default class bitteam extends Exchange {
         return Precise.stringMul (valueRawString, precisionString);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name bitteam#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-         */
         await this.loadMarkets ();
         let response = await this.publicGetTradeApiCmcSummary ();
         //
@@ -1333,16 +1409,16 @@ export default class bitteam extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name bitteam#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1665,18 +1741,18 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitteam#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1707,18 +1783,18 @@ export default class bitteam extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
@@ -1956,7 +2032,6 @@ export default class bitteam extends Exchange {
         const fee = {
             'currency': this.safeCurrencyCode (feeCurrencyId),
             'cost': feeCost,
-            'rate': undefined,
         };
         const intTs = this.parseToInt (timestamp);
         return this.safeTrade ({
@@ -1976,15 +2051,15 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name betteam#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+     * @param {object} [params] extra parameters specific to the betteam api endpoint
+     * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name betteam#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
-         * @param {object} [params] extra parameters specific to the betteam api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetTradeApiCcxtBalance (params);
         return this.parseBalance (response);
@@ -2057,18 +2132,18 @@ export default class bitteam extends Exchange {
         return this.safeBalance (balance);
     }
 
+    /**
+     * @method
+     * @name bitteam#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+     * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
+     * @param {int} [limit] max number of deposit/withdrawals to return (default 10)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+     */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        /**
-         * @method
-         * @name bitteam#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
-         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser
-         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
-         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
-         * @param {int} [limit] max number of deposit/withdrawals to return (default 10)
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
         await this.loadMarkets ();
         let currency = undefined;
         const request: Dict = {};

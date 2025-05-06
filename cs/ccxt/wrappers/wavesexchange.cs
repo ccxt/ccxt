@@ -29,6 +29,7 @@ public partial class wavesexchange
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +56,7 @@ public partial class wavesexchange
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -93,6 +95,7 @@ public partial class wavesexchange
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/candles/getCandles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -110,6 +113,12 @@ public partial class wavesexchange
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
     /// </list>
@@ -136,15 +145,16 @@ public partial class wavesexchange
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -159,7 +169,7 @@ public partial class wavesexchange
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a stop order is triggered at
     /// </description>
@@ -177,6 +187,7 @@ public partial class wavesexchange
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -196,6 +207,7 @@ public partial class wavesexchange
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -333,6 +345,7 @@ public partial class wavesexchange
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -366,6 +379,7 @@ public partial class wavesexchange
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

@@ -18,26 +18,42 @@ public partial class poloniex : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", null },
-                { "swap", false },
-                { "future", false },
+                { "swap", true },
+                { "future", true },
                 { "option", false },
+                { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", null },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", null },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrder", false },
+                { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", null },
+                { "fetchLedger", null },
+                { "fetchLeverage", true },
+                { "fetchLiquidations", null },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
@@ -50,7 +66,8 @@ public partial class poloniex : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
-                { "fetchPositionMode", false },
+                { "fetchPositionMode", true },
+                { "fetchPositions", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -61,7 +78,10 @@ public partial class poloniex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", true },
                 { "sandbox", true },
+                { "setLeverage", true },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -84,13 +104,14 @@ public partial class poloniex : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg" },
                 { "api", new Dictionary<string, object>() {
-                    { "rest", "https://api.poloniex.com" },
+                    { "spot", "https://api.poloniex.com" },
+                    { "swap", "https://api.poloniex.com" },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "rest", "https://sand-spot-api-gateway.poloniex.com" },
+                    { "spot", "https://sand-spot-api-gateway.poloniex.com" },
                 } },
                 { "www", "https://www.poloniex.com" },
-                { "doc", "https://docs.poloniex.com" },
+                { "doc", "https://api-docs.poloniex.com/spot/" },
                 { "fees", "https://poloniex.com/fees" },
                 { "referral", "https://poloniex.com/signup?c=UBFZJRPJ" },
             } },
@@ -174,6 +195,54 @@ public partial class poloniex : Exchange
                         { "smartorders/{id}", 20 },
                     } },
                 } },
+                { "swapPublic", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "v3/market/allInstruments", divide(2, 3) },
+                        { "v3/market/instruments", divide(2, 3) },
+                        { "v3/market/orderBook", divide(2, 3) },
+                        { "v3/market/candles", 10 },
+                        { "v3/market/indexPriceCandlesticks", 10 },
+                        { "v3/market/premiumIndexCandlesticks", 10 },
+                        { "v3/market/markPriceCandlesticks", 10 },
+                        { "v3/market/trades", divide(2, 3) },
+                        { "v3/market/liquidationOrder", divide(2, 3) },
+                        { "v3/market/tickers", divide(2, 3) },
+                        { "v3/market/markPrice", divide(2, 3) },
+                        { "v3/market/indexPrice", divide(2, 3) },
+                        { "v3/market/indexPriceComponents", divide(2, 3) },
+                        { "v3/market/fundingRate", divide(2, 3) },
+                        { "v3/market/openInterest", divide(2, 3) },
+                        { "v3/market/insurance", divide(2, 3) },
+                        { "v3/market/riskLimit", divide(2, 3) },
+                    } },
+                } },
+                { "swapPrivate", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "v3/account/balance", 4 },
+                        { "v3/account/bills", 20 },
+                        { "v3/trade/order/opens", 20 },
+                        { "v3/trade/order/trades", 20 },
+                        { "v3/trade/order/history", 20 },
+                        { "v3/trade/position/opens", 20 },
+                        { "v3/trade/position/history", 20 },
+                        { "v3/position/leverages", 20 },
+                        { "v3/position/mode", 20 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "v3/trade/order", 4 },
+                        { "v3/trade/orders", 40 },
+                        { "v3/trade/position", 20 },
+                        { "v3/trade/positionAll", 100 },
+                        { "v3/position/leverage", 20 },
+                        { "v3/position/mode", 20 },
+                        { "v3/trade/position/margin", 20 },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "v3/trade/order", 2 },
+                        { "v3/trade/batchOrders", 20 },
+                        { "v3/trade/allOrders", 20 },
+                    } },
+                } },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
@@ -212,6 +281,7 @@ public partial class poloniex : Exchange
                 { "UST", "USTC" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "defaultType", "spot" },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BSC" },
@@ -242,6 +312,110 @@ public partial class poloniex : Exchange
                 { "accountsById", new Dictionary<string, object>() {
                     { "exchange", "spot" },
                     { "futures", "future" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 2000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forContracts", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", false },
+                        { "hedged", true },
+                        { "stpMode", true },
+                        { "marketBuyByCost", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", divide(1, 6) },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                        { "untilDays", 90 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forContracts" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forContracts" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forContracts" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forContracts" },
+                    } },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -322,6 +496,7 @@ public partial class poloniex : Exchange
                     { "21350", typeof(InvalidOrder) },
                     { "21355", typeof(ExchangeError) },
                     { "21356", typeof(BadRequest) },
+                    { "21721", typeof(InsufficientFunds) },
                     { "24101", typeof(BadSymbol) },
                     { "24102", typeof(InvalidOrder) },
                     { "24103", typeof(InvalidOrder) },
@@ -357,6 +532,8 @@ public partial class poloniex : Exchange
     public override object parseOHLCV(object ohlcv, object market = null)
     {
         //
+        // spot:
+        //
         //     [
         //         [
         //             "22814.01",
@@ -376,25 +553,46 @@ public partial class poloniex : Exchange
         //         ]
         //     ]
         //
+        // contract:
+        //
+        //           [
+        //             "84207.02",
+        //             "84320.85",
+        //             "84207.02",
+        //             "84253.83",
+        //             "3707.5395",
+        //             "44",
+        //             "14",
+        //             "1740770040000",
+        //             "1740770099999",
+        //           ],
+        //
+        object ohlcvLength = getArrayLength(ohlcv);
+        object isContract = isEqual(ohlcvLength, 9);
+        if (isTrue(isContract))
+        {
+            return new List<object> {this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)};
+        }
         return new List<object> {this.safeInteger(ohlcv, 12), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.poloniex.com/#public-endpoints-market-data-candles
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -411,18 +609,47 @@ public partial class poloniex : Exchange
             { "symbol", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
+        object keyStart = ((bool) isTrue(getValue(market, "spot"))) ? "startTime" : "sTime";
+        object keyEnd = ((bool) isTrue(getValue(market, "spot"))) ? "endTime" : "eTime";
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            ((IDictionary<string,object>)request)[(string)keyStart] = since;
         }
         if (isTrue(!isEqual(limit, null)))
         {
             // limit should in between 100 and 500
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        var requestparametersVariable = this.handleUntilOption(keyEnd, request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(getValue(market, "contract")))
+        {
+            if (isTrue(this.inArray(timeframe, new List<object>() {"10m", "1M"})))
+            {
+                throw new NotSupported ((string)add(add(add(add(add(this.id, " "), timeframe), " "), getValue(market, "type")), " fetchOHLCV is not supported")) ;
+            }
+            object responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, parameters));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //           [
+            //             "84207.02",
+            //             "84320.85",
+            //             "84207.02",
+            //             "84253.83",
+            //             "3707.5395",
+            //             "44",
+            //             "14",
+            //             "1740770040000",
+            //             "1740770099999",
+            //           ],
+            //
+            object data = this.safeList(responseRaw, "data");
+            return this.parseOHLCVs(data, market, timeframe, since, limit);
+        }
         object response = await this.publicGetMarketsSymbolCandles(this.extend(request, parameters));
         //
         //     [
@@ -460,16 +687,25 @@ public partial class poloniex : Exchange
         return markets;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchMarkets
+     * @description retrieves data on all markets for poloniex
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchMarkets
-        * @description retrieves data on all markets for poloniex
-        * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
+        parameters ??= new Dictionary<string, object>();
+        object promises = new List<object> {this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)};
+        object results = await promiseAll(promises);
+        return this.arrayConcat(getValue(results, 0), getValue(results, 1));
+    }
+
+    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
+    {
         parameters ??= new Dictionary<string, object>();
         object markets = await this.publicGetMarkets(parameters);
         //
@@ -498,7 +734,65 @@ public partial class poloniex : Exchange
         return this.parseMarkets(markets);
     }
 
+    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
+    {
+        // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.swapPublicGetV3MarketAllInstruments(parameters);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": [
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        object markets = this.safeList(response, "data");
+        return this.parseMarkets(markets);
+    }
+
     public override object parseMarket(object market)
+    {
+        if (isTrue(inOp(market, "ctType")))
+        {
+            return this.parseSwapMarket(market);
+        } else
+        {
+            return this.parseSpotMarket(market);
+        }
+    }
+
+    public virtual object parseSpotMarket(object market)
     {
         object id = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "baseCurrencyName");
@@ -556,16 +850,130 @@ public partial class poloniex : Exchange
         };
     }
 
+    public virtual object parseSwapMarket(object market)
+    {
+        //
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
+        //
+        object id = this.safeString(market, "symbol");
+        object baseId = this.safeString(market, "bCcy");
+        object quoteId = this.safeString(market, "qCcy");
+        object settleId = this.safeString(market, "sCcy");
+        object bs = this.safeCurrencyCode(baseId);
+        object quote = this.safeCurrencyCode(quoteId);
+        object settle = this.safeCurrencyCode(settleId);
+        object status = this.safeString(market, "status");
+        object active = isEqual(status, "OPEN");
+        object linear = isEqual(getValue(market, "ctType"), "LINEAR");
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(linear))
+        {
+            symbol = add(symbol, add(":", settle));
+        } else
+        {
+            // actually, exchange does not have any inverse future now
+            symbol = add(symbol, add(":", bs));
+        }
+        object alias = this.safeString(market, "alias");
+        object type = "swap";
+        if (isTrue(!isEqual(alias, null)))
+        {
+            type = "future";
+        }
+        return new Dictionary<string, object>() {
+            { "id", id },
+            { "symbol", symbol },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", settle },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", settleId },
+            { "type", ((bool) isTrue((isEqual(type, "future")))) ? "future" : "swap" },
+            { "spot", false },
+            { "margin", false },
+            { "swap", isEqual(type, "swap") },
+            { "future", isEqual(type, "future") },
+            { "option", false },
+            { "active", active },
+            { "contract", true },
+            { "linear", linear },
+            { "inverse", !isTrue(linear) },
+            { "contractSize", this.safeNumber(market, "ctVal") },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "taker", this.safeNumber(market, "tFee") },
+            { "maker", this.safeNumber(market, "mFee") },
+            { "precision", new Dictionary<string, object>() {
+                { "amount", this.safeNumber(market, "lotSz") },
+                { "price", this.safeNumber(market, "tSz") },
+            } },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "minSz") },
+                    { "max", this.safeNumber(market, "limitMaxQty") },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "minPx") },
+                    { "max", this.safeNumber(market, "maxPx") },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "leverage", new Dictionary<string, object>() {
+                    { "max", this.safeNumber(market, "maxLever") },
+                    { "min", null },
+                } },
+            } },
+            { "created", this.safeInteger(market, "oDate") },
+            { "info", market },
+        };
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTimestamp(parameters);
         return this.safeInteger(response, "serverTime");
@@ -573,6 +981,8 @@ public partial class poloniex : Exchange
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //  spot:
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -595,53 +1005,125 @@ public partial class poloniex : Exchange
         //         "markPrice" : "26444.11"
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "ts");
-        object marketId = this.safeString(ticker, "symbol");
+        //  swap:
+        //
+        //            {
+        //                "s": "XRP_USDT_PERP",
+        //                "o": "2.0503",
+        //                "l": "2.0066",
+        //                "h": "2.216",
+        //                "c": "2.1798",
+        //                "qty": "21090",
+        //                "amt": "451339.65",
+        //                "tC": "3267",
+        //                "sT": "1740736380000",
+        //                "cT": "1740822777559",
+        //                "dN": "XRP/USDT/PERP",
+        //                "dC": "0.0632",
+        //                "bPx": "2.175",
+        //                "bSz": "3",
+        //                "aPx": "2.1831",
+        //                "aSz": "111",
+        //                "mPx": "2.1798",
+        //                "iPx": "2.1834"
+        //            },
+        //
+        object timestamp = this.safeInteger2(ticker, "ts", "cT");
+        object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
-        object close = this.safeString(ticker, "close");
-        object relativeChange = this.safeString(ticker, "dailyChange");
+        object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         object percentage = Precise.stringMul(relativeChange, "100");
-        object bidVolume = this.safeString(ticker, "bidQuantity");
-        object askVolume = this.safeString(ticker, "askQuantity");
         return this.safeTicker(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "high") },
-            { "low", this.safeString(ticker, "low") },
-            { "bid", this.safeString(ticker, "bid") },
-            { "bidVolume", bidVolume },
-            { "ask", this.safeString(ticker, "ask") },
-            { "askVolume", askVolume },
+            { "high", this.safeString2(ticker, "high", "h") },
+            { "low", this.safeString2(ticker, "low", "l") },
+            { "bid", this.safeString2(ticker, "bid", "bPx") },
+            { "bidVolume", this.safeString2(ticker, "bidQuantity", "bSz") },
+            { "ask", this.safeString2(ticker, "ask", "aPx") },
+            { "askVolume", this.safeString2(ticker, "askQuantity", "aSz") },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open") },
-            { "close", close },
-            { "last", close },
+            { "open", this.safeString2(ticker, "open", "o") },
+            { "close", this.safeString2(ticker, "close", "c") },
             { "previousClose", null },
             { "change", null },
             { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "quantity") },
-            { "quoteVolume", this.safeString(ticker, "amount") },
+            { "baseVolume", this.safeString2(ticker, "quantity", "qty") },
+            { "quoteVolume", this.safeString2(ticker, "amount", "amt") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "mPx") },
+            { "indexPrice", this.safeString(ticker, "iPx") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbols = this.marketSymbols(symbols, null, true, true, false);
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                market = this.market(getValue(symbols, 0));
+                if (isTrue(isEqual(symbolsLength, 1)))
+                {
+                    ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                }
+            }
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            object responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "s": "XRP_USDT_PERP",
+            //                "o": "2.0503",
+            //                "l": "2.0066",
+            //                "h": "2.216",
+            //                "c": "2.1798",
+            //                "qty": "21090",
+            //                "amt": "451339.65",
+            //                "tC": "3267",
+            //                "sT": "1740736380000",
+            //                "cT": "1740822777559",
+            //                "dN": "XRP/USDT/PERP",
+            //                "dC": "0.0632",
+            //                "bPx": "2.175",
+            //                "bSz": "3",
+            //                "aPx": "2.1831",
+            //                "aSz": "111",
+            //                "mPx": "2.1798",
+            //                "iPx": "2.1834"
+            //            },
+            //
+            object data = this.safeList(responseRaw, "data");
+            return this.parseTickers(data, symbols);
+        }
         object response = await this.publicGetMarketsTicker24h(parameters);
         //
         //     [
@@ -670,16 +1152,16 @@ public partial class poloniex : Exchange
         return this.parseTickers(response, symbols);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetCurrencies(this.extend(parameters, new Dictionary<string, object>() {
             { "includeMultiChainCurrencies", true },
@@ -745,6 +1227,7 @@ public partial class poloniex : Exchange
                     { "withdraw", withdrawEnabled },
                     { "fee", this.parseNumber(feeString) },
                     { "precision", null },
+                    { "type", "crypto" },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },
@@ -819,23 +1302,29 @@ public partial class poloniex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        if (isTrue(getValue(market, "contract")))
+        {
+            object tickers = await this.fetchTickers(new List<object>() {getValue(market, "symbol")}, parameters);
+            return this.safeDict(tickers, symbol);
+        }
         object response = await this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters));
         //
         //     {
@@ -867,6 +1356,8 @@ public partial class poloniex : Exchange
         //
         // fetchTrades
         //
+        //  spot:
+        //
         //     {
         //         "id" : "60014521",
         //         "price" : "23162.94",
@@ -877,7 +1368,20 @@ public partial class poloniex : Exchange
         //         "createTime" : 1659684602036
         //     }
         //
+        //   swap:
+        //
+        //     {
+        //         "id": "105807376",
+        //         "side": "buy",
+        //         "px": "84410.57",
+        //         "qty": "1",
+        //         "amt": "84.41057",
+        //         "cT": "1740777563557",
+        //     }
+        //
         // fetchMyTrades
+        //
+        //  spot:
         //
         //     {
         //         "id": "32164924331503616",
@@ -896,6 +1400,34 @@ public partial class poloniex : Exchange
         //         "pageId": "32164924331503616",
         //         "clientOrderId": "myOwnId-321"
         //     }
+        //
+        //  swap:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "trdId": "105813553",
+        //         "side": "SELL",
+        //         "type": "TRADE",
+        //         "mgnMode": "CROSS",
+        //         "ordType": "MARKET",
+        //         "clOrdId": "polo418912106147315112",
+        //         "role": "TAKER",
+        //         "px": "84704.9",
+        //         "qty": "1",
+        //         "cTime": "1740842829430",
+        //         "uTime": "1740842829450",
+        //         "feeCcy": "USDT",
+        //         "feeAmt": "0.04235245",
+        //         "deductCcy": "",
+        //         "deductAmt": "0",
+        //         "feeRate": "0.0005",
+        //         "id": "418912106342654592",
+        //         "posSide": "BOTH",
+        //         "ordId": "418912106147315112",
+        //         "qCcy": "USDT",
+        //         "value": "84.7049",
+        //         "actType": "TRADING"
+        //     },
         //
         // fetchOrderTrades (taker trades)
         //
@@ -917,20 +1449,19 @@ public partial class poloniex : Exchange
         //         "clientOrderId": ""
         //     }
         //
-        //
-        object id = this.safeString2(trade, "id", "tradeID");
-        object orderId = this.safeString(trade, "orderId");
-        object timestamp = this.safeInteger2(trade, "ts", "createTime");
+        object id = this.safeStringN(trade, new List<object>() {"id", "tradeID", "trdId"});
+        object orderId = this.safeString2(trade, "orderId", "ordId");
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "createTime", "cT", "cTime"});
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
         object side = this.safeStringLower2(trade, "side", "takerSide");
         object fee = null;
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "quantity");
-        object costString = this.safeString(trade, "amount");
-        object feeCurrencyId = this.safeString(trade, "feeCurrency");
-        object feeCostString = this.safeString(trade, "feeAmount");
+        object priceString = this.safeString2(trade, "price", "px");
+        object amountString = this.safeString2(trade, "quantity", "qty");
+        object costString = this.safeString2(trade, "amount", "amt");
+        object feeCurrencyId = this.safeString2(trade, "feeCurrency", "feeCcy");
+        object feeCostString = this.safeString2(trade, "feeAmount", "feeAmt");
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -946,9 +1477,9 @@ public partial class poloniex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
             { "order", orderId },
-            { "type", this.safeStringLower(trade, "type") },
+            { "type", this.safeStringLower2(trade, "ordType", "type") },
             { "side", side },
-            { "takerOrMaker", this.safeStringLower(trade, "matchRole") },
+            { "takerOrMaker", this.safeStringLower2(trade, "matchRole", "role") },
             { "price", priceString },
             { "amount", amountString },
             { "cost", costString },
@@ -956,19 +1487,20 @@ public partial class poloniex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.poloniex.com/#public-endpoints-market-data-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -977,7 +1509,27 @@ public partial class poloniex : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limit; // max 1000, for spot & swap
+        }
+        if (isTrue(getValue(market, "contract")))
+        {
+            object response = await this.swapPublicGetV3MarketTrades(this.extend(request, parameters));
+            //
+            //     {
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //         {
+            //             id: "105807320", // descending order
+            //             side: "sell",
+            //             px: "84383.93",
+            //             qty: "1",
+            //             amt: "84.38393",
+            //             cT: "1740777074704",
+            //         },
+            //
+            object tradesList = this.safeList(response, "data");
+            return this.parseTrades(tradesList, market, since, limit);
         }
         object trades = await this.publicGetMarketsSymbolTrades(this.extend(request, parameters));
         //
@@ -996,21 +1548,22 @@ public partial class poloniex : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1026,18 +1579,66 @@ public partial class poloniex : Exchange
         {
             market = this.market(symbol);
         }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object isContract = this.inArray(marketType, new List<object>() {"swap", "future"});
         object request = new Dictionary<string, object>() {};
+        object startKey = ((bool) isTrue(isContract)) ? "sTime" : "startTime";
+        object endKey = ((bool) isTrue(isContract)) ? "eTime" : "endTime";
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            ((IDictionary<string,object>)request)[(string)startKey] = since;
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        if (isTrue(isTrue(isContract) && isTrue(!isEqual(symbol, null))))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        var requestparametersVariable = this.handleUntilOption(endKey, request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(isContract))
+        {
+            object raw = await this.swapPrivateGetV3TradeOrderTrades(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "trdId": "105813553",
+            //                "side": "SELL",
+            //                "type": "TRADE",
+            //                "mgnMode": "CROSS",
+            //                "ordType": "MARKET",
+            //                "clOrdId": "polo418912106147315112",
+            //                "role": "TAKER",
+            //                "px": "84704.9",
+            //                "qty": "1",
+            //                "cTime": "1740842829430",
+            //                "uTime": "1740842829450",
+            //                "feeCcy": "USDT",
+            //                "feeAmt": "0.04235245",
+            //                "deductCcy": "",
+            //                "deductAmt": "0",
+            //                "feeRate": "0.0005",
+            //                "id": "418912106342654592",
+            //                "posSide": "BOTH",
+            //                "ordId": "418912106147315112",
+            //                "qCcy": "USDT",
+            //                "value": "84.7049",
+            //                "actType": "TRADING"
+            //            },
+            //
+            object data = this.safeList(raw, "data");
+            return this.parseTrades(data, market, since, limit);
+        }
         object response = await this.privateGetTrades(this.extend(request, parameters));
         //
         //     [
@@ -1102,7 +1703,9 @@ public partial class poloniex : Exchange
         //         "updateTime" : 16xxxxxxxxx36
         //     }
         //
-        // fetchOpenOrders
+        // fetchOpenOrders (and fetchClosedOrders same for contracts)
+        //
+        //  spot:
         //
         //     {
         //         "id": "24993088082542592",
@@ -1123,14 +1726,60 @@ public partial class poloniex : Exchange
         //         "updateTime": 1646925216548
         //     }
         //
+        //  contract:
+        //
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "ordId": "418890767248232148",
+        //         "clOrdId": "polo418890767248232148",
+        //         "mgnMode": "CROSS",
+        //         "px": "81130.13",
+        //         "reduceOnly": false,
+        //         "lever": "20",
+        //         "state": "NEW",
+        //         "source": "WEB",
+        //         "timeInForce": "GTC",
+        //         "tpTrgPx": "",
+        //         "tpPx": "",
+        //         "tpTrgPxType": "",
+        //         "slTrgPx": "",
+        //         "slPx": "",
+        //         "slTrgPxType": "",
+        //         "avgPx": "0",
+        //         "execQty": "0",
+        //         "execAmt": "0",
+        //         "feeCcy": "",
+        //         "feeAmt": "0",
+        //         "deductCcy": "0",
+        //         "deductAmt": "0",
+        //         "stpMode": "NONE", // todo: selfTradePrevention
+        //         "cTime": "1740837741523",
+        //         "uTime": "1740840846882",
+        //         "sz": "1",
+        //         "posSide": "BOTH",
+        //         "qCcy": "USDT"
+        //         "cancelReason": "", // this field can only be in closed orders
+        //     },
+        //
         // createOrder, editOrder
+        //
+        //  spot:
         //
         //     {
         //         "id": "29772698821328896",
         //         "clientOrderId": "1234Abc"
         //     }
         //
-        object timestamp = this.safeInteger2(order, "timestamp", "createTime");
+        //  contract:
+        //
+        //    {
+        //        "ordId":"418876147745775616",
+        //        "clOrdId":"polo418876147745775616"
+        //    }
+        //
+        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "createTime", "cTime"});
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(order, "date"));
@@ -1139,20 +1788,23 @@ public partial class poloniex : Exchange
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
         object resultingTrades = this.safeValue(order, "resultingTrades");
-        if (!isTrue(((resultingTrades is IList<object>) || (resultingTrades.GetType().IsGenericType && resultingTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (isTrue(!isEqual(resultingTrades, null)))
         {
-            resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
+            if (!isTrue(((resultingTrades is IList<object>) || (resultingTrades.GetType().IsGenericType && resultingTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
+            }
         }
-        object price = this.safeString2(order, "price", "rate");
-        object amount = this.safeString(order, "quantity");
-        object filled = this.safeString(order, "filledQuantity");
+        object price = this.safeStringN(order, new List<object>() {"price", "rate", "px"});
+        object amount = this.safeString2(order, "quantity", "sz");
+        object filled = this.safeString2(order, "filledQuantity", "execQty");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         object side = this.safeStringLower(order, "side");
         object rawType = this.safeString(order, "type");
         object type = this.parseOrderType(rawType);
-        object id = this.safeStringN(order, new List<object>() {"orderNumber", "id", "orderId"});
+        object id = this.safeStringN(order, new List<object>() {"orderNumber", "id", "orderId", "ordId"});
         object fee = null;
-        object feeCurrency = this.safeString(order, "tokenFeeCurrency");
+        object feeCurrency = this.safeString2(order, "tokenFeeCurrency", "feeCcy");
         object feeCost = null;
         object feeCurrencyCode = null;
         object rate = this.safeString(order, "fee");
@@ -1163,7 +1815,7 @@ public partial class poloniex : Exchange
         {
             // poloniex accepts a 30% discount to pay fees in TRX
             feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
-            feeCost = this.safeString(order, "tokenFee");
+            feeCost = this.safeString2(order, "tokenFee", "feeAmt");
         }
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1173,8 +1825,11 @@ public partial class poloniex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object clientOrderId = this.safeString(order, "clientOrderId");
-        object triggerPrice = this.safeString2(order, "triggerPrice", "stopPrice");
+        object clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
+        object marginMode = this.safeStringLower(order, "mgnMode");
+        object reduceOnly = this.safeBool(order, "reduceOnly");
+        object leverage = this.safeInteger(order, "lever");
+        object hedged = !isEqual(this.safeString(order, "posSide"), "BOTH");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1186,18 +1841,21 @@ public partial class poloniex : Exchange
             { "symbol", symbol },
             { "type", type },
             { "timeInForce", this.safeString(order, "timeInForce") },
-            { "postOnly", null },
+            { "postOnly", isEqual(rawType, "LIMIT_MAKER") },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
-            { "cost", null },
-            { "average", this.safeString(order, "avgPrice") },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "stopPrice") },
+            { "cost", this.safeString(order, "execAmt") },
+            { "average", this.safeString2(order, "avgPrice", "avgPx") },
             { "amount", amount },
             { "filled", filled },
             { "remaining", null },
             { "trades", resultingTrades },
             { "fee", fee },
+            { "marginMode", marginMode },
+            { "reduceOnly", reduceOnly },
+            { "leverage", leverage },
+            { "hedged", hedged },
         }, market);
     }
 
@@ -1206,6 +1864,7 @@ public partial class poloniex : Exchange
         object statuses = new Dictionary<string, object>() {
             { "MARKET", "market" },
             { "LIMIT", "limit" },
+            { "LIMIT_MAKER", "limit" },
             { "STOP-LIMIT", "limit" },
             { "STOP-MARKET", "market" },
         };
@@ -1228,21 +1887,22 @@ public partial class poloniex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
-        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1252,14 +1912,62 @@ public partial class poloniex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            object max = ((bool) isTrue((isEqual(marketType, "spot")))) ? 2000 : 100;
+            ((IDictionary<string,object>)request)["limit"] = mathMax(limit, max);
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object response = null;
-        if (isTrue(isTrigger))
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            object raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "side": "BUY",
+            //                "type": "LIMIT",
+            //                "ordId": "418890767248232148",
+            //                "clOrdId": "polo418890767248232148",
+            //                "mgnMode": "CROSS",
+            //                "px": "81130.13",
+            //                "reduceOnly": false,
+            //                "lever": "20",
+            //                "state": "NEW",
+            //                "source": "WEB",
+            //                "timeInForce": "GTC",
+            //                "tpTrgPx": "",
+            //                "tpPx": "",
+            //                "tpTrgPxType": "",
+            //                "slTrgPx": "",
+            //                "slPx": "",
+            //                "slTrgPxType": "",
+            //                "avgPx": "0",
+            //                "execQty": "0",
+            //                "execAmt": "0",
+            //                "feeCcy": "",
+            //                "feeAmt": "0",
+            //                "deductCcy": "0",
+            //                "deductAmt": "0",
+            //                "stpMode": "NONE",
+            //                "cTime": "1740837741523",
+            //                "uTime": "1740840846882",
+            //                "sz": "1",
+            //                "posSide": "BOTH",
+            //                "qCcy": "USDT"
+            //            },
+            //
+            response = this.safeList(raw, "data");
+        } else if (isTrue(isTrigger))
         {
             response = await this.privateGetSmartorders(this.extend(request, parameters));
         } else
@@ -1295,41 +2003,131 @@ public partial class poloniex : Exchange
         return this.parseOrders(response, market, since, limit, extension);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchClosedOrders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported for spot markets yet")) ;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["sTime"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("eTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.swapPrivateGetV3TradeOrderHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "side": "SELL",
+        //                "type": "MARKET",
+        //                "ordId": "418912106147315712",
+        //                "clOrdId": "polo418912106147315712",
+        //                "mgnMode": "CROSS",
+        //                "px": "0",
+        //                "sz": "2",
+        //                "lever": "20",
+        //                "state": "FILLED",
+        //                "cancelReason": "",
+        //                "source": "WEB",
+        //                "reduceOnly": "true",
+        //                "timeInForce": "GTC",
+        //                "tpTrgPx": "",
+        //                "tpPx": "",
+        //                "tpTrgPxType": "",
+        //                "slTrgPx": "",
+        //                "slPx": "",
+        //                "slTrgPxType": "",
+        //                "avgPx": "84705.56",
+        //                "execQty": "2",
+        //                "execAmt": "169.41112",
+        //                "feeCcy": "USDT",
+        //                "feeAmt": "0.08470556",
+        //                "deductCcy": "0",
+        //                "deductAmt": "0",
+        //                "stpMode": "NONE",
+        //                "cTime": "1740842829116",
+        //                "uTime": "1740842829130",
+        //                "posSide": "BOTH",
+        //                "qCcy": "USDT"
+        //            },
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name poloniex#createOrder
+     * @description create a trade order
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-order
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#createOrder
-        * @description create a trade order
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", side },
+            { "side", ((string)side).ToUpper() },
         };
         object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(!isEqual(triggerPrice, null)))
+        if (isTrue(isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"))))
+        {
+            object responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, parameters));
+            //
+            // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
+            //
+            response = this.safeDict(responseInitial, "data");
+        } else if (isTrue(!isEqual(triggerPrice, null)))
         {
             response = await this.privatePostSmartorders(this.extend(request, parameters));
         } else
@@ -1342,23 +2140,51 @@ public partial class poloniex : Exchange
         //         "clientOrderId" : ""
         //     }
         //
-        response = this.extend(response, new Dictionary<string, object>() {
-            { "type", type },
-            { "side", side },
-        });
         return this.parseOrder(response, market);
     }
 
     public virtual object orderRequest(object symbol, object type, object side, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+        object market = this.market(symbol);
+        if (isTrue(getValue(market, "contract")))
+        {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleParamString(parameters, "marginMode");
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                this.checkRequiredArgument("createOrder", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
+                ((IDictionary<string,object>)request)["mgnMode"] = ((string)marginMode).ToUpper();
+            }
+            object hedged = null;
+            var hedgedparametersVariable = this.handleParamString(parameters, "hedged");
+            hedged = ((IList<object>)hedgedparametersVariable)[0];
+            parameters = ((IList<object>)hedgedparametersVariable)[1];
+            if (isTrue(hedged))
+            {
+                if (isTrue(isEqual(marginMode, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
+                }
+                if (!isTrue((inOp(parameters, "posSide"))))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
+                }
+            }
+        }
         object upperCaseType = ((string)type).ToUpper();
         object isMarket = isEqual(upperCaseType, "MARKET");
         object isPostOnly = this.isPostOnly(isMarket, isEqual(upperCaseType, "LIMIT_MAKER"), parameters);
-        object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         parameters = this.omit(parameters, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
         if (isTrue(!isEqual(triggerPrice, null)))
         {
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() does not support trigger orders for "), getValue(market, "type")), " markets")) ;
+            }
             upperCaseType = ((bool) isTrue((isEqual(price, null)))) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
         } else if (isTrue(isPostOnly))
@@ -1380,7 +2206,7 @@ public partial class poloniex : Exchange
                 if (isTrue(!isEqual(cost, null)))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (isTrue(isTrue(createMarketBuyOrderRequiresPrice) && isTrue(getValue(market, "spot"))))
                 {
                     if (isTrue(isEqual(price, null)))
                     {
@@ -1396,15 +2222,19 @@ public partial class poloniex : Exchange
                 {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                ((IDictionary<string,object>)request)["amount"] = quoteAmount;
+                object amountKey = ((bool) isTrue(getValue(market, "spot"))) ? "amount" : "sz";
+                ((IDictionary<string,object>)request)[(string)amountKey] = quoteAmount;
             } else
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                object amountKey = ((bool) isTrue(getValue(market, "spot"))) ? "quantity" : "sz";
+                ((IDictionary<string,object>)request)[(string)amountKey] = this.amountToPrecision(symbol, amount);
             }
         } else
         {
-            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            object amountKey = ((bool) isTrue(getValue(market, "spot"))) ? "quantity" : "sz";
+            ((IDictionary<string,object>)request)[(string)amountKey] = this.amountToPrecision(symbol, amount);
+            object priceKey = ((bool) isTrue(getValue(market, "spot"))) ? "price" : "px";
+            ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -1416,24 +2246,24 @@ public partial class poloniex : Exchange
         return new List<object>() {request, parameters};
     }
 
+    /**
+     * @method
+     * @name poloniex#editOrder
+     * @description edit a trade order
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#editOrder
-        * @description edit a trade order
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1475,8 +2305,8 @@ public partial class poloniex : Exchange
         // @method
         // @name poloniex#cancelOrder
         // @description cancels an open order
-        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
-        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-order-by-id  // trigger orders
+        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-id
+        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-id  // trigger orders
         // @param {string} id order id
         // @param {string} symbol unified symbol of the market the order was made in
         // @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1485,7 +2315,29 @@ public partial class poloniex : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
+        if (!isTrue(getValue(market, "spot")))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["ordId"] = id;
+            object raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": {
+            //            "ordId": "418886099910612040",
+            //            "clOrdId": "polo418886099910612040"
+            //        }
+            //    }
+            //
+            return this.parseOrder(this.safeDict(raw, "data"));
+        }
         object clientOrderId = this.safeValue(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1514,19 +2366,20 @@ public partial class poloniex : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name poloniex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if canceling trigger orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.trigger] true if canceling trigger orders
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1538,9 +2391,33 @@ public partial class poloniex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbols"] = new List<object>() {getValue(market, "id")};
         }
+        object response = null;
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(marketType, "swap")) || isTrue(isEqual(marketType, "future"))))
+        {
+            object raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "code": "200",
+            //                "msg": "Success",
+            //                "ordId": "418885787866388511",
+            //                "clOrdId": "polo418885787866388511"
+            //            }
+            //        ]
+            //    }
+            //
+            response = this.safeList(raw, "data");
+            return this.parseOrders(response, market);
+        }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        object response = null;
         if (isTrue(isTrigger))
         {
             response = await this.privateDeleteSmartorders(this.extend(request, parameters));
@@ -1568,26 +2445,40 @@ public partial class poloniex : Exchange
         return this.parseOrders(response, market);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchOrder
+     * @description fetch an order by it's id
+     * @see https://api-docs.poloniex.com/spot/api/private/order#order-details
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if fetching a trigger order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchOrder
-        * @description fetch an order by it's id
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
-        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.trigger] true if fetching a trigger order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         id = ((object)id).ToString();
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchOrder() is not supported for "), marketType), " markets yet")) ;
+        }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object response = null;
@@ -1634,20 +2525,20 @@ public partial class poloniex : Exchange
         return ((bool) isTrue((inOp(indexed, id)))) ? "open" : "closed";
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1685,6 +2576,26 @@ public partial class poloniex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
+        // for swap
+        if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            object ts = this.safeInteger(response, "uTime");
+            ((IDictionary<string,object>)result)["timestamp"] = ts;
+            ((IDictionary<string,object>)result)["datetime"] = this.iso8601(ts);
+            object details = this.safeList(response, "details", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            {
+                object balance = getValue(details, i);
+                object currencyId = this.safeString(balance, "ccy");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "avail");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "im");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+            return this.safeBalance(result);
+        }
+        // for spot
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object account = this.safeValue(response, i, new Dictionary<string, object>() {});
@@ -1703,18 +2614,66 @@ public partial class poloniex : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+     * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            object responseRaw = await this.swapPrivateGetV3AccountBalance(parameters);
+            //
+            //    {
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": {
+            //            "state": "NORMAL",
+            //            "eq": "9.98571622",
+            //            "isoEq": "0",
+            //            "im": "0",
+            //            "mm": "0",
+            //            "mmr": "0",
+            //            "upl": "0",
+            //            "availMgn": "9.98571622",
+            //            "cTime": "1738093601775",
+            //            "uTime": "1740829116236",
+            //            "details": [
+            //                {
+            //                    "ccy": "USDT",
+            //                    "eq": "9.98571622",
+            //                    "isoEq": "0",
+            //                    "avail": "9.98571622",
+            //                    "trdHold": "0",
+            //                    "upl": "0",
+            //                    "isoAvail": "0",
+            //                    "isoHold": "0",
+            //                    "isoUpl": "0",
+            //                    "im": "0",
+            //                    "mm": "0",
+            //                    "mmr": "0",
+            //                    "imr": "0",
+            //                    "cTime": "1740829116236",
+            //                    "uTime": "1740829116236"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            object data = this.safeDict(responseRaw, "data", new Dictionary<string, object>() {});
+            return this.parseBalance(data);
+        }
         object request = new Dictionary<string, object>() {
             { "accountType", "SPOT" },
         };
@@ -1738,16 +2697,16 @@ public partial class poloniex : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetFeeinfo(parameters);
@@ -1775,18 +2734,19 @@ public partial class poloniex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.poloniex.com/#public-endpoints-market-data-order-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1796,6 +2756,29 @@ public partial class poloniex : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
+            if (isTrue(getValue(market, "contract")))
+            {
+                ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 100, 150}, limit);
+            }
+        }
+        if (isTrue(getValue(market, "contract")))
+        {
+            object responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, parameters));
+            //
+            //    {
+            //       "code": 200,
+            //       "data": {
+            //         "asks": [ ["58700", "9934"], ..],
+            //         "bids": [ ["58600", "9952"], ..],
+            //         "s": "100",
+            //         "ts": 1719974138333
+            //       },
+            //       "msg": "Success"
+            //    }
+            //
+            object data = this.safeDict(responseRaw, "data", new Dictionary<string, object>() {});
+            object ts = this.safeInteger(data, "ts");
+            return this.parseOrderBook(data, symbol, ts);
         }
         object response = await this.publicGetMarketsSymbolOrderBook(this.extend(request, parameters));
         //
@@ -1840,17 +2823,17 @@ public partial class poloniex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name poloniex#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1862,7 +2845,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         } else
         {
@@ -1898,17 +2881,17 @@ public partial class poloniex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1920,7 +2903,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         } else
         {
@@ -1948,28 +2931,28 @@ public partial class poloniex : Exchange
             }
         }
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", response },
         };
     }
 
+    /**
+     * @method
+     * @name poloniex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2011,20 +2994,20 @@ public partial class poloniex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name poloniex#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#withdraw
-        * @description make a withdrawal
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2046,7 +3029,7 @@ public partial class poloniex : Exchange
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["currency"] = add(((IDictionary<string,object>)request)["currency"], network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWalletsWithdraw(this.extend(request, parameters));
@@ -2146,19 +3129,19 @@ public partial class poloniex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.fetchTransactionsHelper(code, since, limit, parameters);
@@ -2175,19 +3158,19 @@ public partial class poloniex : Exchange
         return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchTransactionsHelper(code, since, limit, parameters);
         object currency = null;
@@ -2200,17 +3183,17 @@ public partial class poloniex : Exchange
         return this.filterByCurrencySinceLimit(transactions, code, since, limit);
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetCurrencies(this.extend(parameters, new Dictionary<string, object>() {
@@ -2339,19 +3322,19 @@ public partial class poloniex : Exchange
         return depositWithdrawFee;
     }
 
+    /**
+     * @method
+     * @name poloniex#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchTransactionsHelper(code, since, limit, parameters);
         object currency = null;
@@ -2460,6 +3443,431 @@ public partial class poloniex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name poloniex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isEqual(marginMode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+        }
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        if (isTrue(hedged))
+        {
+            if (!isTrue((inOp(parameters, "posSide"))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "lever", leverage },
+            { "mgnMode", ((string)marginMode).ToUpper() },
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, parameters));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isEqual(marginMode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+        }
+        ((IDictionary<string,object>)request)["mgnMode"] = ((string)marginMode).ToUpper();
+        object response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters));
+        //
+        //  for one-way mode:
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "10",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "BOTH"
+        //            }
+        //        ]
+        //    }
+        //
+        //  for hedge:
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "SHORT"
+        //            },
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "LONG"
+        //            }
+        //        ]
+        //    }
+        //
+        return this.parseLeverage(response, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object shortLeverage = null;
+        object longLeverage = null;
+        object marketId = null;
+        object marginMode = null;
+        object data = this.safeList(leverage, "data");
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            marketId = this.safeString(entry, "symbol");
+            marginMode = this.safeString(entry, "mgnMode");
+            object lever = this.safeInteger(entry, "lever");
+            object posSide = this.safeString(entry, "posSide");
+            if (isTrue(isEqual(posSide, "LONG")))
+            {
+                longLeverage = lever;
+            } else if (isTrue(isEqual(posSide, "SHORT")))
+            {
+                shortLeverage = lever;
+            } else
+            {
+                longLeverage = lever;
+                shortLeverage = lever;
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.swapPrivateGetV3PositionMode(parameters);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {
+        //            "posMode": "ONE_WAY"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object posMode = this.safeString(data, "posMode");
+        object hedged = isEqual(posMode, "HEDGE");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", hedged },
+        };
+    }
+
+    /**
+     * @method
+     * @name poloniex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object mode = ((bool) isTrue(hedged)) ? "HEDGE" : "ONE_WAY";
+        object request = new Dictionary<string, object>() {
+            { "posMode", mode },
+        };
+        object response = await this.swapPrivatePostV3PositionMode(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {}
+        //    }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.swapPrivateGetV3TradePositionOpens(parameters);
+        //
+        //    {
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //        ]
+        //    }
+        //
+        object positions = this.safeList(response, "data", new List<object>() {});
+        return this.parsePositions(positions, symbols);
+    }
+
+    public override object parsePosition(object position, object market = null)
+    {
+        //
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
+        //            }
+        //
+        object marketId = this.safeString(position, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(position, "cTime");
+        object marginMode = this.safeStringLower(position, "mgnMode");
+        object leverage = this.safeString(position, "lever");
+        object initialMargin = this.safeString(position, "im");
+        object notional = Precise.stringMul(leverage, initialMargin);
+        object qty = this.safeString(position, "qty");
+        object avgPrice = this.safeString(position, "openAvgPx");
+        object collateral = Precise.stringMul(qty, avgPrice);
+        // todo: some more fields
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", null },
+            { "symbol", getValue(market, "symbol") },
+            { "notional", notional },
+            { "marginMode", marginMode },
+            { "liquidationPrice", this.safeNumber(position, "liqPx") },
+            { "entryPrice", this.safeNumber(position, "openAvgPx") },
+            { "unrealizedPnl", this.safeNumber(position, "upl") },
+            { "percentage", null },
+            { "contracts", this.safeNumber(position, "qty") },
+            { "contractSize", null },
+            { "markPrice", this.safeNumber(position, "markPx") },
+            { "lastPrice", null },
+            { "side", this.safeStringLower(position, "posSide") },
+            { "hedged", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", null },
+            { "maintenanceMargin", this.safeNumber(position, "mm") },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", collateral },
+            { "initialMargin", initialMargin },
+            { "initialMarginPercentage", null },
+            { "leverage", parseInt(leverage) },
+            { "marginRatio", this.safeNumber(position, "mgnRatio") },
+            { "stopLossPrice", this.safeNumber(position, "slTrgPx") },
+            { "takeProfitPrice", this.safeNumber(position, "tpTrgPx") },
+        });
+    }
+
+    public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        amount = this.amountToPrecision(symbol, amount);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "amt", Precise.stringAbs(amount) },
+            { "type", ((string)type).ToUpper() },
+        };
+        // todo: hedged handling, tricky
+        if (!isTrue((inOp(parameters, "posMode"))))
+        {
+            ((IDictionary<string,object>)request)["posMode"] = "BOTH";
+        }
+        object response = await this.swapPrivatePostV3TradePositionMargin(this.extend(request, parameters));
+        //
+        // {
+        //     "code": 200,
+        //     "data": {
+        //       "amt": "50",
+        //       "lever": "20",
+        //       "symbol": "DOT_USDT_PERP",
+        //       "posSide": "BOTH",
+        //       "type": "ADD"
+        //     },
+        //     "msg": "Success"
+        // }
+        //
+        if (isTrue(isEqual(type, "reduce")))
+        {
+            amount = Precise.stringAbs(amount);
+        }
+        object data = this.safeDict(response, "data");
+        return this.parseMarginModification(data, market);
+    }
+
+    public override object parseMarginModification(object data, object market = null)
+    {
+        object marketId = this.safeString(data, "symbol");
+        market = this.safeMarket(marketId, market);
+        object rawType = this.safeString(data, "type");
+        object type = ((bool) isTrue((isEqual(rawType, "ADD")))) ? "add" : "reduce";
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", getValue(market, "symbol") },
+            { "type", type },
+            { "marginMode", null },
+            { "amount", this.safeNumber(data, "amt") },
+            { "total", null },
+            { "code", null },
+            { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name poloniex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), "reduce", parameters);
+    }
+
+    /**
+     * @method
+     * @name poloniex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
+    }
+
     public override object nonce()
     {
         return this.milliseconds();
@@ -2470,10 +3878,14 @@ public partial class poloniex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "rest");
+        object url = getValue(getValue(this.urls, "api"), "spot");
+        if (isTrue(this.inArray(api, new List<object>() {"swapPublic", "swapPrivate"})))
+        {
+            url = getValue(getValue(this.urls, "api"), "swap");
+        }
         object query = this.omit(parameters, this.extractParams(path));
         object implodedPath = this.implodeParams(path, parameters);
-        if (isTrue(isEqual(api, "public")))
+        if (isTrue(isTrue(isEqual(api, "public")) || isTrue(isEqual(api, "swapPublic"))))
         {
             url = add(url, add("/", implodedPath));
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))

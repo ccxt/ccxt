@@ -10,7 +10,7 @@ use ccxt\async\abstract\binanceus as binance;
 
 class binanceus extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
@@ -20,7 +20,7 @@ class binanceus extends binance {
             'certified' => false,
             'pro' => true,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c',
                 'api' => array(
                     'web' => 'https://www.binance.us',
                     'public' => 'https://api.binance.us/api/v3',
@@ -45,6 +45,7 @@ class binanceus extends binance {
             'options' => array(
                 'fetchMarkets' => array( 'spot' ),
                 'defaultType' => 'spot',
+                'fetchMargins' => false,
                 'quoteOrderQty' => false,
             ),
             'has' => array(
@@ -207,6 +208,16 @@ class binanceus extends binance {
                     'post' => array(
                         'sub-account/transfer' => 1,
                     ),
+                ),
+            ),
+            'features' => array(
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));

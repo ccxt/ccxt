@@ -1165,216 +1165,230 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "+1d +since +limit +until (abnormal; limit & until more than permitted)",
+                "description": "+1d +since +limit +until (abnormal, limit more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&endTime=1690000000000&startTime=1420000000000",      
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1672720000000&endTime=1690000000000&limit=200",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1690000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1690000000000
+                    }
+                ],
+                "output": null
             },
             {
-                "disabled": true,
-                "exception": "BadRequest",
-                "description": "+1d +since +limit +until (abnormal; limit & until more than permitted)",
+                "description": "+1d +since +limit +until (abnormal, limit more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&endTime=1690000000000&startTime=1420000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1682224000000&endTime=1690000000000&limit=90&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1690000000000
-                  }
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1690000000000
+                    }
+                ],
+                "output": null
             },
             {
-                "description": "+1d +since +limit +until (abnormal; limit more than permitted)",
+                "description": "+1d +since +limit +until (abnormal, limit more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&endTime=1421000000000&startTime=1420000000000",      
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1403720000000&endTime=1421000000000&limit=200",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
-                "description": "+1d +since +limit +until (abnormal; limit more than permitted)",
+                "description": "+1d +since +limit +until (abnormal, limit more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&endTime=1421000000000&startTime=1420000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1413224000000&endTime=1421000000000&limit=90&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
-            },
-            {
-                "description": "+1d +since +limit +until (normal, but limit less than until)",
-                "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=1&endTime=1480000000000&startTime=1420000000000",       
-                "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000,
-                  1,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since +limit +until (normal, but limit less than until)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=1&endTime=1421000000000&startTime=1420000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420913600000&endTime=1421000000000&limit=1",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000,
-                  1,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000,
+                    1,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "+1d +since +limit +until (normal, but limit less than until)",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420913600000&endTime=1421000000000&limit=1&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000,
+                    1,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1421000000000&startTime=1420000000000",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1412360000000&endTime=1421000000000&limit=100",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000,
-                  null,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000,
+                    null,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1421000000000&startTime=1420000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1412360000000&endTime=1420136000000&limit=100&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000,
-                  null,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000,
+                    null,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1421000000000",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1421000000000&startTime=1412360000000&limit=100",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  null,
-                  null,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    null,
+                    null,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1421000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&endTime=1420136000000&startTime=1412360000000&limit=100&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  null,
-                  null,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    null,
+                    null,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since +limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&startTime=1420000000000&endTime=1506400000000",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1428640000000&endTime=1445920000000&limit=200",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000,
-                  3000
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000,
+                    3000
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since +limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&limit=200&startTime=1420000000000&endTime=1427776000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420000000000&endTime=1427776000000&limit=90&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000,
-                  3000
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000,
+                    3000
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420000000000&endTime=1428640000000",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420000000000&endTime=1428640000000&limit=100",
                 "input": [
-                  "BTC/USDT",
-                  "1d",
-                  1420000000000
-                ]
+                    "BTC/USDT",
+                    "1d",
+                    1420000000000
+                ],
+                "output": null
             },
             {
                 "description": "+1d +since",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420000000000&endTime=1427776000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1420000000000&endTime=1427776000000&limit=100&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  1420000000000
-                ]
+                    "BTC/USDT:USDT",
+                    "1d",
+                    1420000000000
+                ],
+                "output": null
             },
             {
-                "description": "+1m +since +limit +until (abnormal: limit & until more than permitted)",
+                "description": "+1m +since +limit +until (abnormal; limit & until more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1min&limit=200&startTime=1420000000000&endTime=1421000000000",
+                "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1min&startTime=1420988000000&endTime=1421000000000&limit=200",
                 "input": [
-                  "BTC/USDT",
-                  "1m",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT",
+                    "1m",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             },
             {
-                "description": "+1m +since +limit +until (abnormal: limit & until more than permitted)",
+                "description": "+1m +since +limit +until (abnormal; limit & until more than permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1m&limit=200&startTime=1420000000000&endTime=1421000000000&productType=USDT-FUTURES",
+                "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1m&startTime=1420988000000&endTime=1421000000000&limit=200&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1m",
-                  1420000000000,
-                  3000,
-                  {
-                    "until": 1421000000000
-                  }
-                ]
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1420000000000,
+                    3000,
+                    {
+                        "until": 1421000000000
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -1471,6 +1485,15 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "swap trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=mix&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch trading fee spot",
                 "method": "fetchTradingFee",
                 "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=spot&symbol=BTCUSDT",
@@ -1533,6 +1556,17 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetchDepositAddress with network TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?chain=TRC20&coin=USDT",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ]
             }
         ],
         "fetchLeverage": [
@@ -1561,6 +1595,16 @@
                 "method": "fetchTime",
                 "url": "https://api.bitget.com/api/v2/public/time",
                 "input": []
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchTicker": [
@@ -1657,9 +1701,27 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "fetch the funding rate details with an alternative method",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "method": "publicMixGetV2MixMarketFundingTime"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [
+            {
+                "description": "fetch deposits without currency",
+                "method": "fetchDeposits",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?endTime=1741255153908&startTime=1733479153908",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "fetch usdt deposits",
                 "method": "fetchDeposits",
@@ -1670,6 +1732,13 @@
             }
         ],
         "fetchWithdrawals": [
+            {
+                "description": "fetchWitdrawals without currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?endTime=1743676539420&startTime=1735900539420",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "fetch withdrawals",
                 "method": "fetchWithdrawals",
@@ -1722,6 +1791,72 @@
                 "description": "Fetch the conversion trade history",
                 "method": "fetchConvertTradeHistory",
                 "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
+                "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "swap fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/mix/market/account-long-short?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot margin fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/margin/market/long-short-ratio?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/isolated/interest-history?coin=USDT&startTime=1722564280941&symbol=BTCUSDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/interest-history?coin=USDT&startTime=1722564342903",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES",
                 "input": []
             }
         ]

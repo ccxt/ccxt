@@ -97,7 +97,7 @@ export class BLAKE2 extends Hash {
     }
     _cloneInto(to) {
         const { buffer, length, finished, destroyed, outputLen, pos } = this;
-        to || (to = new this.constructor({ dkLen: outputLen }));
+        to ||= new this.constructor({ dkLen: outputLen });
         to.set(...this.get());
         to.length = length;
         to.finished = finished;

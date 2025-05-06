@@ -10,7 +10,7 @@ public partial class poloniexfutures
     /// retrieves data on all markets for poloniexfutures
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#symbol-2"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class poloniexfutures
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-real-time-ticker-2-0"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-20"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class poloniexfutures
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-of-all-symbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -76,7 +76,7 @@ public partial class poloniexfutures
     /// fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-full-order-book-level-3"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -103,7 +103,7 @@ public partial class poloniexfutures
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#historical-data"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/historical#transaction-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -137,7 +137,7 @@ public partial class poloniexfutures
     /// fetches the current integer timestamp in milliseconds from the poloniexfutures server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#time"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/time#server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -157,7 +157,7 @@ public partial class poloniexfutures
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#k-chart"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/kline#get-k-line-data-of-contract"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -191,7 +191,7 @@ public partial class poloniexfutures
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-account-overview"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/account#get-account-overview"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -211,7 +211,7 @@ public partial class poloniexfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#place-an-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#place-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -232,7 +232,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -304,7 +304,7 @@ public partial class poloniexfutures
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#cancel-an-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -324,7 +324,7 @@ public partial class poloniexfutures
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-position-list"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/positions#get-position-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -344,7 +344,7 @@ public partial class poloniexfutures
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-funding-history"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/funding-fees#get-funding-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -386,7 +386,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// object : When true, all the trigger orders will be cancelled
     /// </description>
@@ -403,8 +403,8 @@ public partial class poloniexfutures
     /// fetches a list of orders placed on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-order-list"/>  <br/>
-    /// See <see href="https://futures-docs.poloniex.com/#get-untriggered-stop-order-list"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -462,8 +462,8 @@ public partial class poloniexfutures
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-order-list"/>  <br/>
-    /// See <see href="https://futures-docs.poloniex.com/#get-untriggered-stop-order-list"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -515,8 +515,8 @@ public partial class poloniexfutures
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-order-list"/>  <br/>
-    /// See <see href="https://futures-docs.poloniex.com/#get-untriggered-stop-order-list"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -568,8 +568,8 @@ public partial class poloniexfutures
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-details-of-a-single-order"/>  <br/>
-    /// See <see href="https://futures-docs.poloniex.com/#get-single-order-by-clientoid"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -580,7 +580,7 @@ public partial class poloniexfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id = null, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
@@ -589,7 +589,7 @@ public partial class poloniexfutures
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-premium-index"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -600,16 +600,36 @@ public partial class poloniexfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-fills"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/fills#get-fillsdeprecated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -629,6 +649,30 @@ public partial class poloniexfutures
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.orderIdFills</term>
+    /// <description>
+    /// string : filles for a specific order (other parameters can be ignored if specified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : buy or sell
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string :  limit, market, limit_stop or market_stop
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.endAt</term>
+    /// <description>
+    /// int : end time (milisecond)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -643,7 +687,7 @@ public partial class poloniexfutures
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#change-margin-mode"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/margin-mode#change-margin-mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -10,9 +10,13 @@ git checkout HEAD cs/tests/Generated
 git checkout HEAD cs/ccxt/wrappers/
 git checkout HEAD cs/ccxt/base/Exchange.Wrappers.cs
 git checkout HEAD cs/ccxt/base/Exchange.BaseMethods.cs
+git checkout HEAD cs/ccxt/base/Exchange.MetaData.cs
 git checkout HEAD ts/ccxt.ts
 git checkout HEAD ts/src/abstract
 git checkout HEAD python
 git checkout HEAD php
 git checkout HEAD dist
 git checkout HEAD examples
+git checkout HEAD go/v4/exchange_metadata.go
+git checkout HEAD wiki/Exchange-Markets.md
+git checkout HEAD wiki/Manual.md

@@ -75,14 +75,12 @@
             "cost": 7.835,
             "fee": {
               "currency": "USDT",
-              "cost": 0.01567,
-              "rate": null
+              "cost": 0.01567
             },
             "fees": [
               {
                 "currency": "USDT",
-                "cost": 0.01567,
-                "rate": null
+                "cost": 0.01567
               }
             ]
           }
@@ -145,14 +143,12 @@
             "cost": 0.783,
             "fee": {
               "currency": "USDT",
-              "cost": 0.004698,
-              "rate": null
+              "cost": 0.004698
             },
             "fees": [
               {
                 "currency": "USDT",
-                "cost": 0.004698,
-                "rate": null
+                "cost": 0.004698
               }
             ]
           }
@@ -406,6 +402,431 @@
             "stopLossPrice": null
           }
         ]
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "spot & limit",
+        "method": "fetchTrades",
+        "input": [
+          "BTC/USDT",
+          null,
+          5
+        ],
+        "httpResponse": {
+          "rc": "0",
+          "mc": "SUCCESS",
+          "ma": [],
+          "result": [
+            {
+              "i": "423029665070881152",
+              "t": "1730560131664",
+              "p": "69243.26",
+              "q": "0.00552",
+              "v": "382.2227952",
+              "b": false
+            },
+            {
+              "i": "423029660033522048",
+              "t": "1730560130463",
+              "p": "69243.26",
+              "q": "0.00057",
+              "v": "39.4686582",
+              "b": false
+            },
+            {
+              "i": "423029655998601600",
+              "t": "1730560129501",
+              "p": "69243.26",
+              "q": "0.00549",
+              "v": "380.1454974",
+              "b": false
+            },
+            {
+              "i": "423029650105604480",
+              "t": "1730560128096",
+              "p": "69243.26",
+              "q": "0.00501",
+              "v": "346.9087326",
+              "b": false
+            },
+            {
+              "i": "423029643818342784",
+              "t": "1730560126597",
+              "p": "69243.25",
+              "q": "0.10917",
+              "v": "7559.2856025",
+              "b": true
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "i": "423029643818342784",
+              "t": "1730560126597",
+              "p": "69243.25",
+              "q": "0.10917",
+              "v": "7559.2856025",
+              "b": true
+            },
+            "id": "423029643818342784",
+            "timestamp": 1730560126597,
+            "datetime": "2024-11-02T15:08:46.597Z",
+            "symbol": "BTC/USDT",
+            "order": null,
+            "type": null,
+            "side": "sell",
+            "takerOrMaker": "taker",
+            "price": 69243.25,
+            "amount": 0.10917,
+            "cost": 7559.2856025,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "i": "423029650105604480",
+              "t": "1730560128096",
+              "p": "69243.26",
+              "q": "0.00501",
+              "v": "346.9087326",
+              "b": false
+            },
+            "id": "423029650105604480",
+            "timestamp": 1730560128096,
+            "datetime": "2024-11-02T15:08:48.096Z",
+            "symbol": "BTC/USDT",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 69243.26,
+            "amount": 0.00501,
+            "cost": 346.9087326,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "i": "423029655998601600",
+              "t": "1730560129501",
+              "p": "69243.26",
+              "q": "0.00549",
+              "v": "380.1454974",
+              "b": false
+            },
+            "id": "423029655998601600",
+            "timestamp": 1730560129501,
+            "datetime": "2024-11-02T15:08:49.501Z",
+            "symbol": "BTC/USDT",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 69243.26,
+            "amount": 0.00549,
+            "cost": 380.1454974,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "i": "423029660033522048",
+              "t": "1730560130463",
+              "p": "69243.26",
+              "q": "0.00057",
+              "v": "39.4686582",
+              "b": false
+            },
+            "id": "423029660033522048",
+            "timestamp": 1730560130463,
+            "datetime": "2024-11-02T15:08:50.463Z",
+            "symbol": "BTC/USDT",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 69243.26,
+            "amount": 0.00057,
+            "cost": 39.4686582,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          },
+          {
+            "info": {
+              "i": "423029665070881152",
+              "t": "1730560131664",
+              "p": "69243.26",
+              "q": "0.00552",
+              "v": "382.2227952",
+              "b": false
+            },
+            "id": "423029665070881152",
+            "timestamp": 1730560131664,
+            "datetime": "2024-11-02T15:08:51.664Z",
+            "symbol": "BTC/USDT",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 69243.26,
+            "amount": 0.00552,
+            "cost": 382.2227952,
+            "fee": {
+              "cost": null,
+              "currency": null
+            },
+            "fees": []
+          }
+        ]
+      }
+    ],
+    "editOrder": [
+      {
+        "description": "linear swap edit an order",
+        "method": "editOrder",
+        "input": [
+          "483869393976071040",
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          2,
+          54000
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"483870626049393728"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "483870626049393728"
+          },
+          "id": "483870626049393728",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "spot edit an order",
+        "method": "editOrder",
+        "input": [
+          "484203027161892224",
+          "BTC/USDT",
+          "limit",
+          "buy",
+          0.002,
+          52000
+        ],
+        "httpResponse": {"rc":0,"mc":"SUCCESS","ma":[],"result":{"orderId":"484203027161892224","modifyId":"484205800137559104","clientModifyId":null}},
+        "parsedResponse": {
+          "info": {
+            "orderId": "484203027161892224",
+            "modifyId": "484205800137559104",
+            "clientModifyId": null
+          },
+          "id": "484203027161892224",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "swap edit a stopLoss order",
+        "method": "editOrder",
+        "input": [
+          "484221817085868800",
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          2,
+          null,
+          {
+            "stopLoss": 68000
+          }
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"484221817085868800"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "484221817085868800"
+          },
+          "id": "484221817085868800",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "swap edit a takeProfit order",
+        "method": "editOrder",
+        "input": [
+          "484222823387497216",
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          2,
+          null,
+          {
+            "takeProfit": 98000
+          }
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"484222823387497216"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "484222823387497216"
+          },
+          "id": "484222823387497216",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
       }
     ]
   }

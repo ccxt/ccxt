@@ -23,6 +23,7 @@ class BaseCache(list):
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
     clear = Delegate('clear', '_deque')
+    pop = Delegate('pop', '_deque')
 
     def __init__(self, max_size=None):
         super(BaseCache, self).__init__()

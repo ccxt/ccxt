@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,7 +14,7 @@ from ccxt.base.errors import ExchangeError
 
 class lbank(ccxt.async_support.lbank):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(lbank, self).describe(), {
             'has': {
                 'ws': True,
@@ -26,6 +26,7 @@ class lbank(ccxt.async_support.lbank):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -66,7 +67,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
+        https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -98,7 +101,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+
+        https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -229,7 +234,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
+        https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cex api endpoint
@@ -250,7 +257,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#market
+
+        https://www.lbank.com/en-US/docs/index.html#market
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the lbank api endpoint
@@ -352,7 +361,9 @@ class lbank(ccxt.async_support.lbank):
     async def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
+        https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -377,7 +388,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#trade-record
+
+        https://www.lbank.com/en-US/docs/index.html#trade-record
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -416,7 +429,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",  # or "sell_market"
+        #             "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -454,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",  # or "sell_market"
+        #        "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -462,8 +475,14 @@ class lbank(ccxt.async_support.lbank):
         datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
-        side = self.safe_string_2(trade, 'direction', 3)
-        side = side.replace('_market', '')
+        rawSide = self.safe_string_2(trade, 'direction', 3)
+        parts = rawSide.split('_')
+        firstPart = self.safe_string(parts, 0)
+        secondPart = self.safe_string(parts, 1)
+        side = firstPart
+        # reverse if it was 'maker'
+        if secondPart is not None and secondPart == 'maker':
+            side = 'sell' if (side == 'buy') else 'buy'
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -482,7 +501,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+
+        https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
+
         get the list of trades associated with the user
         :param str [symbol]: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -639,7 +660,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
+        https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -664,8 +687,9 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://www.lbank.com/en-US/docs/index.html#market-depth
-        :see: https://www.lbank.com/en-US/docs/index.html#market-increment-depth
+
+        https://www.lbank.com/en-US/docs/index.html#market-depth
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -780,10 +804,13 @@ class lbank(ccxt.async_support.lbank):
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
         pingId = self.safe_string(message, 'ping')
-        await client.send({
-            'action': 'pong',
-            'pong': pingId,
-        })
+        try:
+            await client.send({
+                'action': 'pong',
+                'pong': pingId,
+            })
+        except Exception as e:
+            self.on_error(client, e)
 
     def handle_message(self, client, message):
         status = self.safe_string(message, 'status')

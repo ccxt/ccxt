@@ -19,7 +19,7 @@ public partial class hitbtc : Exchange
                 { "margin", true },
                 { "swap", true },
                 { "future", false },
-                { "option", null },
+                { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
@@ -41,6 +41,8 @@ public partial class hitbtc : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -49,6 +51,7 @@ public partial class hitbtc : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -61,12 +64,16 @@ public partial class hitbtc : Exchange
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
@@ -75,12 +82,14 @@ public partial class hitbtc : Exchange
                 { "fetchPosition", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", true },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "sandbox", true },
@@ -245,6 +254,109 @@ public partial class hitbtc : Exchange
                     { "tiers", new Dictionary<string, object>() {
                         { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0")}, new List<object> {this.parseNumber("50000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("100000"), this.parseNumber("-0.0001")}} },
                         { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0002")}} },
+                    } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                        { "marketType", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
                     } },
                 } },
             } },
@@ -455,16 +567,16 @@ public partial class hitbtc : Exchange
         return this.milliseconds();
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchMarkets
+     * @description retrieves data on all markets for hitbtc
+     * @see https://api.hitbtc.com/#symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchMarkets
-        * @description retrieves data on all markets for hitbtc
-        * @see https://api.hitbtc.com/#symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPublicSymbol(parameters);
         //
@@ -606,16 +718,16 @@ public partial class hitbtc : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api.hitbtc.com/#currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://api.hitbtc.com/#currencies
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPublicCurrency(parameters);
         //
@@ -657,6 +769,8 @@ public partial class hitbtc : Exchange
             object transferEnabled = this.safeBool(entry, "transfer_enabled", false);
             object active = isTrue(isTrue(payinEnabled) && isTrue(payoutEnabled)) && isTrue(transferEnabled);
             object rawNetworks = this.safeValue(entry, "networks", new List<object>() {});
+            object isCrypto = this.safeBool(entry, "crypto");
+            object type = ((bool) isTrue(isCrypto)) ? "crypto" : "fiat";
             object networks = new Dictionary<string, object>() {};
             object fee = null;
             object depositEnabled = null;
@@ -665,7 +779,8 @@ public partial class hitbtc : Exchange
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString2(rawNetwork, "protocol", "network");
-                object network = this.safeNetwork(networkId);
+                object networkCode = this.networkIdToCode(networkId);
+                networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
                 fee = this.safeNumber(rawNetwork, "payout_fee");
                 object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
                 object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
@@ -685,10 +800,10 @@ public partial class hitbtc : Exchange
                 {
                     withdrawEnabled = false;
                 }
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", networkId },
-                    { "network", network },
+                    { "network", networkCode },
                     { "fee", fee },
                     { "active", activeNetwork },
                     { "deposit", payinEnabledNetwork },
@@ -721,33 +836,23 @@ public partial class hitbtc : Exchange
                         { "max", null },
                     } },
                 } },
+                { "type", type },
             };
         }
         return result;
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isEqual(networkId, null)))
-        {
-            return null;
-        } else
-        {
-            return ((string)networkId).ToUpper();
-        }
-    }
-
+    /**
+     * @method
+     * @name hitbtc#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://api.hitbtc.com/#generate-deposit-crypto-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://api.hitbtc.com/#generate-deposit-crypto-address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -779,17 +884,17 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.hitbtc.com/#get-deposit-crypto-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://api.hitbtc.com/#get-deposit-crypto-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -818,11 +923,10 @@ public partial class hitbtc : Exchange
         object parsedCode = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "address", address },
-            { "tag", tag },
-            { "code", parsedCode },
             { "currency", parsedCode },
             { "network", null },
+            { "address", address },
+            { "tag", tag },
         };
     }
 
@@ -844,18 +948,18 @@ public partial class hitbtc : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.hitbtc.com/#wallet-balance
+     * @see https://api.hitbtc.com/#get-spot-trading-balance
+     * @see https://api.hitbtc.com/#get-trading-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://api.hitbtc.com/#wallet-balance
-        * @see https://api.hitbtc.com/#get-spot-trading-balance
-        * @see https://api.hitbtc.com/#get-trading-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object type = this.safeStringLower(parameters, "type", "spot");
         parameters = this.omit(parameters, new List<object>() {"type"});
@@ -890,17 +994,17 @@ public partial class hitbtc : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.hitbtc.com/#tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api.hitbtc.com/#tickers
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -924,17 +1028,17 @@ public partial class hitbtc : Exchange
         return this.parseTicker(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api.hitbtc.com/#tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://api.hitbtc.com/#tickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1019,19 +1123,19 @@ public partial class hitbtc : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://api.hitbtc.com/#trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1071,23 +1175,23 @@ public partial class hitbtc : Exchange
         return trades;
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.hitbtc.com/#spot-trades-history
+     * @see https://api.hitbtc.com/#futures-trades-history
+     * @see https://api.hitbtc.com/#margin-trades-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching margin trades
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://api.hitbtc.com/#spot-trades-history
-        * @see https://api.hitbtc.com/#futures-trades-history
-        * @see https://api.hitbtc.com/#margin-trades-history
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching margin trades
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1296,8 +1400,10 @@ public partial class hitbtc : Exchange
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "CREATED", "pending" },
             { "PENDING", "pending" },
             { "FAILED", "failed" },
+            { "ROLLED_BACK", "failed" },
             { "SUCCESS", "ok" },
         };
         return this.safeString(statuses, status, status);
@@ -1400,69 +1506,69 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://api.hitbtc.com/#get-transactions-history
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://api.hitbtc.com/#get-transactions-history
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api.hitbtc.com/#get-transactions-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://api.hitbtc.com/#get-transactions-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsHelper("DEPOSIT", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api.hitbtc.com/#get-transactions-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://api.hitbtc.com/#get-transactions-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsHelper("WITHDRAW", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOrderBooks
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @see https://api.hitbtc.com/#order-books
+     * @param {string[]} [symbols] list of unified market symbols, all symbols fetched if undefined, default is undefined
+     * @param {int} [limit] max number of entries per orderbook to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+     */
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOrderBooks
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-        * @see https://api.hitbtc.com/#order-books
-        * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-        * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1489,18 +1595,18 @@ public partial class hitbtc : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.hitbtc.com/#order-books
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.hitbtc.com/#order-books
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1539,18 +1645,18 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://api.hitbtc.com/#get-trading-commission
+     * @see https://api.hitbtc.com/#get-trading-commission-2
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://api.hitbtc.com/#get-trading-commission
-        * @see https://api.hitbtc.com/#get-trading-commission-2
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1577,17 +1683,17 @@ public partial class hitbtc : Exchange
         return this.parseTradingFee(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api.hitbtc.com/#get-all-trading-commissions
+     * @see https://api.hitbtc.com/#get-all-trading-commissions-2
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://api.hitbtc.com/#get-all-trading-commissions
-        * @see https://api.hitbtc.com/#get-all-trading-commissions-2
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
@@ -1623,25 +1729,25 @@ public partial class hitbtc : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#candles
+     * @see https://api.hitbtc.com/#futures-index-price-candles
+     * @see https://api.hitbtc.com/#futures-mark-price-candles
+     * @see https://api.hitbtc.com/#futures-premium-index-candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://api.hitbtc.com/#candles
-        * @see https://api.hitbtc.com/#futures-index-price-candles
-        * @see https://api.hitbtc.com/#futures-mark-price-candles
-        * @see https://api.hitbtc.com/#futures-premium-index-candles
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1743,23 +1849,23 @@ public partial class hitbtc : Exchange
         return new List<object> {this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "max"), this.safeNumber(ohlcv, "min"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api.hitbtc.com/#spot-orders-history
+     * @see https://api.hitbtc.com/#futures-orders-history
+     * @see https://api.hitbtc.com/#margin-orders-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching margin orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://api.hitbtc.com/#spot-orders-history
-        * @see https://api.hitbtc.com/#futures-orders-history
-        * @see https://api.hitbtc.com/#margin-orders-history
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching margin orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1810,21 +1916,22 @@ public partial class hitbtc : Exchange
         return this.filterByArray(parsed, "status", new List<object>() {"closed", "canceled"}, false);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.hitbtc.com/#spot-orders-history
+     * @see https://api.hitbtc.com/#futures-orders-history
+     * @see https://api.hitbtc.com/#margin-orders-history
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://api.hitbtc.com/#spot-orders-history
-        * @see https://api.hitbtc.com/#futures-orders-history
-        * @see https://api.hitbtc.com/#margin-orders-history
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching a margin order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1887,24 +1994,24 @@ public partial class hitbtc : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api.hitbtc.com/#spot-trades-history
+     * @see https://api.hitbtc.com/#futures-trades-history
+     * @see https://api.hitbtc.com/#margin-trades-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching margin trades
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://api.hitbtc.com/#spot-trades-history
-        * @see https://api.hitbtc.com/#futures-trades-history
-        * @see https://api.hitbtc.com/#margin-trades-history
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching margin trades
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1985,23 +2092,23 @@ public partial class hitbtc : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.hitbtc.com/#get-all-active-spot-orders
+     * @see https://api.hitbtc.com/#get-active-futures-orders
+     * @see https://api.hitbtc.com/#get-active-margin-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching open margin orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://api.hitbtc.com/#get-all-active-spot-orders
-        * @see https://api.hitbtc.com/#get-active-futures-orders
-        * @see https://api.hitbtc.com/#get-active-margin-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching open margin orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2062,22 +2169,22 @@ public partial class hitbtc : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOpenOrder
+     * @description fetch an open order by it's id
+     * @see https://api.hitbtc.com/#get-active-spot-order
+     * @see https://api.hitbtc.com/#get-active-futures-order
+     * @see https://api.hitbtc.com/#get-active-margin-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching an open margin order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOpenOrder
-        * @description fetch an open order by it's id
-        * @see https://api.hitbtc.com/#get-active-spot-order
-        * @see https://api.hitbtc.com/#get-active-futures-order
-        * @see https://api.hitbtc.com/#get-active-margin-order
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching an open margin order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2120,21 +2227,21 @@ public partial class hitbtc : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api.hitbtc.com/#cancel-all-spot-orders
+     * @see https://api.hitbtc.com/#cancel-futures-orders
+     * @see https://api.hitbtc.com/#cancel-all-margin-orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for canceling margin orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://api.hitbtc.com/#cancel-all-spot-orders
-        * @see https://api.hitbtc.com/#cancel-futures-orders
-        * @see https://api.hitbtc.com/#cancel-all-margin-orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for canceling margin orders
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2176,22 +2283,22 @@ public partial class hitbtc : Exchange
         return this.parseOrders(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#cancelOrder
+     * @description cancels an open order
+     * @see https://api.hitbtc.com/#cancel-spot-order
+     * @see https://api.hitbtc.com/#cancel-futures-order
+     * @see https://api.hitbtc.com/#cancel-margin-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for canceling a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#cancelOrder
-        * @description cancels an open order
-        * @see https://api.hitbtc.com/#cancel-spot-order
-        * @see https://api.hitbtc.com/#cancel-futures-order
-        * @see https://api.hitbtc.com/#cancel-margin-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for canceling a margin order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2287,28 +2394,28 @@ public partial class hitbtc : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#createOrder
+     * @description create a trade order
+     * @see https://api.hitbtc.com/#create-new-spot-order
+     * @see https://api.hitbtc.com/#create-margin-order
+     * @see https://api.hitbtc.com/#create-futures-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+     * @param {bool} [params.margin] true for creating a margin order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#createOrder
-        * @description create a trade order
-        * @see https://api.hitbtc.com/#create-new-spot-order
-        * @see https://api.hitbtc.com/#create-margin-order
-        * @see https://api.hitbtc.com/#create-futures-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
-        * @param {bool} [params.margin] true for creating a margin order
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2399,7 +2506,7 @@ public partial class hitbtc : Exchange
             }
         } else if (isTrue(isTrue(isTrue(isTrue((isEqual(type, "stopLimit"))) || isTrue((isEqual(type, "stopMarket")))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((isEqual(type, "takeProfitMarket")))))
         {
-            throw new ExchangeError ((string)add(this.id, " createOrder() requires a stopPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ExchangeError ((string)add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"});
         if (isTrue(isEqual(marketType, "swap")))
@@ -2519,7 +2626,6 @@ public partial class hitbtc : Exchange
         object postOnly = this.safeValue(order, "post_only");
         object timeInForce = this.safeString(order, "time_in_force");
         object rawTrades = this.safeValue(order, "trades");
-        object stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2543,25 +2649,24 @@ public partial class hitbtc : Exchange
             { "average", average },
             { "trades", rawTrades },
             { "fee", null },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "stop_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchMarginModes
+     * @description fetches margin mode of the user
+     * @see https://api.hitbtc.com/#get-margin-position-parameters
+     * @see https://api.hitbtc.com/#get-futures-position-parameters
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchMarginMode
-        * @description fetches margin mode of the user
-        * @see https://api.hitbtc.com/#get-margin-position-parameters
-        * @see https://api.hitbtc.com/#get-futures-position-parameters
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2599,20 +2704,20 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         // account can be "spot", "wallet", or "derivatives"
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2697,20 +2802,20 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#withdraw
+     * @description make a withdrawal
+     * @see https://api.hitbtc.com/#withdraw-crypto
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#withdraw
-        * @description make a withdrawal
-        * @see https://api.hitbtc.com/#withdraw-crypto
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2753,17 +2858,17 @@ public partial class hitbtc : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchFundingRates
+     * @description fetches funding rates for multiple markets
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchFundingRates
-        * @description fetches funding rates for multiple markets
-        * @see https://api.hitbtc.com/#futures-info
-        * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2815,21 +2920,21 @@ public partial class hitbtc : Exchange
         return this.filterByArray(fundingRates, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchFundingRateHistory
+     * @see https://api.hitbtc.com/#funding-history
+     * @description fetches historical funding rate prices
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchFundingRateHistory
-        * @see https://api.hitbtc.com/#funding-history
-        * @description fetches historical funding rate prices
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2901,20 +3006,20 @@ public partial class hitbtc : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchPositions
+     * @description fetch all open positions
+     * @see https://api.hitbtc.com/#get-futures-margin-accounts
+     * @see https://api.hitbtc.com/#get-all-margin-accounts
+     * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+     * @param {bool} [params.margin] true for fetching spot-margin positions
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchPositions
-        * @description fetch all open positions
-        * @see https://api.hitbtc.com/#get-futures-margin-accounts
-        * @see https://api.hitbtc.com/#get-all-margin-accounts
-        * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
-        * @param {bool} [params.margin] true for fetching spot-margin positions
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2988,20 +3093,20 @@ public partial class hitbtc : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://api.hitbtc.com/#get-futures-margin-account
+     * @see https://api.hitbtc.com/#get-isolated-margin-account
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+     * @param {bool} [params.margin] true for fetching a spot-margin position
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://api.hitbtc.com/#get-futures-margin-account
-        * @see https://api.hitbtc.com/#get-isolated-margin-account
-        * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
-        * @param {bool} [params.margin] true for fetching a spot-margin position
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3179,7 +3284,7 @@ public partial class hitbtc : Exchange
         object datetime = this.safeString(interest, "timestamp");
         object value = this.safeNumber(interest, "open_interest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(null, market) },
             { "openInterestAmount", null },
             { "openInterestValue", value },
             { "timestamp", this.parse8601(datetime) },
@@ -3188,17 +3293,67 @@ public partial class hitbtc : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        symbols = this.marketSymbols(symbols);
+        object marketIds = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+        }
+        object response = await this.publicGetPublicFuturesInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        object results = new List<object>() {};
+        object markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(markets, i);
+            object marketInner = this.safeMarket(marketId);
+            ((IList<object>)results).Add(this.parseOpenInterest(getValue(response, marketId), marketInner));
+        }
+        return this.filterByArray(results, "symbol", symbols);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOpenInterest
-        * @description Retrieves the open interest of a derivative trading pair
-        * @see https://api.hitbtc.com/#futures-info
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3228,17 +3383,17 @@ public partial class hitbtc : Exchange
         return this.parseOpenInterest(response, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://api.hitbtc.com/#futures-info
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3305,6 +3460,7 @@ public partial class hitbtc : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -3419,21 +3575,21 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#reduceMargin
+     * @description remove margin from a position
+     * @see https://api.hitbtc.com/#create-update-margin-account-2
+     * @see https://api.hitbtc.com/#create-update-margin-account
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+     * @param {bool} [params.margin] true for reducing spot-margin
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#reduceMargin
-        * @description remove margin from a position
-        * @see https://api.hitbtc.com/#create-update-margin-account-2
-        * @see https://api.hitbtc.com/#create-update-margin-account
-        * @param {string} symbol unified market symbol
-        * @param {float} amount the amount of margin to remove
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-        * @param {bool} [params.margin] true for reducing spot-margin
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(this.numberToString(amount), "0")))
         {
@@ -3442,39 +3598,39 @@ public partial class hitbtc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
+    /**
+     * @method
+     * @name hitbtc#addMargin
+     * @description add margin
+     * @see https://api.hitbtc.com/#create-update-margin-account-2
+     * @see https://api.hitbtc.com/#create-update-margin-account
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+     * @param {bool} [params.margin] true for adding spot-margin
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#addMargin
-        * @description add margin
-        * @see https://api.hitbtc.com/#create-update-margin-account-2
-        * @see https://api.hitbtc.com/#create-update-margin-account
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-        * @param {bool} [params.margin] true for adding spot-margin
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api.hitbtc.com/#get-futures-margin-account
+     * @see https://api.hitbtc.com/#get-isolated-margin-account
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+     * @param {bool} [params.margin] true for fetching spot-margin leverage
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://api.hitbtc.com/#get-futures-margin-account
-        * @see https://api.hitbtc.com/#get-isolated-margin-account
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
-        * @param {bool} [params.margin] true for fetching spot-margin leverage
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3552,18 +3708,18 @@ public partial class hitbtc : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hitbtc#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api.hitbtc.com/#create-update-margin-account-2
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://api.hitbtc.com/#create-update-margin-account-2
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3593,17 +3749,17 @@ public partial class hitbtc : Exchange
         return await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://api.hitbtc.com/#currencies
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://api.hitbtc.com/#currencies
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetPublicCurrency(parameters);
@@ -3667,6 +3823,7 @@ public partial class hitbtc : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "network");
             object networkCode = this.networkIdToCode(networkId);
+            networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
             object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             object isDefault = this.safeValue(networkEntry, "default");
             object withdrawResult = new Dictionary<string, object>() {
@@ -3688,18 +3845,20 @@ public partial class hitbtc : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name hitbtc#closePosition
+     * @description closes open positions for a market
+     * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+     * @param {string} symbol unified ccxt market symbol
+     * @param {string} side 'buy' or 'sell'
+     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {string} [params.symbol] *required* unified market symbol
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#closePosition
-        * @description closes open positions for a market
-        * @see https://api.hitbtc.com/#close-all-futures-margin-positions
-        * @param {object} [params] extra parameters specific to the okx api endpoint
-        * @param {string} [params.symbol] *required* unified market symbol
-        * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marginMode = null;

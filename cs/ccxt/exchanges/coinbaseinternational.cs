@@ -11,7 +11,7 @@ public partial class coinbaseinternational : Exchange
             { "id", "coinbaseinternational" },
             { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v1" },
@@ -58,7 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -76,7 +76,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchMyBuys", true },
                 { "fetchMySells", true },
                 { "fetchMyTrades", true },
-                { "fetchOHLCV", false },
+                { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -95,6 +95,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchTrades", false },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
+                { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "sandbox", true },
@@ -125,7 +126,7 @@ public partial class coinbaseinternational : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", ""} },
+                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"} },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new List<object>() {"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"} },
@@ -187,6 +188,75 @@ public partial class coinbaseinternational : Exchange
                     { "polygon", "MATIC" },
                     { "solana", "SOL" },
                     { "bitcoin", "BTC" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                            { "GTC", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", 10000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 300 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -251,16 +321,16 @@ public partial class coinbaseinternational : Exchange
         return new List<object>() {networkId, parameters};
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1PrivateGetPortfolios(parameters);
@@ -309,19 +379,100 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     */
+    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        limit ??= 100;
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000);
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument", getValue(market, "id") },
+            { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a since argument")) ;
+        }
+        object unitl = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(unitl, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end"] = this.iso8601(unitl);
+        }
+        object response = await this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, parameters));
+        //
+        //   {
+        //       "aggregations": [
+        //         {
+        //           "start": "2024-04-23T00:00:00Z",
+        //           "open": "62884.4",
+        //           "high": "64710.6",
+        //           "low": "62884.4",
+        //           "close": "63508.4",
+        //           "volume": "3253.9983"
+        //         }
+        //       ]
+        //   }
+        //
+        object candles = this.safeList(response, "aggregations", new List<object>() {});
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+    }
+
+    public override object parseOHLCV(object ohlcv, object market = null)
+    {
+        //
+        //   {
+        //     "start": "2024-04-23T00:00:00Z",
+        //     "open": "62884.4",
+        //     "high": "64710.6",
+        //     "low": "62884.4",
+        //     "close": "63508.4",
+        //     "volume": "3253.9983"
+        //   }
+        //
+        return new List<object> {this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -410,20 +561,212 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "type", "FUNDING" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object portfolios = null;
+        var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
+        portfolios = ((IList<object>)portfoliosparametersVariable)[0];
+        parameters = ((IList<object>)portfoliosparametersVariable)[1];
+        if (isTrue(!isEqual(portfolios, null)))
+        {
+            ((IDictionary<string,object>)request)["portfolios"] = portfolios;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = 100;
+        }
+        object response = await this.v1PrivateGetTransfers(this.extend(request, parameters));
+        object fundings = this.safeList(response, "results", new List<object>() {});
+        return this.parseIncomes(fundings, market, since, limit);
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        object marketId = this.safeString(income, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        object datetime = this.safeInteger(income, "created_at");
+        object timestamp = this.parse8601(datetime);
+        object currencyId = this.safeString(income, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", getValue(market, "symbol") },
+            { "code", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(income, "transfer_uuid") },
+            { "amount", this.safeNumber(income, "amount") },
+            { "rate", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "type", "INTERNAL" },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object portfolios = null;
+        var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
+        portfolios = ((IList<object>)portfoliosparametersVariable)[0];
+        parameters = ((IList<object>)portfoliosparametersVariable)[1];
+        if (isTrue(!isEqual(portfolios, null)))
+        {
+            ((IDictionary<string,object>)request)["portfolios"] = portfolios;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = 100;
+        }
+        object response = await this.v1PrivateGetTransfers(this.extend(request, parameters));
+        object transfers = this.safeList(response, "results", new List<object>() {});
+        return this.parseTransfers(transfers, currency, since, limit);
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        object datetime = this.safeInteger(transfer, "created_at");
+        object timestamp = this.parse8601(datetime);
+        object currencyId = this.safeString(transfer, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        object fromPorfolio = this.safeDict(transfer, "from_portfolio", new Dictionary<string, object>() {});
+        object fromId = this.safeString(fromPorfolio, "id");
+        object toPorfolio = this.safeDict(transfer, "to_portfolio", new Dictionary<string, object>() {});
+        object toId = this.safeString(toPorfolio, "id");
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", this.safeString(transfer, "transfer_uuid") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "currency", code },
+            { "amount", this.safeNumber(transfer, "amount") },
+            { "fromAccount", fromId },
+            { "toAccount", toId },
+            { "status", this.parseTransferStatus(this.safeString(transfer, "status")) },
+        };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "FAILED", "failed" },
+            { "PROCESSED", "ok" },
+            { "NEW", "pending" },
+            { "STARTED", "pending" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
+     * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
+     * @param {string} [params.network] unified network code to identify the blockchain network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
-        * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
-        * @param {string} [params.network] unified network code to identify the blockchain network
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object method = null;
@@ -467,6 +810,7 @@ public partial class coinbaseinternational : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
@@ -486,14 +830,14 @@ public partial class coinbaseinternational : Exchange
         return getValue(networksArray, 0);
     }
 
-    public async virtual Task loadCurrencyNetworks(object code, object parameters = null)
+    public async virtual Task<object> loadCurrencyNetworks(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.currency(code);
         object networks = this.safeDict(currency, "networks");
         if (isTrue(!isEqual(networks, null)))
         {
-            return;
+            return false;
         }
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -518,6 +862,7 @@ public partial class coinbaseinternational : Exchange
         //    ]
         //
         ((IDictionary<string,object>)currency)["networks"] = this.parseNetworks(rawNetworks);
+        return true;
     }
 
     public virtual object parseNetworks(object networks, object parameters = null)
@@ -553,11 +898,12 @@ public partial class coinbaseinternational : Exchange
         object currencyId = this.safeString(network, "asset_name");
         object currencyCode = this.safeCurrencyCode(currencyId);
         object networkId = this.safeString(network, "network_arn_id");
+        object networkIdForCode = this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, "");
         return this.safeNetwork(new Dictionary<string, object>() {
             { "info", network },
             { "id", networkId },
             { "name", this.safeString(network, "display_name") },
-            { "network", this.networkIdToCode(this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, ""), currencyCode) },
+            { "network", this.networkIdToCode(networkIdForCode, currencyCode) },
             { "active", null },
             { "deposit", null },
             { "withdraw", null },
@@ -576,18 +922,18 @@ public partial class coinbaseinternational : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#setMargin
+     * @description Either adds or reduces margin in order to set the margin to a specific value
+     * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#setMargin
-        * @description Either adds or reduces margin in order to set the margin to a specific value
-        * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
-        * @param {string} symbol unified market symbol of the market to set margin in
-        * @param {float} amount the amount to set the margin to
-        * @param {object} [params] parameters specific to the exchange API endpoint
-        * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object portfolio = null;
         var portfolioparametersVariable = await this.handlePortfolioAndParams("setMargin", parameters);
@@ -604,24 +950,24 @@ public partial class coinbaseinternational : Exchange
         return await this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name exchange#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name exchange#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-        * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = null;
@@ -697,17 +1043,17 @@ public partial class coinbaseinternational : Exchange
         return this.parseTransactions(rawTransactions);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPosition
+     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
+     * @description fetch data on an open position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchPosition
-        * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
-        * @description fetch data on an open position
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -791,18 +1137,17 @@ public partial class coinbaseinternational : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositions
+     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
+     * @description fetch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchPositions
-        * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
-        * @description fetch all open positions
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object portfolio = null;
@@ -839,47 +1184,47 @@ public partial class coinbaseinternational : Exchange
         return this.filterByArrayPositions(positions, "symbol", symbols, false);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-        * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         ((IDictionary<string,object>)parameters)["type"] = "WITHDRAW";
         return await this.fetchDepositsWithdrawals(code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-        * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         ((IDictionary<string,object>)parameters)["type"] = "DEPOSIT";
@@ -990,16 +1335,16 @@ public partial class coinbaseinternational : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMarkets
+     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+     * @description retrieves data on all markets for coinbaseinternational
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchMarkets
-        * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
-        * @description retrieves data on all markets for coinbaseinternational
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetInstruments(parameters);
         //
@@ -1170,16 +1515,16 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.cloud.coinbase.com/intx/reference/getassets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.cloud.coinbase.com/intx/reference/getassets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object currencies = await this.v1PublicGetAssets(parameters);
         //
@@ -1195,16 +1540,10 @@ public partial class coinbaseinternational : Exchange
         //        ...
         //    ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = this.parseCurrency(getValue(currencies, i));
-            ((IDictionary<string,object>)result)[(string)getValue(currency, "code")] = currency;
-        }
-        return result;
+        return this.parseCurrencies(currencies);
     }
 
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //    {
@@ -1219,7 +1558,7 @@ public partial class coinbaseinternational : Exchange
         object id = this.safeString(currency, "asset_name");
         object code = this.safeCurrencyCode(id);
         object statusId = this.safeString(currency, "status");
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "name", code },
             { "code", code },
@@ -1232,20 +1571,20 @@ public partial class coinbaseinternational : Exchange
             { "fee", null },
             { "fees", null },
             { "limits", this.limits },
-        };
+        });
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1262,17 +1601,17 @@ public partial class coinbaseinternational : Exchange
         return this.filterByArray(tickers, "symbol", symbols, true);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1324,20 +1663,22 @@ public partial class coinbaseinternational : Exchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "previousClose", null },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "index_price") },
         });
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object portfolio = null;
@@ -1401,20 +1742,20 @@ public partial class coinbaseinternational : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#transfer
+     * @description Transfer an amount of asset from one portfolio to another.
+     * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#transfer
-        * @description Transfer an amount of asset from one portfolio to another.
-        * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1439,33 +1780,33 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#createOrder
+     * @description create a trade order
+     * @see https://docs.cloud.coinbase.com/intx/reference/createorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.triggerPrice] price to trigger stop orders
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {bool} [params.postOnly] true or false
+     * @param {string} [params.tif] 'GTC', 'IOC', 'GTD' default is 'GTC' for limit orders and 'IOC' for market orders
+     * @param {string} [params.expire_time] The expiration time required for orders with the time in force set to GTT. Must not go beyond 30 days of the current time. Uses ISO-8601 format (e.g., 2023-03-16T23:59:53Z)
+     * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#createOrder
-        * @description create a trade order
-        * @see https://docs.cloud.coinbase.com/intx/reference/createorder
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
-        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] price to trigger stop orders
-        * @param {float} [params.triggerPrice] price to trigger stop orders
-        * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
-        * @param {bool} [params.postOnly] true or false
-        * @param {string} [params.tif] 'GTC', 'IOC', 'GTD' default is 'GTC' for limit orders and 'IOC' for market orders
-        * @param {string} [params.expire_time] The expiration time required for orders with the time in force set to GTT. Must not go beyond 30 days of the current time. Uses ISO-8601 format (e.g., 2023-03-16T23:59:53Z)
-        * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object typeId = ((string)type).ToUpper();
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
@@ -1475,7 +1816,7 @@ public partial class coinbaseinternational : Exchange
             { "instrument", getValue(market, "id") },
             { "size", this.amountToPrecision(getValue(market, "symbol"), amount) },
         };
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(type, "limit")))
             {
@@ -1484,14 +1825,14 @@ public partial class coinbaseinternational : Exchange
             {
                 typeId = "STOP";
             }
-            ((IDictionary<string,object>)request)["stop_price"] = stopPrice;
+            ((IDictionary<string,object>)request)["stop_price"] = triggerPrice;
         }
         ((IDictionary<string,object>)request)["type"] = typeId;
         if (isTrue(isEqual(type, "limit")))
         {
             if (isTrue(isEqual(price, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() requires a price parameter for a limit order types")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -1510,7 +1851,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isTrue(isTrue(!isEqual(tif, null)) && isTrue(!isEqual(tif, "IOC"))))
             {
-                throw new InvalidOrder ((string)add(this.id, "createOrder() market orders must have tif set to \"IOC\"")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
             tif = "IOC";
         } else
@@ -1598,7 +1939,6 @@ public partial class coinbaseinternational : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stop_price") },
             { "triggerPrice", this.safeString(order, "stop_price") },
             { "amount", this.safeString(order, "size") },
             { "filled", this.safeString(order, "exec_qty") },
@@ -1643,18 +1983,18 @@ public partial class coinbaseinternational : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
+     * @param {string} id order id
+     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
-        * @param {string} id order id
-        * @param {string} symbol not used by coinbaseinternational cancelOrder()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object portfolio = null;
@@ -1697,16 +2037,16 @@ public partial class coinbaseinternational : Exchange
         return this.parseOrder(orders, market);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#cancelAllOrders
-        * @description cancel all open orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object portfolio = null;
@@ -1726,23 +2066,23 @@ public partial class coinbaseinternational : Exchange
         return this.parseOrders(orders, market);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#editOrder
+     * @description edit a trade order
+     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.clientOrderId client order id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#editOrder
-        * @description edit a trade order
-        * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} params.clientOrderId client order id
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1765,10 +2105,10 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = stopPrice;
+            ((IDictionary<string,object>)request)["stop_price"] = triggerPrice;
         }
         object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
@@ -1780,18 +2120,18 @@ public partial class coinbaseinternational : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
-        * @param {string} id the order id
-        * @param {string} symbol unified market symbol that the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1836,22 +2176,22 @@ public partial class coinbaseinternational : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOpenOrders
+     * @description fetches information on all currently open orders
+     * @see https://docs.cloud.coinbase.com/intx/reference/getorders
+     * @param {string} symbol unified market symbol of the orders
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.offset] offset
+     * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchOpenOrders
-        * @description fetches information on all currently open orders
-        * @see https://docs.cloud.coinbase.com/intx/reference/getorders
-        * @param {string} symbol unified market symbol of the orders
-        * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @param {int} [params.offset] offset
-        * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object portfolio = null;
@@ -1933,21 +2273,21 @@ public partial class coinbaseinternational : Exchange
         return this.parseOrders(rawOrders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+     * @param {string} symbol unified market symbol of the trades
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] the maximum number of trade structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
-        * @param {string} symbol unified market symbol of the trades
-        * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-        * @param {int} [limit] the maximum number of trade structures to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch trades for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2035,24 +2375,24 @@ public partial class coinbaseinternational : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinbaseinternational#withdraw
+     * @description make a withdrawal
+     * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
+     * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag] an optional tag for the withdrawal
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
+     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
+     * @param {string} [params.nonce] a unique integer representing the withdrawal request
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbaseinternational#withdraw
-        * @description make a withdrawal
-        * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
-        * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} [tag] an optional tag for the withdrawal
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
-        * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
-        * @param {string} [params.nonce] a unique integer representing the withdrawal request
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];

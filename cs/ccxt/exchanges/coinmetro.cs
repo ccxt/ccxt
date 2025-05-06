@@ -200,14 +200,86 @@ public partial class coinmetro : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
-                { "currencyIdsListForParseMarket", null },
+                { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", false },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "Both buyingCurrency and sellingCurrency are required", typeof(InvalidOrder) },
                     { "One and only one of buyingQty and sellingQty is required", typeof(InvalidOrder) },
                     { "Invalid buyingCurrency", typeof(InvalidOrder) },
-                    { "Invalid \'from\'", typeof(BadRequest) },
+                    { "Invalid 'from'", typeof(BadRequest) },
                     { "Invalid sellingCurrency", typeof(InvalidOrder) },
                     { "Invalid buyingQty", typeof(InvalidOrder) },
                     { "Invalid sellingQty", typeof(InvalidOrder) },
@@ -239,16 +311,16 @@ public partial class coinmetro : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetAssets(parameters);
         //
@@ -331,21 +403,27 @@ public partial class coinmetro : Exchange
         {
             object currenciesById = this.indexBy(result, "id");
             ((IDictionary<string,object>)this.options)["currenciesByIdForParseMarket"] = currenciesById;
-            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            object currentCurrencyIdsList = this.safeList(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+            object currencyIdsList = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(currencyIdsList)); postFixIncrement(ref i))
+            {
+                ((IList<object>)currentCurrencyIdsList).Add(getValue(currencyIdsList, i));
+            }
+            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currentCurrencyIdsList;
         }
         return result;
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchMarkets
+     * @description retrieves data on all markets for coinmetro
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchMarkets
-        * @description retrieves data on all markets for coinmetro
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
         if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
@@ -440,11 +518,26 @@ public partial class coinmetro : Exchange
         object baseId = null;
         object quoteId = null;
         object currencyIds = this.safeValue(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+        // Bubble sort by length (longest first)
+        object currencyIdsLength = getArrayLength(currencyIds);
+        for (object i = 0; isLessThan(i, currencyIdsLength); postFixIncrement(ref i))
+        {
+            for (object j = 0; isLessThan(j, subtract(subtract(currencyIdsLength, i), 1)); postFixIncrement(ref j))
+            {
+                object a = getValue(currencyIds, j);
+                object b = getValue(currencyIds, add(j, 1));
+                if (isTrue(isLessThan(getArrayLength(a), getArrayLength(b))))
+                {
+                    ((List<object>)currencyIds)[Convert.ToInt32(j)] = b;
+                    ((List<object>)currencyIds)[Convert.ToInt32(add(j, 1))] = a;
+                }
+            }
+        }
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object entryIndex = getIndexOf(marketId, currencyId);
-            if (isTrue(!isEqual(entryIndex, -1)))
+            if (isTrue(isEqual(entryIndex, 0)))
             {
                 object restId = ((string)marketId).Replace((string)currencyId, (string)"");
                 if (isTrue(this.inArray(restId, currencyIds)))
@@ -483,21 +576,21 @@ public partial class coinmetro : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -565,19 +658,19 @@ public partial class coinmetro : Exchange
         return new List<object> {this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -625,19 +718,19 @@ public partial class coinmetro : Exchange
         return this.parseTrades(tickHistory, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -742,18 +835,18 @@ public partial class coinmetro : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -817,17 +910,17 @@ public partial class coinmetro : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetExchangePrices(parameters);
@@ -906,17 +999,17 @@ public partial class coinmetro : Exchange
         return this.parseTickers(tickers, symbols);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchBidsAsks
-        * @description fetches the bid and ask price and volume for multiple markets
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetExchangePrices(parameters);
@@ -979,16 +1072,16 @@ public partial class coinmetro : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetUsersWallets(parameters);
@@ -1036,20 +1129,20 @@ public partial class coinmetro : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1254,39 +1347,39 @@ public partial class coinmetro : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name coinmetro#createOrder
+     * @description create a trade order
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"
+     * @param {number} [params.expirationTime] timestamp in millisecond, for GTD orders only
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] *margin only* The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *margin only* The price at which a take profit order is triggered at
+     * @param {bool} [params.margin] true for creating a margin order
+     * @param {string} [params.fillStyle] fill style of the limit order: "sell" fulfills selling quantity "buy" fulfills buying quantity "base" fulfills base currency quantity "quote" fulfills quote currency quantity
+     * @param {string} [params.clientOrderId] client's comment
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#createOrder
-        * @description create a trade order
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"
-        * @param {number} [params.expirationTime] timestamp in millisecond, for GTD orders only
-        * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] *margin only* The price at which a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] *margin only* The price at which a take profit order is triggered at
-        * @param {bool} [params.margin] true for creating a margin order
-        * @param {string} [params.fillStyle] fill style of the limit order: "sell" fulfills selling quantity "buy" fulfills buying quantity "base" fulfills base currency quantity "quote" fulfills quote currency quantity
-        * @param {string} [params.clientOrderId] client's comment
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["orderType"] = type;
-        object precisedAmount = null;
+        object formattedAmount = null;
         if (isTrue(!isEqual(amount, null)))
         {
-            precisedAmount = this.amountToPrecision(symbol, amount);
+            formattedAmount = this.amountToPrecision(symbol, amount);
         }
         object cost = this.safeValue(parameters, "cost");
         parameters = this.omit(parameters, "cost");
@@ -1297,7 +1390,7 @@ public partial class coinmetro : Exchange
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a price or params.cost argument for a "), type), " order")) ;
             } else if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(amount, null)))))
             {
-                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(precisedAmount));
+                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(formattedAmount));
                 cost = this.parseToNumeric(costString);
             }
         }
@@ -1308,10 +1401,10 @@ public partial class coinmetro : Exchange
         }
         if (isTrue(isEqual(side, "sell")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), formattedAmount, precisedCost, request);
         } else if (isTrue(isEqual(side, "buy")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, formattedAmount, request);
         }
         object timeInForce = this.safeValue(parameters, "timeInForce");
         if (isTrue(!isEqual(timeInForce, null)))
@@ -1319,11 +1412,11 @@ public partial class coinmetro : Exchange
             parameters = this.omit(parameters, "timeInForce");
             ((IDictionary<string,object>)request)["timeInForce"] = this.encodeOrderTimeInForce(timeInForce);
         }
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"triggerPrice"});
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object userData = this.safeValue(parameters, "userData", new Dictionary<string, object>() {});
         object comment = this.safeString2(parameters, "clientOrderId", "comment");
@@ -1407,20 +1500,20 @@ public partial class coinmetro : Exchange
         return this.safeValue(timeInForceTypes, timeInForce, timeInForce);
     }
 
+    /**
+     * @method
+     * @name coinmetro#cancelOrder
+     * @description cancels an open order
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+     * @param {string} id order id
+     * @param {string} symbol not used by coinmetro cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.margin] true for cancelling a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#cancelOrder
-        * @description cancels an open order
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
-        * @param {string} id order id
-        * @param {string} symbol not used by coinmetro cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.margin] true for cancelling a margin order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1462,20 +1555,20 @@ public partial class coinmetro : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name coinmetro#closePosition
+     * @description closes an open position
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+     * @param {string} symbol not used by coinmetro closePosition ()
+     * @param {string} [side] not used by coinmetro closePosition ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderID] order id
+     * @param {number} [params.fraction] fraction of order to close, between 0 and 1 (defaults to 1)
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#cancelOrder
-        * @description closes an open position
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
-        * @param {string} symbol not used by coinmetro closePosition ()
-        * @param {string} [side] not used by coinmetro closePosition ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.orderID] order id
-        * @param {number} [params.fraction] fraction of order to close, between 0 and 1 (defaults to 1)
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object orderId = this.safeString(parameters, "orderId");
@@ -1519,19 +1612,19 @@ public partial class coinmetro : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1549,19 +1642,19 @@ public partial class coinmetro : Exchange
         return orders;
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchCanceledAndClosedOrders
-        * @description fetches information on multiple canceled and closed orders made by the user
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1578,18 +1671,18 @@ public partial class coinmetro : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinmetro#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
+     * @param {int|string} id order id
+     * @param {string} symbol not used by coinmetro fetchOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
-        * @param {int|string} id order id
-        * @param {string} symbol not used by coinmetro fetchOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1893,7 +1986,6 @@ public partial class coinmetro : Exchange
         }
         object trades = this.safeValue(order, "fills", new List<object>() {});
         object userData = this.safeValue(order, "userData", new Dictionary<string, object>() {});
-        object triggerPrice = this.safeString(order, "stopPrice");
         object clientOrderId = this.safeString(userData, "comment");
         object takeProfitPrice = this.safeString(userData, "takeProfit");
         object stopLossPrice = this.safeString(userData, "stopLoss");
@@ -1909,7 +2001,7 @@ public partial class coinmetro : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeInteger(order, "timeInForce")) },
             { "side", side },
             { "price", price },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "average", null },
@@ -1930,18 +2022,18 @@ public partial class coinmetro : Exchange
         return this.safeValue(timeInForceTypes, timeInForce, timeInForce);
     }
 
+    /**
+     * @method
+     * @name coinmetro#borrowCrossMargin
+     * @description create a loan to borrow margin
+     * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {float} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinmetro#borrowCrossMargin
-        * @description create a loan to borrow margin
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110
-        * @param {string} code unified currency code of the currency to borrow
-        * @param {float} amount the amount to borrow
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);

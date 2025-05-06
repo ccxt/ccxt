@@ -544,6 +544,16 @@
                   ]
                 ]
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api-evm.orderly.org/v1/public/funding_rate/PERP_BTC_USDC",
+                "input": [
+                  "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }

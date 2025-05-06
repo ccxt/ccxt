@@ -222,11 +222,17 @@ public partial class coinmetro
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -236,7 +242,7 @@ public partial class coinmetro
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return (default 200, max 500)
+    /// int : max number of ledger entries to return (default 200, max 500)
     /// </description>
     /// </item>
     /// <item>
@@ -253,13 +259,13 @@ public partial class coinmetro
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// create a trade order
@@ -343,17 +349,12 @@ public partial class coinmetro
         return new Order(res);
     }
     /// <summary>
-    /// closes an open position
+    /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8"/>  <br/>
     /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>side</term>
-    /// <description>
-    /// string : not used by coinmetro closePosition ()
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -361,15 +362,9 @@ public partial class coinmetro
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.orderID</term>
+    /// <term>params.margin</term>
     /// <description>
-    /// string : order id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.fraction</term>
-    /// <description>
-    /// number : fraction of order to close, between 0 and 1 (defaults to 1)
+    /// string : true for cancelling a margin order
     /// </description>
     /// </item>
     /// </list>

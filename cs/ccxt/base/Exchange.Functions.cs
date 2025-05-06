@@ -252,6 +252,13 @@ public partial class Exchange
     {
         if (obj == null)
             return null;
+        // Check if the object is an exception
+        if (obj is Exception ex)
+        {
+            var errorObj = new { name = ex.GetType().Name };
+            return JsonConvert.SerializeObject(errorObj);
+        }
+
         return JsonConvert.SerializeObject(obj);
         // if (obj.GetType() == typeof(dict))
         // {

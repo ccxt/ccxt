@@ -762,6 +762,8 @@
                     "average": 67180,
                     "baseVolume": 0.020599999999999993,
                     "quoteVolume": 3704.6538499999997,
+                    "markPrice":  67186.5,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "XBT_USDT",
                         "rootSymbol": "XBT",
@@ -876,11 +878,71 @@
                         "price": 73208,
                         "cost": 3345.6056,
                         "amount": 0.0457,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
             }
+        ],
+        "fetchLedger":[
+            {
+                "description": "usdt ledger",
+                "method": "fetchLedger",
+                "input": [
+                  "USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": [
+                  {
+                    "account": "395724",
+                    "currency": "USDt",
+                    "transactType": "UnrealisedPNL",
+                    "amount": "10016070",
+                    "walletBalance": "351713528",
+                    "fee": "0",
+                    "transactStatus": "Pending",
+                    "address": "XBTUSDT",
+                    "transactTime": "2024-10-28T14:26:20.970Z",
+                    "timestamp": "2024-10-28T14:26:20.970Z",
+                    "marginBalance": "350179898"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": null,
+                    "timestamp": 1730125580970,
+                    "datetime": "2024-10-28T14:26:20.970Z",
+                    "direction": "in",
+                    "account": "395724",
+                    "referenceId": null,
+                    "referenceAccount": null,
+                    "type": "margin",
+                    "currency": "USDT",
+                    "amount": 10.01607,
+                    "before": 341.697458,
+                    "after": 351.713528,
+                    "status": "pending",
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "info": {
+                      "account": "395724",
+                      "currency": "USDt",
+                      "transactType": "UnrealisedPNL",
+                      "amount": "10016070",
+                      "walletBalance": "351713528",
+                      "fee": "0",
+                      "transactStatus": "Pending",
+                      "address": "XBTUSDT",
+                      "transactTime": "2024-10-28T14:26:20.970Z",
+                      "timestamp": "2024-10-28T14:26:20.970Z",
+                      "marginBalance": "350179898"
+                    }
+                  }
+                ]
+              }
         ]
     }
 }

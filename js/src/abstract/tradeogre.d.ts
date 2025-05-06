@@ -5,7 +5,8 @@ interface Exchange {
     publicGetOrdersMarket(params?: {}): Promise<implicitReturnType>;
     publicGetTickerMarket(params?: {}): Promise<implicitReturnType>;
     publicGetHistoryMarket(params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
+    publicGetChartIntervalMarketTimestamp(params?: {}): Promise<implicitReturnType>;
+    publicGetChartIntervalMarket(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAccountOrderUuid(params?: {}): Promise<implicitReturnType>;
     privatePostOrderBuy(params?: {}): Promise<implicitReturnType>;
@@ -13,6 +14,7 @@ interface Exchange {
     privatePostOrderCancel(params?: {}): Promise<implicitReturnType>;
     privatePostOrders(params?: {}): Promise<implicitReturnType>;
     privatePostAccountOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBalance(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

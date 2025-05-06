@@ -2,107 +2,1010 @@
     "exchange": "cex",
     "skipKeys": [],
     "methods": {
-        "fetchTrades": [
+        "createOrder": [
             {
-                "description": "public spot trades",
-                "method": "fetchTrades",
+                "description": "limit buy",
+                "method": "createOrder",
                 "input": [
-                    "BTC/USDT",
-                    null,
-                    1
-                ],
-                "httpResponse": [
-                    {
-                        "type": "sell",
-                        "date": "1710295070",
-                        "amount": "0.00220777",
-                        "price": "72050",
-                        "tid": "1262837"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "type": "sell",
-                            "date": "1710295070",
-                            "amount": "0.00220777",
-                            "price": "72050",
-                            "tid": "1262837"
-                        },
-                        "id": "1262837",
-                        "timestamp": 1710295070000,
-                        "datetime": "2024-03-13T01:57:50.000Z",
-                        "symbol": "BTC/USDT",
-                        "type": null,
-                        "side": "sell",
-                        "order": null,
-                        "takerOrMaker": null,
-                        "price": 72050,
-                        "amount": 0.00220777,
-                        "cost": 159.0698285,
-                        "fee": null,
-                        "fees": []
-                    }
-                ]
-            }
-        ],
-        "fetchTicker": [
-            {
-                "description": "public spot ticker",
-                "method": "fetchTicker",
-                "input": [
-                    "BTC/USDT"
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.23,
+                  54,
+                  {
+                    "accountId": "sub1"
+                  }
                 ],
                 "httpResponse": {
-                    "timestamp": "1710328246",
-                    "low": "70500",
-                    "high": "72600",
-                    "last": "72050",
-                    "volume": "0.03106127",
-                    "volume30d": "20.25389786",
-                    "bid": "72800.1",
-                    "ask": "73500.6",
-                    "priceChange": "-450.0",
-                    "priceChangePercentage": "-0.62",
-                    "pair": "BTC:USDT"
+                  "ok": "ok",
+                  "data": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320423",
+                    "clientOrderId": "8449c1c7-55a6-4b26-b553-52ab2249cfeb",
+                    "accountId": "sub1",
+                    "status": "NEW",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "BUY",
+                    "executedAmountCcy1": "0.00000000",
+                    "executedAmountCcy2": "0.00000000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Limit",
+                    "timeInForce": "GTC",
+                    "comment": null,
+                    "executionType": "New",
+                    "executionId": "1726747121903_100_43790",
+                    "transactTime": "2024-10-17T12:39:04.002Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "price": "54.00",
+                    "averagePrice": null,
+                    "feeAmount": "0.00000000",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168742245",
+                    "serverCreateTimestamp": "1729168743886",
+                    "lastUpdateTimestamp": "1729168743997"
+                  }
                 },
                 "parsedResponse": {
-                    "symbol": "BTC/USDT",
-                    "timestamp": 1710328246000,
-                    "datetime": "2024-03-13T11:10:46.000Z",
-                    "high": 72600,
-                    "low": 70500,
-                    "bid": 72800.1,
-                    "bidVolume": null,
-                    "ask": 73500.6,
-                    "askVolume": null,
-                    "vwap": null,
-                    "open": null,
-                    "close": 72050,
-                    "last": 72050,
-                    "previousClose": null,
-                    "change": null,
-                    "percentage": null,
-                    "average": null,
-                    "baseVolume": 0.03106127,
-                    "quoteVolume": null,
-                    "info": {
-                        "timestamp": "1710328246",
-                        "low": "70500",
-                        "high": "72600",
-                        "last": "72050",
-                        "volume": "0.03106127",
-                        "volume30d": "20.25389786",
-                        "bid": "72800.1",
-                        "ask": "73500.6",
-                        "priceChange": "-450.0",
-                        "priceChangePercentage": "-0.62",
-                        "pair": "BTC:USDT"
+                  "id": "1320423",
+                  "clientOrderId": "8449c1c7-55a6-4b26-b553-52ab2249cfeb",
+                  "timestamp": 1729168743886,
+                  "datetime": "2024-10-17T12:39:03.886Z",
+                  "lastUpdateTimestamp": 1729168743997,
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT",
+                  "type": "limit",
+                  "timeInForce": "GTC",
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": 54,
+                  "stopPrice": null,
+                  "amount": 0.23,
+                  "cost": 0,
+                  "average": null,
+                  "filled": 0,
+                  "remaining": 0.23,
+                  "status": "open",
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": 0
+                  },
+                  "trades": [],
+                  "info": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320423",
+                    "clientOrderId": "8449c1c7-55a6-4b26-b553-52ab2249cfeb",
+                    "accountId": "sub1",
+                    "status": "NEW",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "BUY",
+                    "executedAmountCcy1": "0.00000000",
+                    "executedAmountCcy2": "0.00000000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Limit",
+                    "timeInForce": "GTC",
+                    "comment": null,
+                    "executionType": "New",
+                    "executionId": "1726747121903_100_43790",
+                    "transactTime": "2024-10-17T12:39:04.002Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "price": "54.00",
+                    "averagePrice": null,
+                    "feeAmount": "0.00000000",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168742245",
+                    "serverCreateTimestamp": "1729168743886",
+                    "lastUpdateTimestamp": "1729168743997"
+                  },
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0
                     }
+                  ],
+                  "reduceOnly": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
+                "description": "market buy",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.23,
+                  null,
+                  {
+                    "accountId": "sub1"
+                  }
+                ],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320428",
+                    "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                    "accountId": "sub1",
+                    "status": "FILLED",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "BUY",
+                    "executedAmountCcy1": "0.23000000",
+                    "executedAmountCcy2": "16.38060000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Market",
+                    "timeInForce": null,
+                    "comment": null,
+                    "executionType": "Trade",
+                    "executionId": "1726747124624_101_44017",
+                    "transactTime": "2024-10-17T12:41:05.770Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "averagePrice": "71.22",
+                    "lastQuantity": "0.23000000",
+                    "lastAmountCcy1": "0.23000000",
+                    "lastAmountCcy2": "16.38060000",
+                    "lastPrice": "71.22",
+                    "feeAmount": "0.04095150",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168863149",
+                    "serverCreateTimestamp": "1729168864453",
+                    "lastUpdateTimestamp": "1729168865759"
+                  }
+                },
+                "parsedResponse": {
+                  "id": "1320428",
+                  "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                  "timestamp": 1729168864453,
+                  "datetime": "2024-10-17T12:41:04.453Z",
+                  "lastUpdateTimestamp": 1729168865759,
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 71.22,
+                  "stopPrice": null,
+                  "amount": 0.23,
+                  "cost": 16.3806,
+                  "average": 71.22,
+                  "filled": 0.23,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": 0.0409515
+                  },
+                  "trades": [],
+                  "info": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320428",
+                    "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                    "accountId": "sub1",
+                    "status": "FILLED",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "BUY",
+                    "executedAmountCcy1": "0.23000000",
+                    "executedAmountCcy2": "16.38060000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Market",
+                    "timeInForce": null,
+                    "comment": null,
+                    "executionType": "Trade",
+                    "executionId": "1726747124624_101_44017",
+                    "transactTime": "2024-10-17T12:41:05.770Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "averagePrice": "71.22",
+                    "lastQuantity": "0.23000000",
+                    "lastAmountCcy1": "0.23000000",
+                    "lastAmountCcy2": "16.38060000",
+                    "lastPrice": "71.22",
+                    "feeAmount": "0.04095150",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168863149",
+                    "serverCreateTimestamp": "1729168864453",
+                    "lastUpdateTimestamp": "1729168865759"
+                  },
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.0409515
+                    }
+                  ],
+                  "reduceOnly": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
+                "description": "market sell",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.23,
+                  null,
+                  {
+                    "accountId": "sub1"
+                  }
+                ],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320433",
+                    "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                    "accountId": "sub1",
+                    "status": "FILLED",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "SELL",
+                    "executedAmountCcy1": "0.23000000",
+                    "executedAmountCcy2": "16.37600000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Market",
+                    "timeInForce": null,
+                    "comment": null,
+                    "executionType": "Trade",
+                    "executionId": "1726747124624_101_44027",
+                    "transactTime": "2024-10-17T12:42:59.081Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "averagePrice": "71.20",
+                    "lastQuantity": "0.23000000",
+                    "lastAmountCcy1": "0.23000000",
+                    "lastAmountCcy2": "16.37600000",
+                    "lastPrice": "71.20",
+                    "feeAmount": "0.04094000",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168976697",
+                    "serverCreateTimestamp": "1729168977930",
+                    "lastUpdateTimestamp": "1729168979074"
+                  }
+                },
+                "parsedResponse": {
+                  "id": "1320433",
+                  "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                  "timestamp": 1729168977930,
+                  "datetime": "2024-10-17T12:42:57.930Z",
+                  "lastUpdateTimestamp": 1729168979074,
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "sell",
+                  "price": 71.2,
+                  "stopPrice": null,
+                  "amount": 0.23,
+                  "cost": 16.376,
+                  "average": 71.2,
+                  "filled": 0.23,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": 0.04094
+                  },
+                  "trades": [],
+                  "info": {
+                    "messageType": "executionReport",
+                    "clientId": "up132245425",
+                    "orderId": "1320433",
+                    "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                    "accountId": "sub1",
+                    "status": "FILLED",
+                    "currency1": "LTC",
+                    "currency2": "USDT",
+                    "side": "SELL",
+                    "executedAmountCcy1": "0.23000000",
+                    "executedAmountCcy2": "16.37600000",
+                    "requestedAmountCcy1": "0.23000000",
+                    "requestedAmountCcy2": null,
+                    "orderType": "Market",
+                    "timeInForce": null,
+                    "comment": null,
+                    "executionType": "Trade",
+                    "executionId": "1726747124624_101_44027",
+                    "transactTime": "2024-10-17T12:42:59.081Z",
+                    "expireTime": null,
+                    "effectiveTime": null,
+                    "averagePrice": "71.20",
+                    "lastQuantity": "0.23000000",
+                    "lastAmountCcy1": "0.23000000",
+                    "lastAmountCcy2": "16.37600000",
+                    "lastPrice": "71.20",
+                    "feeAmount": "0.04094000",
+                    "feeCurrency": "USDT",
+                    "clientCreateTimestamp": "1729168976697",
+                    "serverCreateTimestamp": "1729168977930",
+                    "lastUpdateTimestamp": "1729168979074"
+                  },
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.04094
+                    }
+                  ],
+                  "reduceOnly": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
                 }
             }
         ],
-        "fetchOHLCV": [
+        "cancelOrder": [
+            {
+                "description": "default",
+                "method": "cancelOrder",
+                "input": [
+                  1320439
+                ],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {}
+                },
+                "parsedResponse": {
+                  "id": null,
+                  "clientOrderId": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastUpdateTimestamp": null,
+                  "lastTradeTimestamp": null,
+                  "symbol": null,
+                  "type": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": null,
+                  "price": null,
+                  "stopPrice": null,
+                  "amount": null,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "status": null,
+                  "fee": {},
+                  "trades": [],
+                  "info": {},
+                  "fees": [
+                    {
+                      "cost": null
+                    }
+                  ],
+                  "reduceOnly": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "default",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {
+                    "clientOrderIds": [
+                      "8449c1c7-55a6-4b26-b553-52ab2249cfeb"
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "id": null,
+                    "clientOrderId": "8449c1c7-55a6-4b26-b553-52ab2249cfeb",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": {},
+                    "trades": [],
+                    "info": {
+                      "clientOrderId": "8449c1c7-55a6-4b26-b553-52ab2249cfeb"
+                    },
+                    "fees": [
+                      {
+                        "cost": null
+                      }
+                    ],
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "default",
+                "method": "fetchOrderBook",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {
+                    "timestamp": "1729169057110",
+                    "currency1": "BTC",
+                    "currency2": "USDT",
+                    "bids": [ [ "67123.0", "1.40936601" ], [ "67122.7", "0.74515000" ], [ "67122.6", "0.00282000" ], [ "67122.5", "0.00232000" ], [ "67122.4", "0.00130000" ], [ "67122.2", "0.00447000" ]],
+                    "asks": [ [ "67123.1", "0.53413826" ], [ "67123.4", "1.02788603" ], [ "67123.5", "0.00697441" ], [ "67123.7", "0.00001500" ], [ "67123.9", "0.08835108" ], [ "67124.0", "0.25252000" ]]
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT",
+                  "bids": [ [67123,1.40936601],[67122.7,0.74515],[67122.6,0.00282],[67122.5,0.00232],[67122.4,0.0013],[67122.2,0.00447] ],
+                  "asks": [[67123.1,0.53413826],[67123.4,1.02788603],[67123.5,0.00697441],[67123.7,0.000015],[67123.9,0.08835108],[67124,0.25252] ],
+                  "timestamp": 1729169057110,
+                  "datetime": "2024-10-17T12:44:17.110Z",
+                  "nonce": null
+                }
+              }
+        ],
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": {
+                    "BTC": {
+                      "balance": "0.00000000"
+                    },
+                    "XRP": {
+                      "balance": "0.000000"
+                    },
+                    "TRX": {
+                      "balance": "0.039369"
+                    },
+                    "USD": {
+                      "balance": "0.02"
+                    },
+                    "AI": {
+                      "balance": "0.000000"
+                    },
+                    "USDT": {
+                      "balance": "0.877611"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "BTC": {
+                      "balance": "0.00000000"
+                    },
+                    "XRP": {
+                      "balance": "0.000000"
+                    },
+                    "TRX": {
+                      "balance": "0.039369"
+                    },
+                    "USD": {
+                      "balance": "0.02"
+                    },
+                    "AI": {
+                      "balance": "0.000000"
+                    },
+                    "USDT": {
+                      "balance": "0.877611"
+                    }
+                  },
+                  "BTC": {
+                    "used": null,
+                    "free": null,
+                    "total": 0
+                  },
+                  "XRP": {
+                    "used": null,
+                    "free": null,
+                    "total": 0
+                  },
+                  "TRX": {
+                    "used": null,
+                    "free": null,
+                    "total": 0.039369
+                  },
+                  "USD": {
+                    "used": null,
+                    "free": null,
+                    "total": 0.02
+                  },
+                  "AI": {
+                    "used": null,
+                    "free": null,
+                    "total": 0
+                  },
+                  "USDT": {
+                    "used": null,
+                    "free": null,
+                    "total": 0.877611
+                  },
+                 "total": {
+                    "BTC": 0,
+                    "XRP": 0,
+                    "TRX": 0.039369,
+                    "USD": 0.02,
+                    "AI": 0,
+                    "USDT": 0.877611
+                  },
+                  "used": {
+                    "BTC": null,
+                    "XRP": null,
+                    "TRX": null,
+                    "USD": null,
+                    "AI": null,
+                    "USDT": null
+                  },
+                  "free": {
+                    "BTC": null,
+                    "XRP": null,
+                    "TRX": null,
+                    "USD": null,
+                    "AI": null,
+                    "USDT": null
+                  }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "default",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": [
+                    {
+                      "orderId": "1320439",
+                      "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                      "clientId": "up132245425",
+                      "accountId": "sub1",
+                      "status": "NEW",
+                      "statusIsFinal": false,
+                      "currency1": "LTC",
+                      "currency2": "USDT",
+                      "side": "BUY",
+                      "orderType": "Limit",
+                      "timeInForce": "GTC",
+                      "comment": null,
+                      "rejectCode": null,
+                      "rejectReason": null,
+                      "initialOnHoldAmountCcy1": null,
+                      "initialOnHoldAmountCcy2": "12.45105000",
+                      "executedAmountCcy1": null,
+                      "executedAmountCcy2": null,
+                      "requestedAmountCcy1": "0.23000000",
+                      "requestedAmountCcy2": null,
+                      "feeAmount": "0.00000000",
+                      "feeCurrency": "USDT",
+                      "price": "54.00",
+                      "averagePrice": null,
+                      "clientCreateTimestamp": "1729169470826",
+                      "serverCreateTimestamp": "1729169472087",
+                      "lastUpdateTimestamp": "1729169472264",
+                      "expireTime": null,
+                      "effectiveTime": null
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1320439",
+                    "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                    "timestamp": 1729169472087,
+                    "datetime": "2024-10-17T12:51:12.087Z",
+                    "lastUpdateTimestamp": 1729169472264,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 54,
+                    "stopPrice": null,
+                    "amount": 0.23,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": 0
+                    },
+                    "trades": [],
+                    "info": {
+                      "orderId": "1320439",
+                      "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                      "clientId": "up132245425",
+                      "accountId": "sub1",
+                      "status": "NEW",
+                      "statusIsFinal": false,
+                      "currency1": "LTC",
+                      "currency2": "USDT",
+                      "side": "BUY",
+                      "orderType": "Limit",
+                      "timeInForce": "GTC",
+                      "comment": null,
+                      "rejectCode": null,
+                      "rejectReason": null,
+                      "initialOnHoldAmountCcy1": null,
+                      "initialOnHoldAmountCcy2": "12.45105000",
+                      "executedAmountCcy1": null,
+                      "executedAmountCcy2": null,
+                      "requestedAmountCcy1": "0.23000000",
+                      "requestedAmountCcy2": null,
+                      "feeAmount": "0.00000000",
+                      "feeCurrency": "USDT",
+                      "price": "54.00",
+                      "averagePrice": null,
+                      "clientCreateTimestamp": "1729169470826",
+                      "serverCreateTimestamp": "1729169472087",
+                      "lastUpdateTimestamp": "1729169472264",
+                      "expireTime": null,
+                      "effectiveTime": null
+                    },
+                    "fees": [
+                      {
+                        "currency": "USDT",
+                        "cost": 0
+                      }
+                    ],
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "detault",
+                "method": "fetchClosedOrders",
+                "input": [
+                  null,
+                  null,
+                  3
+                ],
+                "httpResponse": {
+                  "ok": "ok",
+                  "data": [
+                    {
+                      "orderId": "1320439",
+                      "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                      "clientId": "up132245425",
+                      "accountId": "sub1",
+                      "status": "CANCELLED",
+                      "statusIsFinal": true,
+                      "currency1": "LTC",
+                      "currency2": "USDT",
+                      "side": "BUY",
+                      "orderType": "Limit",
+                      "timeInForce": "GTC",
+                      "comment": null,
+                      "rejectCode": null,
+                      "rejectReason": null,
+                      "initialOnHoldAmountCcy1": null,
+                      "initialOnHoldAmountCcy2": "12.45105000",
+                      "executedAmountCcy1": null,
+                      "executedAmountCcy2": null,
+                      "requestedAmountCcy1": "0.23000000",
+                      "requestedAmountCcy2": null,
+                      "feeAmount": "0.00000000",
+                      "feeCurrency": "USDT",
+                      "price": "54.00",
+                      "averagePrice": null,
+                      "clientCreateTimestamp": "1729169470826",
+                      "serverCreateTimestamp": "1729169472087",
+                      "lastUpdateTimestamp": "1729169906974",
+                      "expireTime": null,
+                      "effectiveTime": null
+                    },
+                    {
+                      "orderId": "1320433",
+                      "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                      "clientId": "up132245425",
+                      "accountId": "sub1",
+                      "status": "FILLED",
+                      "statusIsFinal": true,
+                      "currency1": "LTC",
+                      "currency2": "USDT",
+                      "side": "SELL",
+                      "orderType": "Market",
+                      "timeInForce": null,
+                      "comment": null,
+                      "rejectCode": null,
+                      "rejectReason": null,
+                      "initialOnHoldAmountCcy1": "0.23000000",
+                      "initialOnHoldAmountCcy2": null,
+                      "executedAmountCcy1": "0.23000000",
+                      "executedAmountCcy2": "16.37600000",
+                      "requestedAmountCcy1": "0.23000000",
+                      "requestedAmountCcy2": null,
+                      "feeAmount": "0.04094000",
+                      "feeCurrency": "USDT",
+                      "price": null,
+                      "averagePrice": "71.20",
+                      "clientCreateTimestamp": "1729168976697",
+                      "serverCreateTimestamp": "1729168977930",
+                      "lastUpdateTimestamp": "1729168979074",
+                      "expireTime": null,
+                      "effectiveTime": null
+                    },
+                    {
+                      "orderId": "1320428",
+                      "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                      "clientId": "up132245425",
+                      "accountId": "sub1",
+                      "status": "FILLED",
+                      "statusIsFinal": true,
+                      "currency1": "LTC",
+                      "currency2": "USDT",
+                      "side": "BUY",
+                      "orderType": "Market",
+                      "timeInForce": null,
+                      "comment": null,
+                      "rejectCode": null,
+                      "rejectReason": null,
+                      "initialOnHoldAmountCcy1": null,
+                      "initialOnHoldAmountCcy2": "16.82972690",
+                      "executedAmountCcy1": "0.23000000",
+                      "executedAmountCcy2": "16.38060000",
+                      "requestedAmountCcy1": "0.23000000",
+                      "requestedAmountCcy2": null,
+                      "feeAmount": "0.04095150",
+                      "feeCurrency": "USDT",
+                      "price": null,
+                      "averagePrice": "71.22",
+                      "clientCreateTimestamp": "1729168863149",
+                      "serverCreateTimestamp": "1729168864453",
+                      "lastUpdateTimestamp": "1729168865759",
+                      "expireTime": null,
+                      "effectiveTime": null
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1320428",
+                    "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                    "timestamp": 1729168864453,
+                    "datetime": "2024-10-17T12:41:04.453Z",
+                    "lastUpdateTimestamp": 1729168865759,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 71.22,
+                    "stopPrice": null,
+                    "amount": 0.23,
+                    "cost": 16.3806,
+                    "average": 71.22,
+                    "filled": 0.23,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0.0409515
+                    },
+                    "trades": [],
+                    "info": {
+                        "orderId": "1320428",
+                        "clientOrderId": "805551cb-109d-4c57-b639-8a721ababa1c",
+                        "clientId": "up132245425",
+                        "accountId": "sub1",
+                        "status": "FILLED",
+                        "statusIsFinal": true,
+                        "currency1": "LTC",
+                        "currency2": "USDT",
+                        "side": "BUY",
+                        "orderType": "Market",
+                        "timeInForce": null,
+                        "comment": null,
+                        "rejectCode": null,
+                        "rejectReason": null,
+                        "initialOnHoldAmountCcy1": null,
+                        "initialOnHoldAmountCcy2": "16.82972690",
+                        "executedAmountCcy1": "0.23000000",
+                        "executedAmountCcy2": "16.38060000",
+                        "requestedAmountCcy1": "0.23000000",
+                        "requestedAmountCcy2": null,
+                        "feeAmount": "0.04095150",
+                        "feeCurrency": "USDT",
+                        "price": null,
+                        "averagePrice": "71.22",
+                        "clientCreateTimestamp": "1729168863149",
+                        "serverCreateTimestamp": "1729168864453",
+                        "lastUpdateTimestamp": "1729168865759",
+                        "expireTime": null,
+                        "effectiveTime": null
+                    },
+                    "fees": [{
+                            "currency": "USDT",
+                            "cost": 0.0409515
+                        }
+                    ],
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  },
+                  {
+                    "id": "1320433",
+                    "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                    "timestamp": 1729168977930,
+                    "datetime": "2024-10-17T12:42:57.930Z",
+                    "lastUpdateTimestamp": 1729168979074,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 71.2,
+                    "stopPrice": null,
+                    "amount": 0.23,
+                    "cost": 16.376,
+                    "average": 71.2,
+                    "filled": 0.23,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0.04094
+                    },
+                    "trades": [],
+                    "info": {
+                        "orderId": "1320433",
+                        "clientOrderId": "7361b0fc-36f8-4d4c-9965-244890986fa3",
+                        "clientId": "up132245425",
+                        "accountId": "sub1",
+                        "status": "FILLED",
+                        "statusIsFinal": true,
+                        "currency1": "LTC",
+                        "currency2": "USDT",
+                        "side": "SELL",
+                        "orderType": "Market",
+                        "timeInForce": null,
+                        "comment": null,
+                        "rejectCode": null,
+                        "rejectReason": null,
+                        "initialOnHoldAmountCcy1": "0.23000000",
+                        "initialOnHoldAmountCcy2": null,
+                        "executedAmountCcy1": "0.23000000",
+                        "executedAmountCcy2": "16.37600000",
+                        "requestedAmountCcy1": "0.23000000",
+                        "requestedAmountCcy2": null,
+                        "feeAmount": "0.04094000",
+                        "feeCurrency": "USDT",
+                        "price": null,
+                        "averagePrice": "71.20",
+                        "clientCreateTimestamp": "1729168976697",
+                        "serverCreateTimestamp": "1729168977930",
+                        "lastUpdateTimestamp": "1729168979074",
+                        "expireTime": null,
+                        "effectiveTime": null
+                    },
+                    "fees": [{
+                            "currency": "USDT",
+                            "cost": 0.04094
+                        }
+                    ],
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  },
+                  {
+                    "id": "1320439",
+                    "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                    "timestamp": 1729169472087,
+                    "datetime": "2024-10-17T12:51:12.087Z",
+                    "lastUpdateTimestamp": 1729169906974,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 54,
+                    "stopPrice": null,
+                    "amount": 0.23,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0
+                    },
+                    "trades": [],
+                    "info": {
+                        "orderId": "1320439",
+                        "clientOrderId": "a3daff06-c8a7-411d-9955-48c13d629218",
+                        "clientId": "up132245425",
+                        "accountId": "sub1",
+                        "status": "CANCELLED",
+                        "statusIsFinal": true,
+                        "currency1": "LTC",
+                        "currency2": "USDT",
+                        "side": "BUY",
+                        "orderType": "Limit",
+                        "timeInForce": "GTC",
+                        "comment": null,
+                        "rejectCode": null,
+                        "rejectReason": null,
+                        "initialOnHoldAmountCcy1": null,
+                        "initialOnHoldAmountCcy2": "12.45105000",
+                        "executedAmountCcy1": null,
+                        "executedAmountCcy2": null,
+                        "requestedAmountCcy1": "0.23000000",
+                        "requestedAmountCcy2": null,
+                        "feeAmount": "0.00000000",
+                        "feeCurrency": "USDT",
+                        "price": "54.00",
+                        "averagePrice": null,
+                        "clientCreateTimestamp": "1729169470826",
+                        "serverCreateTimestamp": "1729169472087",
+                        "lastUpdateTimestamp": "1729169906974",
+                        "expireTime": null,
+                        "effectiveTime": null
+                    },
+                    "fees": [{
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    ],
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+              ]
+            }
         ]
     }
 }
