@@ -956,9 +956,6 @@ public partial class bybit : Exchange
                 { "usePrivateInstrumentsInfo", false },
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
-                { "createOrder", new Dictionary<string, object>() {
-                    { "method", "privatePostV5OrderCreate" },
-                } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
                 { "unifiedMarginStatus", null },
@@ -4111,12 +4108,26 @@ public partial class bybit : Exchange
         object parts = await this.isUnifiedEnabled();
         object enableUnifiedAccount = getValue(parts, 1);
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "trailingStop");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
-        object options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
-        object defaultMethod = this.safeString(options, "method", "privatePostV5OrderCreate");
+        object defaultMethod = null;
+        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        {
+            defaultMethod = "privatePostV5PositionTradingStop";
+        } else
+        {
+            defaultMethod = "privatePostV5OrderCreate";
+        }
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         object response = null;
-        if (isTrue(isTrue(isTrailingAmountOrder) || isTrue((isEqual(defaultMethod, "privatePostV5PositionTradingStop")))))
+        if (isTrue(isEqual(method, "privatePostV5PositionTradingStop")))
         {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         } else
@@ -4150,10 +4161,6 @@ public partial class bybit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
         }
-        object defaultMethod = null;
-        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "method", "privatePostV5OrderCreate");
-        defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
-        parameters = ((IList<object>)defaultMethodparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -4175,7 +4182,19 @@ public partial class bybit : Exchange
         object isMarket = isEqual(lowerCaseType, "market");
         object isLimit = isEqual(lowerCaseType, "limit");
         object isBuy = isEqual(side, "buy");
-        object isAlternativeEndpoint = isEqual(defaultMethod, "privatePostV5PositionTradingStop");
+        object defaultMethod = null;
+        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))
+        {
+            defaultMethod = "privatePostV5PositionTradingStop";
+        } else
+        {
+            defaultMethod = "privatePostV5OrderCreate";
+        }
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object isAlternativeEndpoint = isEqual(method, "privatePostV5PositionTradingStop");
         object amountString = this.getAmount(symbol, amount);
         object priceString = ((bool) isTrue((!isEqual(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
         if (isTrue(isTrue(isTrailingAmountOrder) || isTrue(isAlternativeEndpoint)))
