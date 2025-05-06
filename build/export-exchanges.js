@@ -407,7 +407,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
             // , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "<!--- init list -->"
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "\n<!--- end list -->"
             , allExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of allExchangesPaths) {
             logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
@@ -421,7 +421,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , beginning = "<!--- init list -->The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
             , totalString = beginning + numProExchanges + ending
-            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "<!--- init list -->"
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "\n<!--- end list -->"
             , proExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of proExchangesPaths) {
             logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
