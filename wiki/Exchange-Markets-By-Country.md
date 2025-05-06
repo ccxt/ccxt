@@ -1,5 +1,5 @@
 # Exchanges By Country
-
+<!--- init list -->
 The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:
 
 |country / region          |logo                                                                                                                                                                                           |id                     |name                                                                                     |ver                                                                                                                                               |
@@ -115,3 +115,4 @@ The ccxt library currently supports the following cryptocurrency exchange market
 | US                       | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                    | poloniex              | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://api-docs.poloniex.com/spot/)                                                |
 | Ukraine                  | [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                        | kuna                  | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                           | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://kuna.io/documents/api)                                                      |
 
+<!--- end list -->
