@@ -946,6 +946,9 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'additional_certificates': {
+                    'python': 'htx_api.hbdm.com.pem',
+                },
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
