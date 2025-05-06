@@ -403,11 +403,12 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths && numExchanges) {
         const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT library currently supports the following "
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
-            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesRegex = new RegExp ("<!--- init list -->([\s\S]*?)<!--- end list -->", 'm')
+            // , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "<!--- init list -->"
+            , allExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of allExchangesPaths) {
             logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
