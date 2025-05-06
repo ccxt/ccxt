@@ -2197,7 +2197,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2206,7 +2206,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
