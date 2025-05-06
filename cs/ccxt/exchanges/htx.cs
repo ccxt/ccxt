@@ -2180,7 +2180,7 @@ public partial class htx : Exchange
         object askVolume = null;
         if (isTrue(inOp(ticker, "bid")))
         {
-            if (isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "bid"), null)) && isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 bid = this.safeString(getValue(ticker, "bid"), 0);
                 bidVolume = this.safeString(getValue(ticker, "bid"), 1);
@@ -2192,7 +2192,7 @@ public partial class htx : Exchange
         }
         if (isTrue(inOp(ticker, "ask")))
         {
-            if (isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "ask"), null)) && isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 ask = this.safeString(getValue(ticker, "ask"), 0);
                 askVolume = this.safeString(getValue(ticker, "ask"), 1);
