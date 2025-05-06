@@ -418,11 +418,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const numProExchanges = proExchanges.length
     if (proExchangesPaths && numProExchanges) {
         const proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT Pro library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
             , totalString = beginning + numProExchanges + ending
-            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
-            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "<!--- init list -->"
+            , proExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of proExchangesPaths) {
             logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }
