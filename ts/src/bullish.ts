@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int } from './base/types.js';
+import { Currencies, Dict, Int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -238,6 +239,88 @@ export default class bullish extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
+    /**
+     * @method
+     * @name bullish#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.publicGetV1Assets (params);
+        //
+        //     [
+        //         {
+        //             "assetId": "72",
+        //             "symbol": "BTT1M",
+        //             "name": "BitTorrent (millions)",
+        //             "precision": "5",
+        //             "minBalanceInterest": "0.00000",
+        //             "apr": "10.00",
+        //             "minFee": "0.00000",
+        //             "maxBorrow": "0.00000",
+        //             "totalOfferedLoanQuantity": "0.00000",
+        //             "loanBorrowedQuantity": "0.00000",
+        //             "collateralBands":
+        //                 [
+        //                     {
+        //                         "collateralPercentage": "90.00",
+        //                         "bandLimitUSD": "100000.0000"
+        //                     },
+        //                     {
+        //                         "collateralPercentage": "68.00",
+        //                         "bandLimitUSD": "300000.0000"
+        //                     },
+        //                     {
+        //                         "collateralPercentage": "25.00",
+        //                         "bandLimitUSD": "600000.0000"
+        //                     }
+        //                 ],
+        //             "underlyingAsset":
+        //                 {
+        //                     "symbol": "BTT1M",
+        //                     "assetId": "72",
+        //                     "bpmMinReturnStart": "0.9200",
+        //                     "bpmMinReturnEnd": "0.9300",
+        //                     "bpmMaxReturnStart": "1.0800",
+        //                     "bpmMaxReturnEnd": "1.0800",
+        //                     "marketRiskFloorPctStart": "2.60",
+        //                     "marketRiskFloorPctEnd": "2.50",
+        //                     "bpmTransitionDateTimeStart": "2025-05-05T08:00:00.000Z",
+        //                     "bpmTransitionDateTimeEnd": "2025-05-08T08:00:00.000Z"
+        //                 }
+        //         }, ...
+        //     ]
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'assetId');
+            const code = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name');
+            const precision = this.safeInteger (currency, 'precision');
+            const minFee = Precise.stringMax (this.safeString (currency, 'minFee'), '0.00000');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': minFee,
+                'precision': precision,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+                'networks': {},
+                'type': 'crypto',
+                'info': currency,
+            };
+        }
+        return result;
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
