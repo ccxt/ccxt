@@ -120,7 +120,7 @@ class Exchange(BaseExchange):
                 python_cert = self.safe_string(cert_opts, 'python')
                 if (python_cert is not None):
                     # resides in static_deps
-                    file_path = os.path.dirname(os.path.dirname(os.path.dirname((__file__)))) +  '/static_dependencies/additional_certificates/' + python_cert
+                    file_path = os.path.dirname(os.path.dirname(os.path.dirname((__file__)))) + '/static_dependencies/additional_certificates/' + python_cert
                     self.ssl_context.load_verify_locations(cafile=file_path)
 
         if self.own_session and self.session is None:
