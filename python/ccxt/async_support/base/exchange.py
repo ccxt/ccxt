@@ -115,13 +115,10 @@ class Exchange(BaseExchange):
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
             self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
-            if (self.ssl_context):
-                cert_opts = self.safe_dict(self.options, 'additional_certificates', {})
-                python_cert = self.safe_string(cert_opts, 'python')
-                if (python_cert is not None):
-                    # resides in static_deps
-                    file_path = os.path.dirname(os.path.dirname(os.path.dirname((__file__)))) + '/static_dependencies/additional_certificates/' + python_cert
-                    self.ssl_context.load_verify_locations(cafile=file_path)
+            if (self.ssl_context and self.safe_bool(self.options, 'include_OS_certificates', False)):
+                os_default_paths = ssl.get_default_verify_paths()
+                if os_default_paths.cafile and os_default_paths.cafile != self.cafile:
+                    self.ssl_context.load_verify_locations(cafile=os_default_paths.cafile)
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
