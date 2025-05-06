@@ -71,7 +71,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     quote_volume = exchange.safe_string(entry, 'quoteVolume')
     high = exchange.safe_string(entry, 'high')
     low = exchange.safe_string(entry, 'low')
-    if not ('quoteVolume' in skipped_properties) and not ('baseVolume' in skipped_properties):
+    if not ('compareQuoteVolumeBaseVolume' in skipped_properties):
         if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None):
             base_low = Precise.string_mul(base_volume, low)
             base_high = Precise.string_mul(base_volume, high)
