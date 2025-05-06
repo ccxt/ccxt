@@ -8,7 +8,6 @@ __version__ = '4.4.78'
 
 import asyncio
 import concurrent.futures
-import os
 import socket
 import certifi
 import aiohttp
