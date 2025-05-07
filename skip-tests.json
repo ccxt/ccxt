@@ -200,7 +200,6 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "type": "todo",
                 "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
             },
             "ticker": {
