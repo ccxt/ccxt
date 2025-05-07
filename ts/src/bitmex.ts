@@ -1576,7 +1576,7 @@ export default class bitmex extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
-        //         "timestamp":"2015-09-25T13:38:00.000Z",
+        //         "timestamp":"2015-09-25T13:39:00.000Z",
         //         "symbol":"XBTUSD",
         //         "open":237.45,
         //         "high":237.45,
