@@ -2890,7 +2890,7 @@ func  (this *bitget) ParseTicker(ticker interface{}, optionalArgs ...interface{}
     var close interface{} = this.SafeString(ticker, "lastPr")
     var timestamp interface{} = this.SafeIntegerOmitZero(ticker, "ts") // exchange bitget provided 0
     var change interface{} = this.SafeString(ticker, "change24h")
-    var open24 interface{} = this.SafeString(ticker, "open24")
+    var open24 interface{} = this.SafeString2(ticker, "open24", "open24h")
     var open interface{} = this.SafeString(ticker, "open")
     var symbol interface{} = nil
     var openValue interface{} = nil
