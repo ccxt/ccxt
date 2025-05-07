@@ -70,8 +70,12 @@ export default class aftermath extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'api': 'https://aftermath.finance/iperps-api/ccxt',
-                'test': 'https://testnet.aftermath.finance/iperps-api/ccxt',
+                'api': {
+                    'rest': 'https://aftermath.finance/iperps-api/ccxt'
+                },
+                'test': {
+                    'rest': 'https://testnet.aftermath.finance/iperps-api/ccxt'
+                },
             },
             'api': {
                 'public': {
@@ -121,6 +125,10 @@ export default class aftermath extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'sandboxMode': false,
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {},
             },
         });
     }
@@ -1113,7 +1121,7 @@ export default class aftermath extends Exchange {
     }
 
     sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
-        const url = this.urls['api'] + '/' + path;
+        const url = this.urls['api']['rest'] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();
         }
