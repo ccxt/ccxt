@@ -523,7 +523,6 @@ func  (this *testMainClass) RunPublicTests(exchange ccxt.IExchange, symbol inter
                 "fetchOHLCV": []interface{}{symbol},
                 "fetchTrades": []interface{}{symbol},
                 "fetchOrderBook": []interface{}{symbol},
-                "fetchL2OrderBook": []interface{}{symbol},
                 "fetchOrderBooks": []interface{}{},
                 "fetchBidsAsks": []interface{}{},
                 "fetchStatus": []interface{}{},
