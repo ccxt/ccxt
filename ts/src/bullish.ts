@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
+import {Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { Currencies, Dict, Int } from './base/types.js';
+import {} from './base/errors.js';
+import {TICK_SIZE } from './base/functions/number.js';
+import {Currencies, Dict, Int, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -322,12 +322,264 @@ export default class bullish extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name bullish#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetV1Markets (params);
+        //
+        //     [
+        //         {
+        //             "marketId": "20069",
+        //             "symbol": "BTC-USDC-20250516",
+        //             "quoteAssetId": "5",
+        //             "baseAssetId": "1",
+        //             "quoteSymbol": "USDC",
+        //             "baseSymbol": "BTC",
+        //             "quotePrecision": "4",
+        //             "basePrecision": "8",
+        //             "pricePrecision": "4",
+        //             "quantityPrecision": "8",
+        //             "costPrecision": "4",
+        //             "minQuantityLimit": "0.00050000",
+        //             "maxQuantityLimit": "200.00000000",
+        //             "maxPriceLimit": null,
+        //             "minPriceLimit": null,
+        //             "maxCostLimit": null,
+        //             "minCostLimit": null,
+        //             "timeZone": "Etc/UTC",
+        //             "tickSize": "0.1000",
+        //             "liquidityTickSize": "100.0000",
+        //             "liquidityPrecision": "4",
+        //             "makerFee": "0",
+        //             "takerFee": "2",
+        //             "roundingCorrectionFactor": "0.00000100",
+        //             "makerMinLiquidityAddition": "1000000",
+        //             "orderTypes":
+        //                 [
+        //                     "LMT",
+        //                     "MKT",
+        //                     "STOP_LIMIT",
+        //                     "POST_ONLY"
+        //                 ],
+        //             "spotTradingEnabled": true,
+        //             "marginTradingEnabled": true,
+        //             "marketEnabled": true,
+        //             "createOrderEnabled": true,
+        //             "cancelOrderEnabled": true,
+        //             "liquidityInvestEnabled": true,
+        //             "liquidityWithdrawEnabled": true,
+        //             "feeTiers":
+        //                 [
+        //                     {
+        //                         "feeTierId": "1",
+        //                         "staticSpreadFee": "0.00000000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "10",
+        //                         "staticSpreadFee": "0.00100000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "11",
+        //                         "staticSpreadFee": "0.00150000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "12",
+        //                         "staticSpreadFee": "0.00150000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "13",
+        //                         "staticSpreadFee": "0.00300000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "14",
+        //                         "staticSpreadFee": "0.00300000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "15",
+        //                         "staticSpreadFee": "0.00500000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "16",
+        //                         "staticSpreadFee": "0.00500000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "17",
+        //                         "staticSpreadFee": "0.01000000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "18",
+        //                         "staticSpreadFee": "0.01000000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "19",
+        //                         "staticSpreadFee": "0.01500000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "2",
+        //                         "staticSpreadFee": "0.00000000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "20",
+        //                         "staticSpreadFee": "0.01500000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "21",
+        //                         "staticSpreadFee": "0.02000000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "22",
+        //                         "staticSpreadFee": "0.02000000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "3",
+        //                         "staticSpreadFee": "0.00010000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "4",
+        //                         "staticSpreadFee": "0.00010000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "5",
+        //                         "staticSpreadFee": "0.00020000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "6",
+        //                         "staticSpreadFee": "0.00020000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "7",
+        //                         "staticSpreadFee": "0.00060000",
+        //                         "isDislocationEnabled": false
+        //                     },
+        //                     {
+        //                         "feeTierId": "8",
+        //                         "staticSpreadFee": "0.00060000",
+        //                         "isDislocationEnabled": true
+        //                     },
+        //                     {
+        //                         "feeTierId": "9",
+        //                         "staticSpreadFee": "0.00100000",
+        //                         "isDislocationEnabled": false
+        //                     }
+        //                 ],
+        //             "marketType": "DATED_FUTURE",
+        //             "contractMultiplier": "1",
+        //             "settlementAssetSymbol": "USDC",
+        //             "underlyingQuoteSymbol": "USDC",
+        //             "underlyingBaseSymbol": "BTC",
+        //             "openInterestLimitUSD": "100000000.0000",
+        //             "concentrationRiskPercentage": "100.00",
+        //             "concentrationRiskThresholdUSD": "30000000.0000",
+        //             "expiryDatetime": "2025-05-16T08:00:00.000Z",
+        //             "priceBuffer": "0.1",
+        //             "feeGroupId": "4"
+        //         },
+        //     ]...
+        //
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'marketId');
+        const symbol = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAssetId');
+        const quoteId = this.safeString (market, 'quoteAssetId');
+        const base = this.safeString (market, 'baseSymbol');
+        const quote = this.safeString (market, 'quoteSymbol');
+        const basePrecision = this.safeString (market, 'basePrecision');
+        const quotePrecision = this.safeString (market, 'quotePrecision');
+        const pricePrecision = this.safeString (market, 'pricePrecision');
+        const costPrecision = this.safeString (market, 'costPrecision');
+        const minQuantityLimit = this.safeString (market, 'minQuantityLimit');
+        const maxQuantityLimit = this.safeString (market, 'maxQuantityLimit');
+        const minPriceLimit = this.safeString (market, 'minPriceLimit');
+        const maxPriceLimit = this.safeString (market, 'maxPriceLimit');
+        const minCostLimit = this.safeString (market, 'minCostLimit');
+        const maxCostLimit = this.safeString (market, 'maxCostLimit');
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': minQuantityLimit,
+                    'max': maxQuantityLimit,
+                },
+                'price': {
+                    'min': minPriceLimit,
+                    'max': maxPriceLimit,
+                },
+                'cost': {
+                    'min': minCostLimit,
+                    'max': maxCostLimit,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'amount': costPrecision,
+                'price': pricePrecision,
+                'base': basePrecision,
+                'quote': quotePrecision,
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        });
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         url += '?' + query;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return {'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
