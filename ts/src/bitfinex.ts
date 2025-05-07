@@ -1343,8 +1343,7 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
-        const result: Dict = { 'result': ticker };
-        return this.parseTicker (result, market);
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
