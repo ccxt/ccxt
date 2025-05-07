@@ -57,9 +57,9 @@ except ImportError:
     eddsa = None
 
 # eth signing
-# from ccxt.static_dependencies.ethereum import abi
-# from ccxt.static_dependencies.ethereum import account
-# from ccxt.static_dependencies.msgpack import packb
+from ccxt.static_dependencies.ethereum import abi
+from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies.msgpack import packb
 
 # starknet
 from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
