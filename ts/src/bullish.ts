@@ -1,10 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { time } from 'console';
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market, OrderBook, Trade } from './base/types.js';
+import { Bool, Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ export default class bullish extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -75,7 +76,7 @@ export default class bullish extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -83,7 +84,7 @@ export default class bullish extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -96,10 +97,10 @@ export default class bullish extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -598,7 +599,7 @@ export default class bullish extends Exchange {
                 'base': basePrecision,
                 'quote': quotePrecision,
             },
-            'active': undefined,
+            'active': true,
             'created': undefined,
             'info': market,
         });
@@ -734,6 +735,91 @@ export default class bullish extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1MarketsSymbolTick (this.extend (request, params));
+        //
+        //     {
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "high": "1.00000000",
+        //         "low": "1.00000000",
+        //         "bestBid": "1.00000000",
+        //         "bidVolume": "1.00000000",
+        //         "bestAsk": "1.00000000",
+        //         "askVolume": "1.00000000",
+        //         "vwap": "1.00000000",
+        //         "open": "1.00000000",
+        //         "close": "1.00000000",
+        //         "last": "1.00000000",
+        //         "change": "1.00000000",
+        //         "percentage": "1.00000000",
+        //         "average": "1.00000000",
+        //         "baseVolume": "1.00000000",
+        //         "quoteVolume": "1.00000000",
+        //         "bancorPrice": "1.00000000",
+        //         "markPrice": "19999.00",
+        //         "fundingRate": "0.01",
+        //         "openInterest": "100000.32452",
+        //         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp": "1621490985000",
+        //         "lastTradeQuantity": "1.00000000",
+        //         "ammData": [
+        //             {
+        //                 "feeTierId": "1",
+        //                 "bidSpreadFee": "0.00040000",
+        //                 "askSpreadFee": "0.00040000",
+        //                 "baseReservesQuantity": "245.56257825",
+        //                 "quoteReservesQuantity": "3424383.3629",
+        //                 "currentPrice": "16856.0000"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (market, 'id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'createdAtTimestamp');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString2 (ticker, 'bid', 'bestBid'),
+            'bidVolume': this.safeString (ticker, 'bidVolume'),
+            'ask': this.safeString2 (ticker, 'ask', 'bestAsk'),
+            'askVolume': this.safeString (ticker, 'askVolume'),
+            'vwap': this.safeString (ticker, 'vwap'),
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
+            'last': this.safeString (ticker, 'last'),
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'percentage'),
+            'average': this.safeString (ticker, 'average'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'info': ticker,
         }, market);
     }
 
