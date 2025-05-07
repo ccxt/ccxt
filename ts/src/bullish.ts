@@ -4,7 +4,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market } from './base/types.js';
+import { Bool, Currencies, Dict, Int, Market, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -509,12 +509,13 @@ export default class bullish extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'marketId');
-        const symbol = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseAssetId');
-        const quoteId = this.safeString (market, 'quoteAssetId');
+        const id = this.safeString (market, 'symbol');
+        let symbol = undefined;
+        const baseId = this.safeString (market, 'baseSymbol');
+        const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeString (market, 'baseSymbol');
         const quote = this.safeString (market, 'quoteSymbol');
+        symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
         const quotePrecision = this.safeString (market, 'quotePrecision');
         const pricePrecision = this.safeString (market, 'pricePrecision');
@@ -539,11 +540,13 @@ export default class bullish extends Exchange {
             linear = true;
             settleId = this.safeString (market, 'settlementAssetSymbol');
             inverse = false;
+            symbol = base + '/' + quote + ':' + settleId;
         } else if (type === 'future') {
             future = true;
             linear = true;
             settleId = this.safeString (market, 'settlementAssetSymbol');
             inverse = false;
+            symbol = base + '/' + quote + ':' + settleId;
         }
         const margin = this.safeValue (market, 'marginTradingEnabled', false);
         return this.safeMarketStructure ({
@@ -608,6 +611,46 @@ export default class bullish extends Exchange {
             'DATED_FUTURE': 'future',
         };
         return this.safeString (types, type, defaultType);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/orderbook/hybrid
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1MarketsSymbolOrderbookHybrid (this.extend (request, params));
+        //
+        //     {
+        //         "bids": [
+        //             {
+        //                 "price": "1.00000000",
+        //                 "priceLevelQuantity": "1.00000000"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "1.00000000",
+        //                 "priceLevelQuantity": "1.00000000"
+        //             }
+        //         ],
+        //         "datetime": "2021-05-20T01:01:01.000Z",
+        //         "timestamp": "1621490985000",
+        //         "sequenceNumber": 999
+        //     }
+        //
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
