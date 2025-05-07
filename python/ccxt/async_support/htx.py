@@ -963,6 +963,7 @@ class htx(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': True,
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
