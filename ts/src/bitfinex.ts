@@ -1213,7 +1213,7 @@ export default class bitfinex extends Exchange {
         let minusIndex = 0;
         let isFundingCurrency = false;
         if (isFetchTicker) {
-            minusIndex = -1;
+            minusIndex = 1;
             isFundingCurrency = (length === 16);
         } else {
             const marketId = this.safeString (ticker, 0);
