@@ -19,7 +19,7 @@ export default class aftermath extends aftermathRest {
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -100,14 +100,18 @@ export default class aftermath extends aftermathRest {
     handleTrade (client: Client, message) {
         //
         // {
-        //     amount: 0.00184,
-        //     datetime: '2025-05-06 12:54:24.632 UTC',
-        //     order: '17333914944033433863997077096',
-        //     price: 93967.3412,
-        //     timestamp: 1746536064632,
-        //     side: 'sell',
-        //     symbol: 'BTC/USD:USDC',
-        //     takerOrMaker: 'maker'
+        //     "amount": 0.1,
+        //     "cost": 0.1,
+        //     "datetime": "string",
+        //     "fee": null,
+        //     "id": "string",
+        //     "order": "string",
+        //     "price": 0.1,
+        //     "side": null,
+        //     "symbol": "string",
+        //     "takerOrMaker": null,
+        //     "timestamp": null,
+        //     "type": "string"
         // }
         //
         const trade = this.parseTrade (message);
@@ -123,6 +127,62 @@ export default class aftermath extends aftermathRest {
         trades.append (trade);
         this.trades[symbol] = trades;
         client.resolve (trades, messageHash);
+    }
+
+    /**
+     * @method
+     * @name aftermath#watchOrderBook
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Stream/iperps_api%3A%3Accxt%3A%3Astream%3A%3Aorderbook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@orderbook';
+        const request: Dict = {
+            'chId': market['id'],
+        };
+        const message = this.extend (request, params);
+        const orderbook = await this.watchPublic ('orderbook', topic, message);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // {
+        //     "asks": [
+        //       []
+        //     ],
+        //     "bids": [
+        //       []
+        //     ],
+        //     "datetime": "string",
+        //     "nonce": 9007199254740991,
+        //     "symbol": "string",
+        //     "timestamp": 9007199254740991
+        // }
+        //
+        const symbol = this.safeString (message, 'symbol');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const nonce = this.safeInteger (message, 'nonce');
+        const market = this.market (symbol);
+        const snapshot = this.parseOrderBook (message, symbol, timestamp);
+        snapshot['nonce'] = nonce;
+        const topic = market['id'] + '@orderbook';
+        if (!(symbol in this.orderbooks)) {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const subscription = client.subscriptions[topic];
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, topic);
     }
 
     handleErrorMessage (client: Client, message) {
@@ -158,7 +218,9 @@ export default class aftermath extends aftermathRest {
         // const methods: Dict = {
         //     'trade': this.handleTrade,
         // };
-        if ('asks' in message) {} else {
+        if ('asks' in message) {
+            this.handleOrderBook (client, message);
+        } else {
             this.handleTrade (client, message);
         }
     }
