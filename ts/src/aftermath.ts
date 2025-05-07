@@ -614,7 +614,7 @@ export default class aftermath extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {Account} [params.accountNumber] account number to query orders for, required
+     * @param {int} [params.accountNumber] account number to query orders for, required
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -657,7 +657,7 @@ export default class aftermath extends Exchange {
      * @description fetch all open positions
      * @param {string[]} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {Account} [params.accountNumber] account number to query positions for, required
+     * @param {int} [params.accountNumber] account number to query positions for, required
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {

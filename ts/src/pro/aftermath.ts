@@ -26,7 +26,7 @@ export default class aftermath extends aftermathRest {
                 'watchBidsAsks': false,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchPositions': false,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -42,19 +42,9 @@ export default class aftermath extends aftermathRest {
                     },
                 },
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'accountId': true,
-            },
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
-                'requestId': {},
-                'watchPositions': {
-                    'fetchPositionsSnapshot': true, // or false
-                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
-                },
             },
             'streaming': {
                 // 'ping': this.ping,
@@ -185,6 +175,85 @@ export default class aftermath extends aftermathRest {
         client.resolve (orderbook, topic);
     }
 
+    /**
+     * @method
+     * @name aftermath#watchPositions
+     * @see https://testnet.aftermath.finance/iperps-api/swagger-ui/#/Stream/iperps_api%3A%3Accxt%3A%3Astream%3A%3Apositions
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountNumber] account number to query orders for, required
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('positions::' + symbol);
+            }
+        } else {
+            messageHashes.push ('positions');
+        }
+        // const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        // const client = this.client (url);
+        // this.setPositionsCache (client, symbols);
+        // const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        // const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        // if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        //     const snapshot = await client.future ('fetchPositionsSnapshot');
+        //     return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        // }
+        // const request: Dict = {
+        //     'event': 'subscribe',
+        //     'topic': 'position',
+        // };
+        // const topic = market['id'] + '@orderbook';
+        // const request: Dict = {
+        //     'chId': market['id'],
+        // };
+        const accountNumber = this.safeNumber (params, 'accountNumber');
+        params = this.omit (params, 'accountNumber');
+        const request = {
+            'accountNumber': accountNumber,
+        };
+        const message = this.extend (request, params);
+        const newPositions = await this.watchPublic ('positions', messageHashes[0], message);
+        // const newPositions = await this.watchPrivateMultiple (messageHashes, request, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        //
+        const data = this.safeValue (message, 'data', {});
+        const rawPositions = this.safeValue (data, 'positions', {});
+        const postitionsIds = Object.keys (rawPositions);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < postitionsIds.length; i++) {
+            const marketId = postitionsIds[i];
+            const market = this.safeMarket (marketId);
+            const rawPosition = rawPositions[marketId];
+            const position = this.parsePosition (rawPosition, market);
+            newPositions.push (position);
+            cache.append (position);
+            const messageHash = 'positions::' + market['symbol'];
+            client.resolve (position, messageHash);
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // User error: Expected Message::Text from client, got Ping(b\"\")
@@ -220,6 +289,8 @@ export default class aftermath extends aftermathRest {
         // };
         if ('asks' in message) {
             this.handleOrderBook (client, message);
+        } else if ('trades' in message) {
+            this.handlePositions (client, message);
         } else {
             this.handleTrade (client, message);
         }
