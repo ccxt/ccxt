@@ -2770,7 +2770,7 @@ class bitget extends bitget$1 {
         const close = this.safeString(ticker, 'lastPr');
         const timestamp = this.safeIntegerOmitZero(ticker, 'ts'); // exchange bitget provided 0
         const change = this.safeString(ticker, 'change24h');
-        const open24 = this.safeString(ticker, 'open24');
+        const open24 = this.safeString2(ticker, 'open24', 'open24h');
         const open = this.safeString(ticker, 'open');
         let symbol;
         let openValue;
