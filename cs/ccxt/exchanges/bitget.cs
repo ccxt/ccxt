@@ -2809,7 +2809,7 @@ public partial class bitget : Exchange
         object close = this.safeString(ticker, "lastPr");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
-        object open24 = this.safeString(ticker, "open24");
+        object open24 = this.safeString2(ticker, "open24", "open24h");
         object open = this.safeString(ticker, "open");
         object symbol = null;
         object openValue = null;
