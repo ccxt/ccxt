@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
-import {Precise } from '../ccxt.js';
+import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import {} from './base/errors.js';
-import {TICK_SIZE } from './base/functions/number.js';
-import {Currencies, Dict, Int, Market } from './base/types.js';
+import { } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { Bool, Currencies, Dict, Int, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,7 +198,11 @@ export default class bullish extends Exchange {
                 },
             },
             'fees': {
-                'trading': {
+                'trading': { // to do check
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -521,6 +525,27 @@ export default class bullish extends Exchange {
         const maxPriceLimit = this.safeString (market, 'maxPriceLimit');
         const minCostLimit = this.safeString (market, 'minCostLimit');
         const maxCostLimit = this.safeString (market, 'maxCostLimit');
+        let settleId = undefined;
+        const type = this.parseMarketType (this.safeString (market, 'marketType'), 'spot');
+        let spot: Bool = false;
+        let swap = false;
+        let future = false;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        if (type === 'spot') {
+            spot = true;
+        } else if (type === 'swap') {
+            swap = true;
+            linear = true;
+            settleId = this.safeString (market, 'settlementAssetSymbol');
+            inverse = false;
+        } else if (type === 'future') {
+            future = true;
+            linear = true;
+            settleId = this.safeString (market, 'settlementAssetSymbol');
+            inverse = false;
+        }
+        const margin = this.safeValue (market, 'marginTradingEnabled', false);
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -528,17 +553,19 @@ export default class bullish extends Exchange {
             'baseId': baseId,
             'quote': quote,
             'quoteId': quoteId,
-            'settle': undefined,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
+            'settle': this.safeCurrencyCode (settleId),
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': margin,
+            'swap': swap,
+            'future': future,
             'option': false,
             'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.fees['trading']['taker'],
+            'maker': this.fees['trading']['maker'],
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -574,12 +601,21 @@ export default class bullish extends Exchange {
         });
     }
 
+    parseMarketType (type: string, defaultType: string): string {
+        const types = {
+            'SPOT': 'spot',
+            'PERPETUAL': 'swap',
+            'DATED_FUTURE': 'future',
+        };
+        return this.safeString (types, type, defaultType);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
         url += '?' + query;
-        return {'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
