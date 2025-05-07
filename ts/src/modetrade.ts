@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import Exchange from './abstract/woofipro.js';
+import Exchange from './abstract/modetrade.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';

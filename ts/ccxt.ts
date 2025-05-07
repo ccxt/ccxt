@@ -126,6 +126,7 @@ import lbank from  './src/lbank.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
+import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
@@ -210,6 +211,7 @@ import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
@@ -310,6 +312,7 @@ const exchanges = {
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'modetrade':              modetrade,
     'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
@@ -394,6 +397,7 @@ const pro = {
     'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
@@ -635,6 +639,7 @@ export {
     luno,
     mercado,
     mexc,
+    modetrade,
     myokx,
     ndax,
     novadax,
