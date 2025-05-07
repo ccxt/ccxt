@@ -14,21 +14,21 @@ import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, O
 // ---------------------------------------------------------------------------
 
 /**
- * @class woofipro
+ * @class modetrade
  * @augments Exchange
  */
-export default class woofipro extends Exchange {
+export default class modetrade extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
-            'id': 'woofipro',
-            'name': 'WOOFI PRO',
+            'id': 'modetrade',
+            'name': 'Mode Trade',
             'countries': [ 'KY' ], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
             'pro': true,
             'dex': true,
-            'hostname': 'dex.woo.org',
+            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -128,7 +128,7 @@ export default class woofipro extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1',
+                'logo': 'https://trade.mode.network/logowith-text.svg',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -137,16 +137,10 @@ export default class woofipro extends Exchange {
                     'public': 'https://testnet-api-evm.orderly.org',
                     'private': 'https://testnet-api-evm.orderly.org',
                 },
-                'www': 'https://dex.woo.org',
-                'doc': [
-                    'https://orderly.network/docs/build-on-evm/building-on-evm',
-                ],
-                'fees': [
-                    'https://dex.woo.org/en/orderly',
-                ],
+                'www': 'https://trade.mode.network',
                 'referral': {
-                    'url': 'https://dex.woo.org/en/trade?ref=CCXT',
-                    'discount': 0.05,
+                    'url': 'https://trade.mode.network?ref=MODETRADE',
+                    'discount': 0.2,
                 },
             },
             'api': {
@@ -434,7 +428,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchStatus
+     * @name modetrade#fetchStatus
      * @description the latest known information on the availability of the exchange API
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -472,7 +466,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchTime
+     * @name modetrade#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -584,8 +578,8 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchMarkets
-     * @description retrieves data on all markets for woofipro
+     * @name modetrade#fetchMarkets
+     * @description retrieves data on all markets for modetrade
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -634,7 +628,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchCurrencies
+     * @name modetrade#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -748,7 +742,7 @@ export default class woofipro extends Exchange {
         // public/market_trades
         //
         //     {
-        //         "symbol": "SPOT_BTC_USDT",
+        //         "symbol": "PERP_ETH_USDC",
         //         "side": "SELL",
         //         "executed_price": 46222.35,
         //         "executed_quantity": 0.0012,
@@ -759,7 +753,7 @@ export default class woofipro extends Exchange {
         //
         //     {
         //         "id": "99119876",
-        //         "symbol": "SPOT_WOO_USDT",
+        //         "symbol": "PERP_BTC_USDC",
         //         "fee": "0.0024",
         //         "side": "BUY",
         //         "executed_timestamp": "1641481113084",
@@ -767,7 +761,7 @@ export default class woofipro extends Exchange {
         //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         //         "executed_price": "1",
         //         "executed_quantity": "12",
-        //         "fee_asset": "WOO",
+        //         "fee_asset": "BTC",
         //         "is_maker": "1"
         //     }
         //
@@ -811,7 +805,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchTrades
+     * @name modetrade#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -905,7 +899,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchFundingInterval
+     * @name modetrade#fetchFundingInterval
      * @description fetch the current funding rate interval
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
@@ -918,7 +912,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchFundingRate
+     * @name modetrade#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
@@ -953,7 +947,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchFundingRates
+     * @name modetrade#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
@@ -988,7 +982,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchFundingRateHistory
+     * @name modetrade#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
@@ -1057,7 +1051,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchTradingFees
+     * @name modetrade#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1113,7 +1107,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOrderBook
+     * @name modetrade#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -1167,7 +1161,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOHLCV
+     * @name modetrade#fetchOHLCV
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1369,7 +1363,7 @@ export default class woofipro extends Exchange {
         /**
          * @method
          * @ignore
-         * @name woofipro#createOrderRequest
+         * @name modetrade#createOrderRequest
          * @description helper function to build the request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1466,7 +1460,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#createOrder
+     * @name modetrade#createOrder
      * @description create a trade order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
@@ -1536,7 +1530,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#createOrders
+     * @name modetrade#createOrders
      * @description *contract only* create a list of trade orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -1592,7 +1586,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#editOrder
+     * @name modetrade#editOrder
      * @description edit a trade order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
@@ -1672,7 +1666,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#cancelOrder
+     * @name modetrade#cancelOrder
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
@@ -1752,7 +1746,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#cancelOrders
+     * @name modetrade#cancelOrders
      * @description cancel multiple orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
@@ -1791,7 +1785,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#cancelAllOrders
+     * @name modetrade#cancelAllOrders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
@@ -1839,7 +1833,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOrder
+     * @name modetrade#fetchOrder
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
@@ -1894,11 +1888,11 @@ export default class woofipro extends Exchange {
         //         "executed_quantity": 20,
         //         "total_executed_quantity": 20,
         //         "visible_quantity": 1,
-        //         "symbol": "PERP_WOO_USDC",
+        //         "symbol": "PERP_BTC_USDC",
         //         "side": "BUY",
         //         "status": "FILLED",
         //         "total_fee": 0.5,
-        //         "fee_asset": "WOO",
+        //         "fee_asset": "BTC",
         //         "client_order_id": 1,
         //         "average_executed_price": 0.67772,
         //         "created_time": 1653563963000,
@@ -1913,7 +1907,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOrders
+     * @name modetrade#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
@@ -1982,11 +1976,11 @@ export default class woofipro extends Exchange {
         //                 "executed_quantity": 20,
         //                 "total_executed_quantity": 20,
         //                 "visible_quantity": 1,
-        //                 "symbol": "PERP_WOO_USDC",
+        //                 "symbol": "PERP_BTC_USDC",
         //                 "side": "BUY",
         //                 "status": "FILLED",
         //                 "total_fee": 0.5,
-        //                 "fee_asset": "WOO",
+        //                 "fee_asset": "BTC",
         //                 "client_order_id": 1,
         //                 "average_executed_price": 0.67772,
         //                 "created_time": 1653563963000,
@@ -2003,7 +1997,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOpenOrders
+     * @name modetrade#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
@@ -2026,7 +2020,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchClosedOrders
+     * @name modetrade#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
@@ -2049,7 +2043,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchOrderTrades
+     * @name modetrade#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
@@ -2097,7 +2091,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchMyTrades
+     * @name modetrade#fetchMyTrades
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
@@ -2180,7 +2174,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchBalance
+     * @name modetrade#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2295,7 +2289,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchLedger
+     * @name modetrade#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
@@ -2359,7 +2353,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchDeposits
+     * @name modetrade#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
@@ -2377,7 +2371,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchWithdrawals
+     * @name modetrade#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
@@ -2395,7 +2389,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchDepositsWithdrawals
+     * @name modetrade#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -2456,7 +2450,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#withdraw
+     * @name modetrade#withdraw
      * @description make a withdrawal
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
@@ -2504,7 +2498,7 @@ export default class woofipro extends Exchange {
             ],
         };
         const withdrawRequest: Dict = {
-            'brokerId': this.safeString (this.options, 'keyBrokerId', 'woofi_pro'),
+            'brokerId': this.safeString (this.options, 'keyBrokerId', 'mode'),
             'chainId': this.parseToInt (chainId),
             'receiver': address,
             'token': code,
@@ -2548,7 +2542,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchLeverage
+     * @name modetrade#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
@@ -2592,7 +2586,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#setLeverage
+     * @name modetrade#setLeverage
      * @description set the level of leverage for a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
@@ -2602,7 +2596,9 @@ export default class woofipro extends Exchange {
      */
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        if ((leverage < 1) || (leverage > 50)) {
+        const isMinLeverage = leverage < 1;
+        const isMaxLeverage = leverage > 50;
+        if (isMinLeverage || isMaxLeverage) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 50');
         }
         const request: Dict = {
@@ -2684,7 +2680,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchPosition
+     * @name modetrade#fetchPosition
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
@@ -2730,7 +2726,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @name woofipro#fetchPositions
+     * @name modetrade#fetchPositions
      * @description fetch all open positions
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
@@ -2802,7 +2798,9 @@ export default class woofipro extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
+            const isPostOrPut = method === 'POST' || method === 'PUT';
+            const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
+            if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');

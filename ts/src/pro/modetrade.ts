@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 
-import woofiproRest from '../woofipro.js';
+import modetradeRest from '../modetrade.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
-export default class woofipro extends woofiproRest {
+export default class modetrade extends modetradeRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -95,7 +95,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchOrderBook
+     * @name modetrade#watchOrderBook
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -156,7 +156,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchTicker
+     * @name modetrade#watchTicker
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -246,7 +246,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchTickers
+     * @name modetrade#watchTickers
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -303,7 +303,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchBidsAsks
+     * @name modetrade#watchBidsAsks
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -331,7 +331,7 @@ export default class woofipro extends woofiproRest {
         //       "ts": 1726212495000,
         //       "data": [
         //         {
-        //           "symbol": "PERP_WOO_USDC",
+        //           "symbol": "PERP_BTC_USDC",
         //           "ask": 0.16570,
         //           "askSize": 4224,
         //           "bid": 0.16553,
@@ -371,7 +371,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchOHLCV
+     * @name modetrade#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -450,7 +450,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchTrades
+     * @name modetrade#watchTrades
      * @description watches information on multiple trades made in a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
@@ -661,7 +661,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchOrders
+     * @name modetrade#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
@@ -697,7 +697,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchMyTrades
+     * @name modetrade#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
@@ -983,7 +983,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchPositions
+     * @name modetrade#watchPositions
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
@@ -1182,7 +1182,7 @@ export default class woofipro extends woofiproRest {
 
     /**
      * @method
-     * @name woofipro#watchBalance
+     * @name modetrade#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
