@@ -1170,8 +1170,7 @@ export default class bitfinex extends Exchange {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result': [
+        //    [
         //            SYMBOL,
         //            BID,
         //            BID_SIZE,
@@ -1183,14 +1182,12 @@ export default class bitfinex extends Exchange {
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        ]
-        //    }
+        //    ]
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result': [
+        //    [
         //            SYMBOL,
         //            FRR,
         //            BID,
@@ -1208,35 +1205,63 @@ export default class bitfinex extends Exchange {
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        ]
-        //    }
+        //     ]
         //
-        const result = this.safeList (ticker, 'result');
+        const marketId = this.safeString (ticker, 0);
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (undefined, market);
-        const length = result.length;
-        const last = this.safeString (result, length - 4);
-        const percentage = this.safeString (result, length - 5);
+        const isFundingCurrency = marketId.startsWith ('f');
+        let last: Str = undefined;
+        let bid: Str = undefined;
+        let ask: Str = undefined;
+        let change: Str = undefined;
+        let percentage: Str = undefined;
+        let volume: Str = undefined;
+        let high: Str = undefined;
+        let low: Str = undefined;
+        if (isFundingCurrency) {
+            // per api docs, they are different array type
+            last = this.safeString (ticker, 10);
+            bid = this.safeString (ticker, 2);
+            ask = this.safeString (ticker, 5);
+            change = this.safeString (ticker, 8);
+            percentage = this.safeString (ticker, 9);
+            volume = this.safeString (ticker, 11);
+            high = this.safeString (ticker, 12);
+            low = this.safeString (ticker, 13);
+        } else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            last = this.safeString (ticker, 7);
+            bid = this.safeString (ticker, 1);
+            ask = this.safeString (ticker, 3);
+            change = this.safeString (ticker, 5);
+            percentage = this.safeString (ticker, 6);
+            percentage = Precise.stringMul (percentage, '100');
+            volume = this.safeString (ticker, 8);
+            high = this.safeString (ticker, 9);
+            low = this.safeString (ticker, 10);
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString (result, length - 2),
-            'low': this.safeString (result, length - 1),
-            'bid': this.safeString (result, length - 10),
-            'bidVolume': this.safeString (result, length - 9),
-            'ask': this.safeString (result, length - 8),
-            'askVolume': this.safeString (result, length - 7),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (result, length - 6),
-            'percentage': Precise.stringMul (percentage, '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (result, length - 3),
+            'baseVolume': volume,
             'quoteVolume': undefined,
-            'info': result,
+            'info': ticker,
         }, market);
     }
 
@@ -1299,15 +1324,7 @@ export default class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const marketId = this.safeString (ticker, 0);
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker ({ 'result': ticker }, market);
-        }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.parseTickers (tickers, symbols);
     }
 
     /**
