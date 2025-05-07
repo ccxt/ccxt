@@ -1171,7 +1171,7 @@ export default class bitfinex extends Exchange {
         // on trading pairs (ex. tBTCUSD)
         //
         //    [
-        //            SYMBOL,
+        //            SYMBOL, // this index is not present in singular-ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1188,7 +1188,7 @@ export default class bitfinex extends Exchange {
         // on funding currencies (ex. fUSD)
         //
         //    [
-        //            SYMBOL,
+        //            SYMBOL, // this index is not present in singular-ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1207,10 +1207,20 @@ export default class bitfinex extends Exchange {
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const marketId = this.safeString (ticker, 0);
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (undefined, market);
-        const isFundingCurrency = marketId.startsWith ('f');
+        const length = ticker.length;
+        const isFetchTicker = (length === 10) || (length === 16);
+        let symbol: Str = undefined;
+        let minusIndex = 0;
+        let isFundingCurrency = false;
+        if (isFetchTicker) {
+            minusIndex = -1;
+            isFundingCurrency = (length === 16);
+        } else {
+            const marketId = this.safeString (ticker, 0);
+            market = this.safeMarket (marketId, market);
+            isFundingCurrency = (length === 17);
+        }
+        symbol = this.safeSymbol (undefined, market);
         let last: Str = undefined;
         let bid: Str = undefined;
         let ask: Str = undefined;
@@ -1221,25 +1231,25 @@ export default class bitfinex extends Exchange {
         let low: Str = undefined;
         if (isFundingCurrency) {
             // per api docs, they are different array type
-            last = this.safeString (ticker, 10);
-            bid = this.safeString (ticker, 2);
-            ask = this.safeString (ticker, 5);
-            change = this.safeString (ticker, 8);
-            percentage = this.safeString (ticker, 9);
-            volume = this.safeString (ticker, 11);
-            high = this.safeString (ticker, 12);
-            low = this.safeString (ticker, 13);
+            last = this.safeString (ticker, 10 - minusIndex);
+            bid = this.safeString (ticker, 2 - minusIndex);
+            ask = this.safeString (ticker, 5 - minusIndex);
+            change = this.safeString (ticker, 8 - minusIndex);
+            percentage = this.safeString (ticker, 9 - minusIndex);
+            volume = this.safeString (ticker, 11 - minusIndex);
+            high = this.safeString (ticker, 12 - minusIndex);
+            low = this.safeString (ticker, 13 - minusIndex);
         } else {
             // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-            last = this.safeString (ticker, 7);
-            bid = this.safeString (ticker, 1);
-            ask = this.safeString (ticker, 3);
-            change = this.safeString (ticker, 5);
-            percentage = this.safeString (ticker, 6);
+            last = this.safeString (ticker, 7 - minusIndex);
+            bid = this.safeString (ticker, 1 - minusIndex);
+            ask = this.safeString (ticker, 3 - minusIndex);
+            change = this.safeString (ticker, 5 - minusIndex);
+            percentage = this.safeString (ticker, 6 - minusIndex);
             percentage = Precise.stringMul (percentage, '100');
-            volume = this.safeString (ticker, 8);
-            high = this.safeString (ticker, 9);
-            low = this.safeString (ticker, 10);
+            volume = this.safeString (ticker, 8 - minusIndex);
+            high = this.safeString (ticker, 9 - minusIndex);
+            low = this.safeString (ticker, 10 - minusIndex);
         }
         return this.safeTicker ({
             'symbol': symbol,
