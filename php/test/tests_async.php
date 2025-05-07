@@ -433,7 +433,6 @@ class testMainClass {
                 'fetchOHLCV' => [$symbol],
                 'fetchTrades' => [$symbol],
                 'fetchOrderBook' => [$symbol],
-                'fetchL2OrderBook' => [$symbol],
                 'fetchOrderBooks' => [],
                 'fetchBidsAsks' => [],
                 'fetchStatus' => [],
@@ -1114,6 +1113,9 @@ class testMainClass {
         return Async\async(function () use ($exchange, $method, $data, $type, $skip_keys) {
             $output = null;
             $request_url = null;
+            if ($this->info) {
+                dump('[INFO] STATIC REQUEST TEST:', $method, ':', $data['description']);
+            }
             try {
                 if (!is_sync()) {
                     Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
@@ -1143,6 +1145,9 @@ class testMainClass {
         return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
             $expected_result = $exchange->safe_value($data, 'parsedResponse');
             $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            if ($this->info) {
+                dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
+            }
             try {
                 if (!is_sync()) {
                     $unified_result = Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));

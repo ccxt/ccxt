@@ -57,6 +57,10 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
     $log_text = log_template($exchange, $method, $entry);
     assert($entry !== null, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    $allow_empty_skips = $exchange->safe_list($skipped_properties, 'allowNull', []);
+    if ($empty_allowed_for !== null) {
+        $empty_allowed_for = concat($empty_allowed_for, $allow_empty_skips);
+    }
     if (gettype($format) === 'array' && array_is_list($format)) {
         assert(gettype($entry) === 'array' && array_is_list($entry), 'entry is not an array' . $log_text);
         $real_length = count($entry);
@@ -577,6 +581,25 @@ function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_pro
     $exchange->http_proxy = $http_proxy;
     $exchange->https_proxy = $https_proxy;
     $exchange->socks_proxy = $socks_proxy;
+}
+
+
+function concat($a = null, $b = null) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if ($a === null) {
+        return $b;
+    } elseif ($b === null) {
+        return $a;
+    } else {
+        $result = [];
+        for ($i = 0; $i < count($a); $i++) {
+            $result[] = $a[$i];
+        }
+        for ($j = 0; $j < count($b); $j++) {
+            $result[] = $b[$j];
+        }
+        return $result;
+    }
 }
 
 

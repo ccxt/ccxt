@@ -1091,87 +1091,48 @@ export default class mexc extends Exchange {
             const id = this.safeString(currency, 'coin');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            let currencyActive = false;
-            let currencyFee = undefined;
-            let currencyWithdrawMin = undefined;
-            let currencyWithdrawMax = undefined;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
             const networks = {};
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString2(chain, 'netWork', 'network');
                 const network = this.networkIdToCode(networkId);
-                const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
-                const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = active || currencyActive;
-                const withdrawMin = this.safeString(chain, 'withdrawMin');
-                const withdrawMax = this.safeString(chain, 'withdrawMax');
-                currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
-                currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
-                const fee = this.safeNumber(chain, 'withdrawFee');
-                currencyFee = (currencyFee === undefined) ? fee : currencyFee;
-                if (Precise.stringGt(currencyWithdrawMin, withdrawMin)) {
-                    currencyWithdrawMin = withdrawMin;
-                }
-                if (Precise.stringLt(currencyWithdrawMax, withdrawMax)) {
-                    currencyWithdrawMax = withdrawMax;
-                }
-                if (isDepositEnabled) {
-                    depositEnabled = true;
-                }
-                if (isWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': fee,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable', false),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': withdrawMin,
-                            'max': withdrawMax,
+                            'min': this.safeString(chain, 'withdrawMin'),
+                            'max': this.safeString(chain, 'withdrawMax'),
                         },
                     },
                 };
             }
-            const networkKeys = Object.keys(networks);
-            const networkKeysLength = networkKeys.length;
-            if ((networkKeysLength === 1) || ('NONE' in networks)) {
-                const defaultNetwork = this.safeValue2(networks, 'NONE', networkKeysLength - 1);
-                if (defaultNetwork !== undefined) {
-                    currencyFee = defaultNetwork['fee'];
-                }
-            }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
                 'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': currencyFee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': currencyWithdrawMin,
-                        'max': currencyWithdrawMax,
-                    },
                 },
+                'type': 'crypto',
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -3429,13 +3390,27 @@ export default class mexc extends Exchange {
     }
     parseOrder(order, market = undefined) {
         //
-        // spot: createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol": "FARTCOINUSDT",
+        //        "orderId": "C02__342252993005723644225",
+        //        "orderListId": "-1",
+        //        "price": "1.1",
+        //        "origQty": "6.3",
+        //        "type": "IMMEDIATE_OR_CANCEL",
+        //        "side": "SELL",
+        //        "transactTime": "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
-        //     }
+        //    }
         //
         // margin: createOrder
         //
@@ -3600,6 +3575,11 @@ export default class mexc extends Exchange {
         else {
             id = this.safeString2(order, 'orderId', 'id');
         }
+        let timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
+        const typeRaw = this.safeString(order, 'type');
+        if (timeInForce === undefined) {
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
+        }
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'transactTime']);
@@ -3622,8 +3602,8 @@ export default class mexc extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus(this.safeString2(order, 'status', 'state')),
             'symbol': market['symbol'],
-            'type': this.parseOrderType(this.safeString(order, 'type')),
-            'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
+            'type': this.parseOrderType(typeRaw),
+            'timeInForce': timeInForce,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
@@ -3652,6 +3632,9 @@ export default class mexc extends Exchange {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
+            // on spot, during submission below types are used only accepted as limit order
+            'IMMEDIATE_OR_CANCEL': 'limit',
+            'FILL_OR_KILL': 'limit',
         };
         return this.safeString(statuses, status, status);
     }
@@ -3678,6 +3661,16 @@ export default class mexc extends Exchange {
             'IOC': 'IOC',
         };
         return this.safeString(statuses, status, status);
+    }
+    getTifFromRawOrderType(orderType = undefined) {
+        const statuses = {
+            'LIMIT': 'GTC',
+            'LIMIT_MAKER': 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'MARKET': 'IOC',
+        };
+        return this.safeString(statuses, orderType, orderType);
     }
     async fetchAccountHelper(type, params) {
         if (type === 'spot') {

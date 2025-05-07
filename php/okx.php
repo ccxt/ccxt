@@ -5655,7 +5655,7 @@ class okx extends Exchange {
         return $this->parse_position($position, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          *
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$positions

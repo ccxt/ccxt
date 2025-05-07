@@ -345,6 +345,7 @@ class bitvavo extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
+                'operatorId' => null, // this will be required soon for order-related endpoints
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
             'commonCurrencies' => array(
@@ -612,6 +613,7 @@ class bitvavo extends Exchange {
                 'networks' => $networks,
                 'fee' => $withdrawFee,
                 'precision' => $precision,
+                'type' => 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -1218,6 +1220,11 @@ class bitvavo extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'createOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         return $this->extend($request, $params);
     }
 
@@ -1321,6 +1328,11 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'editOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         $request['market'] = $market['id'];
         return $request;
     }
@@ -1360,6 +1372,11 @@ class bitvavo extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
+        }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
         }
         return $this->extend($request, $params);
     }

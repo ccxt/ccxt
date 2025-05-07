@@ -500,7 +500,6 @@ public partial class testMainClass
             { "fetchOHLCV", new List<object>() {symbol} },
             { "fetchTrades", new List<object>() {symbol} },
             { "fetchOrderBook", new List<object>() {symbol} },
-            { "fetchL2OrderBook", new List<object>() {symbol} },
             { "fetchOrderBooks", new List<object>() {} },
             { "fetchBidsAsks", new List<object>() {} },
             { "fetchStatus", new List<object>() {} },
@@ -1316,6 +1315,10 @@ public partial class testMainClass
     {
         object output = null;
         object requestUrl = null;
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC REQUEST TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1351,6 +1354,10 @@ public partial class testMainClass
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))

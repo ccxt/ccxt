@@ -22,6 +22,7 @@ async def test_fetch_currencies(exchange, skipped_properties):
     num_inactive_currencies = 0
     max_inactive_currencies_percentage = 60  # no more than X% currencies should be inactive
     required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
+    # todo: remove undefined check
     if currencies is not None:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
@@ -48,4 +49,21 @@ async def test_fetch_currencies(exchange, skipped_properties):
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
         assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
+        detect_currency_conflicts(exchange, currencies)
+    return True
+
+
+def detect_currency_conflicts(exchange, currency_values):
+    # detect if there are currencies with different ids for the same code
+    ids = {}
+    keys = list(currency_values.keys())
+    for i in range(0, len(keys)):
+        key = keys[i]
+        currency = currency_values[key]
+        code = currency['code']
+        if not (code in ids):
+            ids[code] = currency['id']
+        else:
+            is_different = ids[code] != currency['id']
+            assert not is_different, exchange.id + ' fetchCurrencies() has different ids for the same code: ' + code + ' ' + ids[code] + ' ' + currency['id']
     return True

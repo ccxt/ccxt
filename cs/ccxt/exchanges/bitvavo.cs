@@ -321,6 +321,7 @@ public partial class bitvavo : Exchange
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
+                { "operatorId", null },
             } },
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -597,6 +598,7 @@ public partial class bitvavo : Exchange
                 { "networks", networks },
                 { "fee", withdrawFee },
                 { "precision", precision },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -1237,6 +1239,14 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         return this.extend(request, parameters);
     }
 
@@ -1348,6 +1358,14 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
     }
@@ -1391,6 +1409,14 @@ public partial class bitvavo : Exchange
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
         }
         return this.extend(request, parameters);
     }

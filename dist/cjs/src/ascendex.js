@@ -512,6 +512,7 @@ class ascendex extends ascendex$1 {
         //         "data":[
         //             {
         //                 "assetCode":"BTT",
+        //                 "displayName": "BTT",
         //                 "borrowAssetCode":"BTT-B",
         //                 "interestAssetCode":"BTT-I",
         //                 "nativeScale":0,
@@ -532,12 +533,13 @@ class ascendex extends ascendex$1 {
         //         "data":[
         //             {
         //                 "assetCode":"LTCBULL",
+        //                 "displayName": "LTCBULL",
         //                 "nativeScale":4,
         //                 "numConfirmations":20,
         //                 "withdrawFee":"0.2",
         //                 "minWithdrawalAmt":"1.0",
         //                 "statusCode":"Normal",
-        //                 "statusMessage":""
+        //                 "statusMessage":""  // hideFromWalletTx
         //             }
         //         ]
         //     }
@@ -559,8 +561,27 @@ class ascendex extends ascendex$1 {
             const scale = this.safeString2(currency, 'precisionScale', 'nativeScale');
             const precision = this.parseNumber(this.parsePrecision(scale));
             const fee = this.safeNumber2(currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString2(currency, 'status', 'statusCode');
+            const status = this.safeString(currency, 'status');
+            const statusCode = this.safeString(currency, 'statusCode');
             const active = (status === 'Normal');
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
+            if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
+                depositEnabled = false;
+                withdrawEnabled = false;
+            }
+            else if (status === 'Normal') {
+                depositEnabled = true;
+                withdrawEnabled = true;
+            }
+            else if (status === 'NoTransaction' || statusCode === 'NoTransaction') {
+                depositEnabled = true;
+                withdrawEnabled = false;
+            }
+            else if (status === 'NoDeposit') {
+                depositEnabled = false;
+                withdrawEnabled = true;
+            }
             const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
@@ -570,8 +591,8 @@ class ascendex extends ascendex$1 {
                 'margin': marginInside,
                 'name': this.safeString(currency, 'assetName'),
                 'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

@@ -1393,28 +1393,44 @@ class bitget(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
                 'fetchOHLCV': {
-                    'spot': {
-                        'method': 'publicSpotGetV2SpotMarketCandles',  # publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
-                    },
-                    'swap': {
-                        'method': 'publicMixGetV2MixMarketCandles',  # publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
-                    },
-                    'maxDaysPerTimeframe': {
+                    #  ### Timeframe settings  ###
+                    # after testing, the below values are real ones, because the values provided by API DOCS are wrong
+                    # so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
+                    'maxRecentDaysPerTimeframe': {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
-                        '10m': 30,
-                        '15m': 52,
-                        '30m': 62,
-                        '1h': 83,
-                        '2h': 120,
+                        '15m': 30,
+                        '30m': 30,
+                        '1h': 60,
                         '4h': 240,
                         '6h': 360,
-                        '12h': 360,
-                        '1d': 300,
-                        '3d': 300,
-                        '1w': 300,
-                        '1M': 300,
+                        '12h': 720,
+                        '1d': 1440,
+                        '3d': 1440 * 3,
+                        '1w': 1440 * 7,
+                        '1M': 1440 * 30,
+                    },
+                    'spot': {
+                        'maxLimitPerTimeframe': {
+                            '1d': 300,
+                            '3d': 100,
+                            '1w': 100,
+                            '1M': 100,
+                        },
+                        'method': 'publicSpotGetV2SpotMarketCandles',  # publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
+                    },
+                    'swap': {
+                        'maxLimitPerTimeframe': {
+                            '4h': 540,
+                            '6h': 360,
+                            '12h': 180,
+                            '1d': 90,
+                            '3d': 30,
+                            '1w': 13,
+                            '1M': 4,
+                        },
+                        'method': 'publicMixGetV2MixMarketCandles',  # publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                 },
                 'fetchTrades': {
@@ -1625,7 +1641,7 @@ class bitget(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000,  # variable timespans for recent endpoint, 200 for historical
+                        'limit': 200,  # variable timespans for recent endpoint, 200 for historical
                     },
                 },
                 'forPerps': {
@@ -1700,11 +1716,12 @@ class bitget(Exchange, ImplicitAPI):
         defaultProductType = None
         if (subType is not None) and (market is None):
             # set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-            if sandboxMode:
-                defaultProductType = 'SUSDT-FUTURES' if (subType == 'linear') else 'SCOIN-FUTURES'
-            else:
-                defaultProductType = 'USDT-FUTURES' if (subType == 'linear') else 'COIN-FUTURES'
+            # sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+            # if sandboxMode:
+            #     defaultProductType = 'SUSDT-FUTURES' if (subType == 'linear') else 'SCOIN-FUTURES'
+            # else:
+            defaultProductType = 'USDT-FUTURES' if (subType == 'linear') else 'COIN-FUTURES'
+            # }
         productType = self.safe_string(params, 'productType', defaultProductType)
         if (productType is None) and (market is not None):
             settle = market['settle']
@@ -2008,33 +2025,37 @@ class bitget(Exchange, ImplicitAPI):
         """
         response = await self.publicSpotGetV2SpotPublicCoins(params)
         #
-        #     {
-        #         "code": "00000",
-        #         "data": [
-        #             {
-        #                 "chains": [
-        #                     {
-        #                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
-        #                         "chain": "BTC",
-        #                         "depositConfirm": "1",
-        #                         "extraWithdrawFee": "0",
-        #                         "minDepositAmount": "0.0001",
-        #                         "minWithdrawAmount": "0.005",
-        #                         "needTag": "false",
-        #                         "rechargeable": "true",
-        #                         "withdrawConfirm": "1",
-        #                         "withdrawFee": "0.0004",
-        #                         "withdrawable": "true"
-        #                     },
-        #                 ],
-        #                 "coin": "BTC",
-        #                 "coinId": "1",
-        #                 "transfer": "true""
-        #             }
-        #         ],
-        #         "msg": "success",
-        #         "requestTime": "1700120731773"
-        #     }
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": "1746195617812",
+        #        "data": [
+        #            {
+        #                "coinId": "1456",
+        #                "coin": "NEIROETH",
+        #                "transfer": "false",
+        #                "chains": [
+        #                    {
+        #                        "chain": "ERC20",
+        #                        "needTag": "false",
+        #                        "withdrawable": "true",
+        #                        "rechargeable": "true",
+        #                        "withdrawFee": "44.91017965",
+        #                        "extraWithdrawFee": "0",
+        #                        "depositConfirm": "12",
+        #                        "withdrawConfirm": "64",
+        #                        "minDepositAmount": "0.06",
+        #                        "minWithdrawAmount": "60",
+        #                        "browserUrl": "https://etherscan.io/tx/",
+        #                        "contractAddress": "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+        #                        "withdrawStep": "0",
+        #                        "withdrawMinScale": "8",
+        #                        "congestion": "normal"
+        #                    }
+        #                ],
+        #                "areaCoin": "no"
+        #            },
+        #            ...
         #
         result: dict = {}
         data = self.safe_value(response, 'data', [])
@@ -2044,63 +2065,43 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
-            deposit = False
-            withdraw = False
-            minWithdrawString = None
-            minDepositString = None
-            minWithdrawFeeString = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
                 if network is not None:
                     network = network.upper()
-                withdrawEnabled = self.safe_string(chain, 'withdrawable')
-                canWithdraw = withdrawEnabled == 'true'
-                withdraw = canWithdraw if (canWithdraw) else withdraw
-                depositEnabled = self.safe_string(chain, 'rechargeable')
-                canDeposit = depositEnabled == 'true'
-                deposit = canDeposit if (canDeposit) else deposit
-                networkWithdrawFeeString = self.safe_string(chain, 'withdrawFee')
-                if networkWithdrawFeeString is not None:
-                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
-                networkMinWithdrawString = self.safe_string(chain, 'minWithdrawAmount')
-                if networkMinWithdrawString is not None:
-                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
-                networkMinDepositString = self.safe_string(chain, 'minDepositAmount')
-                if networkMinDepositString is not None:
-                    minDepositString = networkMinDepositString if (minDepositString is None) else Precise.string_min(networkMinDepositString, minDepositString)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'limits': {
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdrawString),
+                            'min': self.safe_number(chain, 'minWithdrawAmount'),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.parse_number(networkMinDepositString),
+                            'min': self.safe_number(chain, 'minDepositAmount'),
                             'max': None,
                         },
                     },
-                    'active': canWithdraw and canDeposit,
-                    'withdraw': canWithdraw,
-                    'deposit': canDeposit,
-                    'fee': self.parse_number(networkWithdrawFeeString),
-                    'precision': None,
+                    'active': None,
+                    'withdraw': self.safe_string(chain, 'withdrawable') == 'true',
+                    'deposit': self.safe_string(chain, 'rechargeable') == 'true',
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'id': id,
                 'code': code,
                 'networks': networks,
                 'type': None,
                 'name': None,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': self.parse_number(minWithdrawFeeString),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
@@ -2108,16 +2109,16 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.parse_number(minDepositString),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'created': None,
-            }
+            })
         return result
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
@@ -2736,7 +2737,7 @@ class bitget(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPr')
         timestamp = self.safe_integer_omit_zero(ticker, 'ts')  # exchange bitget provided 0
         change = self.safe_string(ticker, 'change24h')
-        open24 = self.safe_string(ticker, 'open24')
+        open24 = self.safe_string_2(ticker, 'open24', 'open24h')
         open = self.safe_string(ticker, 'open')
         symbol: str
         openValue: str
@@ -3419,29 +3420,31 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
-        msInDay = 86400000
-        duration = self.parse_timeframe(timeframe) * 1000
         request: dict = {
             'symbol': market['id'],
             'granularity': self.safe_string(timeframes, timeframe, timeframe),
         }
+        msInDay = 86400000
+        now = self.milliseconds()
+        duration = self.parse_timeframe(timeframe) * 1000
         until = self.safe_integer(params, 'until')
         limitDefined = limit is not None
         sinceDefined = since is not None
         untilDefined = until is not None
         params = self.omit(params, ['until'])
-        response = None
-        now = self.milliseconds()
         # retrievable periods listed here:
         # - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         # - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        ohlcOptions = self.safe_dict(self.options, 'fetchOHLCV', {})
-        retrievableDaysMap = self.safe_dict(ohlcOptions, 'maxDaysPerTimeframe', {})
-        maxRetrievableDaysForRecent = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
-        endpointTsBoundary = now - (maxRetrievableDaysForRecent - 1) * msInDay
+        key = 'spot' if market['spot'] else 'swap'
+        ohlcOptions = self.safe_dict(self.options['fetchOHLCV'], key, {})
+        maxLimitPerTimeframe = self.safe_dict(ohlcOptions, 'maxLimitPerTimeframe', {})
+        maxLimitForThisTimeframe = self.safe_integer(maxLimitPerTimeframe, timeframe, limit)
+        recentEndpointDaysMap = self.safe_dict(self.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {})
+        recentEndpointAvailableDays = self.safe_integer(recentEndpointDaysMap, timeframe)
+        recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay
         if limitDefined:
             limit = min(limit, maxLimitForRecentEndpoint)
-            request['limit'] = limit
+            limit = min(limit, maxLimitForThisTimeframe)
         else:
             limit = defaultLimit
         limitMultipliedDuration = limit * duration
@@ -3461,26 +3464,33 @@ class bitget(Exchange, ImplicitAPI):
             if not sinceDefined:
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration
                 # we do not need to set "startTime" here
-        historicalEndpointNeeded = (calculatedStartTime is not None) and (calculatedStartTime <= endpointTsBoundary)
-        if historicalEndpointNeeded:
+        # if historical endpoint is needed, we should re-set the variables
+        historicalEndpointNeeded = False
+        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or useHistoryEndpoint:
+            historicalEndpointNeeded = True
             # only for "historical-candles" - ensure we use correct max limit
-            if limitDefined:
-                request['limit'] = min(limit, maxLimitForHistoryEndpoint)
+            limit = min(limit, maxLimitForHistoryEndpoint)
+            limitMultipliedDuration = limit * duration
+            calculatedStartTime = calculatedEndTime - limitMultipliedDuration
+            request['startTime'] = calculatedStartTime
+            # for contract, maximum 90 days allowed between start-end times
+            if not market['spot']:
+                maxDistanceDaysForContracts = 90
+                # only correct if request is larger
+                if calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay:
+                    calculatedEndTime = self.sum(calculatedStartTime, maxDistanceDaysForContracts * msInDay)
+                    request['endTime'] = calculatedEndTime
+        # we need to set limit to safely cover the period
+        request['limit'] = limit
         # make request
+        response = None
         if market['spot']:
             # checks if we need history endpoint
-            if historicalEndpointNeeded or useHistoryEndpoint:
+            if historicalEndpointNeeded:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
         else:
-            maxDistanceDaysForContracts = 90  # for contract, maximum 90 days allowed between start-end times
-            # only correct the request to fix 90 days if until was auto-calculated
-            if sinceDefined:
-                if not untilDefined:
-                    request['endTime'] = min(calculatedEndTime, self.sum(since, maxDistanceDaysForContracts * msInDay))
-                elif calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay:
-                    raise BadRequest(self.id + ' fetchOHLCV() between start and end must be less than ' + str(maxDistanceDaysForContracts) + ' days')
             priceType = None
             priceType, params = self.handle_param_string(params, 'price')
             productType = None
@@ -3493,7 +3503,7 @@ class bitget(Exchange, ImplicitAPI):
             elif priceType == 'index':
                 response = await self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
             else:
-                if historicalEndpointNeeded or useHistoryEndpoint:
+                if historicalEndpointNeeded:
                     response = await self.publicMixGetV2MixMarketHistoryCandles(extended)
                 else:
                     response = await self.publicMixGetV2MixMarketCandles(extended)

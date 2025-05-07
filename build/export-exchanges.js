@@ -403,11 +403,12 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths && numExchanges) {
         const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT library currently supports the following "
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
-            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            // , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "\n<!--- end list -->"
+            , allExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of allExchangesPaths) {
             logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
@@ -417,11 +418,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const numProExchanges = proExchanges.length
     if (proExchangesPaths && numProExchanges) {
         const proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT Pro library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
             , totalString = beginning + numProExchanges + ending
-            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
-            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "\n<!--- end list -->"
+            , proExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of proExchangesPaths) {
             logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }

@@ -1125,6 +1125,7 @@ public partial class bitmart : Exchange
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1147,7 +1148,8 @@ public partial class bitmart : Exchange
             object fullId = this.safeString(currency, "currency");
             object currencyId = fullId;
             object networkId = this.safeString(currency, "network");
-            if (isTrue(isLessThan(getIndexOf(fullId, "NFT"), 0)))
+            object isNtf = (isGreaterThanOrEqual(getIndexOf(fullId, "NFT"), 0));
+            if (!isTrue(isNtf))
             {
                 object parts = ((string)fullId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 currencyId = this.safeString(parts, 0);
@@ -1171,6 +1173,7 @@ public partial class bitmart : Exchange
                     { "withdraw", null },
                     { "active", null },
                     { "networks", new Dictionary<string, object>() {} },
+                    { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
             object networkCode = this.networkIdToCode(networkId);

@@ -963,6 +963,13 @@ class xt extends Exchange {
                         ),
                     );
                 }
+                $typeRaw = $this->safe_string($entry, 'type');
+                $type = null;
+                if ($typeRaw === 'FT') {
+                    $type = 'crypto';
+                } else {
+                    $type = 'other';
+                }
                 $result[$code] = array(
                     'info' => $entry,
                     'id' => $currencyId,
@@ -974,6 +981,7 @@ class xt extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'networks' => $networks,
+                    'type' => $type,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -4773,7 +4781,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

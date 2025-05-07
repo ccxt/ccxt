@@ -20,6 +20,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
         $num_inactive_currencies = 0;
         $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
         $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
+        // todo: remove undefined check
         if ($currencies !== null) {
             $values = is_array($currencies) ? array_values($currencies) : array();
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
@@ -49,7 +50,27 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             // check at least X% of currencies are active
             $inactive_currencies_percentage = ($num_inactive_currencies / $currencies_length) * 100;
             assert($skip_active || ($inactive_currencies_percentage < $max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' . ((string) $inactive_currencies_percentage) . '% that is more than the allowed maximum of ' . ((string) $max_inactive_currencies_percentage) . '%');
+            detect_currency_conflicts($exchange, $currencies);
         }
         return true;
     }) ();
+}
+
+
+function detect_currency_conflicts($exchange, $currency_values) {
+    // detect if there are currencies with different ids for the same code
+    $ids = array();
+    $keys = is_array($currency_values) ? array_keys($currency_values) : array();
+    for ($i = 0; $i < count($keys); $i++) {
+        $key = $keys[$i];
+        $currency = $currency_values[$key];
+        $code = $currency['code'];
+        if (!(is_array($ids) && array_key_exists($code, $ids))) {
+            $ids[$code] = $currency['id'];
+        } else {
+            $is_different = $ids[$code] !== $currency['id'];
+            assert(!$is_different, $exchange->id . ' fetchCurrencies() has different ids for the same code: ' . $code . ' ' . $ids[$code] . ' ' . $currency['id']);
+        }
+    }
+    return true;
 }

@@ -2200,7 +2200,7 @@ class oxfun extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

@@ -15,6 +15,7 @@ public partial class testMainClass : BaseTest
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
         object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
+        // todo: remove undefined check
         if (isTrue(!isEqual(currencies, null)))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
@@ -48,6 +49,28 @@ public partial class testMainClass : BaseTest
             // check at least X% of currencies are active
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
             assert(isTrue(skipActive) || isTrue((isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
+            detectCurrencyConflicts(exchange, currencies);
+        }
+        return true;
+    }
+    public static object detectCurrencyConflicts(Exchange exchange, object currencyValues)
+    {
+        // detect if there are currencies with different ids for the same code
+        object ids = new Dictionary<string, object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object currency = getValue(currencyValues, key);
+            object code = getValue(currency, "code");
+            if (!isTrue((inOp(ids, code))))
+            {
+                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
+            } else
+            {
+                object isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
+                assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
+            }
         }
         return true;
     }

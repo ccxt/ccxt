@@ -401,6 +401,7 @@ class bitopro extends Exchange {
                     'fee' => $fee,
                     'precision' => null,
                     'limits' => $limits,
+                    'networks' => null,
                 );
             }
             return $result;

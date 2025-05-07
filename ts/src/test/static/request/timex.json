@@ -77,12 +77,13 @@
         ],
         "fetchTrades": [
             {
-                "description": "spot fetchTrades",
+                "description": "only symbol",
                 "method": "fetchTrades",
                 "url": "https://plasma-relay-backend.timex.io/public/trades?market=BTCUSDT&sort=timestamp%2Casc",
                 "input": [
                     "BTC/USDT"
-                ]
+                ],
+                "output": null
             }
         ],
         "fetchOrderBook": [

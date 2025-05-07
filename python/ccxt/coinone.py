@@ -330,6 +330,7 @@ class coinone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             }
         return result
 

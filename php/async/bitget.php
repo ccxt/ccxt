@@ -1378,28 +1378,44 @@ class bitget extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
                 'fetchOHLCV' => array(
-                    'spot' => array(
-                        'method' => 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
-                    ),
-                    'swap' => array(
-                        'method' => 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
-                    ),
-                    'maxDaysPerTimeframe' => array(
+                    // ### Timeframe settings ###
+                    // after testing, the below values are real ones, because the values provided by API DOCS are wrong
+                    // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
+                    'maxRecentDaysPerTimeframe' => array(
                         '1m' => 30,
                         '3m' => 30,
                         '5m' => 30,
-                        '10m' => 30,
-                        '15m' => 52,
-                        '30m' => 62,
-                        '1h' => 83,
-                        '2h' => 120,
+                        '15m' => 30,
+                        '30m' => 30,
+                        '1h' => 60,
                         '4h' => 240,
                         '6h' => 360,
-                        '12h' => 360,
-                        '1d' => 300,
-                        '3d' => 300,
-                        '1w' => 300,
-                        '1M' => 300,
+                        '12h' => 720,
+                        '1d' => 1440,
+                        '3d' => 1440 * 3,
+                        '1w' => 1440 * 7,
+                        '1M' => 1440 * 30,
+                    ),
+                    'spot' => array(
+                        'maxLimitPerTimeframe' => array(
+                            '1d' => 300,
+                            '3d' => 100,
+                            '1w' => 100,
+                            '1M' => 100,
+                        ),
+                        'method' => 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
+                    ),
+                    'swap' => array(
+                        'maxLimitPerTimeframe' => array(
+                            '4h' => 540,
+                            '6h' => 360,
+                            '12h' => 180,
+                            '1d' => 90,
+                            '3d' => 30,
+                            '1w' => 13,
+                            '1M' => 4,
+                        ),
+                        'method' => 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     ),
                 ),
                 'fetchTrades' => array(
@@ -1610,7 +1626,7 @@ class bitget extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
+                        'limit' => 200, // variable timespans for recent endpoint, 200 for historical
                     ),
                 ),
                 'forPerps' => array(
@@ -1687,12 +1703,12 @@ class bitget extends Exchange {
         $defaultProductType = null;
         if (($subType !== null) && ($market === null)) {
             // set default only if $subType is defined and $market is not defined, since there is also USDC productTypes which are also linear
-            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode) {
-                $defaultProductType = ($subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
-            } else {
-                $defaultProductType = ($subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
-            }
+            // $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            // if ($sandboxMode) {
+            //     $defaultProductType = ($subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            // } else {
+            $defaultProductType = ($subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
+            // }
         }
         $productType = $this->safe_string($params, 'productType', $defaultProductType);
         if (($productType === null) && ($market !== null)) {
@@ -2021,47 +2037,46 @@ class bitget extends Exchange {
              */
             $response = Async\await($this->publicSpotGetV2SpotPublicCoins ($params));
             //
-            //     {
-            //         "code" => "00000",
-            //         "data" => array(
-            //             {
-            //                 "chains" => array(
-            //                     array(
-            //                         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
-            //                         "chain" => "BTC",
-            //                         "depositConfirm" => "1",
-            //                         "extraWithdrawFee" => "0",
-            //                         "minDepositAmount" => "0.0001",
-            //                         "minWithdrawAmount" => "0.005",
-            //                         "needTag" => "false",
-            //                         "rechargeable" => "true",
-            //                         "withdrawConfirm" => "1",
-            //                         "withdrawFee" => "0.0004",
-            //                         "withdrawable" => "true"
-            //                     ),
-            //                 ),
-            //                 "coin" => "BTC",
-            //                 "coinId" => "1",
-            //                 "transfer" => "true""
-            //             }
-            //         ),
-            //         "msg" => "success",
-            //         "requestTime" => "1700120731773"
-            //     }
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => "1746195617812",
+            //        "data" => array(
+            //            {
+            //                "coinId" => "1456",
+            //                "coin" => "NEIROETH",
+            //                "transfer" => "false",
+            //                "chains" => [
+            //                    array(
+            //                        "chain" => "ERC20",
+            //                        "needTag" => "false",
+            //                        "withdrawable" => "true",
+            //                        "rechargeable" => "true",
+            //                        "withdrawFee" => "44.91017965",
+            //                        "extraWithdrawFee" => "0",
+            //                        "depositConfirm" => "12",
+            //                        "withdrawConfirm" => "64",
+            //                        "minDepositAmount" => "0.06",
+            //                        "minWithdrawAmount" => "60",
+            //                        "browserUrl" => "https://etherscan.io/tx/",
+            //                        "contractAddress" => "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+            //                        "withdrawStep" => "0",
+            //                        "withdrawMinScale" => "8",
+            //                        "congestion" => "normal"
+            //                    }
+            //                ),
+            //                "areaCoin" => "no"
+            //            ),
+            //            ...
             //
             $result = array();
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
-                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
                 $code = $this->safe_currency_code($id);
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
-                $deposit = false;
-                $withdraw = false;
-                $minWithdrawString = null;
-                $minDepositString = null;
-                $minWithdrawFeeString = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
@@ -2069,56 +2084,38 @@ class bitget extends Exchange {
                     if ($network !== null) {
                         $network = strtoupper($network);
                     }
-                    $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
-                    $canWithdraw = $withdrawEnabled === 'true';
-                    $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
-                    $depositEnabled = $this->safe_string($chain, 'rechargeable');
-                    $canDeposit = $depositEnabled === 'true';
-                    $deposit = ($canDeposit) ? $canDeposit : $deposit;
-                    $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
-                    if ($networkWithdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
-                    if ($networkMinWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
-                    }
-                    $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
-                    if ($networkMinDepositString !== null) {
-                        $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
-                    }
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $network,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($networkMinWithdrawString),
+                                'min' => $this->safe_number($chain, 'minWithdrawAmount'),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->parse_number($networkMinDepositString),
+                                'min' => $this->safe_number($chain, 'minDepositAmount'),
                                 'max' => null,
                             ),
                         ),
-                        'active' => $canWithdraw && $canDeposit,
-                        'withdraw' => $canWithdraw,
-                        'deposit' => $canDeposit,
-                        'fee' => $this->parse_number($networkWithdrawFeeString),
-                        'precision' => null,
+                        'active' => null,
+                        'withdraw' => $this->safe_string($chain, 'withdrawable') === 'true',
+                        'deposit' => $this->safe_string($chain, 'rechargeable') === 'true',
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'id' => $id,
                     'code' => $code,
                     'networks' => $networks,
                     'type' => null,
                     'name' => null,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(
@@ -2126,16 +2123,16 @@ class bitget extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->parse_number($minDepositString),
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'created' => null,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2800,7 +2797,7 @@ class bitget extends Exchange {
         $close = $this->safe_string($ticker, 'lastPr');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'ts'); // exchange bitget provided 0
         $change = $this->safe_string($ticker, 'change24h');
-        $open24 = $this->safe_string($ticker, 'open24');
+        $open24 = $this->safe_string_2($ticker, 'open24', 'open24h');
         $open = $this->safe_string($ticker, 'open');
         if ($open === null) {
             $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
@@ -3525,29 +3522,31 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             $marketType = $market['spot'] ? 'spot' : 'swap';
             $timeframes = $this->options['timeframes'][$marketType];
-            $msInDay = 86400000;
-            $duration = $this->parse_timeframe($timeframe) * 1000;
             $request = array(
                 'symbol' => $market['id'],
                 'granularity' => $this->safe_string($timeframes, $timeframe, $timeframe),
             );
+            $msInDay = 86400000;
+            $now = $this->milliseconds();
+            $duration = $this->parse_timeframe($timeframe) * 1000;
             $until = $this->safe_integer($params, 'until');
             $limitDefined = $limit !== null;
             $sinceDefined = $since !== null;
             $untilDefined = $until !== null;
             $params = $this->omit($params, array( 'until' ));
-            $response = null;
-            $now = $this->milliseconds();
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#$request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-            $ohlcOptions = $this->safe_dict($this->options, 'fetchOHLCV', array());
-            $retrievableDaysMap = $this->safe_dict($ohlcOptions, 'maxDaysPerTimeframe', array());
-            $maxRetrievableDaysForRecent = $this->safe_integer($retrievableDaysMap, $timeframe, 30); // default to safe minimum
-            $endpointTsBoundary = $now - ($maxRetrievableDaysForRecent - 1) * $msInDay;
+            $key = $market['spot'] ? 'spot' : 'swap';
+            $ohlcOptions = $this->safe_dict($this->options['fetchOHLCV'], $key, array());
+            $maxLimitPerTimeframe = $this->safe_dict($ohlcOptions, 'maxLimitPerTimeframe', array());
+            $maxLimitForThisTimeframe = $this->safe_integer($maxLimitPerTimeframe, $timeframe, $limit);
+            $recentEndpointDaysMap = $this->safe_dict($this->options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', array());
+            $recentEndpointAvailableDays = $this->safe_integer($recentEndpointDaysMap, $timeframe);
+            $recentEndpointBoundaryTs = $now - ($recentEndpointAvailableDays - 1) * $msInDay;
             if ($limitDefined) {
                 $limit = min ($limit, $maxLimitForRecentEndpoint);
-                $request['limit'] = $limit;
+                $limit = min ($limit, $maxLimitForThisTimeframe);
             } else {
                 $limit = $defaultLimit;
             }
@@ -3572,31 +3571,37 @@ class bitget extends Exchange {
                     // we do not need to set "startTime" here
                 }
             }
-            $historicalEndpointNeeded = ($calculatedStartTime !== null) && ($calculatedStartTime <= $endpointTsBoundary);
-            if ($historicalEndpointNeeded) {
+            // if historical endpoint is needed, we should re-set the variables
+            $historicalEndpointNeeded = false;
+            if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || $useHistoryEndpoint) {
+                $historicalEndpointNeeded = true;
                 // only for "historical-candles" - ensure we use correct max $limit
-                if ($limitDefined) {
-                    $request['limit'] = min ($limit, $maxLimitForHistoryEndpoint);
+                $limit = min ($limit, $maxLimitForHistoryEndpoint);
+                $limitMultipliedDuration = $limit * $duration;
+                $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+                $request['startTime'] = $calculatedStartTime;
+                // for contract, maximum 90 days allowed between start-end times
+                if (!$market['spot']) {
+                    $maxDistanceDaysForContracts = 90;
+                    // only correct if $request is larger
+                    if ($calculatedEndTime - $calculatedStartTime > $maxDistanceDaysForContracts * $msInDay) {
+                        $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceDaysForContracts * $msInDay);
+                        $request['endTime'] = $calculatedEndTime;
+                    }
                 }
             }
+            // we need to set $limit to safely cover the period
+            $request['limit'] = $limit;
             // make $request
+            $response = null;
             if ($market['spot']) {
                 // checks if we need history endpoint
-                if ($historicalEndpointNeeded || $useHistoryEndpoint) {
+                if ($historicalEndpointNeeded) {
                     $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->publicSpotGetV2SpotMarketCandles ($this->extend($request, $params)));
                 }
             } else {
-                $maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
-                // only correct the $request to fix 90 days if $until was auto-calculated
-                if ($sinceDefined) {
-                    if (!$untilDefined) {
-                        $request['endTime'] = min ($calculatedEndTime, $this->sum($since, $maxDistanceDaysForContracts * $msInDay));
-                    } elseif ($calculatedEndTime - $calculatedStartTime > $maxDistanceDaysForContracts * $msInDay) {
-                        throw new BadRequest($this->id . ' fetchOHLCV() between start and end must be less than ' . (string) $maxDistanceDaysForContracts . ' days');
-                    }
-                }
                 $priceType = null;
                 list($priceType, $params) = $this->handle_param_string($params, 'price');
                 $productType = null;
@@ -3609,7 +3614,7 @@ class bitget extends Exchange {
                 } elseif ($priceType === 'index') {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryIndexCandles ($extended));
                 } else {
-                    if ($historicalEndpointNeeded || $useHistoryEndpoint) {
+                    if ($historicalEndpointNeeded) {
                         $response = Async\await($this->publicMixGetV2MixMarketHistoryCandles ($extended));
                     } else {
                         $response = Async\await($this->publicMixGetV2MixMarketCandles ($extended));

@@ -723,7 +723,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         #    {
         #      "code": 0,
-        #      "timestamp": 1702623271477,
+        #      "timestamp": 1702623271476,
         #      "data": [
         #        {
         #          "coin": "BTC",
@@ -805,7 +805,7 @@ class bingx(Exchange, ImplicitAPI):
                     'limits': limits,
                 }
             active = depositEnabled or withdrawEnabled
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
@@ -817,7 +817,7 @@ class bingx(Exchange, ImplicitAPI):
                 'networks': networks,
                 'fee': fee,
                 'limits': defaultLimits,
-            }
+            })
         return result
 
     async def fetch_spot_markets(self, params) -> List[Market]:
@@ -2372,7 +2372,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.parse_positions(records)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

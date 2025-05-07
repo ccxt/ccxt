@@ -1143,6 +1143,7 @@ export default class huobijp extends Exchange {
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': precision,
+                'networks': undefined,
                 'limits': {
                     'amount': {
                         'min': precision,

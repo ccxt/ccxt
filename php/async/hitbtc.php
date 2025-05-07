@@ -967,6 +967,8 @@ class hitbtc extends Exchange {
                 $transferEnabled = $this->safe_bool($entry, 'transfer_enabled', false);
                 $active = $payinEnabled && $payoutEnabled && $transferEnabled;
                 $rawNetworks = $this->safe_value($entry, 'networks', array());
+                $isCrypto = $this->safe_bool($entry, 'crypto');
+                $type = $isCrypto ? 'crypto' : 'fiat';
                 $networks = array();
                 $fee = null;
                 $depositEnabled = null;
@@ -1027,6 +1029,7 @@ class hitbtc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'type' => $type,
                 );
             }
             return $result;
@@ -3032,7 +3035,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

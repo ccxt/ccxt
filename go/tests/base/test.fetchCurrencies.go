@@ -18,6 +18,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 var numInactiveCurrencies interface{} = 0
                 var maxInactiveCurrenciesPercentage interface{} = 60 // no more than X% currencies should be inactive
                 var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
+                // todo: remove undefined check
                 if IsTrue(!IsEqual(currencies, nil)) {
                     var values interface{} = ObjectValues(currencies)
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
@@ -47,6 +48,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     // check at least X% of currencies are active
                     var inactiveCurrenciesPercentage interface{} = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
                     Assert(IsTrue(skipActive) || IsTrue((IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), Add(Add(Add(Add("Percentage of inactive currencies is too high at ", ToString(inactiveCurrenciesPercentage)), "% that is more than the allowed maximum of "), ToString(maxInactiveCurrenciesPercentage)), "%"))
+                    DetectCurrencyConflicts(exchange, currencies)
                 }
             
                 ch <- true
@@ -55,3 +57,20 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
+    func DetectCurrencyConflicts(exchange ccxt.IExchange, currencyValues interface{}) interface{}  {
+        // detect if there are currencies with different ids for the same code
+        var ids interface{} = map[string]interface{} {}
+        var keys interface{} = ObjectKeys(currencyValues)
+        for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+            var key interface{} = GetValue(keys, i)
+            var currency interface{} = GetValue(currencyValues, key)
+            var code interface{} = GetValue(currency, "code")
+            if !IsTrue((InOp(ids, code))) {
+                AddElementToObject(ids, code, GetValue(currency, "id"))
+            } else {
+                var isDifferent interface{} = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
+                Assert(!IsTrue(isDifferent), Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
+            }
+        }
+        return true
+    }

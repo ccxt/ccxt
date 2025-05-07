@@ -873,6 +873,7 @@ public partial class htx : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
+                { "include_OS_certificates", true },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new Dictionary<string, object>() {
                         { "spot", true },
@@ -2180,7 +2181,7 @@ public partial class htx : Exchange
         object askVolume = null;
         if (isTrue(inOp(ticker, "bid")))
         {
-            if (isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "bid"), null)) && isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 bid = this.safeString(getValue(ticker, "bid"), 0);
                 bidVolume = this.safeString(getValue(ticker, "bid"), 1);
@@ -2192,7 +2193,7 @@ public partial class htx : Exchange
         }
         if (isTrue(inOp(ticker, "ask")))
         {
-            if (isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "ask"), null)) && isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 ask = this.safeString(getValue(ticker, "ask"), 0);
                 askVolume = this.safeString(getValue(ticker, "ask"), 1);
@@ -3424,7 +3425,7 @@ public partial class htx : Exchange
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3448,6 +3449,8 @@ public partial class htx : Exchange
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             object instStatus = this.safeString(entry, "instStatus");
+            object assetType = this.safeString(entry, "assetType");
+            object type = ((bool) isTrue(isEqual(assetType, "1"))) ? "crypto" : "fiat";
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
             object minDeposit = null;
@@ -3509,6 +3512,7 @@ public partial class htx : Exchange
                 { "withdraw", withdraw },
                 { "fee", null },
                 { "name", null },
+                { "type", type },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },

@@ -27,6 +27,17 @@ export default class coincatch extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     /**
      * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
+    /**
+     * @method
      * @name coincatch#fetchMarkets
      * @description retrieves data on all markets for the exchange
      * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers

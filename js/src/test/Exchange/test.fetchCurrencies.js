@@ -14,6 +14,7 @@ async function testFetchCurrencies(exchange, skippedProperties) {
     let numInactiveCurrencies = 0;
     const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
     const requiredActiveCurrencies = ['BTC', 'ETH', 'USDT', 'USDC'];
+    // todo: remove undefined check
     if (currencies !== undefined) {
         const values = Object.values(currencies);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
@@ -43,6 +44,25 @@ async function testFetchCurrencies(exchange, skippedProperties) {
         // check at least X% of currencies are active
         const inactiveCurrenciesPercentage = (numInactiveCurrencies / currenciesLength) * 100;
         assert(skipActive || (inactiveCurrenciesPercentage < maxInactiveCurrenciesPercentage), 'Percentage of inactive currencies is too high at ' + inactiveCurrenciesPercentage.toString() + '% that is more than the allowed maximum of ' + maxInactiveCurrenciesPercentage.toString() + '%');
+        detectCurrencyConflicts(exchange, currencies);
+    }
+    return true;
+}
+function detectCurrencyConflicts(exchange, currencyValues) {
+    // detect if there are currencies with different ids for the same code
+    const ids = {};
+    const keys = Object.keys(currencyValues);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const currency = currencyValues[key];
+        const code = currency['code'];
+        if (!(code in ids)) {
+            ids[code] = currency['id'];
+        }
+        else {
+            const isDifferent = ids[code] !== currency['id'];
+            assert(!isDifferent, exchange.id + ' fetchCurrencies() has different ids for the same code: ' + code + ' ' + ids[code] + ' ' + currency['id']);
+        }
     }
     return true;
 }
