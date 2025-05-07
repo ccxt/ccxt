@@ -722,7 +722,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         #    {
         #      "code": 0,
-        #      "timestamp": 1702623271477,
+        #      "timestamp": 1702623271476,
         #      "data": [
         #        {
         #          "coin": "BTC",
