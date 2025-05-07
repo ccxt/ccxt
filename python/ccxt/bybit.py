@@ -1040,9 +1040,6 @@ class bybit(Exchange, ImplicitAPI):
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
-                'createOrder': {
-                    'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
-                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -3774,12 +3771,21 @@ class bybit(Exchange, ImplicitAPI):
         parts = self.is_unified_enabled()
         enableUnifiedAccount = parts[1]
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isTrailingAmountOrder = trailingAmount is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
-        options = self.safe_dict(self.options, 'createOrder', {})
-        defaultMethod = self.safe_string(options, 'method', 'privatePostV5OrderCreate')
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLoss or isTakeProfit:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
         response = None
-        if isTrailingAmountOrder or (defaultMethod == 'privatePostV5PositionTradingStop'):
+        if method == 'privatePostV5PositionTradingStop':
             response = self.privatePostV5PositionTradingStop(orderRequest)
         else:
             response = self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
@@ -3804,8 +3810,6 @@ class bybit(Exchange, ImplicitAPI):
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostV5OrderCreate')
         request: dict = {
             'symbol': market['id'],
             # 'side': self.capitalize(side),
@@ -3849,7 +3853,14 @@ class bybit(Exchange, ImplicitAPI):
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         isBuy = side == 'buy'
-        isAlternativeEndpoint = defaultMethod == 'privatePostV5PositionTradingStop'
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
+        isAlternativeEndpoint = method == 'privatePostV5PositionTradingStop'
         amountString = self.get_amount(symbol, amount)
         priceString = self.get_price(symbol, self.number_to_string(price)) if (price is not None) else None
         if isTrailingAmountOrder or isAlternativeEndpoint:

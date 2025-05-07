@@ -1189,9 +1189,8 @@ class bitfinex extends Exchange {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result' => array(
-        //            SYMBOL,
+        //    array(
+        //            SYMBOL, // this index is not present in singular-$ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1202,15 +1201,13 @@ class bitfinex extends Exchange {
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        )
-        //    }
+        //    )
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result' => array(
-        //            SYMBOL,
+        //    array(
+        //            SYMBOL, // this index is not present in singular-$ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1227,48 +1224,86 @@ class bitfinex extends Exchange {
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        )
-        //    }
+        //     )
         //
-        $result = $this->safe_list($ticker, 'result');
+        $length = count($ticker);
+        $isFetchTicker = ($length === 10) || ($length === 16);
+        $symbol = null;
+        $minusIndex = 0;
+        $isFundingCurrency = false;
+        if ($isFetchTicker) {
+            $minusIndex = 1;
+            $isFundingCurrency = ($length === 16);
+        } else {
+            $marketId = $this->safe_string($ticker, 0);
+            $market = $this->safe_market($marketId, $market);
+            $isFundingCurrency = ($length === 17);
+        }
         $symbol = $this->safe_symbol(null, $market);
-        $length = count($result);
-        $last = $this->safe_string($result, $length - 4);
-        $percentage = $this->safe_string($result, $length - 5);
+        $last = null;
+        $bid = null;
+        $ask = null;
+        $change = null;
+        $percentage = null;
+        $volume = null;
+        $high = null;
+        $low = null;
+        if ($isFundingCurrency) {
+            // per api docs, they are different array type
+            $last = $this->safe_string($ticker, 10 - $minusIndex);
+            $bid = $this->safe_string($ticker, 2 - $minusIndex);
+            $ask = $this->safe_string($ticker, 5 - $minusIndex);
+            $change = $this->safe_string($ticker, 8 - $minusIndex);
+            $percentage = $this->safe_string($ticker, 9 - $minusIndex);
+            $volume = $this->safe_string($ticker, 11 - $minusIndex);
+            $high = $this->safe_string($ticker, 12 - $minusIndex);
+            $low = $this->safe_string($ticker, 13 - $minusIndex);
+        } else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            $last = $this->safe_string($ticker, 7 - $minusIndex);
+            $bid = $this->safe_string($ticker, 1 - $minusIndex);
+            $ask = $this->safe_string($ticker, 3 - $minusIndex);
+            $change = $this->safe_string($ticker, 5 - $minusIndex);
+            $percentage = $this->safe_string($ticker, 6 - $minusIndex);
+            $percentage = Precise::string_mul($percentage, '100');
+            $volume = $this->safe_string($ticker, 8 - $minusIndex);
+            $high = $this->safe_string($ticker, 9 - $minusIndex);
+            $low = $this->safe_string($ticker, 10 - $minusIndex);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_string($result, $length - 2),
-            'low' => $this->safe_string($result, $length - 1),
-            'bid' => $this->safe_string($result, $length - 10),
-            'bidVolume' => $this->safe_string($result, $length - 9),
-            'ask' => $this->safe_string($result, $length - 8),
-            'askVolume' => $this->safe_string($result, $length - 7),
+            'high' => $high,
+            'low' => $low,
+            'bid' => $bid,
+            'bidVolume' => null,
+            'ask' => $ask,
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($result, $length - 6),
-            'percentage' => Precise::string_mul($percentage, '100'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_string($result, $length - 3),
+            'baseVolume' => $volume,
             'quoteVolume' => null,
-            'info' => $result,
+            'info' => $ticker,
         ), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              *
              * @see https://docs.bitfinex.com/reference/rest-public-$tickers
              *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1319,15 +1354,7 @@ class bitfinex extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $tickers[$i];
-                $marketId = $this->safe_string($ticker, 0);
-                $market = $this->safe_market($marketId);
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker(array( 'result' => $ticker ), $market);
-            }
-            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+            return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
 
@@ -1348,8 +1375,7 @@ class bitfinex extends Exchange {
                 'symbol' => $market['id'],
             );
             $ticker = Async\await($this->publicGetTickerSymbol ($this->extend($request, $params)));
-            $result = array( 'result' => $ticker );
-            return $this->parse_ticker($result, $market);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 

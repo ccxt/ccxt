@@ -21,10 +21,6 @@ import "github.com/ccxt/ccxt/go/v4"
         AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook)
         AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol)
         var logText interface{} = LogTemplate(exchange, method, orderbook)
-        //
-        if IsTrue(IsTrue((InOp(skippedProperties, "bid"))) || IsTrue((InOp(skippedProperties, "ask")))) {
-            return
-        }
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         var bids interface{} = GetValue(orderbook, "bids")
         var bidsLength interface{} =     GetArrayLength(bids)

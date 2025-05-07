@@ -2769,7 +2769,7 @@ class bitget extends Exchange {
         $close = $this->safe_string($ticker, 'lastPr');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'ts'); // exchange bitget provided 0
         $change = $this->safe_string($ticker, 'change24h');
-        $open24 = $this->safe_string($ticker, 'open24');
+        $open24 = $this->safe_string_2($ticker, 'open24', 'open24h');
         $open = $this->safe_string($ticker, 'open');
         if ($open === null) {
             $symbol = $this->safe_symbol($marketId, $market, null, 'contract');

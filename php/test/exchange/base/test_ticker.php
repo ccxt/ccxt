@@ -68,7 +68,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $quote_volume = $exchange->safe_string($entry, 'quoteVolume');
     $high = $exchange->safe_string($entry, 'high');
     $low = $exchange->safe_string($entry, 'low');
-    if (!(is_array($skipped_properties) && array_key_exists('quoteVolume', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('baseVolume', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('compareQuoteVolumeBaseVolume', $skipped_properties))) {
         if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);

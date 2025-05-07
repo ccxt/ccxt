@@ -1293,6 +1293,7 @@ class binance(Exchange, ImplicitAPI):
                     'inverse',  # allows CORS in browsers
                     # 'option',  # does not allow CORS, enable outside of the browser only
                 ],
+                'loadAllOptions': False,
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 # 'repayCrossMarginMethod': 'papiPostRepayLoan',  # papiPostMarginRepayDebt
@@ -3020,6 +3021,11 @@ class binance(Exchange, ImplicitAPI):
         """
         promisesRaw = []
         rawFetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        # handle loadAllOptions option
+        loadAllOptions = self.safe_bool(self.options, 'loadAllOptions', False)
+        if loadAllOptions:
+            if not self.in_array('option', rawFetchMarkets):
+                rawFetchMarkets.append('option')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         fetchMarkets = []
         for i in range(0, len(rawFetchMarkets)):

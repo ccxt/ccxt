@@ -500,7 +500,6 @@ public partial class testMainClass
             { "fetchOHLCV", new List<object>() {symbol} },
             { "fetchTrades", new List<object>() {symbol} },
             { "fetchOrderBook", new List<object>() {symbol} },
-            { "fetchL2OrderBook", new List<object>() {symbol} },
             { "fetchOrderBooks", new List<object>() {} },
             { "fetchBidsAsks", new List<object>() {} },
             { "fetchStatus", new List<object>() {} },

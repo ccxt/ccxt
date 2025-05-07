@@ -1163,9 +1163,8 @@ public partial class bitfinex : Exchange
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1176,15 +1175,13 @@ public partial class bitfinex : Exchange
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        ]
-        //    }
+        //    ]
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1201,35 +1198,77 @@ public partial class bitfinex : Exchange
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        ]
-        //    }
+        //     ]
         //
-        object result = this.safeList(ticker, "result");
-        object symbol = this.safeSymbol(null, market);
-        object length = getArrayLength(result);
-        object last = this.safeString(result, subtract(length, 4));
-        object percentage = this.safeString(result, subtract(length, 5));
+        object length = getArrayLength(ticker);
+        object isFetchTicker = isTrue((isEqual(length, 10))) || isTrue((isEqual(length, 16)));
+        object symbol = null;
+        object minusIndex = 0;
+        object isFundingCurrency = false;
+        if (isTrue(isFetchTicker))
+        {
+            minusIndex = 1;
+            isFundingCurrency = (isEqual(length, 16));
+        } else
+        {
+            object marketId = this.safeString(ticker, 0);
+            market = this.safeMarket(marketId, market);
+            isFundingCurrency = (isEqual(length, 17));
+        }
+        symbol = this.safeSymbol(null, market);
+        object last = null;
+        object bid = null;
+        object ask = null;
+        object change = null;
+        object percentage = null;
+        object volume = null;
+        object high = null;
+        object low = null;
+        if (isTrue(isFundingCurrency))
+        {
+            // per api docs, they are different array type
+            last = this.safeString(ticker, subtract(10, minusIndex));
+            bid = this.safeString(ticker, subtract(2, minusIndex));
+            ask = this.safeString(ticker, subtract(5, minusIndex));
+            change = this.safeString(ticker, subtract(8, minusIndex));
+            percentage = this.safeString(ticker, subtract(9, minusIndex));
+            volume = this.safeString(ticker, subtract(11, minusIndex));
+            high = this.safeString(ticker, subtract(12, minusIndex));
+            low = this.safeString(ticker, subtract(13, minusIndex));
+        } else
+        {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            last = this.safeString(ticker, subtract(7, minusIndex));
+            bid = this.safeString(ticker, subtract(1, minusIndex));
+            ask = this.safeString(ticker, subtract(3, minusIndex));
+            change = this.safeString(ticker, subtract(5, minusIndex));
+            percentage = this.safeString(ticker, subtract(6, minusIndex));
+            percentage = Precise.stringMul(percentage, "100");
+            volume = this.safeString(ticker, subtract(8, minusIndex));
+            high = this.safeString(ticker, subtract(9, minusIndex));
+            low = this.safeString(ticker, subtract(10, minusIndex));
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeString(result, subtract(length, 2)) },
-            { "low", this.safeString(result, subtract(length, 1)) },
-            { "bid", this.safeString(result, subtract(length, 10)) },
-            { "bidVolume", this.safeString(result, subtract(length, 9)) },
-            { "ask", this.safeString(result, subtract(length, 8)) },
-            { "askVolume", this.safeString(result, subtract(length, 7)) },
+            { "high", high },
+            { "low", low },
+            { "bid", bid },
+            { "bidVolume", null },
+            { "ask", ask },
+            { "askVolume", null },
             { "vwap", null },
             { "open", null },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(result, subtract(length, 6)) },
-            { "percentage", Precise.stringMul(percentage, "100") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString(result, subtract(length, 3)) },
+            { "baseVolume", volume },
             { "quoteVolume", null },
-            { "info", result },
+            { "info", ticker },
         }, market);
     }
 
@@ -1296,18 +1335,7 @@ public partial class bitfinex : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
-        {
-            object ticker = getValue(tickers, i);
-            object marketId = this.safeString(ticker, 0);
-            object market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {
-                { "result", ticker },
-            }, market);
-        }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return this.parseTickers(tickers, symbols);
     }
 
     /**
@@ -1328,10 +1356,7 @@ public partial class bitfinex : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        object result = new Dictionary<string, object>() {
-            { "result", ticker },
-        };
-        return this.parseTicker(result, market);
+        return this.parseTicker(ticker, market);
     }
 
     public override object parseTrade(object trade, object market = null)

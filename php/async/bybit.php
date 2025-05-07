@@ -1029,9 +1029,6 @@ class bybit extends Exchange {
                 'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
-                'createOrder' => array(
-                    'method' => 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
-                ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
@@ -3970,12 +3967,22 @@ class bybit extends Exchange {
             $parts = Async\await($this->is_unified_enabled());
             $enableUnifiedAccount = $parts[1];
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $isTrailingAmountOrder = $trailingAmount !== null;
+            $isStopLoss = $stopLossPrice !== null;
+            $isTakeProfit = $takeProfitPrice !== null;
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
-            $options = $this->safe_dict($this->options, 'createOrder', array());
-            $defaultMethod = $this->safe_string($options, 'method', 'privatePostV5OrderCreate');
+            $defaultMethod = null;
+            if ($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) {
+                $defaultMethod = 'privatePostV5PositionTradingStop';
+            } else {
+                $defaultMethod = 'privatePostV5OrderCreate';
+            }
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
             $response = null;
-            if ($isTrailingAmountOrder || ($defaultMethod === 'privatePostV5PositionTradingStop')) {
+            if ($method === 'privatePostV5PositionTradingStop') {
                 $response = Async\await($this->privatePostV5PositionTradingStop ($orderRequest));
             } else {
                 $response = Async\await($this->privatePostV5OrderCreate ($orderRequest)); // already extended inside createOrderRequest
@@ -4004,8 +4011,6 @@ class bybit extends Exchange {
         if (($price === null) && ($lowerCaseType === 'limit')) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
-        $defaultMethod = null;
-        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostV5OrderCreate');
         $request = array(
             'symbol' => $market['id'],
             // 'side' => $this->capitalize($side),
@@ -4049,7 +4054,15 @@ class bybit extends Exchange {
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
-        $isAlternativeEndpoint = $defaultMethod === 'privatePostV5PositionTradingStop';
+        $defaultMethod = null;
+        if ($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $defaultMethod = 'privatePostV5PositionTradingStop';
+        } else {
+            $defaultMethod = 'privatePostV5OrderCreate';
+        }
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
+        $isAlternativeEndpoint = $method === 'privatePostV5PositionTradingStop';
         $amountString = $this->get_amount($symbol, $amount);
         $priceString = ($price !== null) ? $this->get_price($symbol, $this->number_to_string($price)) : null;
         if ($isTrailingAmountOrder || $isAlternativeEndpoint) {

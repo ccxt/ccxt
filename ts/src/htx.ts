@@ -946,6 +946,7 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': true,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -2202,7 +2203,7 @@ export default class htx extends Exchange {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray (ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray (ticker['bid'])) {
                 bid = this.safeString (ticker['bid'], 0);
                 bidVolume = this.safeString (ticker['bid'], 1);
             } else {
@@ -2211,7 +2212,7 @@ export default class htx extends Exchange {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray (ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray (ticker['ask'])) {
                 ask = this.safeString (ticker['ask'], 0);
                 askVolume = this.safeString (ticker['ask'], 1);
             } else {

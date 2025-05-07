@@ -2736,7 +2736,7 @@ class bitget(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPr')
         timestamp = self.safe_integer_omit_zero(ticker, 'ts')  # exchange bitget provided 0
         change = self.safe_string(ticker, 'change24h')
-        open24 = self.safe_string(ticker, 'open24')
+        open24 = self.safe_string_2(ticker, 'open24', 'open24h')
         open = self.safe_string(ticker, 'open')
         symbol: str
         openValue: str

@@ -1150,9 +1150,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         # on trading pairs(ex. tBTCUSD)
         #
-        #    {
-        #        'result': [
-        #            SYMBOL,
+        #    [
+        #            SYMBOL,  # self index is not present in singular-ticker
         #            BID,
         #            BID_SIZE,
         #            ASK,
@@ -1163,15 +1162,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #            VOLUME,
         #            HIGH,
         #            LOW
-        #        ]
-        #    }
+        #    ]
         #
         #
         # on funding currencies(ex. fUSD)
         #
-        #    {
-        #        'result': [
-        #            SYMBOL,
+        #    [
+        #            SYMBOL,  # self index is not present in singular-ticker
         #            FRR,
         #            BID,
         #            BID_PERIOD,
@@ -1188,35 +1185,71 @@ class bitfinex(Exchange, ImplicitAPI):
         #            _PLACEHOLDER,
         #            _PLACEHOLDER,
         #            FRR_AMOUNT_AVAILABLE
-        #        ]
-        #    }
+        #     ]
         #
-        result = self.safe_list(ticker, 'result')
+        length = len(ticker)
+        isFetchTicker = (length == 10) or (length == 16)
+        symbol: Str = None
+        minusIndex = 0
+        isFundingCurrency = False
+        if isFetchTicker:
+            minusIndex = 1
+            isFundingCurrency = (length == 16)
+        else:
+            marketId = self.safe_string(ticker, 0)
+            market = self.safe_market(marketId, market)
+            isFundingCurrency = (length == 17)
         symbol = self.safe_symbol(None, market)
-        length = len(result)
-        last = self.safe_string(result, length - 4)
-        percentage = self.safe_string(result, length - 5)
+        last: Str = None
+        bid: Str = None
+        ask: Str = None
+        change: Str = None
+        percentage: Str = None
+        volume: Str = None
+        high: Str = None
+        low: Str = None
+        if isFundingCurrency:
+            # per api docs, they are different array type
+            last = self.safe_string(ticker, 10 - minusIndex)
+            bid = self.safe_string(ticker, 2 - minusIndex)
+            ask = self.safe_string(ticker, 5 - minusIndex)
+            change = self.safe_string(ticker, 8 - minusIndex)
+            percentage = self.safe_string(ticker, 9 - minusIndex)
+            volume = self.safe_string(ticker, 11 - minusIndex)
+            high = self.safe_string(ticker, 12 - minusIndex)
+            low = self.safe_string(ticker, 13 - minusIndex)
+        else:
+            # on trading pairs(ex. tBTCUSD or tHMSTR:USD)
+            last = self.safe_string(ticker, 7 - minusIndex)
+            bid = self.safe_string(ticker, 1 - minusIndex)
+            ask = self.safe_string(ticker, 3 - minusIndex)
+            change = self.safe_string(ticker, 5 - minusIndex)
+            percentage = self.safe_string(ticker, 6 - minusIndex)
+            percentage = Precise.string_mul(percentage, '100')
+            volume = self.safe_string(ticker, 8 - minusIndex)
+            high = self.safe_string(ticker, 9 - minusIndex)
+            low = self.safe_string(ticker, 10 - minusIndex)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_string(result, length - 2),
-            'low': self.safe_string(result, length - 1),
-            'bid': self.safe_string(result, length - 10),
-            'bidVolume': self.safe_string(result, length - 9),
-            'ask': self.safe_string(result, length - 8),
-            'askVolume': self.safe_string(result, length - 7),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': None,
+            'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(result, length - 6),
-            'percentage': Precise.string_mul(percentage, '100'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_string(result, length - 3),
+            'baseVolume': volume,
             'quoteVolume': None,
-            'info': result,
+            'info': ticker,
         }, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1277,14 +1310,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            marketId = self.safe_string(ticker, 0)
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker({'result': ticker}, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return self.parse_tickers(tickers, symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -1302,8 +1328,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
-        result: dict = {'result': ticker}
-        return self.parse_ticker(result, market)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
