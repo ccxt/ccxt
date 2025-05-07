@@ -941,6 +941,7 @@ class htx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'include_OS_certificates' => true,
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
