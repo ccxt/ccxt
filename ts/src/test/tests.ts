@@ -1561,6 +1561,7 @@ class testMainClass {
             this.testDefx (),
             this.testCryptomus (),
             this.testDerive (),
+            this.testModeTrade (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2180,6 +2181,25 @@ class testMainClass {
             request = jsonParse (exchange.last_request_body);
         }
         assert (request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testModeTrade () {
+        const exchange = this.initOfflineExchange ('modetrade');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXT';
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert (brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
         if (!isSync ()) {
             await close (exchange);
         }
