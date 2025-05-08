@@ -569,7 +569,7 @@ export default class bitvavo extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const isFiat = fiatCurrencies.includes (code);
+            const isFiat = this.inArray (code, fiatCurrencies);
             const networks: Dict = {};
             const networksArray = this.safeList (currency, 'networks', []);
             const deposit = this.safeString (currency, 'depositStatus') === 'OK';
