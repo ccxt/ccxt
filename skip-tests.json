@@ -437,9 +437,8 @@
                 "activeMajorCurrencies": "todo"
             },
             "orderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562",
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4601",
-                "compareToNextItem": "sometimes bid equals to next bid"
+                "compareToNextItem": "sometimes bid equals to next bid",
+                "timestamp": "not provided"
             }
         }
     },
@@ -447,8 +446,7 @@
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
-                "active":"is undefined",
-                "info": "null"
+                "active":"is undefined"
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -458,7 +456,7 @@
                 "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
             },
             "ticker": {
-                "bid":"broken bid-ask"
+                "spread":"broken bid-ask"
             }
         }
     },
