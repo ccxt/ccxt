@@ -6166,7 +6166,7 @@ export default class Exchange {
                     return true;
                 } else {
                     // check if base currency is inside dict
-                    const baseCurrencyCode = currencyCode.slice (0, -leverageSuffix.length);
+                    const baseCurrencyCode = currencyCode.replace (leverageSuffix, '');
                     if (baseCurrencyCode in existingCurrencies) {
                         return true;
                     }
