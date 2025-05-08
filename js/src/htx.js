@@ -947,7 +947,7 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'include_OS_certificates': true,
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
