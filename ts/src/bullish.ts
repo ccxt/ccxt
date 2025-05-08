@@ -3,9 +3,9 @@
 import { time } from 'console';
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { } from './base/errors.js';
+import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Bool, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -823,12 +823,82 @@ export default class bullish extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bullish#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/candle
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (since === undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV() requires a since argument');
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'symbol': market['id'],
+            'timeBucket': timeframe,
+            'createdAtDatetime[gte]': this.iso8601 (since),
+            'createdAtDatetime[lte]': this.iso8601 (until),
+        };
+        const response = await this.publicGetV1MarketsSymbolCandle (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "open": "100846.7490",
+        //             "high": "100972.4001",
+        //             "low": "100840.8129",
+        //             "close": "100972.2602",
+        //             "volume": "30.56064890",
+        //             "createdAtTimestamp": "1746720540000",
+        //             "createdAtDatetime": "2025-05-08T16:09:00.000Z",
+        //             "publishedAtTimestamp": "1746720636007"
+        //         }, ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'createdAtTimestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
-        const query = this.urlencode (request);
+        const query = this.customUrlencode (request);
         url += '?' + query;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    customUrlencode (params: Dict = {}): Str {
+        let result = this.urlencode (params);
+        result = result.replace ('%5B', '[');
+        result = result.replace ('%5D', ']');
+        result = result.replace ('%3A', ':');
+        result = result.replace ('%3A', ':');
+        result = result.replace ('%5B', '[');
+        result = result.replace ('%5D', ']');
+        result = result.replace ('%3A', ':');
+        result = result.replace ('%3A', ':');
+        return result;
     }
 }
