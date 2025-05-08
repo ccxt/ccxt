@@ -407,23 +407,14 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "missing",
-                "type": "todo",
                 "activeMajorCurrencies": "todo"
             },
             "ticker": {
-                "bid":"broken bid-ask",
+                "spread":"broken bid-ask",
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
-            },
-            "watchOrderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3738"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
             }
         }
     },
