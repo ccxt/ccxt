@@ -777,6 +777,12 @@ class bitmex extends Exchange {
         $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
         $initMargin = $this->safe_string($market, 'initMargin', '1');
         $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+        // subtype should be null for $spot markets
+        if ($spot) {
+            $isInverse = null;
+            $isQuanto = null;
+            $linear = null;
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -826,7 +832,7 @@ class bitmex extends Exchange {
                     'max' => $positionIsQuote ? $maxOrderQty : null,
                 ),
             ),
-            'created' => $this->parse8601($this->safe_string($market, 'listing')),
+            'created' => null, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info' => $market,
         );
     }

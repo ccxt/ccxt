@@ -952,7 +952,7 @@ class htx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'include_OS_certificates' => true,
+                'include_OS_certificates' => false, // temporarily leave this, remove in future
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
