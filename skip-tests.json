@@ -445,8 +445,7 @@
     "btcbox": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"is undefined",
-                "active":"is undefined"
+                "precision":"is undefined"
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
