@@ -3,6 +3,26 @@
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
     },
+    "apex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "currency": "messed"
+            },
+            "fetchCurrencies": {
+                "precision": "messed"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "not aligned with quoteVolume calcs"
+            },
+            "orderBook": {
+                "spread": "bid > ask issue https://github.com/ccxt/ccxt/actions/runs/14901691674/job/41855075107?pr=25907#step:9:389"
+            },
+            "watchTrades": {
+                "timestamp": "order is messed"
+            }
+        }
+    },
     "ascendex": {
         "skipMethods": {
             "loadMarkets": {
@@ -1806,23 +1826,6 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
-            }
-        }
-    },
-    "apex": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed",
-                "currency": "messed"
-            },
-            "fetchCurrencies": {
-                "precision": "messed"
-            },
-            "ticker": {
-                "compareQuoteVolumeBaseVolume": "not aligned with quoteVolume calcs"
-            },
-            "watchTrades": {
-                "timestamp": "order is messed"
             }
         }
     }
