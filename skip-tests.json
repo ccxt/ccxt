@@ -369,22 +369,6 @@
             }
         }
     },
-    "bl3p": {
-        "skipMethods": {
-            "loadMarkets": {
-                "precision":"not provided",
-                "active": "not provided",
-                "info": "null"
-            },
-            "fetchTrades": {
-                "side": "side is undefined"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
-            },
-            "fetchCurrencies": "todo, returns only 1 coin"
-        }
-    },
     "bitteam": {
         "skip": "tmp timeout",
         "skipPhpAsync": true,
