@@ -873,7 +873,7 @@ public partial class htx : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "include_OS_certificates", true },
+                { "include_OS_certificates", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new Dictionary<string, object>() {
                         { "spot", true },
