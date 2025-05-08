@@ -6153,7 +6153,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
-    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined, ): boolean {
+    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined): boolean {
         const leverageSuffixes = [
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // leveraged
             'UP', 'DOWN', // directional
