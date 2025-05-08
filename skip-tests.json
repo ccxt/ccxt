@@ -478,7 +478,6 @@
     "btcmarkets": {
         "skipMethods": {
             "loadMarkets":{
-                "active":"is undefined"
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
