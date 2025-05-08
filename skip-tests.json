@@ -331,9 +331,6 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
-            },
-            "fetchL2OrderBook": {
-                "timestamp": "same"
             }
         }
     },
@@ -822,7 +819,6 @@
                 "limits": "not provided"
             },
             "fetchOrderBook": "best ask is not always greater than best bid",
-            "fetchL2OrderBook": "same",
             "fetchTrades": {
                 "price": "sometimes is not set",
                 "amount": "same",
@@ -991,9 +987,6 @@
     "ellipx": {
         "skipMethods": {
             "fetchOrderBook": {
-                "spread":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
-            },
-            "fetchL2OrderBook": {
                 "spread":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
             },
             "fetchCurrencies": {
@@ -1225,10 +1218,6 @@
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid",
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263629640#L2165"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same",
-                "compareToZero": "same"
             }
         }
     },
@@ -1455,8 +1444,7 @@
             },
             "fetchOrderBook": {
                 "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
-            },
-            "fetchL2OrderBook": "asks and bids could be empty"
+            }
         }
     },
     "oceanex": {
@@ -1666,6 +1654,10 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "orderBook": {
+                "compareToZero":"some of them mare zero",
+                "compareToNextItem": "several rows are same zero"
             }
         }
     },
