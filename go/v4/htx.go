@@ -881,7 +881,7 @@ func  (this *htx) Describe() interface{}  {
         },
         "precisionMode": TICK_SIZE,
         "options": map[string]interface{} {
-            "include_OS_certificates": true,
+            "include_OS_certificates": false,
             "fetchMarkets": map[string]interface{} {
                 "types": map[string]interface{} {
                     "spot": true,
