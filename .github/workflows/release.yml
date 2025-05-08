@@ -114,12 +114,15 @@ jobs:
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
                git push origin HEAD:master
-               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
-               git push --tags
-               echo "Creating github release..."
-               gh release create "${VERSION}" --generate-notes --verify-tag
+
                git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
                git push origin "go/${VERSION}"
+
+               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+               git push origin "${VERSION}"
+
+               echo "Creating GitHub release from ${VERSION}…"
+               gh release create "${VERSION}" --generate-notes --verify-tag
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}
@@ -140,7 +143,6 @@ jobs:
       - uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
-
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest
