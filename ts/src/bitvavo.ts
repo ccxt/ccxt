@@ -563,13 +563,13 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const isFiat = fiatCurrencies.includes(code);
+            const isFiat = fiatCurrencies.includes (code);
             const networks: Dict = {};
             const networksArray = this.safeList (currency, 'networks', []);
             const deposit = this.safeString (currency, 'depositStatus') === 'OK';
