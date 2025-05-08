@@ -675,7 +675,6 @@ export default class bitteam extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'type': typeRaw, // 'crypto' or 'fiat'
                     'info': currency,
                 };
             }
@@ -704,6 +703,7 @@ export default class bitteam extends Exchange {
                         'max': undefined,
                     },
                 },
+                'type': typeRaw, // 'crypto' or 'fiat'
                 'networks': networks,
             };
         }
