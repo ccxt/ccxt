@@ -348,8 +348,7 @@
                 "compareToZero": "tmp",
                 "compareToNextItem":"tmp",
                 "spread":"tmp"
-            },
-            "fetchOHLCV": "randomly failing with 404 not found"
+            }
         }
     },
     "bitstamp": {
