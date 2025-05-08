@@ -490,11 +490,6 @@
     },
     "btcturk": {
         "skipMethods": {
-            "loadMarkets": {
-                "precision":"is undefined",
-                "active":"is undefined",
-                "info":"null"
-            },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
             },
