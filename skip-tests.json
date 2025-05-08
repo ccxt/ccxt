@@ -463,15 +463,16 @@
         }
     },
     "btcalpha": {
-	    "skip": true,
         "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
             "orderBook": {
-                "spread":"bids[0][0] is not < asks[0][0]"
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp":""
             },
             "ticker": {
-                "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
-                "percentage": "broken",
-                "bid": "messed bid-ask"
+                "spread": "messed bid-ask"
             }
         }
     },
