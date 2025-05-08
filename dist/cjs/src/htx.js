@@ -944,7 +944,7 @@ class htx extends htx$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'include_OS_certificates': true,
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,

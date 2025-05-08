@@ -1152,7 +1152,7 @@ func  (this *upbit) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
             //         },
             //         "bid_account": {
             //             "currency": "KRW",
-            //             "balance": "0.34202414",
+            //             "balance": "0.34202415",
             //             "locked": "4999.99999922",
             //             "avg_buy_price": "0",
             //             "avg_buy_price_modified": true,
