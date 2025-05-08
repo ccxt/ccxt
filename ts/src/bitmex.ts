@@ -736,9 +736,9 @@ export default class bitmex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
         let contractSize = undefined;
-        const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        let linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString (market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry = undefined;
@@ -770,6 +770,12 @@ export default class bitmex extends Exchange {
         const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
         const initMargin = this.safeString (market, 'initMargin', '1');
         const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+        // subtype should be undefined for spot markets
+        if (spot) {
+            isInverse = undefined;
+            isQuanto = undefined;
+            linear = undefined;
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -819,7 +825,7 @@ export default class bitmex extends Exchange {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': this.parse8601 (this.safeString (market, 'listing')),
+            'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         };
     }
