@@ -531,7 +531,7 @@ export default class bitteam extends Exchange {
         //                     "precision": 8,
         //                     "currentRate": null,
         //                     "active": true,
-        //                     "timeStart": "2021-01-28T08:57:41.729Z",
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
         //                     "type": "crypto",
         //                     "typeNetwork": "internalGW",
         //                     "idSorting": 2,
@@ -648,6 +648,7 @@ export default class bitteam extends Exchange {
             const networkIds = Object.keys (feesByNetworkId);
             const networks: Dict = {};
             const networkPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
+            const typeRaw = this.safeString (currency, 'type');
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode (networkId, code);
@@ -674,6 +675,7 @@ export default class bitteam extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'type': typeRaw, // 'crypto' or 'fiat'
                     'info': currency,
                 };
             }
