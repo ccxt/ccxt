@@ -1158,9 +1158,8 @@ class bitfinex extends bitfinex$1 {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1171,15 +1170,13 @@ class bitfinex extends bitfinex$1 {
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        ]
-        //    }
+        //    ]
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1196,35 +1193,75 @@ class bitfinex extends bitfinex$1 {
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        ]
-        //    }
+        //     ]
         //
-        const result = this.safeList(ticker, 'result');
-        const symbol = this.safeSymbol(undefined, market);
-        const length = result.length;
-        const last = this.safeString(result, length - 4);
-        const percentage = this.safeString(result, length - 5);
+        const length = ticker.length;
+        const isFetchTicker = (length === 10) || (length === 16);
+        let symbol = undefined;
+        let minusIndex = 0;
+        let isFundingCurrency = false;
+        if (isFetchTicker) {
+            minusIndex = 1;
+            isFundingCurrency = (length === 16);
+        }
+        else {
+            const marketId = this.safeString(ticker, 0);
+            market = this.safeMarket(marketId, market);
+            isFundingCurrency = (length === 17);
+        }
+        symbol = this.safeSymbol(undefined, market);
+        let last = undefined;
+        let bid = undefined;
+        let ask = undefined;
+        let change = undefined;
+        let percentage = undefined;
+        let volume = undefined;
+        let high = undefined;
+        let low = undefined;
+        if (isFundingCurrency) {
+            // per api docs, they are different array type
+            last = this.safeString(ticker, 10 - minusIndex);
+            bid = this.safeString(ticker, 2 - minusIndex);
+            ask = this.safeString(ticker, 5 - minusIndex);
+            change = this.safeString(ticker, 8 - minusIndex);
+            percentage = this.safeString(ticker, 9 - minusIndex);
+            volume = this.safeString(ticker, 11 - minusIndex);
+            high = this.safeString(ticker, 12 - minusIndex);
+            low = this.safeString(ticker, 13 - minusIndex);
+        }
+        else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            last = this.safeString(ticker, 7 - minusIndex);
+            bid = this.safeString(ticker, 1 - minusIndex);
+            ask = this.safeString(ticker, 3 - minusIndex);
+            change = this.safeString(ticker, 5 - minusIndex);
+            percentage = this.safeString(ticker, 6 - minusIndex);
+            percentage = Precise["default"].stringMul(percentage, '100');
+            volume = this.safeString(ticker, 8 - minusIndex);
+            high = this.safeString(ticker, 9 - minusIndex);
+            low = this.safeString(ticker, 10 - minusIndex);
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString(result, length - 2),
-            'low': this.safeString(result, length - 1),
-            'bid': this.safeString(result, length - 10),
-            'bidVolume': this.safeString(result, length - 9),
-            'ask': this.safeString(result, length - 8),
-            'askVolume': this.safeString(result, length - 7),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(result, length - 6),
-            'percentage': Precise["default"].stringMul(percentage, '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString(result, length - 3),
+            'baseVolume': volume,
             'quoteVolume': undefined,
-            'info': result,
+            'info': ticker,
         }, market);
     }
     /**
@@ -1287,15 +1324,7 @@ class bitfinex extends bitfinex$1 {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const marketId = this.safeString(ticker, 0);
-            const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker({ 'result': ticker }, market);
-        }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.parseTickers(tickers, symbols);
     }
     /**
      * @method
@@ -1313,8 +1342,7 @@ class bitfinex extends bitfinex$1 {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol(this.extend(request, params));
-        const result = { 'result': ticker };
-        return this.parseTicker(result, market);
+        return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
         //
