@@ -835,7 +835,7 @@ class apex extends Exchange {
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
-        // {
+        //  {
         //     "start" => 1647511440000,
         //     "symbol" => "BTC-USD",
         //     "interval" => "1",
@@ -845,7 +845,7 @@ class apex extends Exchange {
         //     "close" => "40000",
         //     "volume" => "1.002",
         //     "turnover" => "3"
-        // } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
+        //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
             $this->safe_integer_n($ohlcv, array( 'start', 't' )),
