@@ -1648,7 +1648,8 @@
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "orderBook": {
-                "compareToNextItem": "several rows are zero"
+                "compareToZero":"some of them mare zero",
+                "compareToNextItem": "several rows are same zero"
             }
         }
     },
