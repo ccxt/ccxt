@@ -1646,6 +1646,9 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "orderBook": {
+                "compareToNextItem": "several rows are zero"
             }
         }
     },
