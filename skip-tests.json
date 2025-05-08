@@ -386,8 +386,6 @@
         }
     },
     "bitteam": {
-        "skip": "tmp timeout",
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",

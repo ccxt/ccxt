@@ -531,7 +531,7 @@ export default class bitteam extends Exchange {
         //                     "precision": 8,
         //                     "currentRate": null,
         //                     "active": true,
-        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "timeStart": "2021-01-28T08:57:41.729Z",
         //                     "type": "crypto",
         //                     "typeNetwork": "internalGW",
         //                     "idSorting": 2,
