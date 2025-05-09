@@ -316,7 +316,6 @@ export default class coinbase extends coinbaseRest {
                 this.tryResolveUsdc (client, messageHash, tickers);
             }
         }
-        return message;
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -573,7 +572,6 @@ export default class coinbase extends coinbaseRest {
             this.tryResolveUsdc (client, messageHash, this.orders);
         }
         client.resolve (this.orders, 'user');
-        return message;
     }
 
     parseWsOrder (order, market = undefined) {
