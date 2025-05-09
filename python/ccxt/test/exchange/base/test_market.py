@@ -97,6 +97,9 @@ def test_market(exchange, skipped_properties, method, market):
     if not option:
         empty_allowed_for.append('optionType')
         empty_allowed_for.append('strike')
+    if option:
+        empty_allowed_for.append('linear')
+        empty_allowed_for.append('inverse')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, market, format, empty_allowed_for)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
