@@ -5662,7 +5662,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            if subType == 'inverse':
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 5)  # 3/4 uta 1.0, 5/6 uta 2.0
+            if subType == 'inverse' and (unifiedMarginStatus < 5):
                 response = await self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
             else:
                 response = await self.privateGetV5AccountTransactionLog(self.extend(request, params))
