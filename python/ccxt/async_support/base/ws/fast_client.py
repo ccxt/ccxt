@@ -17,36 +17,44 @@ class FastClient(AiohttpClient):
         self.stack = collections.deque()
         self.callback_scheduled = False
 
-    def receive_loop(self):
-        def handler():
-            if not self.stack:
-                self.callback_scheduled = False
-                return
-            message = self.stack.popleft()
-            try:
+    async def receive_loop(self):
+        try:
+            async for message in self.connection:
                 self.handle_message(message)
-            except Exception as error:
-                self.reject(error)
-            self.asyncio_loop.call_soon(handler)
+        except Exception as error:
+            self.reject(error)
+        # # async def handler():
+        #     print("handler")
+        #     # if not self.stack:
+        #     #     self.callback_scheduled = False
+        #     #     return
+        #     # message = self.stack.popleft()
+        #     try:
+        #         pass
+        #         # async for message in self.connection:
+        #         #     self.handle_message(message)
+        #     except Exception as error:
+        #         self.reject(error)
+        #     self.asyncio_loop.call_soon(handler)
 
-        def feed_data(message, size):
-            if not self.callback_scheduled:
-                self.callback_scheduled = True
-                self.asyncio_loop.call_soon(handler)
-            self.stack.append(message)
+        # def feed_data(message, size):
+        #     if not self.callback_scheduled:
+        #         self.callback_scheduled = True
+        #         self.asyncio_loop.call_soon(handler)
+        #     self.stack.append(message)
 
-        def feed_eof():
-            if self.connection._close_code == 1000:  # OK close
-                self.on_close(1000)
-            else:
-                self.on_error(NetworkError("Abnormal closure of client"))  # ABNORMAL_CLOSURE
+        # def feed_eof():
+        #     if self.connection._close_code == 1000:  # OK close
+        #         self.on_close(1000)
+        #     else:
+        #         self.on_error(NetworkError("Abnormal closure of client"))  # ABNORMAL_CLOSURE
 
-        def wrapper(func):
-            def parse_frame(buf):
-                while self.stack:
-                    self.handle_message(self.stack.popleft())
-                return func(buf)
-            return parse_frame
+        # def wrapper(func):
+        #     def parse_frame(buf):
+        #         while self.stack:
+        #             self.handle_message(self.stack.popleft())
+        #         return func(buf)
+        #     return parse_frame
 
         async def close(code=1000, message=b''):
             # this is needed because our other wrappers break the closing process
@@ -82,10 +90,10 @@ class FastClient(AiohttpClient):
         new_size = max(current_size, 2097152)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, new_size)
 
-        ws_reader = connection.protocol._payload_parser
-        ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
-        ws_reader.queue.feed_data = feed_data
-        ws_reader.queue.feed_eof = feed_eof
+        # ws_reader = connection.protocol._payload_parser
+        # ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        # ws_reader.queue.feed_data = feed_data
+        # ws_reader.queue.feed_eof = feed_eof
         self.connection.close = close
         # return a future so super class won't complain
         return asyncio.sleep(0)
