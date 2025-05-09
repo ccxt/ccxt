@@ -1012,6 +1012,9 @@
             },
             {
                 "description": "Ledger from inverse wallet",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
                 "input": [
