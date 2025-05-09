@@ -73,7 +73,7 @@ export default class coinbase extends coinbaseRest {
             messageHash = messageHash + '::' + symbol.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = name + '::' + market['id'];
+            messageHash = name + '::' + symbol;
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
@@ -112,7 +112,7 @@ export default class coinbase extends coinbaseRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             productIds.push (marketId);
-            messageHashes.push (name + '::' + marketId);
+            messageHashes.push (name + '::' + symbol);
         }
         const url = this.urls['api']['ws'];
         let subscribe = {
@@ -280,7 +280,7 @@ export default class coinbase extends coinbaseRest {
         //
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeValue (message, 'events', []);
+        const events = this.safeList (message, 'events', []);
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const newTickers = [];
@@ -298,8 +298,8 @@ export default class coinbase extends coinbaseRest {
                 if (wsMarketId === undefined) {
                     continue;
                 }
-                const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
+                const messageHash = channel + '::' + symbol;
                 client.resolve (result, messageHash);
                 this.tryResolveUsdc (client, messageHash, result);
             }
@@ -491,13 +491,13 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeValue (message, 'events');
+        const events = this.safeList (message, 'events');
         const event = this.safeValue (events, 0);
-        const trades = this.safeValue (event, 'trades');
-        const trade = this.safeValue (trades, 0);
+        const trades = this.safeList (event, 'trades');
+        const trade = this.safeDict (trades, 0);
         const marketId = this.safeString (trade, 'product_id');
-        const messageHash = 'market_trades::' + marketId;
         const symbol = this.safeSymbol (marketId);
+        const messageHash = 'market_trades::' + symbol;
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -506,7 +506,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
-            const currentTrades = this.safeValue (currentEvent, 'trades');
+            const currentTrades = this.safeList (currentEvent, 'trades');
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[i];
                 tradesArray.append (this.parseTrade (item));
@@ -545,7 +545,7 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeValue (message, 'events');
+        const events = this.safeList (message, 'events');
         const marketIds = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -553,7 +553,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const responseOrders = this.safeValue (event, 'orders');
+            const responseOrders = this.safeList (event, 'orders');
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
@@ -567,7 +567,8 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const messageHash = 'user::' + marketId;
+            const symbol = this.safeSymbol (marketId);
+            const messageHash = 'user::' + symbol;
             client.resolve (this.orders, messageHash);
             this.tryResolveUsdc (client, messageHash, this.orders);
         }
@@ -666,16 +667,16 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const events = this.safeValue (message, 'events');
+        const events = this.safeList (message, 'events');
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const updates = this.safeValue (event, 'updates', []);
+            const updates = this.safeList (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket (marketId);
-            const messageHash = 'level2::' + market['id'];
             const symbol = market['symbol'];
+            const messageHash = 'level2::' + symbol;
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const type = this.safeString (event, 'type');
