@@ -51,8 +51,7 @@ export default class aftermath extends aftermathRest {
                 },
             },
             'streaming': {
-                // 'ping': this.ping,
-                'keepAlive': false,
+                'keepAlive': 59000,
             },
             'exceptions': {
             },
@@ -62,6 +61,11 @@ export default class aftermath extends aftermathRest {
     async watchPublic (suffix, messageHash, message) {
         const url = this.urls['api']['ws']['public'] + '/' + suffix;
         return await this.watch (url, messageHash, this.json (message), messageHash, message);
+    }
+
+    async watchPublicMultiple (suffix, messageHashes, message) {
+        const url = this.urls['api']['ws']['public'] + '/' + suffix;
+        return await this.watchMultiple (url, messageHashes, this.json (message), messageHashes, message);
     }
 
     /**
@@ -218,8 +222,7 @@ export default class aftermath extends aftermathRest {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
-        const newPositions = await this.watchPublic (suffix, messageHashes[0], message);
-        // const newPositions = await this.watchPrivateMultiple (messageHashes, request, params);
+        const newPositions = await this.watchPublicMultiple (suffix, messageHashes, message);
         if (this.newUpdates) {
             return newPositions;
         }
