@@ -2203,7 +2203,7 @@ class bybit extends Exchange {
                         'quoteId' => $quoteId,
                         'settleId' => $settleId,
                         'type' => 'option',
-                        'subType' => 'linear',
+                        'subType' => null,
                         'spot' => false,
                         'margin' => false,
                         'swap' => false,
@@ -2211,8 +2211,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => true,
-                        'inverse' => false,
+                        'linear' => null,
+                        'inverse' => null,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->parse_number('1'),
@@ -4124,12 +4124,12 @@ class bybit extends Exchange {
         }
         if ($market['spot']) {
             $request['category'] = 'spot';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
         } elseif ($market['linear']) {
             $request['category'] = 'linear';
         } elseif ($market['inverse']) {
             $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
         }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
