@@ -537,21 +537,21 @@
     "bigone": {
         "skipMethods": {
             "loadMarkets": {
-                "taker": "key is there when run locally, but not on travis",
-                "maker": "key is there when run locally, but not on travis",
+                "taker":"not provided",
+                "maker":"not provided",
                 "currencyIdAndCode": true
             },
             "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
+                "withdrawForNonCrypto": "not available",
+                "depositForNonCrypto": "not available"
             },
             "ticker": {
-                "bid": "broken bid-ask",
+                "spread": "broken bid-ask",
                 "baseVolume": "negative value",
                 "compareQuoteVolumeBaseVolume":"tmp"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
+                "timestamp": "not present"
             }
         }
     },
