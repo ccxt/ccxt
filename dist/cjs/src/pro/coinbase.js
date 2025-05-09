@@ -72,7 +72,7 @@ class coinbase extends coinbase$1 {
         }
         else if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash = name + '::' + market['id'];
+            messageHash = name + '::' + symbol;
             productIds = [market['id']];
         }
         const url = this.urls['api']['ws'];
@@ -110,7 +110,7 @@ class coinbase extends coinbase$1 {
             const market = this.market(symbol);
             const marketId = market['id'];
             productIds.push(marketId);
-            messageHashes.push(name + '::' + marketId);
+            messageHashes.push(name + '::' + symbol);
         }
         const url = this.urls['api']['ws'];
         let subscribe = {
@@ -178,8 +178,11 @@ class coinbase extends coinbase$1 {
             symbols = this.symbols;
         }
         const name = 'ticker_batch';
-        const tickers = await this.subscribe(name, false, symbols, params);
+        const ticker = await this.subscribeMultiple(name, false, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
             return tickers;
         }
         return this.tickers;
@@ -275,47 +278,28 @@ class coinbase extends coinbase$1 {
         //
         //
         const channel = this.safeString(message, 'channel');
-        const events = this.safeValue(message, 'events', []);
+        const events = this.safeList(message, 'events', []);
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
             const tickers = this.safeList(tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
+                const wsMarketId = this.safeString(ticker, 'product_id');
+                if (wsMarketId === undefined) {
+                    continue;
+                }
                 const result = this.parseWsTicker(ticker);
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
                 this.tickers[symbol] = result;
-                const wsMarketId = this.safeString(ticker, 'product_id');
-                if (wsMarketId === undefined) {
-                    continue;
-                }
-                const messageHash = channel + '::' + wsMarketId;
-                newTickers.push(result);
+                const messageHash = channel + '::' + symbol;
                 client.resolve(result, messageHash);
-                if (messageHash.endsWith('USD')) {
-                    client.resolve(result, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
+                this.tryResolveUsdc(client, messageHash, result);
             }
         }
-        const messageHashes = this.findMessageHashes(client, 'ticker_batch::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split(',');
-            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
-            if (!this.isEmpty(tickers)) {
-                client.resolve(tickers, messageHash);
-                if (messageHash.endsWith('USD')) {
-                    client.resolve(tickers, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            }
-        }
-        return message;
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -483,13 +467,13 @@ class coinbase extends coinbase$1 {
         //        ]
         //    }
         //
-        const events = this.safeValue(message, 'events');
+        const events = this.safeList(message, 'events');
         const event = this.safeValue(events, 0);
-        const trades = this.safeValue(event, 'trades');
-        const trade = this.safeValue(trades, 0);
+        const trades = this.safeList(event, 'trades');
+        const trade = this.safeDict(trades, 0);
         const marketId = this.safeString(trade, 'product_id');
-        const messageHash = 'market_trades::' + marketId;
         const symbol = this.safeSymbol(marketId);
+        const messageHash = 'market_trades::' + symbol;
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -498,17 +482,14 @@ class coinbase extends coinbase$1 {
         }
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
-            const currentTrades = this.safeValue(currentEvent, 'trades');
+            const currentTrades = this.safeList(currentEvent, 'trades');
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[i];
                 tradesArray.append(this.parseTrade(item));
             }
         }
         client.resolve(tradesArray, messageHash);
-        if (marketId.endsWith('USD')) {
-            client.resolve(tradesArray, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-        }
-        return message;
+        this.tryResolveUsdc(client, messageHash, tradesArray);
     }
     handleOrder(client, message) {
         //
@@ -539,7 +520,7 @@ class coinbase extends coinbase$1 {
         //        ]
         //    }
         //
-        const events = this.safeValue(message, 'events');
+        const events = this.safeList(message, 'events');
         const marketIds = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -547,7 +528,7 @@ class coinbase extends coinbase$1 {
         }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const responseOrders = this.safeValue(event, 'orders');
+            const responseOrders = this.safeList(event, 'orders');
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder(responseOrder);
@@ -561,14 +542,12 @@ class coinbase extends coinbase$1 {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const messageHash = 'user::' + marketId;
+            const symbol = this.safeSymbol(marketId);
+            const messageHash = 'user::' + symbol;
             client.resolve(this.orders, messageHash);
-            if (messageHash.endsWith('USD')) {
-                client.resolve(this.orders, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-            }
+            this.tryResolveUsdc(client, messageHash, this.orders);
         }
         client.resolve(this.orders, 'user');
-        return message;
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -659,36 +638,38 @@ class coinbase extends coinbase$1 {
         //        ]
         //    }
         //
-        const events = this.safeValue(message, 'events');
+        const events = this.safeList(message, 'events');
         const datetime = this.safeString(message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const updates = this.safeValue(event, 'updates', []);
+            const updates = this.safeList(event, 'updates', []);
             const marketId = this.safeString(event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket(marketId);
-            const messageHash = 'level2::' + market['id'];
             const symbol = market['symbol'];
+            const messageHash = 'level2::' + symbol;
             const subscription = this.safeValue(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
-                const orderbook = this.orderbooks[symbol];
-                this.handleOrderBookHelper(orderbook, updates);
-                orderbook['timestamp'] = this.parse8601(datetime);
-                orderbook['datetime'] = datetime;
-                orderbook['symbol'] = symbol;
-                client.resolve(orderbook, messageHash);
             }
-            else if (type === 'update') {
-                const orderbook = this.orderbooks[symbol];
-                this.handleOrderBookHelper(orderbook, updates);
-                orderbook['datetime'] = datetime;
-                orderbook['timestamp'] = this.parse8601(datetime);
-                orderbook['symbol'] = symbol;
-                client.resolve(orderbook, messageHash);
+            // unknown bug, can't reproduce, but sometimes orderbook is undefined
+            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+                continue;
             }
+            const orderbook = this.orderbooks[symbol];
+            this.handleOrderBookHelper(orderbook, updates);
+            orderbook['timestamp'] = this.parse8601(datetime);
+            orderbook['datetime'] = datetime;
+            orderbook['symbol'] = symbol;
+            client.resolve(orderbook, messageHash);
+            this.tryResolveUsdc(client, messageHash, orderbook);
+        }
+    }
+    tryResolveUsdc(client, messageHash, result) {
+        if (messageHash.endsWith('/USD') || messageHash.endsWith('-USD')) {
+            client.resolve(result, messageHash + 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
     handleSubscriptionStatus(client, message) {

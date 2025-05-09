@@ -237,6 +237,7 @@ class bitopro extends bitopro$1 {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
+                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
             },
             'features': {
                 'spot': {
@@ -364,6 +365,7 @@ class bitopro extends bitopro$1 {
         //     }
         //
         const result = {};
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const currencyId = this.safeString(currency, 'currency');
@@ -383,11 +385,12 @@ class bitopro extends bitopro$1 {
                     'max': undefined,
                 },
             };
+            const isFiat = this.inArray(code, fiatCurrencies);
             result[code] = {
                 'id': currencyId,
                 'code': code,
                 'info': currency,
-                'type': undefined,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
                 'active': deposit && withdraw,
                 'deposit': deposit,
