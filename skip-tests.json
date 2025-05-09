@@ -367,8 +367,7 @@
                 "compareToZero": "tmp",
                 "compareToNextItem":"tmp",
                 "spread":"tmp"
-            },
-            "fetchOHLCV": "randomly failing with 404 not found"
+            }
         }
     },
     "bitstamp": {
@@ -405,8 +404,6 @@
         }
     },
     "bitteam": {
-        "skip": "tmp timeout",
-        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
@@ -414,7 +411,8 @@
             },
             "fetchCurrencies": {
                 "deposit": "not provided",
-                "withdraw": "not provided"
+                "withdraw": "not provided",
+                "activeMajorCurrencies":"todo"
             }
         }
     },
@@ -426,23 +424,14 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "missing",
-                "type": "todo",
                 "activeMajorCurrencies": "todo"
             },
             "ticker": {
-                "bid":"broken bid-ask",
+                "spread":"broken bid-ask",
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
-            },
-            "watchOrderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3738"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
             }
         }
     },
@@ -496,9 +485,6 @@
     },
     "btcmarkets": {
         "skipMethods": {
-            "loadMarkets":{
-                "active":"is undefined"
-            },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
             },
