@@ -122,7 +122,7 @@ jobs:
                git push origin "${VERSION}"
 
                echo "Creating GitHub release from ${VERSION}…"
-               gh release create "${VERSION}" --generate-notes --verify-tag
+               gh release create "${VERSION}" --generate-notes --verify-tag --notes-start-tag "go/${VERSION}"
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}
