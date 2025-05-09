@@ -5268,7 +5268,7 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object rawNetwork = this.safeStringUpper(parameters, "network");
+        object rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
         parameters = this.omit(parameters, "network");
         code = this.safeCurrencyCode(code);
         object network = this.networkIdToCode(rawNetwork, code);
