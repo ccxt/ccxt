@@ -2237,7 +2237,7 @@ func  (this *bybit) FetchOptionMarkets(params interface{}) <- chan interface{} {
                         "quoteId": quoteId,
                         "settleId": settleId,
                         "type": "option",
-                        "subType": "linear",
+                        "subType": nil,
                         "spot": false,
                         "margin": false,
                         "swap": false,
@@ -2245,8 +2245,8 @@ func  (this *bybit) FetchOptionMarkets(params interface{}) <- chan interface{} {
                         "option": true,
                         "active": isActive,
                         "contract": true,
-                        "linear": true,
-                        "inverse": false,
+                        "linear": nil,
+                        "inverse": nil,
                         "taker": this.SafeNumber(market, "takerFee", this.ParseNumber("0.0006")),
                         "maker": this.SafeNumber(market, "makerFee", this.ParseNumber("0.0001")),
                         "contractSize": this.ParseNumber("1"),
@@ -4351,12 +4351,12 @@ func  (this *bybit) CreateOrderRequest(symbol interface{}, typeVar interface{}, 
     }
     if IsTrue(GetValue(market, "spot")) {
         AddElementToObject(request, "category", "spot")
+    } else if IsTrue(GetValue(market, "option")) {
+        AddElementToObject(request, "category", "option")
     } else if IsTrue(GetValue(market, "linear")) {
         AddElementToObject(request, "category", "linear")
     } else if IsTrue(GetValue(market, "inverse")) {
         AddElementToObject(request, "category", "inverse")
-    } else if IsTrue(GetValue(market, "option")) {
-        AddElementToObject(request, "category", "option")
     }
     var cost interface{} = this.SafeString(params, "cost")
     params = this.Omit(params, "cost")
