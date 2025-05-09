@@ -83,7 +83,10 @@ class FastClient(AiohttpClient):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, new_size)
 
         ws_reader = connection.protocol._payload_parser
-        ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        try:
+            ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        except Exception as error:
+            raise Exception("Failed to wrap parse_frame, you might try downgrading aiohttp package to 3.10.11 version | " + str(error))
         ws_reader.queue.feed_data = feed_data
         ws_reader.queue.feed_eof = feed_eof
         self.connection.close = close
