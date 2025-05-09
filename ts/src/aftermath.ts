@@ -71,10 +71,10 @@ export default class aftermath extends Exchange {
             },
             'urls': {
                 'api': {
-                    'rest': 'https://aftermath.finance/iperps-api/ccxt'
+                    'rest': 'https://aftermath.finance/iperps-api/ccxt',
                 },
                 'test': {
-                    'rest': 'https://testnet.aftermath.finance/iperps-api/ccxt'
+                    'rest': 'https://testnet.aftermath.finance/iperps-api/ccxt',
                 },
             },
             'api': {

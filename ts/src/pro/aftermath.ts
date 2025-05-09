@@ -348,7 +348,7 @@ export default class aftermath extends aftermathRest {
                 try {
                     const feedback = this.id + ' ' + message;
                     this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                    throw new ExchangeError(message);
+                    throw new ExchangeError (message);
                 } catch (error) {
                     if (error instanceof AuthenticationError) {
                         const messageHash = 'authenticated';
