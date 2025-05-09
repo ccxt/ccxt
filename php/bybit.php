@@ -5966,7 +5966,8 @@ class bybit extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($enableUnified[1]) {
-            if ($subType === 'inverse') {
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+            if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
                 $response = $this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params));
             } else {
                 $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
