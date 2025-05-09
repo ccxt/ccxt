@@ -974,6 +974,37 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetchLedger using uta 1.0",
+                "options": {
+                    "unifiedMarginStatus": 4
+                },
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLedger (inverse) using uta 2.0",
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Default fetchLedger",
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
@@ -981,6 +1012,9 @@
             },
             {
                 "description": "Ledger from inverse wallet",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
                 "input": [
