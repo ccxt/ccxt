@@ -14,7 +14,7 @@
         "id": 0,
         "name": "BTC",
         "code": "BTC",
-        "precision": null,
+        "precision": 0.00001,
         "info": {
             "szDecimals": "5",
             "name": "BTC",
