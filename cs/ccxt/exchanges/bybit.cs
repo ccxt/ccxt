@@ -2208,7 +2208,7 @@ public partial class bybit : Exchange
                     { "quoteId", quoteId },
                     { "settleId", settleId },
                     { "type", "option" },
-                    { "subType", "linear" },
+                    { "subType", null },
                     { "spot", false },
                     { "margin", false },
                     { "swap", false },
@@ -2216,8 +2216,8 @@ public partial class bybit : Exchange
                     { "option", true },
                     { "active", isActive },
                     { "contract", true },
-                    { "linear", true },
-                    { "inverse", false },
+                    { "linear", null },
+                    { "inverse", null },
                     { "taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")) },
                     { "maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")) },
                     { "contractSize", this.parseNumber("1") },
@@ -4277,15 +4277,15 @@ public partial class bybit : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["category"] = "spot";
+        } else if (isTrue(getValue(market, "option")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "option";
         } else if (isTrue(getValue(market, "linear")))
         {
             ((IDictionary<string,object>)request)["category"] = "linear";
         } else if (isTrue(getValue(market, "inverse")))
         {
             ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
         }
         object cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
