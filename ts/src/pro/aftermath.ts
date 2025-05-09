@@ -28,14 +28,12 @@ export default class aftermath extends aftermathRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://aftermath.finance/iperps-api/ccxt/stream',
-                        'private': 'wss://aftermath.finance/iperps-api/ccxt/stream',
+                        'swap': 'wss://aftermath.finance/iperps-api/ccxt/stream',
                     },
                 },
                 'test': {
                     'ws': {
-                        'public': 'wss://testnet.aftermath.finance/iperps-api/ccxt/stream',
-                        'private': 'wss://testnet.aftermath.finance/iperps-api/ccxt/stream',
+                        'swap': 'wss://testnet.aftermath.finance/iperps-api/ccxt/stream',
                     },
                 },
             },
@@ -56,12 +54,12 @@ export default class aftermath extends aftermathRest {
     }
 
     async watchPublic (suffix, messageHash, message) {
-        const url = this.urls['api']['ws']['public'] + '/' + suffix;
+        const url = this.urls['api']['ws']['swap'] + '/' + suffix;
         return await this.watch (url, messageHash, this.json (message), messageHash, message);
     }
 
     async watchPublicMultiple (suffix, messageHashes, message) {
-        const url = this.urls['api']['ws']['public'] + '/' + suffix;
+        const url = this.urls['api']['ws']['swap'] + '/' + suffix;
         return await this.watchMultiple (url, messageHashes, this.json (message), messageHashes, message);
     }
 
@@ -259,7 +257,7 @@ export default class aftermath extends aftermathRest {
         };
         const message = this.extend (request, params);
         const suffix = 'positions';
-        const url = this.urls['api']['ws']['public'] + '/' + suffix;
+        const url = this.urls['api']['ws']['swap'] + '/' + suffix;
         const client = this.client (url);
         this.setPositionsCache (client, symbols, params);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
