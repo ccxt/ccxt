@@ -5993,7 +5993,8 @@ class bybit extends bybit$1 {
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (enableUnified[1]) {
-            if (subType === 'inverse') {
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+            if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
             }
             else {
