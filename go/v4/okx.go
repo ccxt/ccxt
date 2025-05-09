@@ -5539,7 +5539,7 @@ func  (this *okx) FetchDepositAddress(code interface{}, optionalArgs ...interfac
         
             retRes50568 := (<-this.LoadMarkets())
             PanicOnError(retRes50568)
-            var rawNetwork interface{} = this.SafeStringUpper(params, "network")
+            var rawNetwork interface{} = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
             params = this.Omit(params, "network")
             code = this.SafeCurrencyCode(code)
             var network interface{} = this.NetworkIdToCode(rawNetwork, code)
