@@ -6155,8 +6155,8 @@ export default class Exchange {
 
     isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined): boolean {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // leveraged
-            'UP', 'DOWN', // directional
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
