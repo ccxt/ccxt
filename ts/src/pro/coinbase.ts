@@ -307,18 +307,6 @@ export default class coinbase extends coinbaseRest {
                 this.tryResolveUsdc (client, messageHash, result);
             }
         }
-        const messageHashes = this.findMessageHashes (client, 'ticker_batch::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            if (!this.isEmpty (tickers)) {
-                client.resolve (tickers, messageHash);
-                this.tryResolveUsdc (client, messageHash, tickers);
-            }
-        }
     }
 
     parseWsTicker (ticker, market = undefined) {
