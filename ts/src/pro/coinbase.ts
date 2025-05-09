@@ -182,8 +182,11 @@ export default class coinbase extends coinbaseRest {
             symbols = this.symbols;
         }
         const name = 'ticker_batch';
-        const tickers = await this.subscribe (name, false, symbols, params);
+        const ticker = await this.subscribeMultiple (name, false, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
             return tickers;
         }
         return this.tickers;
