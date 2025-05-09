@@ -10,9 +10,20 @@ import asyncio
 import concurrent.futures
 import socket
 import certifi
+import sys
+import os
+required_aiohttp_no_extensions_value = "1" # This forces aiohttp to run without C extensions.
+current_aiohttp_no_extensions_value = os.environ.get("AIOHTTP_NO_EXTENSIONS", required_aiohttp_no_extensions_value)
+if current_aiohttp_no_extensions_value != required_aiohttp_no_extensions_value:
+    raise RuntimeError(
+        "ccxt currently requires aiohttp to run without C extensions. "
+        "Please set the environment variable AIOHTTP_NO_EXTENSIONS=1 before importing aiohttp. "
+    )
+os.environ["AIOHTTP_NO_EXTENSIONS"] = "1"
+if "aiohttp" in sys.modules:
+    del sys.modules["aiohttp"]  # Ensure aiohttp is reloaded after setting env var
 import aiohttp
 import ssl
-import sys
 import yarl
 import math
 from typing import Any, List
