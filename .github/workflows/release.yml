@@ -103,7 +103,7 @@ jobs:
         run: git status
       - name: cleanup old tags
         run: npm run cleanup-old-tags --limit
-      - name: Create GH Release and git-tag-version and push
+      - name: Generate Release Notes
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
           GH_TOKEN: ${{ github.token }}
@@ -114,6 +114,9 @@ jobs:
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
                git push origin HEAD:master
+               PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
+               echo "Previous tag: ${PREVIOUS_TAG}"
+
 
                git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
                git push origin "go/${VERSION}"
@@ -122,7 +125,7 @@ jobs:
                git push origin "${VERSION}"
 
                echo "Creating GitHub release from ${VERSION}…"
-               gh release create "${VERSION}" --generate-notes --verify-tag
+               gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}
