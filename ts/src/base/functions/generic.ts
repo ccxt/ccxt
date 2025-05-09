@@ -9,7 +9,18 @@ import { isObject, isNumber, isDictionary, isArray } from './type.js';
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
 const values = (x: any[] | Dictionary<any>) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
 const index = (x: any[]) => new Set (values (x));
-const extend = (...args: any[]) => Object.assign ({}, ...args); // NB: side-effect free
+
+const extend = (...args: any[]) =>  {
+    const result = {};
+    for (const arg of args) {
+        // avoid nulls
+        if (arg && typeof arg === 'object') {
+            Object.assign(result, structuredClone(arg));
+        }
+    }
+    return result;
+}
+
 const clone = (x: any) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
 
 // ----------------------------------------------------------------------------
