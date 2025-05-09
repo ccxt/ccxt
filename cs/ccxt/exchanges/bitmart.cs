@@ -5115,7 +5115,7 @@ public partial class bitmart : Exchange
             // only supports symbols as undefined or sending one symbol
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetContractPrivatePositionV2", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //
         //     {
         //         "code": 1000,
