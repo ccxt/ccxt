@@ -5055,7 +5055,7 @@ export default class okx extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const rawNetwork = this.safeStringUpper (params, 'network');
+        const rawNetwork = this.safeString (params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code);
         const network = this.networkIdToCode (rawNetwork, code);
