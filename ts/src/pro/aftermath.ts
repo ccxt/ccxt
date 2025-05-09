@@ -45,6 +45,10 @@ export default class aftermath extends aftermathRest {
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 // 'ping': this.ping,
@@ -199,30 +203,22 @@ export default class aftermath extends aftermathRest {
         } else {
             messageHashes.push ('positions');
         }
-        // const url = this.urls['api']['ws']['private'] + '/' + this.uid;
-        // const client = this.client (url);
-        // this.setPositionsCache (client, symbols);
-        // const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        // const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        // if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
-        //     const snapshot = await client.future ('fetchPositionsSnapshot');
-        //     return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
-        // }
-        // const request: Dict = {
-        //     'event': 'subscribe',
-        //     'topic': 'position',
-        // };
-        // const topic = market['id'] + '@orderbook';
-        // const request: Dict = {
-        //     'chId': market['id'],
-        // };
         const accountNumber = this.safeNumber (params, 'accountNumber');
-        params = this.omit (params, 'accountNumber');
         const request = {
             'accountNumber': accountNumber,
         };
         const message = this.extend (request, params);
-        const newPositions = await this.watchPublic ('positions', messageHashes[0], message);
+        const suffix = 'positions';
+        const url = this.urls['api']['ws']['public'] + '/' + suffix;
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols, params);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watchPublic (suffix, messageHashes[0], message);
         // const newPositions = await this.watchPrivateMultiple (messageHashes, request, params);
         if (this.newUpdates) {
             return newPositions;
@@ -230,28 +226,68 @@ export default class aftermath extends aftermathRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
+    setPositionsCache (client: Client, symbols: Strings = undefined, params: Dict = {}) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, symbols, params);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash, symbols, params) {
+        const positions = await this.fetchPositions (symbols, params);
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append (position);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'positions');
+    }
+
     handlePositions (client, message) {
         //
+        // {
+        //     "collateral": 0.1,
+        //     "contractSize": 0.1,
+        //     "contracts": 0.1,
+        //     "datetime": "string",
+        //     "entryPrice": 0.1,
+        //     "id": "0x895037c09dd1025a136b5a5789c4ea2481176adf4c3b0c3521d5d2039bdfc3ba:123",
+        //     "initialMargin": 0.1,
+        //     "initialMarginPercentage": 0.1,
+        //     "leverage": 0.1,
+        //     "liquidationPrice": 0.1,
+        //     "maintenanceMargin": 0.1,
+        //     "maintenanceMarginPercentage": 0.1,
+        //     "marginMode": "cross",
+        //     "marginRatio": 0.1,
+        //     "notional": 0.1,
+        //     "side": "long",
+        //     "symbol": "BTC/USD:USDC",
+        //     "timestamp": 9007199254740991,
+        //     "unrealizedPnl": 0.1
+        // }
         //
-        const data = this.safeValue (message, 'data', {});
-        const rawPositions = this.safeValue (data, 'positions', {});
-        const postitionsIds = Object.keys (rawPositions);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
-        for (let i = 0; i < postitionsIds.length; i++) {
-            const marketId = postitionsIds[i];
-            const market = this.safeMarket (marketId);
-            const rawPosition = rawPositions[marketId];
-            const position = this.parsePosition (rawPosition, market);
-            newPositions.push (position);
-            cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
-            client.resolve (position, messageHash);
-        }
-        client.resolve (newPositions, 'positions');
+        const symbol = this.safeString (message, 'symbol');
+        const market = this.safeMarket (symbol);
+        const position = this.parsePosition (message, market);
+        cache.append (position);
+        const messageHash = 'positions::' + market['symbol'];
+        client.resolve (position, messageHash);
+        client.resolve ([ position ], 'positions');
     }
 
     handleErrorMessage (client: Client, message) {
@@ -289,7 +325,7 @@ export default class aftermath extends aftermathRest {
         // };
         if ('asks' in message) {
             this.handleOrderBook (client, message);
-        } else if ('trades' in message) {
+        } else if ('notional' in message) {
             this.handlePositions (client, message);
         } else {
             this.handleTrade (client, message);
