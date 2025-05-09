@@ -289,15 +289,15 @@ export default class coinbase extends coinbaseRest {
             const tickers = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
+                const wsMarketId = this.safeString (ticker, 'product_id');
+                if (wsMarketId === undefined) {
+                    continue;
+                }
                 const result = this.parseWsTicker (ticker);
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
                 this.tickers[symbol] = result;
-                const wsMarketId = this.safeString (ticker, 'product_id');
-                if (wsMarketId === undefined) {
-                    continue;
-                }
                 newTickers.push (result);
                 const messageHash = channel + '::' + symbol;
                 client.resolve (result, messageHash);
