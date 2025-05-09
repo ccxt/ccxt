@@ -672,6 +672,10 @@ export default class coinbase extends coinbaseRest {
             if (type === 'snapshot') {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
+            // unknown bug, can't reproduce, but sometimes orderbook is undefined
+            if (!(symbol in this.orderBook) && this.orderbooks[symbol] === undefined) {
+                return;
+            }
             const orderbook = this.orderbooks[symbol];
             this.handleOrderBookHelper (orderbook, updates);
             orderbook['timestamp'] = this.parse8601 (datetime);
