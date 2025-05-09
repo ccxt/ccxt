@@ -674,7 +674,7 @@ export default class coinbase extends coinbaseRest {
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
             if (!(symbol in this.orderBook) && this.orderbooks[symbol] === undefined) {
-                return;
+                continue;
             }
             const orderbook = this.orderbooks[symbol];
             this.handleOrderBookHelper (orderbook, updates);
