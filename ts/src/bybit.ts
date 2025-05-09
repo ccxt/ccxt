@@ -2175,6 +2175,7 @@ export default class bybit extends Exchange {
             const strike = this.safeString (splitId, 2);
             const optionLetter = this.safeString (splitId, 3);
             const isActive = (status === 'Trading');
+            const isLinear = quote === settle;
             if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
                 result.push (this.safeMarketStructure ({
                     'id': id,
@@ -2194,8 +2195,8 @@ export default class bybit extends Exchange {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': isLinear,
+                    'inverse': !isLinear,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
                     'contractSize': this.parseNumber ('1'),
