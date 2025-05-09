@@ -1,12 +1,9 @@
 // ----------------------------------------------------------------------------
 
 import aftermathRest from '../aftermath.js';
-import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
-import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
-import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict } from '../base/types.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { Int, Strings, OrderBook, Trade, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -166,21 +163,70 @@ export default class aftermath extends aftermathRest {
         // }
         //
         const symbol = this.safeString (message, 'symbol');
-        const timestamp = this.safeInteger (message, 'timestamp');
-        const nonce = this.safeInteger (message, 'nonce');
         const market = this.market (symbol);
-        const snapshot = this.parseOrderBook (message, symbol, timestamp);
-        snapshot['nonce'] = nonce;
         const topic = market['id'] + '@orderbook';
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
+            subscription['limit'] = limit;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        } else {
+            const orderbook = this.orderbooks[symbol];
+            const prevNonce = this.safeInteger (orderbook, 'nonce');
+            const nonce = this.safeInteger (message, 'nonce');
+            if (nonce === (prevNonce + 1)) {
+                this.handleOrderBookMessage (client, message, orderbook);
+                client.resolve (orderbook, topic);
+            }
         }
-        const orderbook = this.orderbooks[symbol];
-        orderbook.reset (snapshot);
-        client.resolve (orderbook, topic);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (message, 'symbol');
+        const market = this.market (symbol);
+        const messageHash = market['id'] + '@orderbook';
+        try {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            const params = this.safeDict (subscription, 'params');
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook) {
+        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const nonce = this.safeInteger (message, 'nonce');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = nonce;
+        return orderbook;
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat2 (delta, 'price', 0);
+        const amount = this.safeFloat2 (delta, 'quantity', 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     /**
