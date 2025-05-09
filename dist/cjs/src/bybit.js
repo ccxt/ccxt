@@ -2183,7 +2183,7 @@ class bybit extends bybit$1 {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
-                    'subType': 'linear',
+                    'subType': undefined,
                     'spot': false,
                     'margin': false,
                     'swap': false,
@@ -2191,8 +2191,8 @@ class bybit extends bybit$1 {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': true,
-                    'inverse': false,
+                    'linear': undefined,
+                    'inverse': undefined,
                     'taker': this.safeNumber(market, 'takerFee', this.parseNumber('0.0006')),
                     'maker': this.safeNumber(market, 'makerFee', this.parseNumber('0.0001')),
                     'contractSize': this.parseNumber('1'),
@@ -4107,14 +4107,14 @@ class bybit extends bybit$1 {
         if (market['spot']) {
             request['category'] = 'spot';
         }
+        else if (market['option']) {
+            request['category'] = 'option';
+        }
         else if (market['linear']) {
             request['category'] = 'linear';
         }
         else if (market['inverse']) {
             request['category'] = 'inverse';
-        }
-        else if (market['option']) {
-            request['category'] = 'option';
         }
         const cost = this.safeString(params, 'cost');
         params = this.omit(params, 'cost');
