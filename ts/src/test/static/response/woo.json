@@ -1381,6 +1381,31 @@
               }
             ]
           }
+        ],
+        "fetchDepositAddress": [
+          {
+            "description": "fetch btc address",
+            "method": "fetchDepositAddress",
+            "input": [
+              "BTC"
+            ],
+            "httpResponse": {
+              "success": true,
+              "address": "0x3e57dE8d287190BB371b392834DbC4e79F8220c4",
+              "extra": ""
+            },
+            "parsedResponse": {
+              "info": {
+                "success": true,
+                "address": "0x3e57dE8d287190BB371b392834DbC4e79F8220c4",
+                "extra": ""
+              },
+              "currency": "BTC",
+              "network": "BSC",
+              "address": "0x3e57dE8d287190BB371b392834DbC4e79F8220c4",
+              "tag": null
+            }
+          }
         ]
     }
 }

@@ -393,6 +393,14 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetch btc address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=BSC_BTCB",
+                "input": [
+                    "BTC"
+                ]
             }
         ],
         "fetchOHLCV": [
