@@ -1130,7 +1130,9 @@ export default class oxfun extends Exchange {
         };
         const response = await this.publicGetV3FundingEstimates (this.extend (request, params));
         //
-        return this.parseFundingRate (response, this.market (symbol));
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseFundingRate (first, this.market (symbol));
     }
 
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
