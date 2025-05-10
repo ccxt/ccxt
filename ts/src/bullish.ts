@@ -4,7 +4,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
+import { Bool, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -992,6 +992,65 @@ export default class bullish extends Exchange {
         return this.parseOrder (response);
     }
 
+    /**
+     * @method
+     * @name bullish#createOrder
+     * @description create a trade order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a custom client order id
+     * @param {float} [params.stopPrice] the price at which a stop order is triggered at
+     * @param {string} [params.timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
+     * @param {bool} [params.allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'commandType': 'V3CreateOrder',
+            'symbol': market['id'],
+            'side': side,
+            'price': price,
+            'quantity': this.amountToPrecision (symbol, amount),
+            'timeInForce': this.safeString (params, 'timeInForce', 'GTC'),
+            'allowBorrow': this.safeValue (params, 'allowBorrow', false),
+            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        const stopPrice = this.safeString (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPrice'] = stopPrice;
+            request['type'] = 'STOP_LIMIT';
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            request['type'] = 'POST_ONLY';
+        }
+        request['type'] = this.capitalize (type);
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice' ]);
+        const response = await this.privatePostV2Orders (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Command acknowledged - CreateOrder",
+        //         "requestId": "633910976353665024",
+        //         "orderId": "633910775316480001",
+        //         "clientOrderId": "1234567"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders, fetchOrder
@@ -1019,6 +1078,14 @@ export default class bullish extends Exchange {
         //         "statusReasonCode": "1002",
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
         //         "createdAtTimestamp": "1621490985000",
+        //     }
+        //
+        // createOrder
+        //     {
+        //         "message": "Command acknowledged - CreateOrder",
+        //         "requestId": "633910976353665024",
+        //         "orderId": "633910775316480001",
+        //         "clientOrderId": "1234567"
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
