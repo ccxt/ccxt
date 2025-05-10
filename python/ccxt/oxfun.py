@@ -83,7 +83,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -1102,6 +1102,26 @@ class oxfun(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rates for a symbol
+
+        https://docs.ox.fun/?json#get-v3-funding-estimates
+
+        :param str symbol: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'marketCode': self.market_id(symbol),
+        }
+        response = self.publicGetV3FundingEstimates(self.extend(request, params))
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_funding_rate(first, self.market(symbol))
 
     def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
