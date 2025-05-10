@@ -1,11 +1,10 @@
 //  ---------------------------------------------------------------------------
 
-import { time } from 'console';
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
+import { Bool, Currencies, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -79,14 +78,14 @@ export default class bullish extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -99,7 +98,7 @@ export default class bullish extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -120,7 +119,7 @@ export default class bullish extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
-                'ws': false,
+                'ws': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -147,15 +146,15 @@ export default class bullish extends Exchange {
                 'public': {
                     'get': {
                         'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
+                        'v1/time': 1, // done
+                        'v1/assets': 1, // done
+                        'v1/assets/{symbol}': 1, // not used
+                        'v1/markets': 1, // done
+                        'v1/markets/{symbol}': 1, // not used
+                        'v1/markets/{symbol}/orderbook/hybrid': 1, // done
+                        'v1/markets/{symbol}/trades': 1, // done
+                        'v1/markets/{symbol}/tick': 1, // done
+                        'v1/markets/{symbol}/candle': 1, // done
                         'v1/history/markets/{symbol}/trades': 1,
                         'v1/history/markets/{symbol}/funding-rate': 1,
                         'v1/index-prices': 1,
@@ -164,7 +163,7 @@ export default class bullish extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
+                        'v2/orders': 1, // todo complete while get api keys
                         'v2/orders/{orderId}': 1,
                         'v2/amm-instructions': 1,
                         'v2/amm-instructions/{instructionId}': 1,
@@ -878,6 +877,158 @@ export default class bullish extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, not used by bullish
+     * @param {int} [limit] the maximum number of order structures to retrieve, not used by bullish
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new BadRequest (this.id + ' fetchOrders() requires a tradingAccountId parameter');
+        }
+        params = this.omit (params, 'tradingAccountId');
+        request['tradingAccountId'] = tradingAccountId;
+        const response = await this.privateGetV2Orders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "clientOrderId": "187",
+        //             "orderId": "297735387747975680",
+        //             "symbol": "BTCUSDC",
+        //             "price": "1.00000000",
+        //             "averageFillPrice": "1.00000000",
+        //             "stopPrice": "1.00000000",
+        //             "allowBorrow": false,
+        //             "quantity": "1.00000000",
+        //             "quantityFilled": "1.00000000",
+        //             "quoteAmount": "1.00000000",
+        //             "baseFee": "0.00100000",
+        //             "quoteFee": "0.0010",
+        //             "borrowedBaseQuantity": "1.00000000",
+        //             "borrowedQuoteQuantity": "1.00000000",
+        //             "isLiquidation": false,
+        //             "side": "BUY",
+        //             "type": "LMT",
+        //             "timeInForce": "GTC",
+        //             "status": "OPEN",
+        //             "statusReason": "User cancelled",
+        //             "statusReasonCode": "1002",
+        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //             "createdAtTimestamp": "1621490985000",
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // fetchOrders
+        //     {
+        //         "clientOrderId": "187",
+        //         "orderId": "297735387747975680",
+        //         "symbol": "BTCUSDC",
+        //         "price": "1.00000000",
+        //         "averageFillPrice": "1.00000000",
+        //         "stopPrice": "1.00000000",
+        //         "allowBorrow": false,
+        //         "quantity": "1.00000000",
+        //         "quantityFilled": "1.00000000",
+        //         "quoteAmount": "1.00000000",
+        //         "baseFee": "0.00100000",
+        //         "quoteFee": "0.0010",
+        //         "borrowedBaseQuantity": "1.00000000",
+        //         "borrowedQuoteQuantity": "1.00000000",
+        //         "isLiquidation": false,
+        //         "side": "BUY",
+        //         "type": "LMT",
+        //         "timeInForce": "GTC",
+        //         "status": "OPEN",
+        //         "statusReason": "User cancelled",
+        //         "statusReasonCode": "1002",
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const id = this.safeString (order, 'clientOrderId');
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAtTimestamp'));
+        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const side = this.safeString (order, 'side');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'quantityFilled');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeString (order, 'stopPrice');
+        const cost = this.safeString (order, 'quoteAmount');
+        const fee = {};
+        const quoteFee = this.safeNumber (order, 'quoteFee');
+        if (quoteFee !== undefined) {
+            fee['cost'] = quoteFee;
+            fee['currency'] = market['quote'];
+        }
+        const average = this.safeString (order, 'averageFillPrice');
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'triggerPrice': stopPrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': cost,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+            'average': average,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'OPEN': 'open',
+            'CLOSED': 'closed',
+            'CANCELLED': 'canceled',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'LMT': 'limit',
+            'MKT': 'market',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
