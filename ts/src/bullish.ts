@@ -4,7 +4,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Bool, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import { Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
@@ -1229,6 +1229,141 @@ export default class bullish extends Exchange {
             'MKT': 'market',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        if (since === undefined) {
+            throw new BadRequest (this.id + ' fetchDepositsWithdrawals() requires a since argument');
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
+        const request: Dict = {
+            'createdAtDatetime[gte]': this.iso8601 (since),
+            'createdAtDatetime[lte]': this.iso8601 (until),
+        };
+        const response = await this.privateGetV1WalletsTransactions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "custodyTransactionId": "DB:9e6304a08c9cc2a33e6bc6429a088eae2a6b940c8e312aede3a3780257b9b979",
+        //             "direction": "DEPOSIT",
+        //             "quantity": "100000.00",
+        //             "symbol": "USDC",
+        //             "network": "EOS",
+        //             "fee": "3.00",
+        //             "memo": "925891241",
+        //             "createdAtDateTime": "2022-09-16T07:56:15.000Z",
+        //             "status": "COMPLETE",
+        //             "transactionDetails":
+        //                 {
+        //                     "address": "0xb0a64d976972d87b0783eeb1ff88306cd1891f02",
+        //                     "blockchainTxId": "0xec557f2c7278d2dae2d98a27b9bd43f386789a4209090cbbd11595f1bed4a4c2",
+        //                     "swiftUetr": "b55aa5cd-baa2-4122-8c17-ae9b856ae36a"
+        //                 }
+        //         }
+        //     ]
+        //
+        let currency = undefined;
+        for (let i = 0; i < response.length; i++) {
+            const transaction = response[i];
+            const currencyId = this.safeString (transaction, 'symbol');
+            currency = this.safeCurrencyCode (currencyId);
+        }
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "custodyTransactionId": "DB:9e6304a08c9cc2a33e6bc6429a088eae2a6b940c8e312aede3a3780257b9b979",
+        //         "direction": "DEPOSIT",
+        //         "quantity": "100000.00",
+        //         "symbol": "USDC",
+        //         "network": "EOS",
+        //         "fee": "3.00",
+        //         "memo": "925891241",
+        //         "createdAtDateTime": "2022-09-16T07:56:15.000Z",
+        //         "status": "COMPLETE",
+        //         "transactionDetails":
+        //             {
+        //                 "address": "0xb0a64d976972d87b0783eeb1ff88306cd1891f02",
+        //                 "blockchainTxId": "0xec557f2c7278d2dae2d98a27b9bd43f386789a4209090cbbd11595f1bed4a4c2",
+        //                 "swiftUetr": "b55aa5cd-baa2-4122-8c17-ae9b856ae36a"
+        //             }
+        //     }
+        //
+        const id = this.safeString (transaction, 'custodyTransactionId');
+        const type = this.safeString (transaction, 'direction');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAtDateTime'));
+        const network = this.safeString (transaction, 'network');
+        const transactionDetails = this.safeDict (transaction, 'transactionDetails');
+        const address = this.safeString (transactionDetails, 'address');
+        const amount = this.safeNumber (transaction, 'quantity');
+        const currencyId = this.safeString (transaction, 'symbol');
+        const code = this.safeCurrencyCode (currencyId);
+        const status = this.safeString (transaction, 'status');
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
+        const feeCost = this.safeNumber (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+            fee['currency'] = currency['code'];
+        }
+        return {
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'addressFrom': undefined,
+            'address': address,
+            'addressTo': undefined,
+            'amount': amount,
+            'type': this.parseTransactionType (type),
+            'currency': code,
+            'status': this.parseTransactionStatus (status),
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': fee,
+            'info': transaction,
+        };
+    }
+
+    parseTransactionType (type) {
+        const types: Dict = {
+            'DEPOSIT': 'deposit',
+            'WITHDRAW': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'COMPLETE': 'ok',
+            'FAILED': 'failed',
+            'PENDING': 'pending',
+            'CANCELLED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
