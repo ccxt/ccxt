@@ -2478,6 +2478,13 @@ export default class bybit extends Exchange {
         let category = undefined;
         [ category, params ] = this.getBybitType ('fetchTickers', market, params);
         request['category'] = category;
+        if (category === 'option') {
+            request['category'] = 'option';
+            if (code === undefined) {
+                code = 'BTC';
+            }
+            request['baseCoin'] = code;
+        }
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
