@@ -5,6 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Bool, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,11 +32,11 @@ export default class bullish extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -187,8 +188,8 @@ export default class bullish extends Exchange {
                         'v1/history/borrow-interest': 1,
                     },
                     'post': {
-                        'v2/orders': 1,
-                        'v2/command': 1,
+                        'v2/orders': 1, // todo complete while get api keys
+                        'v2/command': 1, // todo complete while get api keys
                         'v2/amm-instructions': 1,
                         'v1/wallets/withdrawal': 1,
                         'v2/users/login': 1,
@@ -1051,6 +1052,72 @@ export default class bullish extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name bullish#cancelOrder
+     * @description cancels an open order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.commandType] the command type, default is 'V3CancelOrder'
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'commandType': this.safeString (params, 'commandType', 'V3CancelOrder'),
+            'orderId': parseInt (id),
+            'symbol': market['id'],
+            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
+        };
+        const response = await this.privatePostV2Command (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Command acknowledged - CancelOrder",
+        //         "requestId": "633910976353665024",
+        //         "orderId": "633910775316480001"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name bullish#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.commandType] the command type, default is 'V3CancelOrder'
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
+        };
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+            request['commandType'] = 'V1CancelAllOrdersByMarket';
+            params = this.omit (params, 'commandType');
+        } else {
+            request['commandType'] = this.safeString (params, 'commandType', 'V3CancelAllOrders');
+        }
+        const response = await this.privatePostV2Command (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Command acknowledged - CancelAllOrders",
+        //         "requestId": "633900538459062272"
+        //     }
+        //
+        return this.parseOrders (response, market);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders, fetchOrder
@@ -1086,6 +1153,19 @@ export default class bullish extends Exchange {
         //         "requestId": "633910976353665024",
         //         "orderId": "633910775316480001",
         //         "clientOrderId": "1234567"
+        //     }
+        //
+        // cancelOrder
+        //     {
+        //         "message": "Command acknowledged - CancelOrder",
+        //         "requestId": "633910976353665024",
+        //         "orderId": "633910775316480001"
+        //     }
+        //
+        // cancelAllOrders
+        //     {
+        //         "message": "Command acknowledged - CancelAllOrders",
+        //         "requestId": "633900538459062272"
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
