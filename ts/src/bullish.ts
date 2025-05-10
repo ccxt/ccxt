@@ -82,7 +82,7 @@ export default class bullish extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
@@ -164,7 +164,7 @@ export default class bullish extends Exchange {
                 'private': {
                     'get': {
                         'v2/orders': 1, // todo complete while get api keys
-                        'v2/orders/{orderId}': 1,
+                        'v2/orders/{orderId}': 1, // todo complete while get api keys
                         'v2/amm-instructions': 1,
                         'v2/amm-instructions/{instructionId}': 1,
                         'v1/wallets/transactions': 1,
@@ -939,9 +939,62 @@ export default class bullish extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bullish#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new BadRequest (this.id + ' fetchOrders() requires a tradingAccountId parameter');
+        }
+        params = this.omit (params, 'tradingAccountId');
+        request['tradingAccountId'] = tradingAccountId;
+        const response = await this.privateGetV2OrdersOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "clientOrderId": "187",
+        //         "orderId": "297735387747975680",
+        //         "symbol": "BTCUSDC",
+        //         "price": "1.00000000",
+        //         "averageFillPrice": "1.00000000",
+        //         "stopPrice": "1.00000000",
+        //         "allowBorrow": false,
+        //         "quantity": "1.00000000",
+        //         "quantityFilled": "1.00000000",
+        //         "quoteAmount": "1.00000000",
+        //         "baseFee": "0.00100000",
+        //         "quoteFee": "0.0010",
+        //         "borrowedBaseQuantity": "1.00000000",
+        //         "borrowedQuoteQuantity": "1.00000000",
+        //         "isLiquidation": false,
+        //         "side": "BUY",
+        //         "type": "LMT",
+        //         "timeInForce": "GTC",
+        //         "status": "OPEN",
+        //         "statusReason": "User cancelled",
+        //         "statusReasonCode": "1002",
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchOrders
+        // fetchOrders, fetchOrder
         //     {
         //         "clientOrderId": "187",
         //         "orderId": "297735387747975680",
