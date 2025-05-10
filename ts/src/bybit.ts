@@ -2373,17 +2373,9 @@ export default class bybit extends Exchange {
             // 'baseCoin': '', Base coin. For option only
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
-        if (market['spot']) {
-            request['category'] = 'spot';
-        } else {
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            }
-        }
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('fetchTicker', market, params);
+        request['category'] = category;
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
@@ -2483,26 +2475,9 @@ export default class bybit extends Exchange {
             // 'baseCoin': '', // Base coin. For option only
             // 'expDate': '', // Expiry date. e.g., 25DEC22. For option only
         };
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
-        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
-        // with higher priority and only default to spot, if `subType` is not set in params
-        const passedSubType = this.safeString (params, 'subType');
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
-        // only if passedSubType is undefined, then use spot
-        if (type === 'spot' && passedSubType === undefined) {
-            request['category'] = 'spot';
-        } else if (type === 'option') {
-            request['category'] = 'option';
-            if (code === undefined) {
-                code = 'BTC';
-            }
-            request['baseCoin'] = code;
-        } else if (type === 'swap' || type === 'future' || subType !== undefined) {
-            request['category'] = subType;
-        }
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('fetchTickers', market, params);
+        request['category'] = category;
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
@@ -4080,15 +4055,9 @@ export default class bybit extends Exchange {
                 request['price'] = priceString;
             }
         }
-        if (market['spot']) {
-            request['category'] = 'spot';
-        } else if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('createOrderRequest', market, params);
+        request['category'] = category;
         const cost = this.safeString (params, 'cost');
         params = this.omit (params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4307,15 +4276,9 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
-        if (market['spot']) {
-            request['category'] = 'spot';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        } else if (market['option']) {
-            request['category'] = 'option';
-        }
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('editOrderRequest', market, params);
+        request['category'] = category;
         if (amount !== undefined) {
             request['qty'] = this.getAmount (symbol, amount);
         }
@@ -4524,15 +4487,9 @@ export default class bybit extends Exchange {
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
         }
-        if (market['spot']) {
-            request['category'] = 'spot';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        } else if (market['option']) {
-            request['category'] = 'option';
-        }
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('cancelOrderRequest', market, params);
+        request['category'] = category;
         return this.extend (request, params);
     }
 
@@ -7615,15 +7572,7 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
         };
         let category = undefined;
-        if (market['linear']) {
-            category = 'linear';
-        } else if (market['inverse']) {
-            category = 'inverse';
-        } else if (market['spot']) {
-            category = 'spot';
-        } else {
-            category = 'option';
-        }
+        [ category, params ] = this.getBybitType ('fetchTradingFee', market, params);
         request['category'] = category;
         const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
         //
@@ -7876,10 +7825,10 @@ export default class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.getBybitType ('fetchMySettlementHistory', market, params);
-        if (type === 'spot' || type === 'inverse') {
+        if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchMySettlementHistory() is not supported for spot market');
         }
-        request['category'] = 'linear';
+        request['category'] = type;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
