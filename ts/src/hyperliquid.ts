@@ -2304,6 +2304,10 @@ export default class hyperliquid extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2394,6 +2398,13 @@ export default class hyperliquid extends Exchange {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder ({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
             entry = order;
