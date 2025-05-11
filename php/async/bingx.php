@@ -5891,7 +5891,7 @@ class bingx extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} [$tag]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
+             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -5901,9 +5901,6 @@ class bingx extends Exchange {
             $walletType = $this->safe_integer($params, 'walletType');
             if ($walletType === null) {
                 $walletType = 1;
-            }
-            if (!$this->in_array($walletType, array( 1, 2, 3 ))) {
-                throw new BadRequest($this->id . ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
             }
             $request = array(
                 'coin' => $currency['id'],
