@@ -5792,7 +5792,7 @@ export default class bingx extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -5803,9 +5803,6 @@ export default class bingx extends Exchange {
         let walletType = this.safeInteger (params, 'walletType');
         if (walletType === undefined) {
             walletType = 1;
-        }
-        if (!this.inArray (walletType, [ 1, 2, 3 ])) {
-            throw new BadRequest (this.id + ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
         }
         const request: Dict = {
             'coin': currency['id'],
