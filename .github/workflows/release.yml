@@ -27,10 +27,12 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
+          fetch-tags: true
       - uses: actions/checkout@v4
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+          fetch-tags: true
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
