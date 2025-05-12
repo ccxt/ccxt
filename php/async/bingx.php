@@ -792,7 +792,7 @@ class bingx extends Exchange {
                     if ($isDefault) {
                         $defaultLimits = $limits;
                     }
-                    $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
+                    $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
                     $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
@@ -5898,10 +5898,7 @@ class bingx extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $walletType = $this->safe_integer($params, 'walletType');
-            if ($walletType === null) {
-                $walletType = 1;
-            }
+            $walletType = $this->safe_integer($params, 'walletType', 1);
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
