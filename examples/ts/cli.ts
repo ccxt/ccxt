@@ -45,17 +45,46 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , noKeys = process.argv.includes ('--no-keys')
 
 let foundDescription = undefined;
+const nameIndex = process.argv.indexOf ('--name')
+if (nameIndex >= 0) {
+    foundDescription = process.argv[nameIndex + 1];
+    // search that string in `params` and remove it
+    const index = params.indexOf (foundDescription)
+    if (index >= 0) {
+        params.splice (index, 1);
+    }
+}
+
+let lastParam;
 for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i] === '--name') {
-        foundDescription = process.argv[i + 1];
-        // search that string in `params` and remove it
-        for (let j = 0; j < params.length; j++) {
-            if (params[j] === foundDescription) {
-                params.splice(j, 1);
-                break;
+    if (process.argv[i] === '--param') {
+        const nextParam = process.argv[i + 1]
+        if (nextParam) {
+            const paramIndex = params.indexOf (nextParam)
+            if (paramIndex >= 0) {
+                if (nextParam.indexOf('=') >= 0) {
+                    const parsed = nextParam.split('=')
+                    if (parsed.length === 2) {
+                        if (!lastParam) {
+                            lastParam = {}
+                        }
+                        lastParam[parsed[0]] = parsed[1]
+                        params.splice(paramIndex, 1)
+                    } else {
+                        throw new Error ('Invalid usage of --param. Please provide a key=value pair after --param.')
+                    }
+                } else {
+                    if (!lastParam) {
+                        lastParam = {}
+                    }
+                    lastParam[nextParam] = true
+                }
+            } else {
+                throw new Error (`Unexpected error by parsing parameters: ${nextParam} is not found in params array.`)
             }
+        } else {
+            throw new Error ('Invalid usage of --param. Please provide a value after --param.')
         }
-        break;
     }
 }
 
@@ -212,6 +241,7 @@ function printUsage () {
     log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
+    log ('node', process.argv[1], 'binanceusdm trades BTC/USDC undefined --param until=1746988377067')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
@@ -223,6 +253,8 @@ function printUsage () {
     log ('--no-table        Do not print the fetch response as a table')
     log ('--table           Print the fetch response as a table')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
+    log ('--param key=value Set a custom key=value pair for the last method\'s argument. Can be repeated multiple times')
+    log ('                  NOTE: don\'t forget to fill up missed arguments with "undefined" before last options parameter')
     log ('--cors            use CORS proxy for debugging')
     log ('--sign-in         Call signIn() if any')
     log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
@@ -303,10 +335,13 @@ async function run () {
 
         let args = params
             .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => { 
+            .map (s => (() => {
                 if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
                 try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
             }) ())
+        if (lastParam) {
+            args.push (lastParam)
+        }
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -360,7 +395,7 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                if (!raw) log (exchange.id + '.' + methodName, '(' + JSON.stringify(args) + ')')
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
