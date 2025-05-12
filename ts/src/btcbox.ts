@@ -210,7 +210,7 @@ export default class btcbox extends Exchange {
         const promise2 = this.fetchWebEndpoint ('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
         const [ response1, response2 ] = await Promise.all ([ promise1, promise2 ]);
         //
-        const result2Data = this.safeDict (response2, 'data');
+        const result2Data = this.safeDict (response2, 'data', {});
         const marketIds = Object.keys (response1);
         const markets = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -223,8 +223,8 @@ export default class btcbox extends Exchange {
             const res = response1[marketId];
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber ('0.0005') : this.parseNumber ('0.0010');
-            const details = this.safeDict (result2Data, id);
-            const tradeDetails = this.safeDict (details, 'trade');
+            const details = this.safeDict (result2Data, id, {});
+            const tradeDetails = this.safeDict (details, 'trade', {});
             markets.push (this.safeMarketStructure ({
                 'id': id,
                 'uppercaseId': undefined,
