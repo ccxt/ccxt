@@ -784,7 +784,7 @@ export default class bingx extends Exchange {
                 if (isDefault) {
                     defaultLimits = limits;
                 }
-                const precision = this.safeNumber (rawNetwork, 'withdrawPrecision');
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (rawNetwork, 'withdrawPrecision')));
                 const networkActive = networkDepositEnabled || networkWithdrawEnabled;
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -5800,10 +5800,7 @@ export default class bingx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let walletType = this.safeInteger (params, 'walletType');
-        if (walletType === undefined) {
-            walletType = 1;
-        }
+        const walletType = this.safeInteger (params, 'walletType', 1);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
