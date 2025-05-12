@@ -785,7 +785,7 @@ public partial class bingx : Exchange
                 {
                     defaultLimits = limits;
                 }
-                object precision = this.safeNumber(rawNetwork, "withdrawPrecision");
+                object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
                 object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
@@ -5443,11 +5443,7 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType");
-        if (isTrue(isEqual(walletType, null)))
-        {
-            walletType = 1;
-        }
+        object walletType = this.safeInteger(parameters, "walletType", 1);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
