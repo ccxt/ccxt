@@ -1580,7 +1580,6 @@ public partial class okx : Exchange
                 }
             }
         }
-        object tickSize = this.safeString(market, "tickSz");
         object fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
@@ -1612,7 +1611,7 @@ public partial class okx : Exchange
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.safeNumber(market, "lotSz") },
-                { "price", this.parseNumber(tickSize) },
+                { "price", this.safeNumber(market, "tickSz") },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
