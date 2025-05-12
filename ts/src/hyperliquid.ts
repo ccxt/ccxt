@@ -3681,9 +3681,12 @@ export default class hyperliquid extends Exchange {
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString (response, 'status', '');
+        const error = this.safeString (response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString (response, 'response');
+        } else if (error !== undefined) {
+            message = error;
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
