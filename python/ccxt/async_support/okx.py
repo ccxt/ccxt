@@ -1648,7 +1648,6 @@ class okx(Exchange, ImplicitAPI):
                     ymd = self.yymmdd(expiry)
                     symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
                     optionType = 'put' if (optionType == 'P') else 'call'
-        tickSize = self.safe_string(market, 'tickSz')
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
@@ -1680,7 +1679,7 @@ class okx(Exchange, ImplicitAPI):
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
-                'price': self.parse_number(tickSize),
+                'price': self.safe_number(market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
