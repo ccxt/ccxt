@@ -790,7 +790,7 @@ class bingx(Exchange, ImplicitAPI):
                 fee = self.safe_number(rawNetwork, 'withdrawFee')
                 if isDefault:
                     defaultLimits = limits
-                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
+                precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
                 networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -5542,9 +5542,7 @@ class bingx(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType')
-        if walletType is None:
-            walletType = 1
+        walletType = self.safe_integer(params, 'walletType', 1)
         request: dict = {
             'coin': currency['id'],
             'address': address,
