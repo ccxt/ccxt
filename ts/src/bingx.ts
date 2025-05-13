@@ -792,7 +792,7 @@ export default class bingx extends Exchange {
                 'networks': networks,
                 'fee': undefined,
                 'limits': undefined,
-                'type': 'crypto', // only cryptos now
+                // 'type': 'crypto', // only cryptos now
             });
         }
         return result;
