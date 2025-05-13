@@ -27,7 +27,24 @@
         "withdraw": false,
         "fee": 0.00006,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "BTC": {
+                "info": "BITCOIN",
+                "id": "bitcoin",
+                "network": "BITCOIN",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
@@ -35,6 +52,10 @@
             },
             "withdraw": {
                 "min": 0.00006,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
                 "max": null
             }
         },
@@ -62,13 +83,338 @@
         "withdraw": false,
         "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "OMNI": {
+                "info": "TETHERUSO",
+                "id": "tetheruso",
+                "network": "TETHERUSO",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "info": "TETHERUSE",
+                "id": "tetheruse",
+                "network": "TETHERUSE",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TRC20": {
+                "info": "TETHERUSX",
+                "id": "tetherusx",
+                "network": "TETHERUSX",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "LIQUID": {
+                "info": "TETHERUSL",
+                "id": "tetherusl",
+                "network": "TETHERUSL",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "EOS": {
+                "info": "TETHERUSS",
+                "id": "tetheruss",
+                "network": "TETHERUSS",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ALGO": {
+                "info": "TETHERUSDTALG",
+                "id": "tetherusdtalg",
+                "network": "TETHERUSDTALG",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BCH": {
+                "info": "TETHERUSDTBCH",
+                "id": "tetherusdtbch",
+                "network": "TETHERUSDTBCH",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": "TETHERUSDTSOL",
+                "id": "tetherusdtsol",
+                "network": "TETHERUSDTSOL",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "AVAX": {
+                "info": "TETHERUSDTAVAX",
+                "id": "tetherusdtavax",
+                "network": "TETHERUSDTAVAX",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "KSM": {
+                "info": "TETHERUSDTKSM",
+                "id": "tetherusdtksm",
+                "network": "TETHERUSDTKSM",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTXTZ": {
+                "info": "TETHERUSDTXTZ",
+                "id": "tetherusdtxtz",
+                "network": "TETHERUSDTXTZ",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTNEAR": {
+                "info": "TETHERUSDTNEAR",
+                "id": "tetherusdtnear",
+                "network": "TETHERUSDTNEAR",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTDOT": {
+                "info": "TETHERUSDTDOT",
+                "id": "tetherusdtdot",
+                "network": "TETHERUSDTDOT",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTPLY": {
+                "info": "TETHERUSDTPLY",
+                "id": "tetherusdtply",
+                "network": "TETHERUSDTPLY",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTKAVA": {
+                "info": "TETHERUSDTKAVA",
+                "id": "tetherusdtkava",
+                "network": "TETHERUSDTKAVA",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTZK": {
+                "info": "TETHERUSDTZK",
+                "id": "tetherusdtzk",
+                "network": "TETHERUSDTZK",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTCELO": {
+                "info": "TETHERUSDTCELO",
+                "id": "tetherusdtcelo",
+                "network": "TETHERUSDTCELO",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTTON": {
+                "info": "TETHERUSDTTON",
+                "id": "tetherusdtton",
+                "network": "TETHERUSDTTON",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTAPT": {
+                "info": "TETHERUSDTAPT",
+                "id": "tetherusdtapt",
+                "network": "TETHERUSDTAPT",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TETHERUSDTKAIA": {
+                "info": "TETHERUSDTKAIA",
+                "id": "tetherusdtkaia",
+                "network": "TETHERUSDTKAIA",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": null
             },
             "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
                 "min": null,
                 "max": null
             }
@@ -132,13 +478,34 @@
         "withdraw": false,
         "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "WIRE": {
+                "info": "WIRE",
+                "id": "wire",
+                "network": "WIRE",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": null
             },
             "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
                 "min": null,
                 "max": null
             }
@@ -173,7 +540,24 @@
         "withdraw": false,
         "fee": 0.001,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "LTC": {
+                "info": "LITECOIN",
+                "id": "litecoin",
+                "network": "LITECOIN",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
@@ -181,6 +565,10 @@
             },
             "withdraw": {
                 "min": 0.001,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
                 "max": null
             }
         },
@@ -198,7 +586,7 @@
                 "ETH",
                 [
                     0,
-                    0.0011965
+                    0.0005691
                 ]
             ],
             []
@@ -212,16 +600,37 @@
         "active": true,
         "deposit": false,
         "withdraw": false,
-        "fee": 0.0011965,
+        "fee": 0.0005691,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "ERC20": {
+                "info": "ETHEREUM",
+                "id": "ethereum",
+                "network": "ETHEREUM",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": null
             },
             "withdraw": {
-                "min": 0.0011965,
+                "min": 0.0005691,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
                 "max": null
             }
         },
@@ -317,7 +726,24 @@
         "withdraw": false,
         "fee": 0.1,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "RIPPLE": {
+                "info": "RIPPLE",
+                "id": "ripple",
+                "network": "RIPPLE",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": 1e-8,
@@ -325,6 +751,10 @@
             },
             "withdraw": {
                 "min": 0.1,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
                 "max": null
             }
         },
@@ -345,7 +775,7 @@
                 "UDC",
                 [
                     0,
-                    3.0537
+                    1.4508
                 ]
             ],
             []
@@ -359,7 +789,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 3.0537,
+        "fee": 1.4508,
         "fees": {},
         "networks": {
             "UDC": {
@@ -385,7 +815,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 3.0537,
+                "min": 1.4508,
                 "max": null
             },
             "deposit": {
