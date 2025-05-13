@@ -1776,13 +1776,17 @@ export default class kraken extends Exchange {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
+        //     }
+        //
         //  ws - editOrder
         //    {
         //        "descr": "order edited price = 9000.00000000",
@@ -1939,8 +1943,10 @@ export default class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let id = this.safeStringN (order, [ 'id', 'txid', 'amend_id' ]);
-        if ((id === undefined) || (id.startsWith ('['))) {
+        const result = this.safeDict (order, 'result', {});
+        const wsId = this.safeString (result, 'order_id');
+        let id = this.safeStringN (order, [ 'id', 'txid', 'amend_id' ], wsId);
+        if ((id !== undefined) && (id.startsWith ('['))) {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
