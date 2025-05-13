@@ -540,7 +540,7 @@ export default class mexc extends mexcRest {
             'method': 'UNSUBSCRIPTION',
             'params': [ channel ],
         };
-        return await this.watch (url, messageHash, this.extend (request, params), channel);
+        return await this.watch (url, 'unsubscribe:' + messageHash, this.extend (request, params), 'unsubscribe:' + channel);
     }
 
     async watchSpotPrivate (channel, messageHash, params = {}) {
