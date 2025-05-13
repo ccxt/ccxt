@@ -907,7 +907,7 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($array) {
+    public function urlencode($array, $sort = false) {
         foreach ($array as $key => $value) {
             if (is_bool($value)) {
                 $array[$key] = var_export($value, true);
