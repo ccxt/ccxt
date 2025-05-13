@@ -7430,7 +7430,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest);
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7507,7 +7507,7 @@ class htx extends Exchange {
                     $sortedQuery = $this->keysort($query);
                     $request = $this->extend($request, $sortedQuery);
                 }
-                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
