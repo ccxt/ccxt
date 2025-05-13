@@ -845,7 +845,7 @@ export default class bitfinex extends Exchange {
             'pool': this.indexBy (this.safeValue (response, 5, []), 0),
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
-            'networks': this.safeValue (response, 8, []), // indexing not needed
+            'networks': this.indexBy (this.safeValue (response, 8, []), 0),
             'statuses': this.indexBy (this.safeValue (response, 9, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
@@ -876,30 +876,27 @@ export default class bitfinex extends Exchange {
             const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
             const networks: Dict = {};
-            const currencyNetworks = indexed['networks'];
-            for (let j = 0; j < currencyNetworks.length; j++) {
-                const pair = currencyNetworks[j];
-                const networkId = this.safeString (pair, 0);
-                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
-                if (currencyId === id) {
-                    const network = this.networkIdToCode (networkId);
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.toLowerCase (),
-                        'network': networkId,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'precision': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
+            const networksContainer = this.safeList (indexed['networks'], id);
+            const netwokIds = this.safeList (networksContainer, 1, []);
+            for (let j = 0; j < netwokIds.length; j++) {
+                const networkId = netwokIds[j];
+                const network = this.networkIdToCode (networkId);
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase (),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
                         },
-                    };
-                }
+                    },
+                };
             }
             result[code] = this.safeCurrencyStructure ({
                 'id': fid,
