@@ -854,9 +854,7 @@ export default class bitfinex extends Exchange {
             const networkId = this.safeString (networkObj, 0);
             const valuesList = this.safeList (networkObj, 1);
             const networkName = this.safeString (valuesList, 0);
-            if (!(networkName in indexedNetworks)) {
-                indexedNetworks[networkName] = [];
-            }
+            indexedNetworks[networkName] = this.safeList (indexedNetworks, networkName, []);
             indexedNetworks[networkName].push (networkId);
         }
         const ids = this.safeList (response, 0, []);
