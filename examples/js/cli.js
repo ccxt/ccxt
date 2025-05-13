@@ -55,7 +55,7 @@ if (nameIndex >= 0) {
     }
 }
 
-let lastParam
+let lastParamObject
 for (let i = 0; i < process.argv.length; i++) {
     if (process.argv[i] === '--param') {
         const nextParam = process.argv[i + 1]
@@ -65,19 +65,19 @@ for (let i = 0; i < process.argv.length; i++) {
                 if (nextParam.indexOf('=') >= 0) {
                     const parsed = nextParam.split('=')
                     if (parsed.length === 2) {
-                        if (!lastParam) {
-                            lastParam = {}
+                        if (!lastParamObject) {
+                            lastParamObject = {}
                         }
-                        lastParam[parsed[0]] = parsed[1]
+                        lastParamObject[parsed[0]] = parsed[1]
                         params.splice(paramIndex, 1)
                     } else {
                         throw new Error ('Invalid usage of --param. Please provide a key=value pair after --param.')
                     }
                 } else {
-                    if (!lastParam) {
-                        lastParam = {}
+                    if (!lastParamObject) {
+                        lastParamObject = {}
                     }
-                    lastParam[nextParam] = true
+                    lastParamObject[nextParam] = true
                 }
             } else {
                 throw new Error (`Unexpected error by parsing parameters: ${nextParam} is not found in params array.`)
@@ -87,6 +87,15 @@ for (let i = 0; i < process.argv.length; i++) {
         }
     }
 }
+
+let lastParam = params[params.length - 1]
+// exclude parasitic single quotes. Can happen on some shell processors
+if (lastParam?.includes('{') && lastParam?.includes('}')) {
+    if (lastParam.startsWith('\'{') && lastParam.endsWith('}\'')) {
+        lastParam = params[params.length - 1] = lastParam.substring(1, lastParam.length - 1)
+    }
+}
+
 //-----------------------------------------------------------------------------
 if (!raw) {
     log ((new Date ()).toISOString())
@@ -242,7 +251,7 @@ function printUsage () {
     log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
-    log ('node', process.argv[1], 'binanceusdm trades BTC/USDC undefined --param until=1746988377067')
+    log ('node', process.argv[1], 'binanceusdm fetchTrades BTC/USDC undefined --param until=1746988377067')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
@@ -338,12 +347,24 @@ async function run () {
 
         let args = params
             .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => {
-                if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
-                try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
-            }) ())
-        if (lastParam) {
-            args.push (lastParam)
+            .map (s => {
+                return (() => {
+                    if (s.match(/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number(s) : s
+                    try {
+                        return eval('(() => (' + s + ')) ()')
+                    } catch (e) {
+                        return s
+                    }
+                })();
+            })
+
+        if (typeof lastParamObject === 'object') {
+            const lastArgument = args[args.length - 1];
+            if (lastParam && typeof lastArgument === 'object') {
+                args[args.length - 1]  = Object.assign (lastArgument, lastParamObject)
+            } else {
+                args.push (lastParamObject)
+            }
         }
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
@@ -398,7 +419,10 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                if (!raw) log (exchange.id + '.' + methodName, '(' + JSON.stringify(args) + ')')
+                if (!raw || details) {
+                    const methodArgsPrint = JSON.stringify(args);
+                    log(exchange.id + '.' + methodName, '(' + methodArgsPrint.substring(1, methodArgsPrint.length - 1) + ')')
+                }
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
