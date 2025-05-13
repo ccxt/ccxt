@@ -4137,7 +4137,8 @@ class bitget extends bitget$1 {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'cTime', 'ctime');
         const updateTimestamp = this.safeInteger(order, 'uTime');
-        const rawStatus = this.safeString2(order, 'status', 'state');
+        let rawStatus = this.safeString2(order, 'status', 'state');
+        rawStatus = this.safeString(order, 'planStatus', rawStatus);
         let fee = undefined;
         const feeCostString = this.safeString(order, 'fee');
         if (feeCostString !== undefined) {
