@@ -136,6 +136,11 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PublicGetFee",parameters);
     }
 
+    public async Task<object> v4PublicGetOrderbookDepthMarket (object parameters = null)
+    {
+        return await this.callAsync ("v4PublicGetOrderbookDepthMarket",parameters);
+    }
+
     public async Task<object> v4PublicGetOrderbookMarket (object parameters = null)
     {
         return await this.callAsync ("v4PublicGetOrderbookMarket",parameters);
@@ -171,9 +176,24 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PublicGetFutures",parameters);
     }
 
+    public async Task<object> v4PublicGetPlatformStatus (object parameters = null)
+    {
+        return await this.callAsync ("v4PublicGetPlatformStatus",parameters);
+    }
+
+    public async Task<object> v4PublicGetMiningPool (object parameters = null)
+    {
+        return await this.callAsync ("v4PublicGetMiningPool",parameters);
+    }
+
     public async Task<object> v4PrivatePostCollateralAccountBalance (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostCollateralAccountBalance",parameters);
+    }
+
+    public async Task<object> v4PrivatePostCollateralAccountBalanceSummary (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostCollateralAccountBalanceSummary",parameters);
     }
 
     public async Task<object> v4PrivatePostCollateralAccountPositionsHistory (object parameters = null)
@@ -194,6 +214,11 @@ public partial class whitebit : Exchange
     public async Task<object> v4PrivatePostCollateralAccountSummary (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostCollateralAccountSummary",parameters);
+    }
+
+    public async Task<object> v4PrivatePostCollateralAccountFundingHistory (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostCollateralAccountFundingHistory",parameters);
     }
 
     public async Task<object> v4PrivatePostMainAccountAddress (object parameters = null)
@@ -256,6 +281,36 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PrivatePostMainAccountTransfer",parameters);
     }
 
+    public async Task<object> v4PrivatePostMainAccountSmartPlans (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountSmartPlans",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMainAccountSmartInvestment (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountSmartInvestment",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMainAccountSmartInvestmentClose (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountSmartInvestmentClose",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMainAccountSmartInvestments (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountSmartInvestments",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMainAccountFee (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountFee",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMainAccountSmartInterestPaymentHistory (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMainAccountSmartInterestPaymentHistory",parameters);
+    }
+
     public async Task<object> v4PrivatePostTradeAccountBalance (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostTradeAccountBalance",parameters);
@@ -286,9 +341,19 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PrivatePostOrderCollateralMarket",parameters);
     }
 
+    public async Task<object> v4PrivatePostOrderCollateralStopLimit (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderCollateralStopLimit",parameters);
+    }
+
     public async Task<object> v4PrivatePostOrderCollateralTriggerMarket (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostOrderCollateralTriggerMarket",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderCollateralBulk (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderCollateralBulk",parameters);
     }
 
     public async Task<object> v4PrivatePostOrderNew (object parameters = null)
@@ -321,14 +386,179 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PrivatePostOrderCancel",parameters);
     }
 
+    public async Task<object> v4PrivatePostOrderCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderCancelAll",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderKillSwitch (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderKillSwitch",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderKillSwitchStatus (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderKillSwitchStatus",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderBulk (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderBulk",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderModify (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderModify",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderConditionalCancel (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderConditionalCancel",parameters);
+    }
+
     public async Task<object> v4PrivatePostOrders (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostOrders",parameters);
     }
 
+    public async Task<object> v4PrivatePostOcoOrders (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOcoOrders",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderCollateralOco (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderCollateralOco",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderOcoCancel (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderOcoCancel",parameters);
+    }
+
+    public async Task<object> v4PrivatePostOrderOtoCancel (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostOrderOtoCancel",parameters);
+    }
+
     public async Task<object> v4PrivatePostProfileWebsocketToken (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostProfileWebsocketToken",parameters);
+    }
+
+    public async Task<object> v4PrivatePostConvertEstimate (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostConvertEstimate",parameters);
+    }
+
+    public async Task<object> v4PrivatePostConvertConfirm (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostConvertConfirm",parameters);
+    }
+
+    public async Task<object> v4PrivatePostConvertHistory (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostConvertHistory",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountCreate (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountCreate",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountDelete (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountDelete",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountEdit (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountEdit",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountList (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountList",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountTransfer",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountBlock (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountBlock",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountUnblock (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountUnblock",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountBalances (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountBalances",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountTransferHistory",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyCreate (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyCreate",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyEdit (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyEdit",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyDelete (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyDelete",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyList (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyList",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyReset (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyReset",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyIpAddressList (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressList",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyIpAddressCreate (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressCreate",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountApiKeyIpAddressDelete (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountApiKeyIpAddressDelete",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMiningRewards (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMiningRewards",parameters);
+    }
+
+    public async Task<object> v4PrivatePostMarketFee (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostMarketFee",parameters);
+    }
+
+    public async Task<object> v4PrivatePostConditionalOrders (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostConditionalOrders",parameters);
     }
 
 }

@@ -40,6 +40,8 @@ public partial class bitvavo : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -63,8 +65,11 @@ public partial class bitvavo : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -97,7 +102,7 @@ public partial class bitvavo : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bitvavo.com" },
                     { "private", "https://api.bitvavo.com" },
@@ -167,6 +172,75 @@ public partial class bitvavo : Exchange
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", true },
                 { "secret", true },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -241,22 +315,20 @@ public partial class bitvavo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "BITVAVO-ACCESS-WINDOW", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
+                { "operatorId", null },
+                { "fiatCurrencies", new List<object>() {"EUR"} },
             } },
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), DECIMAL_PLACES);
     }
 
     public override object amountToPrecision(object symbol, object amount)
@@ -277,15 +349,15 @@ public partial class bitvavo : Exchange
         return this.decimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTime(parameters);
         //
@@ -294,16 +366,16 @@ public partial class bitvavo : Exchange
         return this.safeInteger(response, "time");
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchMarkets
+     * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+     * @description retrieves data on all markets for bitvavo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchMarkets
-        * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
-        * @description retrieves data on all markets for bitvavo
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
         //
@@ -395,16 +467,16 @@ public partial class bitvavo : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchCurrencies
+     * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchCurrencies
-        * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetAssets(parameters);
         //
@@ -440,10 +512,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
 
-    public virtual object parseCurrencies(object currencies)
+    public virtual object parseCurrenciesCustom(object currencies)
     {
         //
         //     [
@@ -478,26 +550,26 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
+            object isFiat = this.inArray(code, fiatCurrencies);
             object networks = new Dictionary<string, object>() {};
-            object networksArray = this.safeValue(currency, "networks", new List<object>() {});
-            object networksLength = getArrayLength(networksArray);
-            object isOneNetwork = (isEqual(networksLength, 1));
-            object deposit = (isEqual(this.safeValue(currency, "depositStatus"), "OK"));
-            object withdrawal = (isEqual(this.safeValue(currency, "withdrawalStatus"), "OK"));
+            object networksArray = this.safeList(currency, "networks", new List<object>() {});
+            object deposit = isEqual(this.safeString(currency, "depositStatus"), "OK");
+            object withdrawal = isEqual(this.safeString(currency, "withdrawalStatus"), "OK");
             object active = isTrue(deposit) && isTrue(withdrawal);
             object withdrawFee = this.safeNumber(currency, "withdrawalFee");
             object precision = this.safeInteger(currency, "decimals", 8);
             object minWithdraw = this.safeNumber(currency, "withdrawalMinAmount");
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isTrue(isOneNetwork))
+            // btw, absolutely all of them have 1 network atm
+            for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
             {
-                object networkId = getValue(networksArray, 0);
+                object networkId = getValue(networksArray, j);
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
@@ -516,7 +588,7 @@ public partial class bitvavo : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -527,6 +599,7 @@ public partial class bitvavo : Exchange
                 { "networks", networks },
                 { "fee", withdrawFee },
                 { "precision", precision },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -541,24 +614,24 @@ public partial class bitvavo : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         // set currencies here to avoid calling publicGetAssets twice
         this.currencies = this.deepExtend(this.currencies, result);
         return result;
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchTicker
+     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchTicker
-        * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -636,16 +709,16 @@ public partial class bitvavo : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTicker24h(parameters);
@@ -670,21 +743,21 @@ public partial class bitvavo : Exchange
         return this.parseTickers(response, symbols);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchTrades
+     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchTrades
-        * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -825,16 +898,16 @@ public partial class bitvavo : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchTradingFees
+     * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchTradingFees
-        * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
-        * @description fetch the trading fees for multiple markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetAccount(parameters);
@@ -880,18 +953,18 @@ public partial class bitvavo : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchOrderBook
+     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchOrderBook
-        * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -972,22 +1045,22 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchOHLCV
+     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchOHLCV
-        * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1032,16 +1105,16 @@ public partial class bitvavo : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchBalance
+     * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchBalance
-        * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetBalance(parameters);
@@ -1057,16 +1130,16 @@ public partial class bitvavo : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1084,11 +1157,11 @@ public partial class bitvavo : Exchange
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1167,35 +1240,43 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#createOrder
+     * @description create a trade order
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+     * @param {float} [params.stopPrice] Alias for triggerPrice
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {string} [params.triggerType] "price"
+     * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+     * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+     * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
+     * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#createOrder
-        * @description create a trade order
-        * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
-        * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
-        * @param {string} [params.triggerType] "price"
-        * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-        * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-        * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
-        * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1278,26 +1359,34 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
     }
 
+    /**
+     * @method
+     * @name bitvavo#editOrder
+     * @description edit a trade order
+     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#editOrder
-        * @description edit a trade order
-        * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} [amount] how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1322,22 +1411,30 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#cancelOrder
+     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+     * @description cancels an open order
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#cancelOrder
-        * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
-        * @description cancels an open order
-        * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1351,17 +1448,17 @@ public partial class bitvavo : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name bitvavo#cancelAllOrders
+     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+     * @description cancel all open orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#cancelAllOrders
-        * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
-        * @description cancel all open orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1382,17 +1479,18 @@ public partial class bitvavo : Exchange
         return this.parseOrders(response, market);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1467,21 +1565,21 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+     * @description fetches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchOrders
-        * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
-        * @description fetches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1538,18 +1636,19 @@ public partial class bitvavo : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1700,7 +1799,6 @@ public partial class bitvavo : Exchange
         object timeInForce = this.safeString(order, "timeInForce");
         object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
-        object stopPrice = this.safeNumber(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1714,8 +1812,7 @@ public partial class bitvavo : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "amount", amount },
             { "cost", cost },
             { "average", null },
@@ -1748,21 +1845,21 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchMyTrades
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchMyTrades
-        * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1816,19 +1913,19 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#withdraw
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1869,19 +1966,19 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchWithdrawals
+     * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchWithdrawals
-        * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
@@ -1931,19 +2028,19 @@ public partial class bitvavo : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchDeposits
+     * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchDeposits
-        * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = this.fetchDepositsRequest(code, since, limit, parameters);
@@ -2117,17 +2214,17 @@ public partial class bitvavo : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitvavo#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetAssets(parameters);

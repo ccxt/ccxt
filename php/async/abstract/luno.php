@@ -94,11 +94,17 @@ abstract class luno extends \ccxt\async\Exchange {
     public function private_post_oauth2_grant($params = array()) {
         return $this->request('oauth2/grant', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_beneficiaries($params = array()) {
+        return $this->request('beneficiaries', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_put_accounts_id_name($params = array()) {
         return $this->request('accounts/{id}/name', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_delete_withdrawals_id($params = array()) {
         return $this->request('withdrawals/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function private_delete_beneficiaries_id($params = array()) {
+        return $this->request('beneficiaries/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function exchangeGetMarkets($params = array()) {
         return $this->request('markets', 'exchange', 'GET', $params, null, null, array("cost" => 1));
@@ -187,10 +193,16 @@ abstract class luno extends \ccxt\async\Exchange {
     public function privatePostOauth2Grant($params = array()) {
         return $this->request('oauth2/grant', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostBeneficiaries($params = array()) {
+        return $this->request('beneficiaries', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePutAccountsIdName($params = array()) {
         return $this->request('accounts/{id}/name', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteWithdrawalsId($params = array()) {
         return $this->request('withdrawals/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function privateDeleteBeneficiariesId($params = array()) {
+        return $this->request('beneficiaries/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

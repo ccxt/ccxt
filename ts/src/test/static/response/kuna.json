@@ -46,18 +46,8 @@
                         "price": 73250.25,
                         "amount": 0.034969,
                         "cost": 2561.48799225,
-                        "fee": {
-                            "cost": null,
-                            "currency": null,
-                            "rate": null
-                        },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null,
-                                "rate": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -118,7 +108,9 @@
                     "baseVolume": 13.182049999999991,
                     "quoteVolume": 949482.9634477801,
                     "bidVolume": null,
-                    "askVolume": null
+                    "askVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null
                 }
             }
         ]

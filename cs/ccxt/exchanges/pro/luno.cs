@@ -15,6 +15,7 @@ public partial class luno : ccxt.luno
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", null },
                 { "watchOrderBook", true },
@@ -33,19 +34,19 @@ public partial class luno : ccxt.luno
         });
     }
 
+    /**
+     * @method
+     * @name luno#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of    trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name luno#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.luno.com/en/developers/api#tag/Streaming-API
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of    trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -143,18 +144,18 @@ public partial class luno : ccxt.luno
         }, market);
     }
 
+    /**
+     * @method
+     * @name luno#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name luno#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -211,13 +212,12 @@ public partial class luno : ccxt.luno
         //
         object symbol = getValue(subscription, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object timestamp = this.safeString(message, "timestamp");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        object timestamp = this.safeInteger(message, "timestamp");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.indexedOrderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object asks = this.safeValue(message, "asks");
         if (isTrue(!isEqual(asks, null)))
         {

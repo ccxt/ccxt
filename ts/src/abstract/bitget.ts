@@ -75,12 +75,14 @@ interface Exchange {
     publicMixGetV2MixMarketCurrentFundRate (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketContracts (params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketQueryPositionLever (params?: {}): Promise<implicitReturnType>;
+    publicMixGetV2MixMarketAccountLongShort (params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1CrossPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1CrossPublicTierData (params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1IsolatedPublicTierData (params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1PublicCurrencies (params?: {}): Promise<implicitReturnType>;
     publicMarginGetV2MarginCurrencies (params?: {}): Promise<implicitReturnType>;
+    publicMarginGetV2MarginMarketLongShortRatio (params?: {}): Promise<implicitReturnType>;
     publicEarnGetV2EarnLoanPublicCoinInfos (params?: {}): Promise<implicitReturnType>;
     publicEarnGetV2EarnLoanPublicHourInterest (params?: {}): Promise<implicitReturnType>;
     privateSpotGetSpotV1WalletDepositAddress (params?: {}): Promise<implicitReturnType>;
@@ -108,6 +110,9 @@ interface Exchange {
     privateSpotGetV2SpotAccountSubaccountAssets (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountBills (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountFundingAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountBotAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountAllAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositAddress (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositRecords (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletWithdrawalRecords (params?: {}): Promise<implicitReturnType>;
@@ -224,6 +229,7 @@ interface Exchange {
     privateMixGetV2MixOrderOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateMixGetV2MixOrderOrdersPlanPending (params?: {}): Promise<implicitReturnType>;
     privateMixGetV2MixOrderOrdersPlanHistory (params?: {}): Promise<implicitReturnType>;
+    privateMixGetV2MixMarketPositionLongShort (params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountSubAccountContractAssets (params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountOpenCount (params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountSetLeverage (params?: {}): Promise<implicitReturnType>;
@@ -502,6 +508,7 @@ interface Exchange {
     privateEarnGetV2EarnLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanDebts (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanReduces (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetV2EarnAccountAssets (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsSubscribe (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsRedeem (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSharkfinSubscribe (params?: {}): Promise<implicitReturnType>;

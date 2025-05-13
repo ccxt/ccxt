@@ -10,7 +10,7 @@ use ccxt\abstract\huobijp as Exchange;
 
 class huobijp extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'huobijp',
             'name' => 'Huobi Japan',
@@ -246,6 +246,84 @@ class huobijp extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo => implement
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 120,
+                        'untilDays' => 2,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null, // todo
+                        'untilDays' => null, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null, // todo
+                        'daysBackCanceled' => null, // todo
+                        'untilDays' => null, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
@@ -304,6 +382,7 @@ class huobijp extends Exchange {
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
@@ -327,7 +406,7 @@ class huobijp extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -357,7 +436,7 @@ class huobijp extends Exchange {
         $request = array(
             'symbol' => $id,
         );
-        $response = $this->publicGetCommonExchange (array_merge($request, $params));
+        $response = $this->publicGetCommonExchange ($this->extend($request, $params));
         //
         //     { status =>   "ok",
         //         "data" => {                                  symbol => "aidocbtc",
@@ -522,7 +601,7 @@ class huobijp extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -622,7 +701,7 @@ class huobijp extends Exchange {
             'symbol' => $market['id'],
             'type' => 'step0',
         );
-        $response = $this->marketGetDepth (array_merge($request, $params));
+        $response = $this->marketGetDepth ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -669,7 +748,7 @@ class huobijp extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->marketGetDetailMerged (array_merge($request, $params));
+        $response = $this->marketGetDetailMerged ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -722,7 +801,7 @@ class huobijp extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -819,7 +898,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderOrdersIdMatchresults (array_merge($request, $params));
+        $response = $this->privateGetOrderOrdersIdMatchresults ($this->extend($request, $params));
         return $this->parse_trades($response['data'], null, $since, $limit);
     }
 
@@ -846,7 +925,7 @@ class huobijp extends Exchange {
             $request['start-time'] = $since; // a date within 120 days from today
             // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
         }
-        $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
+        $response = $this->privateGetOrderMatchresults ($this->extend($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -867,7 +946,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = min ($limit, 2000);
         }
-        $response = $this->marketGetHistoryTrade (array_merge($request, $params));
+        $response = $this->marketGetHistoryTrade ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -947,7 +1026,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = min ($limit, 2000);
         }
-        $response = $this->marketGetHistoryKline (array_merge($request, $params));
+        $response = $this->marketGetHistoryKline ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -975,7 +1054,7 @@ class huobijp extends Exchange {
         return $response['data'];
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -984,7 +1063,7 @@ class huobijp extends Exchange {
         $request = array(
             'language' => $this->options['language'],
         );
-        $response = $this->publicGetSettingsCurrencys (array_merge($request, $params));
+        $response = $this->publicGetSettingsCurrencys ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -1052,6 +1131,7 @@ class huobijp extends Exchange {
                 'withdraw' => $withdrawEnabled,
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
+                'networks' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => $precision,
@@ -1108,7 +1188,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $this->accounts[0]['id'],
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_balance($response);
     }
 
@@ -1123,7 +1203,7 @@ class huobijp extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //     { "status" =>   "ok",
         //         "data" => array( {                  id =>  13997833014,
@@ -1147,6 +1227,7 @@ class huobijp extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1155,7 +1236,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderOrdersId (array_merge($request, $params));
+        $response = $this->privateGetOrderOrdersId ($this->extend($request, $params));
         $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
@@ -1231,7 +1312,7 @@ class huobijp extends Exchange {
             $request['size'] = $limit;
         }
         $omitted = $this->omit($params, 'account-id');
-        $response = $this->privateGetOrderOpenOrders (array_merge($request, $omitted));
+        $response = $this->privateGetOrderOpenOrders ($this->extend($request, $omitted));
         //
         //     {
         //         "status":"ok",
@@ -1257,7 +1338,7 @@ class huobijp extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'partial-filled' => 'open',
             'partial-canceled' => 'canceled',
@@ -1268,7 +1349,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {                  $id =>  13997833014,
         //                    "symbol" => "ethbtc",
@@ -1340,7 +1421,6 @@ class huobijp extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'average' => null,
             'cost' => $cost,
@@ -1377,7 +1457,7 @@ class huobijp extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1431,7 +1511,7 @@ class huobijp extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method = $this->options['createOrderMethod'];
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
@@ -1470,7 +1550,7 @@ class huobijp extends Exchange {
         //         "data" => "10138899000",
         //     }
         //
-        return array_merge($this->parse_order($response), array(
+        return $this->extend($this->parse_order($response), array(
             'id' => $id,
             'status' => 'canceled',
         ));
@@ -1493,7 +1573,7 @@ class huobijp extends Exchange {
         } else {
             $request['client-order-ids'] = $clientOrderIds;
         }
-        $response = $this->privatePostOrderOrdersBatchcancel (array_merge($request, $params));
+        $response = $this->privatePostOrderOrdersBatchcancel ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1526,7 +1606,65 @@ class huobijp extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        return $this->parse_cancel_orders($response);
+    }
+
+    public function parse_cancel_orders($orders) {
+        //
+        //    {
+        //        "success" => array(
+        //            "5983466"
+        //        ),
+        //        "failed" => array(
+        //            array(
+        //                "err-msg" => "Incorrect $order state",
+        //                "order-state" => 7,
+        //                "order-id" => "",
+        //                "err-code" => "order-orderstate-error",
+        //                "client-$order-id" => "first"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //    {
+        //        "errors" => array(
+        //            {
+        //                "order_id" => "769206471845261312",
+        //                "err_code" => 1061,
+        //                "err_msg" => "This $order doesnt exist."
+        //            }
+        //        ),
+        //        "successes" => "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        $successes = $this->safe_string($orders, 'successes');
+        $success = null;
+        if ($successes !== null) {
+            $success = explode(',', $successes);
+        } else {
+            $success = $this->safe_list($orders, 'success', array());
+        }
+        $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
+        $result = array();
+        for ($i = 0; $i < count($success); $i++) {
+            $order = $success[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $order,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($failed); $i++) {
+            $order = $failed[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'status' => 'failed',
+                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+            ));
+        }
+        return $result;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1549,7 +1687,7 @@ class huobijp extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
+        $response = $this->privatePostOrderOrdersBatchCancelOpenOrders ($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1560,21 +1698,12 @@ class huobijp extends Exchange {
         //         }
         //     }
         //
-        return $response;
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], $this->precisionMode);
-    }
-
-    public function safe_network($networkId) {
-        $lastCharacterIndex = strlen($networkId) - 1;
-        $lastCharacter = $networkId[$lastCharacterIndex];
-        if ($lastCharacter === '1') {
-            $networkId = mb_substr($networkId, 0, $lastCharacterIndex - 0);
-        }
-        $networksById = array();
-        return $this->safe_string($networksById, $networkId, $networkId);
+        $data = $this->safe_dict($response, 'data', array());
+        return array(
+            $this->safe_order(array(
+                'info' => $data,
+            )),
+        );
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -1633,7 +1762,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = $this->privateGetQueryDepositWithdraw ($this->extend($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
@@ -1665,12 +1794,12 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = $this->privateGetQueryDepositWithdraw ($this->extend($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1751,7 +1880,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // deposit $statuses
             'unknown' => 'failed',
@@ -1775,7 +1904,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1809,7 +1938,7 @@ class huobijp extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
+        $response = $this->privatePostDwWithdrawApiCreate ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1840,7 +1969,7 @@ class huobijp extends Exchange {
                 'Timestamp' => $timestamp,
             );
             if ($method !== 'POST') {
-                $request = array_merge($request, $query);
+                $request = $this->extend($request, $query);
             }
             $requestSorted = $this->keysort($request);
             $auth = $this->urlencode($requestSorted);
@@ -1871,7 +2000,7 @@ class huobijp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

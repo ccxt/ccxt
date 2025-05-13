@@ -1,0 +1,518 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": { "deposit": {}, "withdraw": {} },
+        "networks": {
+            "BTC": {
+                "id": "Bitcoin",
+                "network": "BTC",
+                "limits": { "withdraw": { "min": 0.002 }, "deposit": { "min": 0.0005 } },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "Bitcoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0005",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "Merlin Chain": {
+                "id": "Merlin Chain",
+                "network": "Merlin Chain",
+                "limits": { "withdraw": { "min": 0.00002 }, "deposit": { "min": 0.00002 } },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0,
+                "info": {
+                    "chainType": "Merlin Chain",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.00002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00002",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "BTC",
+            "coinName": "BTC",
+            "coinFullName": "Bitcoin",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "CHAIN_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "Bitcoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0005",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "Merlin Chain",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.00002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00002",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            ]
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": { "deposit": {}, "withdraw": {} },
+        "networks": {
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": { "withdraw": { "min": 0.04 }, "deposit": { "min": 0.01 } },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.04",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.01",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "OPTIMISM": {
+                "id": "Optimism",
+                "network": "OPTIMISM",
+                "limits": { "withdraw": { "min": 0.05 }, "deposit": { "min": 0.04 } },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0,
+                "info": {
+                    "chainType": "Optimism",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.05",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.04",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            },
+            "ARB": {
+                "id": "Arbitrum",
+                "network": "ARB",
+                "limits": { "withdraw": { "min": 0.0002 }, "deposit": { "min": 0.0002 } },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "Arbitrum",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.0002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0002",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "zkSync": {
+                "id": "zkSync",
+                "network": "zkSync",
+                "limits": { "withdraw": { "min": 0.001 }, "deposit": { "min": 0.001 } },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0,
+                "info": {
+                    "chainType": "zkSync",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.001",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "ETH",
+            "coinName": "ETH",
+            "coinFullName": "Ethereum",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "ERC20_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.04",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.01",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "Optimism",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.05",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.04",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                },
+                {
+                    "chainType": "Arbitrum",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.0002",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0002",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "zkSync",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.001",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            ]
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 25
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "25",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "TRC20": {
+                "id": "TRC20",
+                "network": "TRC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "TRC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "ARB": {
+                "id": "Arbitrum",
+                "network": "ARB",
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "Arbitrum",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "USDT",
+            "coinName": "USDT",
+            "coinFullName": "Tether",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "ERC20_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "25",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "TRC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "Arbitrum",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ]
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 25
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "25",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "USDC",
+            "coinName": "USDC",
+            "coinFullName": "USD Coin",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "ERC20_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "ERC20",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "25",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ]
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "LTC": {
+                "id": "Litecoin",
+                "network": "LTC",
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0052
+                    },
+                    "deposit": {
+                        "min": 0.0006
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "Litecoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.0052",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0006",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "LTC",
+            "coinName": "LTC",
+            "coinFullName": "Litecoin",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "CHAIN_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "Litecoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "0.0052",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0006",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ]
+        }
+    },
+    "DOGE": {
+        "id": "DOGE",
+        "code": "DOGE",
+        "type": "crypto",
+        "name": "Dogecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "DOGE": {
+                "id": "Dogecoin",
+                "network": "DOGE",
+                "limits": {
+                    "withdraw": {
+                        "min": 20
+                    },
+                    "deposit": {
+                        "min": 0.55
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "info": {
+                    "chainType": "Dogecoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "20",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.55",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "info": {
+            "orgId": "9001",
+            "coinId": "DOGE",
+            "coinName": "DOGE",
+            "coinFullName": "Dogecoin",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "tokenType": "CHAIN_TOKEN",
+            "chainTypes": [
+                {
+                    "chainType": "Dogecoin",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "20",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.55",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ]
+        }
+    }
+}

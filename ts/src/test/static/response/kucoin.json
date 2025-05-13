@@ -581,6 +581,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
+                "disabledGO": true,
                 "input": [
                     "BTC/USDT",
                     null,
@@ -618,7 +619,7 @@
                         "price": 67347.4,
                         "amount": 0.0045303,
                         "cost": 305.10392622,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -672,6 +673,8 @@
                     "average": 66654.25518537,
                     "baseVolume": 6442.17728633,
                     "quoteVolume": 433203364.46348965,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "time": 1709897710012,
                         "symbol": "BTC-USDT",
@@ -690,6 +693,50 @@
                         "takerCoefficient": "1",
                         "makerCoefficient": "1"
                     }
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "with networkCode",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  3,
+                  "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  {
+                    "network": "OP"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  },
+                  "id": "6717ed803a3595000738e671",
+                  "timestamp": null,
+                  "datetime": null,
+                  "network": null,
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "currency": "USDT",
+                  "amount": null,
+                  "txid": null,
+                  "type": "deposit",
+                  "status": null,
+                  "comment": null,
+                  "internal": null,
+                  "fee": null,
+                  "updated": null
                 }
             }
         ],
@@ -1092,6 +1139,387 @@
                   },
                   "deposit": {}
                 }
+            }
+        ],
+        "createDepositAddress":[
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "input": [
+                  "BNB",
+                  {
+                    "networkCode": "BEP20"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  },
+                  "currency": "BNB",
+                  "network": "BEP20",
+                  "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                  "tag": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data":
+                    [
+                        {
+                            "currency": "CSP",
+                            "name": "CSP",
+                            "fullName": "Caspian",
+                            "precision": 8,
+                            "confirms": null,
+                            "contractAddress": null,
+                            "isMarginEnabled": false,
+                            "isDebitEnabled": false,
+                            "chains": [
+                              {
+                                "chainName": "ERC20",
+                                "withdrawalMinSize": "2999",
+                                "depositMinSize": null,
+                                "withdrawFeeRate": "0",
+                                "withdrawalMinFee": "2999",
+                                "isWithdrawEnabled": false,
+                                "isDepositEnabled": false,
+                                "confirms": 64,
+                                "preConfirms": 12,
+                                "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                                "withdrawPrecision": 8,
+                                "maxWithdraw": null,
+                                "maxDeposit": null,
+                                "needTag": false,
+                                "chainId": "eth"
+                              }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "CSP": {
+                      "info": {
+                        "currency": "CSP",
+                        "name": "CSP",
+                        "fullName": "Caspian",
+                        "precision": 8,
+                        "confirms": null,
+                        "contractAddress": null,
+                        "isMarginEnabled": false,
+                        "isDebitEnabled": false,
+                        "chains": [
+                          {
+                            "chainName": "ERC20",
+                            "withdrawalMinSize": "2999",
+                            "depositMinSize": null,
+                            "withdrawFeeRate": "0",
+                            "withdrawalMinFee": "2999",
+                            "isWithdrawEnabled": false,
+                            "isDepositEnabled": false,
+                            "confirms": 64,
+                            "preConfirms": 12,
+                            "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                            "withdrawPrecision": 8,
+                            "maxWithdraw": null,
+                            "maxDeposit": null,
+                            "needTag": false,
+                            "chainId": "eth"
+                          }
+                        ]
+                      },
+                      "id": "CSP",
+                      "numericId": null,
+                      "code": "CSP",
+                      "precision": 1e-8,
+                      "type": "crypto",
+                      "name": "Caspian",
+                      "active": false,
+                      "deposit": false,
+                      "withdraw": false,
+                      "fee": 2999,
+                      "fees": {},
+                      "networks": {
+                        "ERC20": {
+                          "info": {
+                            "chainName": "ERC20",
+                            "withdrawalMinSize": "2999",
+                            "depositMinSize": null,
+                            "withdrawFeeRate": "0",
+                            "withdrawalMinFee": "2999",
+                            "isWithdrawEnabled": false,
+                            "isDepositEnabled": false,
+                            "confirms": 64,
+                            "preConfirms": 12,
+                            "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                            "withdrawPrecision": 8,
+                            "maxWithdraw": null,
+                            "maxDeposit": null,
+                            "needTag": false,
+                            "chainId": "eth"
+                          },
+                          "id": "eth",
+                          "name": "ERC20",
+                          "code": "ERC20",
+                          "active": false,
+                          "fee": 2999,
+                          "deposit": false,
+                          "withdraw": false,
+                          "precision": 1e-8,
+                          "limits": {
+                            "withdraw": {
+                              "min": 2999,
+                              "max": null
+                            },
+                            "deposit": {
+                              "min": null,
+                              "max": null
+                            }
+                          }
+                        }
+                      },
+                      "limits": {
+                        "deposit": {
+                          "min": null,
+                          "max": null
+                        },
+                        "withdraw": {
+                          "min": 2999,
+                          "max": null
+                        }
+                      }
+                    }
+                }
+            }
+         ],
+        "fetchBorrowInterest":[
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "debtRatio": "0",
+                    "status": "EFFECTIVE",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "total": "5",
+                        "available": "5",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "1INCH",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "70",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "ZRO",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "5",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "currency": "USDT",
+                      "total": "5",
+                      "available": "5",
+                      "hold": "0",
+                      "liability": "0",
+                      "maxBorrowSize": "20",
+                      "borrowEnabled": true,
+                      "transferInEnabled": true
+                    },
+                    "symbol": null,
+                    "currency": "USDT",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "cross",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
+            },
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "BTC",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "timestamp": 1731485747638,
+                    "assets": [
+                      {
+                        "symbol": "LTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "LTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0.6"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "5",
+                          "available": "5",
+                          "hold": "0",
+                          "maxBorrowSize": "45"
+                        }
+                      },
+                      {
+                        "symbol": "BTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "BTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      },
+                      {
+                        "symbol": "ZRO-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "ZRO",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTC-USDT",
+                      "status": "EFFECTIVE",
+                      "debtRatio": "0",
+                      "baseAsset": {
+                        "currency": "BTC",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      },
+                      "quoteAsset": {
+                        "currency": "USDT",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      }
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "BTC",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "isolated",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
             }
         ]
     }

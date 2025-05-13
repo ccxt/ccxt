@@ -37,7 +37,7 @@
                         "amount": 0.000635,
                         "cost": 46.5204175,
                         "takerOrMaker": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "buyer_role": "taker",
                             "price": "73260.5",
@@ -106,9 +106,11 @@
                     "previousClose": null,
                     "change": 1258.5,
                     "percentage": 1.7446333636004463,
-                    "average": 72764.75,
+                    "average": 72764.7,
                     "baseVolume": 1.4971349999999992,
                     "quoteVolume": 1.4971349999999992,
+                    "markPrice": 48000,
+                    "indexPrice": 73368.4,
                     "info": {
                         "close": "73394.0",
                         "contract_type": "spot",
@@ -363,6 +365,146 @@
                   }
                 }
               }
+        ],
+        "fetchMarginMode": [
+          {
+            "description": "fetch linear swap margin mode",
+            "method": "fetchMarginMode",
+            "input": [
+              "BTC/USDT:USDT"
+            ],
+            "httpResponse": {
+              "result": {
+                "nick_name": "still-breeze-41256597",
+                "password_updated_at": null,
+                "country": "Canada",
+                "country_calling_code": null,
+                "is_kyc_refresh_required": false,
+                "phone_number": null,
+                "is_kyc_done": true,
+                "registration_date": "2023-07-19T01:02:32Z",
+                "margin_mode": "isolated",
+                "is_sub_account": false,
+                "corporate_account_id": null,
+                "phishing_code": "DMGZ7264",
+                "kyc_expiry_date": null,
+                "tracking_info": {
+                  "ga_cid": "1353327053.1689113946",
+                  "is_kyc_gtm_tracked": true,
+                  "sub_account_config": {
+                    "cross": "2",
+                    "isolated": "2",
+                    "portfolio": "2"
+                  }
+                },
+                "dob": null,
+                "permissions": {},
+                "id": "30084879",
+                "region": null,
+                "occupation": null,
+                "proof_of_identity_status": "approved",
+                "withdrawal_blocked_till": null,
+                "is_kyc_provisioned": false,
+                "email": "daniel.richmond.martina@gmail.com",
+                "pf_index_symbol": null,
+                "is_password_set": true,
+                "income": null,
+                "max_sub_accounts_limit": "2",
+                "first_name": "",
+                "proof_of_address_status": "approved",
+                "phone_verification_status": "unverified",
+                "is_login_enabled": true,
+                "force_change_password": false,
+                "mfa_updated_at": "2023-07-19T01:04:43Z",
+                "sub_account_permissions": null,
+                "created_at": "2023-07-19T01:02:32Z",
+                "seen_intro": false,
+                "phone_verified_on": null,
+                "oauth_google_active": false,
+                "kyc_verified_on": null,
+                "preferences": {
+                  "favorites": []
+                },
+                "oauth_apple_active": false,
+                "force_change_mfa": false,
+                "oauth": null,
+                "is_mfa_enabled": true,
+                "is_withdrawal_enabled": true,
+                "is_password_change_blocked": false,
+                "enable_bots": false,
+                "last_seen": null,
+                "last_name": "",
+                "account_name": "Main"
+              },
+              "success": true
+            },
+            "parsedResponse": {
+              "info": {
+                "nick_name": "still-breeze-41256597",
+                "password_updated_at": null,
+                "country": "Canada",
+                "country_calling_code": null,
+                "is_kyc_refresh_required": false,
+                "phone_number": null,
+                "is_kyc_done": true,
+                "registration_date": "2023-07-19T01:02:32Z",
+                "margin_mode": "isolated",
+                "is_sub_account": false,
+                "corporate_account_id": null,
+                "phishing_code": "DMGZ7264",
+                "kyc_expiry_date": null,
+                "tracking_info": {
+                  "ga_cid": "1353327053.1689113946",
+                  "is_kyc_gtm_tracked": true,
+                  "sub_account_config": {
+                    "cross": "2",
+                    "isolated": "2",
+                    "portfolio": "2"
+                  }
+                },
+                "dob": null,
+                "permissions": {},
+                "id": "30084879",
+                "region": null,
+                "occupation": null,
+                "proof_of_identity_status": "approved",
+                "withdrawal_blocked_till": null,
+                "is_kyc_provisioned": false,
+                "email": "daniel.richmond.martina@gmail.com",
+                "pf_index_symbol": null,
+                "is_password_set": true,
+                "income": null,
+                "max_sub_accounts_limit": "2",
+                "first_name": "",
+                "proof_of_address_status": "approved",
+                "phone_verification_status": "unverified",
+                "is_login_enabled": true,
+                "force_change_password": false,
+                "mfa_updated_at": "2023-07-19T01:04:43Z",
+                "sub_account_permissions": null,
+                "created_at": "2023-07-19T01:02:32Z",
+                "seen_intro": false,
+                "phone_verified_on": null,
+                "oauth_google_active": false,
+                "kyc_verified_on": null,
+                "preferences": {
+                  "favorites": []
+                },
+                "oauth_apple_active": false,
+                "force_change_mfa": false,
+                "oauth": null,
+                "is_mfa_enabled": true,
+                "is_withdrawal_enabled": true,
+                "is_password_change_blocked": false,
+                "enable_bots": false,
+                "last_seen": null,
+                "last_name": "",
+                "account_name": "Main"
+              },
+              "symbol": "BTC/USDT:USDT",
+              "marginMode": "isolated"
+            }
+          }
         ]
     }
 }

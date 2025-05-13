@@ -29,12 +29,11 @@ const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
 interface IOrderBookSide<T> extends Array<T> {
     store(price: any, size: any);
-    store(price: any, size: any, index: any);
     storeArray(array: any[]);
     limit();
 }
 
-class OrderBookSide extends Array implements IOrderBookSide {
+class OrderBookSide extends Array implements IOrderBookSide<any> {
     constructor (deltas = [], depth = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
@@ -107,8 +106,9 @@ class OrderBookSide extends Array implements IOrderBookSide {
 // this class stores vector arrays of values indexed by price
 
 class CountedOrderBookSide extends OrderBookSide {
-    store (price, size, count) {
-        this.storeArray ([ price, size, count ])
+
+    store (price, size) {
+        throw new Error ('CountedOrderBookSide.store() is not supported, use storeArray([price, size, count]) instead')
     }
 
     storeArray (delta) {
@@ -148,7 +148,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // ----------------------------------------------------------------------------
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
-class IndexedOrderBookSide extends Array implements IOrderBookSide {
+class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
@@ -174,8 +174,8 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide {
         }
     }
 
-    store (price, size, id) {
-        this.storeArray ([ price, size, id ])
+    store (price, size) {
+        throw new Error ('IndexedOrderBook.store() is not supported, use storeArray([price, size, id]) instead')
     }
 
     storeArray (delta) {

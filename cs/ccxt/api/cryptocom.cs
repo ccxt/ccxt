@@ -56,6 +56,16 @@ public partial class cryptocom : Exchange
         return await this.callAsync ("v1PublicGetPublicGetInsurance",parameters);
     }
 
+    public async Task<object> v1PublicGetPublicGetRiskParameters (object parameters = null)
+    {
+        return await this.callAsync ("v1PublicGetPublicGetRiskParameters",parameters);
+    }
+
+    public async Task<object> v1PublicPostPublicStakingGetConversionRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PublicPostPublicStakingGetConversionRate",parameters);
+    }
+
     public async Task<object> v1PrivatePostPrivateSetCancelOnDisconnect (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateSetCancelOnDisconnect",parameters);
@@ -184,6 +194,66 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateGetDepositHistory (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateGetDepositHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateGetFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetFeeRate",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateGetInstrumentFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingStake (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingStake",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingUnstake (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingUnstake",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetStakingPosition (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetStakingPosition",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetStakingInstruments (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetStakingInstruments",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetOpenStake (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetOpenStake",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetStakeHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetStakeHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetRewardHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetRewardHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingConvert (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingConvert",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetOpenConvert (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetOpenConvert",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateStakingGetConvertHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateStakingGetConvertHistory",parameters);
     }
 
     public async Task<object> v2PublicGetPublicAuth (object parameters = null)

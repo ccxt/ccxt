@@ -2,6 +2,8 @@ namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
 
+using Cryptography.ECDSA;
+
 using MiniMessagePack;
 
 using dict = Dictionary<string, object>;
@@ -61,47 +63,125 @@ public partial class Exchange
         return base64EncodedBytes;
     }
 
-    public string base58ToBinary(object str)
+    public byte[] base58ToBinary(object pt) => Base58ToBinary(pt);
+
+    public static byte[] Base58ToBinary(object pt)
     {
-        return (string)str; // stub
+        return Base58.Decode(pt as string);
     }
 
-    public object binaryConcat(object a, object b)
+
+    public object binaryConcat(params object[] parts)
     {
-        byte[] first;
-        byte[] second;
-        if (a is string)
+        var resultList = new List<byte>();
+
+        foreach (var part in parts)
         {
-            first = Encoding.ASCII.GetBytes(a as string);
+            if (part is string str)
+            {
+                resultList.AddRange(Encoding.ASCII.GetBytes(str));
+            }
+            else if (part is byte[] bytes)
+            {
+                resultList.AddRange(bytes);
+            }
+            else
+            {
+                throw new ArgumentException("BinaryConcat: Unsupported type, only string and byte[] are allowed.");
+            }
         }
-        else
+
+        return resultList.ToArray();
+    }
+
+    // public object binaryConcat(object a, object b)
+    // {
+    //     byte[] first;
+    //     byte[] second;
+    //     if (a is string)
+    //     {
+    //         first = Encoding.ASCII.GetBytes(a as string);
+    //     }
+    //     else
+    //     {
+    //         first = (byte[])a;
+    //     }
+    //     if (b is string)
+    //     {
+    //         second = Encoding.ASCII.GetBytes(b as string);
+    //     }
+    //     else
+    //     {
+    //         second = (byte[])b;
+    //     }
+    //     var result = new byte[first.Length + second.Length];
+    //     first.CopyTo(result, 0);
+    //     second.CopyTo(result, first.Length);
+    //     return result;
+    //     // return (string)a + (string)b; // stub
+    // }
+
+    public object binaryConcatArray(object arrays2)
+    {
+        // if (byteArrays is not IList arrays)
+        // {
+        //     throw new ArgumentException("Input must be an array or collection of byte arrays.", nameof(byteArrays));
+        // }
+
+        var arrays = (IList<object>)arrays2;
+        // Determine total length
+        int totalLength = 0;
+        foreach (var item in arrays)
         {
-            first = (byte[])a;
+            // if (item is not byte[] array)
+            // {
+            //     throw new ArgumentException("All elements in the collection must be byte arrays.", nameof(byteArrays));
+            // }
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            totalLength += ((byte[])bytesItem).Length;
         }
-        if (b is string)
+
+        // Concatenate arrays
+        byte[] result = new byte[totalLength];
+        int offset = 0;
+
+        foreach (var item in arrays)
         {
-            second = Encoding.ASCII.GetBytes(b as string);
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            byte[] array = (byte[])bytesItem;
+            Buffer.BlockCopy(array, 0, result, offset, array.Length);
+            offset += array.Length;
         }
-        else
-        {
-            second = (byte[])b;
-        }
-        var result = new byte[first.Length + second.Length];
-        first.CopyTo(result, 0);
-        second.CopyTo(result, first.Length);
+
         return result;
-        // return (string)a + (string)b; // stub
     }
 
-    public object binaryConcatArray(object a)
+    public object numberToBE(object n2, object size2 = null)
     {
-        return (string)a; // stub
-    }
-
-    public object numberToBE(object n, object padding = null)
-    {
-        // implement number to big endian
-        return (string)n; // stub
+        var n = Convert.ToInt64(n2);
+        var size = size2 == null ? 0 : Convert.ToInt32(size2);
+        byte[] bytes = BitConverter.GetBytes(n);
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(bytes);
+        }
+        return bytes[^size..]; // Extract the last 'size' bytes
     }
 
     public static string binaryToHex(byte[] buff)
@@ -125,12 +205,13 @@ public partial class Exchange
         return binaryToHex(buff);
     }
 
-    public static string binaryToBase64(byte[] buff)
-    {
-        return Convert.ToBase64String(buff);
-    }
+    public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
 
-    public byte[] stringToBinary(string buff)
+    public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+
+    public byte[] stringToBinary(string buff) => StringToBinary(buff);
+
+    public static byte[] StringToBinary(string buff)
     {
         return Encoding.UTF8.GetBytes(buff);
     }
@@ -232,20 +313,30 @@ public partial class Exchange
     {
         var parameters = (dict)parameters2;
 
-        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        // var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        var queryString = new List<string>();
         var keys = parameters.Keys;
         foreach (string key in keys)
         {
             var value = parameters[key];
+            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            queryString.Add(key, finalValue);
+            if (key.ToLower() == "timestamp")
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
+            }
+            else
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
+            }
+            queryString.Add($"{encodedKey}={finalValue}");
         }
-        return queryString.ToString();
+        return string.Join("&", queryString);
     }
 
     public string encodeURIComponent(object str2)
@@ -268,12 +359,13 @@ public partial class Exchange
         return result.ToString();
     }
 
-    public static string Base64urlEncode(string s)
+    public string urlencodeBase64(object s) => Base64urlEncode(s);
+
+    public static string Base64urlEncode(object s)
     {
         char[] padding = { '=' };
-        // var toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(s);
-        // string returnValue = System.Convert.ToBase64String(toEncodeAsBytes)
-        string returnValue = s.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
+        string str = (s is string) ? Exchange.StringToBase64(s as string) : Exchange.BinaryToBase64(s as byte[]);
+        string returnValue = str.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
         return returnValue;
     }
 

@@ -11,6 +11,7 @@ class ImplicitAPI:
     public_get_exchange_book_pair = publicGetExchangeBookPair = Entry('exchange/book/{pair}', 'public', 'GET', {'cost': 3})
     public_get_exchange_bookupdates_pair_from = publicGetExchangeBookUpdatesPairFrom = Entry('exchange/bookUpdates/{pair}/{from}', 'public', 'GET', {'cost': 1})
     private_get_users_balances = privateGetUsersBalances = Entry('users/balances', 'private', 'GET', {'cost': 1})
+    private_get_users_wallets = privateGetUsersWallets = Entry('users/wallets', 'private', 'GET', {'cost': 1})
     private_get_users_wallets_history_since = privateGetUsersWalletsHistorySince = Entry('users/wallets/history/{since}', 'private', 'GET', {'cost': 1.67})
     private_get_exchange_orders_status_orderid = privateGetExchangeOrdersStatusOrderID = Entry('exchange/orders/status/{orderID}', 'private', 'GET', {'cost': 1})
     private_get_exchange_orders_active = privateGetExchangeOrdersActive = Entry('exchange/orders/active', 'private', 'GET', {'cost': 1})

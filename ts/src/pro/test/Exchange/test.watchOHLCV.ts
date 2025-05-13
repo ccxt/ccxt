@@ -2,8 +2,9 @@
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchOHLCV (exchange, skippedProperties, symbol) {
+async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCV';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

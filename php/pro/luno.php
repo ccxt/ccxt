@@ -6,18 +6,19 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class luno extends \ccxt\async\luno {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => null, // is in beta
                 'watchOrderBook' => true,
@@ -42,7 +43,9 @@ class luno extends \ccxt\async\luno {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
@@ -202,12 +205,11 @@ class luno extends \ccxt\async\luno {
         //
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $timestamp = $this->safe_string($message, 'timestamp');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->indexed_order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        $timestamp = $this->safe_integer($message, 'timestamp');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
@@ -324,7 +326,7 @@ class luno extends \ccxt\async\luno {
             return;
         }
         $subscriptions = is_array($client->subscriptions) ? array_values($client->subscriptions) : array();
-        $handlers = [ array($this, 'handle_order_book'), $this->handle_trades];
+        $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
         for ($j = 0; $j < count($handlers); $j++) {
             $handler = $handlers[$j];
             $handler($client, $message, $subscriptions[0]);

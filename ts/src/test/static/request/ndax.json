@@ -1,6 +1,7 @@
 {
     "exchange": "ndax",
-    "skipKeys": [],
+    "skipKeys": ["AccountId", "UserId", "UserName"],
+    "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
         "fetchTrades": [
@@ -40,6 +41,230 @@
                 "url": "https://api.ndax.io:8443/AP/GetTickerHistory?omsId=1&InstrumentId=82&Interval=60",
                 "input": [
                     "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch Accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.ndax.io:8443/AP/GetUserAccounts?omsId=1&UserId=187209&UserName=samgermain",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch Balance",
+                "method": "fetchBalance",
+                "url": "https://api.ndax.io:8443/AP/GetAccountPositions?omsId=1&AccountId=187639",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch Ledger",
+                "method": "fetchLedger",
+                "url": "https://api.ndax.io:8443/AP/GetAccountTransactions?omsId=1&AccountId=187639",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchDepositAddress",
+                "url": "https://api.ndax.io:8443/AP/GetDepositInfo?omsId=1&AccountId=187639&ProductId=34&GenerateNewKey=false",
+                "input": [
+                  "SOL"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create a market order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                    "ADA/CAD",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":1,\"OrderType\":1}"
+            },
+            {
+                "description": "Stop limit order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "sell",
+                  0.99,
+                  1.6,
+                  {
+                    "triggerPrice": "1.60"
+                  }
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":4,\"LimitPrice\":1.6,\"StopPrice\":\"1.60\"}"
+            },
+            {
+                "description": "Limit Order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "sell",
+                  0.998,
+                  1.6
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6}"
+            },
+            {
+                "description": "Order with ClientOrderId",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "buy",
+                  0.998,
+                  1.6,
+                  {
+                    "clientOrderId": "27"
+                  }
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6,\"ClientOrderId\":27}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel Order",
+                "method": "cancelOrder",
+                "url": "https://api.ndax.io:8443/AP/CancelOrder",
+                "input": [
+                  "23092280996"
+                ],
+                "output": "{\"omsId\":1,\"OrderId\":23092280996}"
+            },
+            {
+                "description": "Cancel order by ClientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.ndax.io:8443/AP/CancelOrder",
+                "input": [
+                  "",
+                  null,
+                  {
+                    "clientOrderId": "27"
+                  }
+                ],
+                "output": "{\"omsId\":1,\"ClOrderId\":27}"
+              }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
+                "input": [],
+                "output": "{\"omsId\":1,\"AccountId\":187639}"
+            },
+            {
+                "description": "Cancel All Orders with symbol since and limit",
+                "method": "cancelAllOrders",
+                "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
+                "input": [
+                  "ADA/CAD"
+                ],
+                "output": "{\"omsId\":1,\"AccountId\":187639,\"IntrumentId\":\"78\"}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch Deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch Deposits with a currency argument",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": [
+                  "USDC"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order with no symbol",
+                "method": "fetchOrder",
+                "url": "https://api.ndax.io:8443/AP/GetOrderStatus?omsId=1&AccountId=187639&OrderId=23102257147",
+                "input": [
+                  "23102257147"
+                ]
+            },
+            {
+                "description": "Fetch order with a symbol",
+                "method": "fetchOrder",
+                "url": "https://api.ndax.io:8443/AP/GetOrderStatus?omsId=1&AccountId=187639&OrderId=23102257147",
+                "input": [
+                  "23102257147",
+                  "ADA/CAD"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch Orders",
+                "method": "fetchOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOrdersHistory?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch orders with a symbol, timestamp and limit",
+                "method": "fetchOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOrdersHistory?omsId=1&AccountId=187639&InstrumentId=78&StartTimeStamp=1733626703&Depth=3",
+                "input": [
+                  "ADA/CAD",
+                  1733626703456,
+                  3
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOpenOrders?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch open orders with a symbol, timestamp and limit",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOpenOrders?omsId=1&AccountId=187639",
+                "input": [
+                  "ADA/CAD",
+                  1733626703456,
+                  3
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.ndax.io:8443/AP/GetTradesHistory?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch My Trades with Symbol since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.ndax.io:8443/AP/GetTradesHistory?omsId=1&AccountId=187639&InstrumentId=78&StartTimeStamp=1733626906&Depth=2",
+                "input": [
+                  "ADA/CAD",
+                  1733626906108,
+                  2
                 ]
             }
         ]

@@ -314,8 +314,11 @@ public class ArrayCacheBySymbolBySide : ArrayCache
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
-        var bySide = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSide] as Dictionary<string, object> : new Dictionary<string, object>();
-
+        if (!this.hashmap.ContainsKey(itemSymbol))
+        {
+            this.hashmap[itemSymbol] = new Dictionary<string, object>();
+        }
+        var bySide = this.hashmap[itemSymbol] as Dictionary<string, object>;
         if (bySide.ContainsKey(itemSide))
         {
             var reference = bySide[itemSide];

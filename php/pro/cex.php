@@ -10,12 +10,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class cex extends \ccxt\async\cex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -23,6 +23,7 @@ class cex extends \ccxt\async\cex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -62,7 +63,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://cex.io/websocket-api#get-balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -124,7 +127,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol-> Note => can only watch one $symbol at a time.
+             *
              * @see https://cex.io/websocket-api#old-pair-room
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -256,7 +261,9 @@ class cex extends \ccxt\async\cex {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://cex.io/websocket-api#ticker-subscription
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -295,7 +302,9 @@ class cex extends \ccxt\async\cex {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://cex.io/websocket-api#$ticker-subscription
+             *
              * watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -326,10 +335,12 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function fetch_ticker_ws(string $symbol, $params = array ()) {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.cex.io/#ws-api-ticker-deprecated
+             *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the cex api endpoint
@@ -339,7 +350,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'ticker',
                 'oid' => $messageHash,
                 'data' => [ $market['base'], $market['quote'] ],
@@ -444,7 +455,9 @@ class cex extends \ccxt\async\cex {
     public function fetch_balance_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.cex.io/#ws-api-get-balance
+             *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -453,7 +466,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'get-balance',
                 'oid' => $messageHash,
             ), $params);
@@ -465,7 +478,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $orders associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
+             *
              * @see https://docs.cex.io/#ws-api-open-$orders
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -504,7 +519,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of trades associated with the user. Note => In CEX.IO system, $orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls => archived-orders/open-$orders->
+             *
              * @see https://docs.cex.io/#ws-api-open-$orders
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -698,7 +715,7 @@ class cex extends \ccxt\async\cex {
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
         //         "e" => "order",
         //         "data" => {
@@ -949,7 +966,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://cex.io/websocket-api#$orderbook-$subscribe
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1008,7 +1027,7 @@ class cex extends \ccxt\async\cex {
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
-        $incrementalId = $this->safe_number($data, 'id');
+        $incrementalId = $this->safe_integer($data, 'id');
         $orderbook = $this->order_book(array());
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
@@ -1046,7 +1065,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $incrementalId = $this->safe_number($data, 'id');
+        $incrementalId = $this->safe_integer($data, 'id');
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
@@ -1080,7 +1099,9 @@ class cex extends \ccxt\async\cex {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://cex.io/websocket-api#minute-data
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> It will return the last 120 minutes with the selected $timeframe and then 1m candle updates after that.
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents.
@@ -1101,7 +1122,7 @@ class cex extends \ccxt\async\cex {
                     'pair-' . $market['baseId'] . '-' . $market['quoteId'],
                 ],
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -1231,7 +1252,10 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://docs.cex.io/#ws-api-get-order
+             *
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1242,7 +1266,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => (string) $id,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1260,7 +1284,9 @@ class cex extends \ccxt\async\cex {
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.cex.io/#ws-api-open-orders
+             *
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1269,14 +1295,14 @@ class cex extends \ccxt\async\cex {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . 'fetchOpenOrdersWs requires a $symbol->');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a $symbol->');
             }
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
             ), $params);
             $request = array(
@@ -1292,13 +1318,15 @@ class cex extends \ccxt\async\cex {
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             *
              * @see https://docs.cex.io/#ws-api-order-placement
+             *
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @param {boolean} [$params->maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) $price for this pair, if not order placement will be rejected with an error - "Order is not maker"
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
@@ -1311,7 +1339,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'amount' => $amount,
                 'price' => $price,
@@ -1331,13 +1359,15 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.cex.io/#ws-api-cancel-replace
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
@@ -1350,7 +1380,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'type' => $side,
                 'amount' => $amount,
@@ -1372,7 +1402,9 @@ class cex extends \ccxt\async\cex {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.cex.io/#ws-api-order-cancel
+             *
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol not used by cex cancelOrder ()
@@ -1385,7 +1417,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => $id,
             ), $params);
             $messageHash = $this->request_id();
@@ -1404,7 +1436,9 @@ class cex extends \ccxt\async\cex {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://docs.cex.io/#ws-api-mass-cancel-place
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by cex cancelOrders()
              * @param {array} [$params] extra parameters specific to the cex api endpoint
@@ -1416,7 +1450,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'cancel-orders' => $ids,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1574,7 +1608,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

@@ -1,13 +1,15 @@
+import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 
 function testStatus (exchange: Exchange, skippedProperties: object, method: string, entry: object, now : number) {
-    const format = {
-        'info': { },
-        'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
-        'updated': 1650000000000, // integer, last updated timestamp in milliseconds if updated via the API
-        'eta': 1660000000000, // when the maintenance or outage is expected to end
-        'url': 'https://example.com', // a link to a Git
-    };
+    assert (true, 'testStatus');
+    // const format = {
+    //     'info': { },
+    //     'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
+    //     'updated': 1650000000000, // integer, last updated timestamp in milliseconds if updated via the API
+    //     'eta': 1660000000000, // when the maintenance or outage is expected to end
+    //     'url': 'https://example.com', // a link to a Git
+    // };
     // todo: after status object is changed in base
     // if (exchange.has['fetchStatus'] && exchange.has['fetchTime']) {
     //     const emptyAllowedFor = [ 'url', 'eta', 'updated' ];

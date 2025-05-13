@@ -9,7 +9,7 @@ use React\EventLoop\LoopInterface;
  * @param LoopInterface|null $loop
  * @return \React\Promise\PromiseInterface<\Ratchet\Client\WebSocket>
  */
-function connect($url, array $subProtocols = [], $headers = [], LoopInterface $loop = null) {
+function connect($url, array $subProtocols = [], $headers = [], ?LoopInterface $loop = null) {
     $connector = new Connector($loop);
     $connection = $connector($url, $subProtocols, $headers);
 

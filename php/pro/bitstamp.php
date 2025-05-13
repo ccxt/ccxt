@@ -7,18 +7,19 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,
@@ -68,7 +69,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                     'channel' => $channel,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -184,7 +185,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                     'channel' => $channel,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -563,7 +564,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 ),
             );
             $subscription['messageHash'] = $messageHash;
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 }

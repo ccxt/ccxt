@@ -39,7 +39,7 @@ function validatePointOpts(curve) {
 }
 // ASN.1 DER encoding utilities
 const { bytesToNumberBE: b2n, hexToBytes: h2b } = ut;
-const DER = {
+export const DER = {
     // asn.1 DER encoding utils
     Err: class DERErr extends Error {
         constructor(m = '') {

@@ -1,0 +1,3352 @@
+{
+    "exchange": "cryptomus",
+    "skipKeys": [ "timestamp", "datetime" ],
+    "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "Trading fees",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "result": {
+                        "equivalent_currency_code": "USD",
+                        "current_tariff_step": {
+                            "step": "0",
+                            "from_turnover": "0.00000000",
+                            "maker_percent": "0.08",
+                            "taker_percent": "0.1"
+                        },
+                        "tariff_steps": [
+                            {
+                                "step": "0",
+                                "from_turnover": "0.00000000",
+                                "maker_percent": "0.08",
+                                "taker_percent": "0.1"
+                            },
+                            {
+                                "step": "1",
+                                "from_turnover": "100001.00000000",
+                                "maker_percent": "0.06",
+                                "taker_percent": "0.095"
+                            },
+                            {
+                                "step": "2",
+                                "from_turnover": "250001.00000000",
+                                "maker_percent": "0.055",
+                                "taker_percent": "0.085"
+                            },
+                            {
+                                "step": "3",
+                                "from_turnover": "500001.00000000",
+                                "maker_percent": "0.05",
+                                "taker_percent": "0.075"
+                            },
+                            {
+                                "step": "4",
+                                "from_turnover": "2500001.00000000",
+                                "maker_percent": "0.04",
+                                "taker_percent": "0.07"
+                            }
+                        ],
+                        "daily_turnover": "0.00000000",
+                        "monthly_turnover": "75.31946622",
+                        "circulation_funds": "24.11113241"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "BTC/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "ETH/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "LTC/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "LTC/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "SOL/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "SOL/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "TRX/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "TRX/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "ticker": "AVAX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BCH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BNB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BUSD",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "CGPT",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DAI",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DASH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DOGE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "ETH",
+                            "available": "0.00714562",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "HMSTR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "LTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "POL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SHIB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SOL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TON",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TRX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDT",
+                            "available": "26.55600710",
+                            "held": "6.10000000"
+                        },
+                        {
+                            "ticker": "VERSE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "XMR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "ticker": "AVAX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BCH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BNB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "BUSD",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "CGPT",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DAI",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DASH",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "DOGE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "ETH",
+                            "available": "0.00714562",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "HMSTR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "LTC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "POL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SHIB",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "SOL",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TON",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "TRX",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDC",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "USDT",
+                            "available": "26.55600710",
+                            "held": "6.10000000"
+                        },
+                        {
+                            "ticker": "VERSE",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        },
+                        {
+                            "ticker": "XMR",
+                            "available": "0.00000000",
+                            "held": "0.00000000"
+                        }
+                    ],
+                    "AVAX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BCH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BNB": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BUSD": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "CGPT": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DAI": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DASH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "DOGE": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETH": {
+                        "free": 0.00714562,
+                        "used": 0,
+                        "total": 0.00714562
+                    },
+                    "HMSTR": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "LTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "POL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SHIB": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TON": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TRX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDT": {
+                        "free": 26.5560071,
+                        "used": 6.1,
+                        "total": 32.6560071
+                    },
+                    "VERSE": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "XMR": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0.00714562,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 26.5560071,
+                        "VERSE": 0,
+                        "XMR": 0
+                    },
+                    "used": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 6.1,
+                        "VERSE": 0,
+                        "XMR": 0
+                    },
+                    "total": {
+                        "AVAX": 0,
+                        "BCH": 0,
+                        "BNB": 0,
+                        "BTC": 0,
+                        "BUSD": 0,
+                        "CGPT": 0,
+                        "DAI": 0,
+                        "DASH": 0,
+                        "DOGE": 0,
+                        "ETH": 0.00714562,
+                        "HMSTR": 0,
+                        "LTC": 0,
+                        "POL": 0,
+                        "SHIB": 0,
+                        "SOL": 0,
+                        "TON": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 32.6560071,
+                        "VERSE": 0,
+                        "XMR": 0
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    5
+                ],
+                "httpResponse": {
+                    "data": {
+                        "timestamp": "1741194063",
+                        "bids": [
+                            {
+                                "price": "2195.59",
+                                "quantity": "2.52015"
+                            },
+                            {
+                                "price": "2195.47",
+                                "quantity": "1.99383"
+                            },
+                            {
+                                "price": "2195.36",
+                                "quantity": "6.837"
+                            },
+                            {
+                                "price": "2195.35",
+                                "quantity": "2.39273"
+                            },
+                            {
+                                "price": "2195.23",
+                                "quantity": "3.56109"
+                            },
+                            {
+                                "price": "2195.11",
+                                "quantity": "4.17604"
+                            },
+                            {
+                                "price": "2194.98",
+                                "quantity": "16.84938"
+                            },
+                            {
+                                "price": "2194.92",
+                                "quantity": "0.09107"
+                            },
+                            {
+                                "price": "2194.86",
+                                "quantity": "4.29561"
+                            },
+                            {
+                                "price": "2194.74",
+                                "quantity": "5.47597"
+                            },
+                            {
+                                "price": "2194.62",
+                                "quantity": "5.627"
+                            },
+                            {
+                                "price": "2194.5",
+                                "quantity": "5.37694"
+                            },
+                            {
+                                "price": "2194.37",
+                                "quantity": "6.4779"
+                            },
+                            {
+                                "price": "2194.25",
+                                "quantity": "7.32752"
+                            },
+                            {
+                                "price": "2194.13",
+                                "quantity": "9.41488"
+                            },
+                            {
+                                "price": "2194.01",
+                                "quantity": "7.94319"
+                            },
+                            {
+                                "price": "2193.89",
+                                "quantity": "7.60743"
+                            },
+                            {
+                                "price": "2193.76",
+                                "quantity": "9.86578"
+                            },
+                            {
+                                "price": "2193.64",
+                                "quantity": "10.5426"
+                            },
+                            {
+                                "price": "2193.52",
+                                "quantity": "10.59389"
+                            },
+                            {
+                                "price": "2193.4",
+                                "quantity": "11.12741"
+                            },
+                            {
+                                "price": "2193.28",
+                                "quantity": "11.94494"
+                            },
+                            {
+                                "price": "2193.15",
+                                "quantity": "10.33881"
+                            },
+                            {
+                                "price": "2193.1",
+                                "quantity": "0.8792"
+                            },
+                            {
+                                "price": "2193.09",
+                                "quantity": "21.463"
+                            },
+                            {
+                                "price": "2193.08",
+                                "quantity": "32.26529"
+                            },
+                            {
+                                "price": "2193.07",
+                                "quantity": "2.2746"
+                            },
+                            {
+                                "price": "2193.06",
+                                "quantity": "26.577"
+                            },
+                            {
+                                "price": "2193.05",
+                                "quantity": "4.56083"
+                            },
+                            {
+                                "price": "2193.04",
+                                "quantity": "2.2296"
+                            },
+                            {
+                                "price": "2193.03",
+                                "quantity": "14.25418"
+                            },
+                            {
+                                "price": "2193.01",
+                                "quantity": "2.2799"
+                            },
+                            {
+                                "price": "2192.99",
+                                "quantity": "2.158"
+                            },
+                            {
+                                "price": "2192.96",
+                                "quantity": "1.6372"
+                            },
+                            {
+                                "price": "2192.94",
+                                "quantity": "2.2759"
+                            },
+                            {
+                                "price": "2192.93",
+                                "quantity": "11.6775"
+                            },
+                            {
+                                "price": "2192.92",
+                                "quantity": "14.21529"
+                            },
+                            {
+                                "price": "2192.91",
+                                "quantity": "23.43326"
+                            },
+                            {
+                                "price": "2192.89",
+                                "quantity": "3.68614"
+                            },
+                            {
+                                "price": "2192.88",
+                                "quantity": "4.1379"
+                            },
+                            {
+                                "price": "2192.87",
+                                "quantity": "2.61"
+                            },
+                            {
+                                "price": "2192.86",
+                                "quantity": "3.0003"
+                            },
+                            {
+                                "price": "2192.85",
+                                "quantity": "0.01396"
+                            },
+                            {
+                                "price": "2192.84",
+                                "quantity": "3.0039"
+                            },
+                            {
+                                "price": "2192.83",
+                                "quantity": "6.6457"
+                            },
+                            {
+                                "price": "2192.82",
+                                "quantity": "11.9789"
+                            },
+                            {
+                                "price": "2192.81",
+                                "quantity": "8.9411"
+                            },
+                            {
+                                "price": "2192.8",
+                                "quantity": "6.8994"
+                            },
+                            {
+                                "price": "2192.79",
+                                "quantity": "2.8723"
+                            },
+                            {
+                                "price": "2192.78",
+                                "quantity": "4.027"
+                            },
+                            {
+                                "price": "2192.76",
+                                "quantity": "72.8887"
+                            },
+                            {
+                                "price": "2192.75",
+                                "quantity": "6.9412"
+                            },
+                            {
+                                "price": "2192.74",
+                                "quantity": "1.9939"
+                            },
+                            {
+                                "price": "2192.73",
+                                "quantity": "29.781"
+                            },
+                            {
+                                "price": "2192.72",
+                                "quantity": "6.8818"
+                            },
+                            {
+                                "price": "2192.71",
+                                "quantity": "9.2655"
+                            },
+                            {
+                                "price": "2192.7",
+                                "quantity": "7.4967"
+                            },
+                            {
+                                "price": "2192.69",
+                                "quantity": "5.8917"
+                            },
+                            {
+                                "price": "2192.68",
+                                "quantity": "8.8919"
+                            },
+                            {
+                                "price": "2192.67",
+                                "quantity": "1.8616"
+                            },
+                            {
+                                "price": "2192.66",
+                                "quantity": "1.8669"
+                            },
+                            {
+                                "price": "2192.65",
+                                "quantity": "1.9974"
+                            },
+                            {
+                                "price": "2192.64",
+                                "quantity": "0.00229"
+                            },
+                            {
+                                "price": "2192.63",
+                                "quantity": "0.00451"
+                            },
+                            {
+                                "price": "2192.62",
+                                "quantity": "27.2041"
+                            },
+                            {
+                                "price": "2192.61",
+                                "quantity": "6.8295"
+                            },
+                            {
+                                "price": "2192.6",
+                                "quantity": "11.6068"
+                            },
+                            {
+                                "price": "2192.59",
+                                "quantity": "1.80757"
+                            },
+                            {
+                                "price": "2192.58",
+                                "quantity": "2.61"
+                            },
+                            {
+                                "price": "2192.57",
+                                "quantity": "0.19594"
+                            },
+                            {
+                                "price": "2192.56",
+                                "quantity": "3.68614"
+                            },
+                            {
+                                "price": "2192.55",
+                                "quantity": "11.1337"
+                            },
+                            {
+                                "price": "2192.54",
+                                "quantity": "19.6693"
+                            },
+                            {
+                                "price": "2192.53",
+                                "quantity": "1"
+                            },
+                            {
+                                "price": "2192.52",
+                                "quantity": "2.9577"
+                            },
+                            {
+                                "price": "2192.5",
+                                "quantity": "0.00229"
+                            },
+                            {
+                                "price": "2192.49",
+                                "quantity": "2.05104"
+                            },
+                            {
+                                "price": "2192.48",
+                                "quantity": "1"
+                            },
+                            {
+                                "price": "2192.47",
+                                "quantity": "1.8329"
+                            },
+                            {
+                                "price": "2192.46",
+                                "quantity": "10.2434"
+                            },
+                            {
+                                "price": "2192.45",
+                                "quantity": "4.0419"
+                            },
+                            {
+                                "price": "2192.42",
+                                "quantity": "18.4517"
+                            },
+                            {
+                                "price": "2192.41",
+                                "quantity": "30.731"
+                            },
+                            {
+                                "price": "2192.4",
+                                "quantity": "1.163"
+                            },
+                            {
+                                "price": "2192.39",
+                                "quantity": "40.3344"
+                            },
+                            {
+                                "price": "2192.38",
+                                "quantity": "10.6866"
+                            },
+                            {
+                                "price": "2192.37",
+                                "quantity": "84.9953"
+                            },
+                            {
+                                "price": "2192.36",
+                                "quantity": "6.2232"
+                            },
+                            {
+                                "price": "2192.35",
+                                "quantity": "4.0616"
+                            },
+                            {
+                                "price": "2192.34",
+                                "quantity": "2.4466"
+                            },
+                            {
+                                "price": "2192.33",
+                                "quantity": "5.8638"
+                            },
+                            {
+                                "price": "2192.32",
+                                "quantity": "11.6189"
+                            },
+                            {
+                                "price": "2192.31",
+                                "quantity": "10.7479"
+                            },
+                            {
+                                "price": "2192.3",
+                                "quantity": "3.3945"
+                            },
+                            {
+                                "price": "2192.29",
+                                "quantity": "2.8542"
+                            },
+                            {
+                                "price": "2192.28",
+                                "quantity": "17.0742"
+                            },
+                            {
+                                "price": "2192.27",
+                                "quantity": "0.00229"
+                            },
+                            {
+                                "price": "2192.25",
+                                "quantity": "0.364"
+                            },
+                            {
+                                "price": "2192.24",
+                                "quantity": "9.3177"
+                            },
+                            {
+                                "price": "2192.23",
+                                "quantity": "6.8295"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "2196.45",
+                                "quantity": "6.835"
+                            },
+                            {
+                                "price": "2196.64",
+                                "quantity": "0.09172"
+                            },
+                            {
+                                "price": "2196.71",
+                                "quantity": "13.12"
+                            },
+                            {
+                                "price": "2196.83",
+                                "quantity": "1.50608"
+                            },
+                            {
+                                "price": "2196.95",
+                                "quantity": "3.65561"
+                            },
+                            {
+                                "price": "2197.07",
+                                "quantity": "2.79139"
+                            },
+                            {
+                                "price": "2197.19",
+                                "quantity": "4.13079"
+                            },
+                            {
+                                "price": "2197.31",
+                                "quantity": "4.03988"
+                            },
+                            {
+                                "price": "2197.44",
+                                "quantity": "4.63045"
+                            },
+                            {
+                                "price": "2197.56",
+                                "quantity": "4.98917"
+                            },
+                            {
+                                "price": "2197.68",
+                                "quantity": "7.09287"
+                            },
+                            {
+                                "price": "2197.8",
+                                "quantity": "6.81375"
+                            },
+                            {
+                                "price": "2197.93",
+                                "quantity": "7.24167"
+                            },
+                            {
+                                "price": "2198.05",
+                                "quantity": "5.69182"
+                            },
+                            {
+                                "price": "2198.17",
+                                "quantity": "5.83517"
+                            },
+                            {
+                                "price": "2198.29",
+                                "quantity": "6.66226"
+                            },
+                            {
+                                "price": "2198.41",
+                                "quantity": "11.26829"
+                            },
+                            {
+                                "price": "2198.53",
+                                "quantity": "0.50199"
+                            },
+                            {
+                                "price": "2198.54",
+                                "quantity": "6.35331"
+                            },
+                            {
+                                "price": "2198.66",
+                                "quantity": "8.84896"
+                            },
+                            {
+                                "price": "2198.78",
+                                "quantity": "10.06675"
+                            },
+                            {
+                                "price": "2198.9",
+                                "quantity": "9.50955"
+                            },
+                            {
+                                "price": "2199.03",
+                                "quantity": "12.60017"
+                            },
+                            {
+                                "price": "2199.15",
+                                "quantity": "13.15891"
+                            },
+                            {
+                                "price": "2199.27",
+                                "quantity": "12.21493"
+                            },
+                            {
+                                "price": "2199.28",
+                                "quantity": "3.8048"
+                            },
+                            {
+                                "price": "2199.29",
+                                "quantity": "2.9266"
+                            },
+                            {
+                                "price": "2199.31",
+                                "quantity": "0.27203"
+                            },
+                            {
+                                "price": "2199.32",
+                                "quantity": "5.12888"
+                            },
+                            {
+                                "price": "2199.33",
+                                "quantity": "15.0271"
+                            },
+                            {
+                                "price": "2199.35",
+                                "quantity": "3.2969"
+                            },
+                            {
+                                "price": "2199.36",
+                                "quantity": "0.27241"
+                            },
+                            {
+                                "price": "2199.37",
+                                "quantity": "0.00228"
+                            },
+                            {
+                                "price": "2199.38",
+                                "quantity": "0.24306"
+                            },
+                            {
+                                "price": "2199.39",
+                                "quantity": "16.22763"
+                            },
+                            {
+                                "price": "2199.4",
+                                "quantity": "3.68614"
+                            },
+                            {
+                                "price": "2199.41",
+                                "quantity": "1.9937"
+                            },
+                            {
+                                "price": "2199.43",
+                                "quantity": "4.5677"
+                            },
+                            {
+                                "price": "2199.44",
+                                "quantity": "1.9508"
+                            },
+                            {
+                                "price": "2199.45",
+                                "quantity": "0.54409"
+                            },
+                            {
+                                "price": "2199.46",
+                                "quantity": "1.053"
+                            },
+                            {
+                                "price": "2199.47",
+                                "quantity": "7.1152"
+                            },
+                            {
+                                "price": "2199.48",
+                                "quantity": "0.0279"
+                            },
+                            {
+                                "price": "2199.49",
+                                "quantity": "13.6731"
+                            },
+                            {
+                                "price": "2199.5",
+                                "quantity": "2.2746"
+                            },
+                            {
+                                "price": "2199.51",
+                                "quantity": "0.7059"
+                            },
+                            {
+                                "price": "2199.53",
+                                "quantity": "0.4125"
+                            },
+                            {
+                                "price": "2199.54",
+                                "quantity": "15.90286"
+                            },
+                            {
+                                "price": "2199.55",
+                                "quantity": "0.32537"
+                            },
+                            {
+                                "price": "2199.56",
+                                "quantity": "4.3737"
+                            },
+                            {
+                                "price": "2199.59",
+                                "quantity": "0.455"
+                            },
+                            {
+                                "price": "2199.6",
+                                "quantity": "0.00426"
+                            },
+                            {
+                                "price": "2199.61",
+                                "quantity": "0.00312"
+                            },
+                            {
+                                "price": "2199.62",
+                                "quantity": "5.466"
+                            },
+                            {
+                                "price": "2199.63",
+                                "quantity": "0.114"
+                            },
+                            {
+                                "price": "2199.64",
+                                "quantity": "0.879"
+                            },
+                            {
+                                "price": "2199.65",
+                                "quantity": "0.27249"
+                            },
+                            {
+                                "price": "2199.66",
+                                "quantity": "20.19797"
+                            },
+                            {
+                                "price": "2199.67",
+                                "quantity": "6.1145"
+                            },
+                            {
+                                "price": "2199.68",
+                                "quantity": "0.01569"
+                            },
+                            {
+                                "price": "2199.69",
+                                "quantity": "2.9418"
+                            },
+                            {
+                                "price": "2199.7",
+                                "quantity": "0.455"
+                            },
+                            {
+                                "price": "2199.72",
+                                "quantity": "1.9908"
+                            },
+                            {
+                                "price": "2199.73",
+                                "quantity": "3.92916"
+                            },
+                            {
+                                "price": "2199.75",
+                                "quantity": "1.9899"
+                            },
+                            {
+                                "price": "2199.77",
+                                "quantity": "3.9616"
+                            },
+                            {
+                                "price": "2199.78",
+                                "quantity": "4.1337"
+                            },
+                            {
+                                "price": "2199.79",
+                                "quantity": "1.7264"
+                            },
+                            {
+                                "price": "2199.8",
+                                "quantity": "4.9322"
+                            },
+                            {
+                                "price": "2199.81",
+                                "quantity": "8.5987"
+                            },
+                            {
+                                "price": "2199.82",
+                                "quantity": "0.00455"
+                            },
+                            {
+                                "price": "2199.83",
+                                "quantity": "0.4271"
+                            },
+                            {
+                                "price": "2199.85",
+                                "quantity": "0.00474"
+                            },
+                            {
+                                "price": "2199.86",
+                                "quantity": "2.2746"
+                            },
+                            {
+                                "price": "2199.87",
+                                "quantity": "0.00256"
+                            },
+                            {
+                                "price": "2199.89",
+                                "quantity": "12.4267"
+                            },
+                            {
+                                "price": "2199.91",
+                                "quantity": "15.00167"
+                            },
+                            {
+                                "price": "2199.92",
+                                "quantity": "0.6198"
+                            },
+                            {
+                                "price": "2199.93",
+                                "quantity": "0.00228"
+                            },
+                            {
+                                "price": "2199.94",
+                                "quantity": "0.00469"
+                            },
+                            {
+                                "price": "2199.95",
+                                "quantity": "29.4228"
+                            },
+                            {
+                                "price": "2199.96",
+                                "quantity": "4.56083"
+                            },
+                            {
+                                "price": "2199.97",
+                                "quantity": "4.0996"
+                            },
+                            {
+                                "price": "2199.98",
+                                "quantity": "0.936"
+                            },
+                            {
+                                "price": "2199.99",
+                                "quantity": "7.51723"
+                            },
+                            {
+                                "price": "2200",
+                                "quantity": "18.76611"
+                            },
+                            {
+                                "price": "2200.01",
+                                "quantity": "1.053"
+                            },
+                            {
+                                "price": "2200.02",
+                                "quantity": "1.6821"
+                            },
+                            {
+                                "price": "2200.04",
+                                "quantity": "1.8664"
+                            },
+                            {
+                                "price": "2200.05",
+                                "quantity": "5.7246"
+                            },
+                            {
+                                "price": "2200.06",
+                                "quantity": "1.9461"
+                            },
+                            {
+                                "price": "2200.07",
+                                "quantity": "3.0515"
+                            },
+                            {
+                                "price": "2200.08",
+                                "quantity": "0.4787"
+                            },
+                            {
+                                "price": "2200.09",
+                                "quantity": "6.9935"
+                            },
+                            {
+                                "price": "2200.1",
+                                "quantity": "0.00228"
+                            },
+                            {
+                                "price": "2200.11",
+                                "quantity": "11.3522"
+                            },
+                            {
+                                "price": "2200.12",
+                                "quantity": "0.18503"
+                            },
+                            {
+                                "price": "2200.13",
+                                "quantity": "0.00228"
+                            },
+                            {
+                                "price": "2200.14",
+                                "quantity": "1.9757"
+                            },
+                            {
+                                "price": "2200.15",
+                                "quantity": "0.00241"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            2195.59,
+                            2.52015
+                        ],
+                        [
+                            2195.47,
+                            1.99383
+                        ],
+                        [
+                            2195.36,
+                            6.837
+                        ],
+                        [
+                            2195.35,
+                            2.39273
+                        ],
+                        [
+                            2195.23,
+                            3.56109
+                        ],
+                        [
+                            2195.11,
+                            4.17604
+                        ],
+                        [
+                            2194.98,
+                            16.84938
+                        ],
+                        [
+                            2194.92,
+                            0.09107
+                        ],
+                        [
+                            2194.86,
+                            4.29561
+                        ],
+                        [
+                            2194.74,
+                            5.47597
+                        ],
+                        [
+                            2194.62,
+                            5.627
+                        ],
+                        [
+                            2194.5,
+                            5.37694
+                        ],
+                        [
+                            2194.37,
+                            6.4779
+                        ],
+                        [
+                            2194.25,
+                            7.32752
+                        ],
+                        [
+                            2194.13,
+                            9.41488
+                        ],
+                        [
+                            2194.01,
+                            7.94319
+                        ],
+                        [
+                            2193.89,
+                            7.60743
+                        ],
+                        [
+                            2193.76,
+                            9.86578
+                        ],
+                        [
+                            2193.64,
+                            10.5426
+                        ],
+                        [
+                            2193.52,
+                            10.59389
+                        ],
+                        [
+                            2193.4,
+                            11.12741
+                        ],
+                        [
+                            2193.28,
+                            11.94494
+                        ],
+                        [
+                            2193.15,
+                            10.33881
+                        ],
+                        [
+                            2193.1,
+                            0.8792
+                        ],
+                        [
+                            2193.09,
+                            21.463
+                        ],
+                        [
+                            2193.08,
+                            32.26529
+                        ],
+                        [
+                            2193.07,
+                            2.2746
+                        ],
+                        [
+                            2193.06,
+                            26.577
+                        ],
+                        [
+                            2193.05,
+                            4.56083
+                        ],
+                        [
+                            2193.04,
+                            2.2296
+                        ],
+                        [
+                            2193.03,
+                            14.25418
+                        ],
+                        [
+                            2193.01,
+                            2.2799
+                        ],
+                        [
+                            2192.99,
+                            2.158
+                        ],
+                        [
+                            2192.96,
+                            1.6372
+                        ],
+                        [
+                            2192.94,
+                            2.2759
+                        ],
+                        [
+                            2192.93,
+                            11.6775
+                        ],
+                        [
+                            2192.92,
+                            14.21529
+                        ],
+                        [
+                            2192.91,
+                            23.43326
+                        ],
+                        [
+                            2192.89,
+                            3.68614
+                        ],
+                        [
+                            2192.88,
+                            4.1379
+                        ],
+                        [
+                            2192.87,
+                            2.61
+                        ],
+                        [
+                            2192.86,
+                            3.0003
+                        ],
+                        [
+                            2192.85,
+                            0.01396
+                        ],
+                        [
+                            2192.84,
+                            3.0039
+                        ],
+                        [
+                            2192.83,
+                            6.6457
+                        ],
+                        [
+                            2192.82,
+                            11.9789
+                        ],
+                        [
+                            2192.81,
+                            8.9411
+                        ],
+                        [
+                            2192.8,
+                            6.8994
+                        ],
+                        [
+                            2192.79,
+                            2.8723
+                        ],
+                        [
+                            2192.78,
+                            4.027
+                        ],
+                        [
+                            2192.76,
+                            72.8887
+                        ],
+                        [
+                            2192.75,
+                            6.9412
+                        ],
+                        [
+                            2192.74,
+                            1.9939
+                        ],
+                        [
+                            2192.73,
+                            29.781
+                        ],
+                        [
+                            2192.72,
+                            6.8818
+                        ],
+                        [
+                            2192.71,
+                            9.2655
+                        ],
+                        [
+                            2192.7,
+                            7.4967
+                        ],
+                        [
+                            2192.69,
+                            5.8917
+                        ],
+                        [
+                            2192.68,
+                            8.8919
+                        ],
+                        [
+                            2192.67,
+                            1.8616
+                        ],
+                        [
+                            2192.66,
+                            1.8669
+                        ],
+                        [
+                            2192.65,
+                            1.9974
+                        ],
+                        [
+                            2192.64,
+                            0.00229
+                        ],
+                        [
+                            2192.63,
+                            0.00451
+                        ],
+                        [
+                            2192.62,
+                            27.2041
+                        ],
+                        [
+                            2192.61,
+                            6.8295
+                        ],
+                        [
+                            2192.6,
+                            11.6068
+                        ],
+                        [
+                            2192.59,
+                            1.80757
+                        ],
+                        [
+                            2192.58,
+                            2.61
+                        ],
+                        [
+                            2192.57,
+                            0.19594
+                        ],
+                        [
+                            2192.56,
+                            3.68614
+                        ],
+                        [
+                            2192.55,
+                            11.1337
+                        ],
+                        [
+                            2192.54,
+                            19.6693
+                        ],
+                        [
+                            2192.53,
+                            1
+                        ],
+                        [
+                            2192.52,
+                            2.9577
+                        ],
+                        [
+                            2192.5,
+                            0.00229
+                        ],
+                        [
+                            2192.49,
+                            2.05104
+                        ],
+                        [
+                            2192.48,
+                            1
+                        ],
+                        [
+                            2192.47,
+                            1.8329
+                        ],
+                        [
+                            2192.46,
+                            10.2434
+                        ],
+                        [
+                            2192.45,
+                            4.0419
+                        ],
+                        [
+                            2192.42,
+                            18.4517
+                        ],
+                        [
+                            2192.41,
+                            30.731
+                        ],
+                        [
+                            2192.4,
+                            1.163
+                        ],
+                        [
+                            2192.39,
+                            40.3344
+                        ],
+                        [
+                            2192.38,
+                            10.6866
+                        ],
+                        [
+                            2192.37,
+                            84.9953
+                        ],
+                        [
+                            2192.36,
+                            6.2232
+                        ],
+                        [
+                            2192.35,
+                            4.0616
+                        ],
+                        [
+                            2192.34,
+                            2.4466
+                        ],
+                        [
+                            2192.33,
+                            5.8638
+                        ],
+                        [
+                            2192.32,
+                            11.6189
+                        ],
+                        [
+                            2192.31,
+                            10.7479
+                        ],
+                        [
+                            2192.3,
+                            3.3945
+                        ],
+                        [
+                            2192.29,
+                            2.8542
+                        ],
+                        [
+                            2192.28,
+                            17.0742
+                        ],
+                        [
+                            2192.27,
+                            0.00229
+                        ],
+                        [
+                            2192.25,
+                            0.364
+                        ],
+                        [
+                            2192.24,
+                            9.3177
+                        ],
+                        [
+                            2192.23,
+                            6.8295
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2196.45,
+                            6.835
+                        ],
+                        [
+                            2196.64,
+                            0.09172
+                        ],
+                        [
+                            2196.71,
+                            13.12
+                        ],
+                        [
+                            2196.83,
+                            1.50608
+                        ],
+                        [
+                            2196.95,
+                            3.65561
+                        ],
+                        [
+                            2197.07,
+                            2.79139
+                        ],
+                        [
+                            2197.19,
+                            4.13079
+                        ],
+                        [
+                            2197.31,
+                            4.03988
+                        ],
+                        [
+                            2197.44,
+                            4.63045
+                        ],
+                        [
+                            2197.56,
+                            4.98917
+                        ],
+                        [
+                            2197.68,
+                            7.09287
+                        ],
+                        [
+                            2197.8,
+                            6.81375
+                        ],
+                        [
+                            2197.93,
+                            7.24167
+                        ],
+                        [
+                            2198.05,
+                            5.69182
+                        ],
+                        [
+                            2198.17,
+                            5.83517
+                        ],
+                        [
+                            2198.29,
+                            6.66226
+                        ],
+                        [
+                            2198.41,
+                            11.26829
+                        ],
+                        [
+                            2198.53,
+                            0.50199
+                        ],
+                        [
+                            2198.54,
+                            6.35331
+                        ],
+                        [
+                            2198.66,
+                            8.84896
+                        ],
+                        [
+                            2198.78,
+                            10.06675
+                        ],
+                        [
+                            2198.9,
+                            9.50955
+                        ],
+                        [
+                            2199.03,
+                            12.60017
+                        ],
+                        [
+                            2199.15,
+                            13.15891
+                        ],
+                        [
+                            2199.27,
+                            12.21493
+                        ],
+                        [
+                            2199.28,
+                            3.8048
+                        ],
+                        [
+                            2199.29,
+                            2.9266
+                        ],
+                        [
+                            2199.31,
+                            0.27203
+                        ],
+                        [
+                            2199.32,
+                            5.12888
+                        ],
+                        [
+                            2199.33,
+                            15.0271
+                        ],
+                        [
+                            2199.35,
+                            3.2969
+                        ],
+                        [
+                            2199.36,
+                            0.27241
+                        ],
+                        [
+                            2199.37,
+                            0.00228
+                        ],
+                        [
+                            2199.38,
+                            0.24306
+                        ],
+                        [
+                            2199.39,
+                            16.22763
+                        ],
+                        [
+                            2199.4,
+                            3.68614
+                        ],
+                        [
+                            2199.41,
+                            1.9937
+                        ],
+                        [
+                            2199.43,
+                            4.5677
+                        ],
+                        [
+                            2199.44,
+                            1.9508
+                        ],
+                        [
+                            2199.45,
+                            0.54409
+                        ],
+                        [
+                            2199.46,
+                            1.053
+                        ],
+                        [
+                            2199.47,
+                            7.1152
+                        ],
+                        [
+                            2199.48,
+                            0.0279
+                        ],
+                        [
+                            2199.49,
+                            13.6731
+                        ],
+                        [
+                            2199.5,
+                            2.2746
+                        ],
+                        [
+                            2199.51,
+                            0.7059
+                        ],
+                        [
+                            2199.53,
+                            0.4125
+                        ],
+                        [
+                            2199.54,
+                            15.90286
+                        ],
+                        [
+                            2199.55,
+                            0.32537
+                        ],
+                        [
+                            2199.56,
+                            4.3737
+                        ],
+                        [
+                            2199.59,
+                            0.455
+                        ],
+                        [
+                            2199.6,
+                            0.00426
+                        ],
+                        [
+                            2199.61,
+                            0.00312
+                        ],
+                        [
+                            2199.62,
+                            5.466
+                        ],
+                        [
+                            2199.63,
+                            0.114
+                        ],
+                        [
+                            2199.64,
+                            0.879
+                        ],
+                        [
+                            2199.65,
+                            0.27249
+                        ],
+                        [
+                            2199.66,
+                            20.19797
+                        ],
+                        [
+                            2199.67,
+                            6.1145
+                        ],
+                        [
+                            2199.68,
+                            0.01569
+                        ],
+                        [
+                            2199.69,
+                            2.9418
+                        ],
+                        [
+                            2199.7,
+                            0.455
+                        ],
+                        [
+                            2199.72,
+                            1.9908
+                        ],
+                        [
+                            2199.73,
+                            3.92916
+                        ],
+                        [
+                            2199.75,
+                            1.9899
+                        ],
+                        [
+                            2199.77,
+                            3.9616
+                        ],
+                        [
+                            2199.78,
+                            4.1337
+                        ],
+                        [
+                            2199.79,
+                            1.7264
+                        ],
+                        [
+                            2199.8,
+                            4.9322
+                        ],
+                        [
+                            2199.81,
+                            8.5987
+                        ],
+                        [
+                            2199.82,
+                            0.00455
+                        ],
+                        [
+                            2199.83,
+                            0.4271
+                        ],
+                        [
+                            2199.85,
+                            0.00474
+                        ],
+                        [
+                            2199.86,
+                            2.2746
+                        ],
+                        [
+                            2199.87,
+                            0.00256
+                        ],
+                        [
+                            2199.89,
+                            12.4267
+                        ],
+                        [
+                            2199.91,
+                            15.00167
+                        ],
+                        [
+                            2199.92,
+                            0.6198
+                        ],
+                        [
+                            2199.93,
+                            0.00228
+                        ],
+                        [
+                            2199.94,
+                            0.00469
+                        ],
+                        [
+                            2199.95,
+                            29.4228
+                        ],
+                        [
+                            2199.96,
+                            4.56083
+                        ],
+                        [
+                            2199.97,
+                            4.0996
+                        ],
+                        [
+                            2199.98,
+                            0.936
+                        ],
+                        [
+                            2199.99,
+                            7.51723
+                        ],
+                        [
+                            2200,
+                            18.76611
+                        ],
+                        [
+                            2200.01,
+                            1.053
+                        ],
+                        [
+                            2200.02,
+                            1.6821
+                        ],
+                        [
+                            2200.04,
+                            1.8664
+                        ],
+                        [
+                            2200.05,
+                            5.7246
+                        ],
+                        [
+                            2200.06,
+                            1.9461
+                        ],
+                        [
+                            2200.07,
+                            3.0515
+                        ],
+                        [
+                            2200.08,
+                            0.4787
+                        ],
+                        [
+                            2200.09,
+                            6.9935
+                        ],
+                        [
+                            2200.1,
+                            0.00228
+                        ],
+                        [
+                            2200.11,
+                            11.3522
+                        ],
+                        [
+                            2200.12,
+                            0.18503
+                        ],
+                        [
+                            2200.13,
+                            0.00228
+                        ],
+                        [
+                            2200.14,
+                            1.9757
+                        ],
+                        [
+                            2200.15,
+                            0.00241
+                        ]
+                    ],
+                    "timestamp": 1741194063000,
+                    "datetime": "2025-03-05T17:01:03.000Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "trade_id": "01JNKK876H6MXBH1715G9RCRST",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0036500000000000",
+                            "timestamp": 1741193223,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKJF518QV8MBXT2YZ0VJ5H0",
+                            "price": "2169.2900000000000000",
+                            "base_volume": "85.5567976000000000",
+                            "quote_volume": "0.0394400000000000",
+                            "timestamp": 1741192401,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKHRS8MWQXSMNV3DN89ZF2R",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.1061200000000000",
+                            "timestamp": 1741191669,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKHE96757ZQCK3VSDQ05RKV",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0081200000000000",
+                            "timestamp": 1741191324,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKH8ZF6AXHFTGJ666ZE0YVC",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0492500000000000",
+                            "timestamp": 1741191151,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKH17R74QMKYWB9G2BVRVBE",
+                            "price": "2189.2300000000000000",
+                            "base_volume": "1982.2164112000000000",
+                            "quote_volume": "0.9054400000000000",
+                            "timestamp": 1741190897,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKGK3PXHEXZM8QKQWE7AW3V",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0048600000000000",
+                            "timestamp": 1741190434,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKGA1KW71C4MWK7CY1Q6NF7",
+                            "price": null,
+                            "base_volume": "61.4000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741190137,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKG8C7PHGPWNS9D2J96R8N0",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0226400000000000",
+                            "timestamp": 1741190082,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKFSF9W8QJNCW94JWM56Z0V",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0246000000000000",
+                            "timestamp": 1741189594,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKECJGR6EEQ8QAHF9YEJMJM",
+                            "price": "2180.5400000000000000",
+                            "base_volume": "23.1137240000000000",
+                            "quote_volume": "0.0106000000000000",
+                            "timestamp": 1741188123,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKE7N5XY4MZR6YPQFN9GDS1",
+                            "price": null,
+                            "base_volume": "300.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741187962,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKE433XGTVGMGJXCRESQX30",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0144900000000000",
+                            "timestamp": 1741187845,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKDYCNSCJXQT3Z59W6ZC0WN",
+                            "price": null,
+                            "base_volume": "250.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741187658,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKDWTK8W0PSBC2G4RWT7HCE",
+                            "price": "2187.8900000000000000",
+                            "base_volume": "96.2671600000000000",
+                            "quote_volume": "0.0440000000000000",
+                            "timestamp": 1741187607,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKDBWD0V623PV386VM8WZ2P",
+                            "price": null,
+                            "base_volume": "30.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741187051,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKD0VKQDSHKT3GGHJNTR50Q",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0051000000000000",
+                            "timestamp": 1741186690,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKD07YXEMRM745DYVYHWDE1",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0100000000000000",
+                            "timestamp": 1741186670,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKCJB8GF3A35PFBKDZ9VRYA",
+                            "price": "2189.8100000000000000",
+                            "base_volume": "72.5265072000000000",
+                            "quote_volume": "0.0331200000000000",
+                            "timestamp": 1741186215,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKBS3PDPH8STN0PEH84197G",
+                            "price": "2193.8400000000000000",
+                            "base_volume": "75.3145272000000000",
+                            "quote_volume": "0.0343300000000000",
+                            "timestamp": 1741185388,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKBETC3RC4JD049CS5M2VKV",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0195000000000000",
+                            "timestamp": 1741185051,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKB4CSABSDF24AJM2NTNQAH",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0023900000000000",
+                            "timestamp": 1741184709,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKB2X2R7DGJQ2T7BYD68ERS",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0488800000000000",
+                            "timestamp": 1741184660,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKAJFJRJ7MA3XAZ6N67QVXW",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0145800000000000",
+                            "timestamp": 1741184122,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKADBX61BF8TN4EFW414XS0",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0442100000000000",
+                            "timestamp": 1741183954,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKACGXKW7TMPEG1XGXS308K",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0189200000000000",
+                            "timestamp": 1741183927,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKA7RBKQ6PYF7C36BZ4RGX6",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0031600000000000",
+                            "timestamp": 1741183770,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKA65QPF9HYRWESF1H6FX6F",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0069700000000000",
+                            "timestamp": 1741183719,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKA5FF6ZSDT5K3WYKAPVJ56",
+                            "price": "2198.1800000000000000",
+                            "base_volume": "226.6323580000000000",
+                            "quote_volume": "0.1031000000000000",
+                            "timestamp": 1741183696,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNKA4A48R79S0NRVVX440HVX",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0322400000000000",
+                            "timestamp": 1741183658,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNKA1FD7ST4ZXR084E478NEC",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0679000000000000",
+                            "timestamp": 1741183565,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK99FGN3QX7KS15VCK4AJ9P",
+                            "price": null,
+                            "base_volume": "5.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741182778,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK9962VH5R50JDAZ10EBJYE",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0050000000000000",
+                            "timestamp": 1741182769,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK967NY4EQ497DVQQE59FH8",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0135600000000000",
+                            "timestamp": 1741182672,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK8QJZVBMVAX13KAGR136G5",
+                            "price": null,
+                            "base_volume": "5.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741182192,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK8KHM0PQE1VHQ0VJPAF9ES",
+                            "price": null,
+                            "base_volume": "5.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741182060,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK8FVHA9XS4QTNN044E8DYD",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0048300000000000",
+                            "timestamp": 1741181939,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK8EFDA1WNC8HZ7RW8JSD2F",
+                            "price": null,
+                            "base_volume": "5.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741181894,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK89ZRB3C4NV0DZ36ACZFD8",
+                            "price": "2216.5000000000000000",
+                            "base_volume": "22.7634550000000000",
+                            "quote_volume": "0.0102700000000000",
+                            "timestamp": 1741181746,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK8297AH90GVGSYY89C3H7N",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0040400000000000",
+                            "timestamp": 1741181494,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK7T9MVQ5MENFH0NNVHBZNB",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0117200000000000",
+                            "timestamp": 1741181232,
+                            "type": "sell"
+                        },
+                        {
+                            "trade_id": "01JNK7RJ6AQC379G740QR71YEP",
+                            "price": "2209.1100000000000000",
+                            "base_volume": "22.6875597000000000",
+                            "quote_volume": "0.0102700000000000",
+                            "timestamp": 1741181176,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK7Q3Y69NYE7J9V0WEKG727",
+                            "price": "2211.4000000000000000",
+                            "base_volume": "2551.4469780000000000",
+                            "quote_volume": "1.1537700000000000",
+                            "timestamp": 1741181128,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK7K14X8SMS20T5Y5NNK3V4",
+                            "price": null,
+                            "base_volume": "5.0000000000000000",
+                            "quote_volume": null,
+                            "timestamp": 1741180994,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK7J1V6XPG00BX3DDXKY3YY",
+                            "price": "2215.8700000000000000",
+                            "base_volume": "22.7569849000000000",
+                            "quote_volume": "0.0102700000000000",
+                            "timestamp": 1741180962,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK7AHQ7GS2B2GVRKPHJJY29",
+                            "price": "2212.6800000000000000",
+                            "base_volume": "22.6357164000000000",
+                            "quote_volume": "0.0102300000000000",
+                            "timestamp": 1741180716,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK74YQ8KJ9610HC6KV9Q2RD",
+                            "price": "2217.3900000000000000",
+                            "base_volume": "22.5952041000000000",
+                            "quote_volume": "0.0101900000000000",
+                            "timestamp": 1741180533,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK72KRZJTPM4ED3P8Y7CJFN",
+                            "price": "2212.9200000000000000",
+                            "base_volume": "115.8684912000000000",
+                            "quote_volume": "0.0523600000000000",
+                            "timestamp": 1741180456,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK70YSRQ5R24BH5GKTH2D10",
+                            "price": "2217.2900000000000000",
+                            "base_volume": "101.7070923000000000",
+                            "quote_volume": "0.0458700000000000",
+                            "timestamp": 1741180402,
+                            "type": "buy"
+                        },
+                        {
+                            "trade_id": "01JNK70XKHA5JHA6CTJA7KCGPM",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0088300000000000",
+                            "timestamp": 1741180401,
+                            "type": "sell"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01JNKK876H6MXBH1715G9RCRST",
+                        "timestamp": 1741193223000,
+                        "datetime": "2025-03-05T16:47:03.000Z",
+                        "symbol": "ETH/USDT",
+                        "side": "sell",
+                        "price": null,
+                        "amount": 0.00365,
+                        "cost": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "trade_id": "01JNKK876H6MXBH1715G9RCRST",
+                            "price": null,
+                            "base_volume": null,
+                            "quote_volume": "0.0036500000000000",
+                            "timestamp": "1741193223",
+                            "type": "sell"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "id": "01JNKM4SQZ5PF73SBKN6PQMR9R",
+                            "direction": "buy",
+                            "symbol": "LTC_USDT",
+                            "price": "50.0000000000000000",
+                            "quantity": "0.2000000000000000",
+                            "value": "10.0000000000000000",
+                            "filledQuantity": "0.0000000000000000",
+                            "filledValue": "0.0000000000000000",
+                            "createdAt": "2025-03-05 17:02:39"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01JNKM4SQZ5PF73SBKN6PQMR9R",
+                        "clientOrderId": null,
+                        "timestamp": 1741194159000,
+                        "datetime": "2025-03-05T17:02:39.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "LTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 50,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.2,
+                        "cost": 10,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.2,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": "01JNKM4SQZ5PF73SBKN6PQMR9R",
+                            "direction": "buy",
+                            "symbol": "LTC_USDT",
+                            "price": "50.0000000000000000",
+                            "quantity": "0.2000000000000000",
+                            "value": "10.0000000000000000",
+                            "filledQuantity": "0.0000000000000000",
+                            "filledValue": "0.0000000000000000",
+                            "createdAt": "2025-03-05 17:02:39"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "closed and canceled orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "id": "01JNKD07EFF985ARGVZXJVT825",
+                            "type": "market",
+                            "direction": "sell",
+                            "symbol": "ETH_USDT",
+                            "quantity": "0.0100000000000000",
+                            "filledQuantity": "0.0100000000000000",
+                            "filledValue": "21.7031000000000000",
+                            "state": "completed",
+                            "internalState": "filled",
+                            "createdAt": "2025-03-05 14:57:50",
+                            "finishedAt": "2025-03-05 14:57:50",
+                            "deal": {
+                                "id": "01JNKD07YXEMRM745DYVYHWDE1",
+                                "state": "completed",
+                                "createdAt": "2025-03-05 14:57:50",
+                                "completedAt": "2025-03-05 14:57:50",
+                                "averageFilledPrice": "2170.3100000000000000",
+                                "transactions": [
+                                    {
+                                        "id": "01JNKD07Z0CCH9G5GRQDW5M54V",
+                                        "tradeRole": "taker",
+                                        "filledPrice": "2170.3100000000000000",
+                                        "filledQuantity": "0.0100000000000000",
+                                        "filledValue": "21.7031000000000000",
+                                        "fee": "0.0434062000000000",
+                                        "feeCurrency": "USDT",
+                                        "committedAt": "2025-03-05 14:57:50"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01JNKD07EFF985ARGVZXJVT825",
+                        "clientOrderId": null,
+                        "timestamp": 1741186670000,
+                        "datetime": "2025-03-05T14:57:50.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "ETH/USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 2170.31,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 21.7031,
+                        "average": 2170.31,
+                        "filled": 0.01,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.0434062
+                        },
+                        "trades": [],
+                        "info": {
+                            "id": "01JNKD07EFF985ARGVZXJVT825",
+                            "type": "market",
+                            "direction": "sell",
+                            "symbol": "ETH_USDT",
+                            "quantity": "0.0100000000000000",
+                            "filledQuantity": "0.0100000000000000",
+                            "filledValue": "21.7031000000000000",
+                            "state": "completed",
+                            "internalState": "filled",
+                            "createdAt": "2025-03-05 14:57:50",
+                            "finishedAt": "2025-03-05 14:57:50",
+                            "deal": {
+                                "id": "01JNKD07YXEMRM745DYVYHWDE1",
+                                "state": "completed",
+                                "createdAt": "2025-03-05 14:57:50",
+                                "completedAt": "2025-03-05 14:57:50",
+                                "averageFilledPrice": "2170.3100000000000000",
+                                "transactions": [
+                                    {
+                                        "id": "01JNKD07Z0CCH9G5GRQDW5M54V",
+                                        "tradeRole": "taker",
+                                        "filledPrice": "2170.3100000000000000",
+                                        "filledQuantity": "0.0100000000000000",
+                                        "filledValue": "21.7031000000000000",
+                                        "fee": "0.0434062000000000",
+                                        "feeCurrency": "USDT",
+                                        "committedAt": "2025-03-05 14:57:50"
+                                    }
+                                ]
+                            }
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.0434062
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "01JNECDY55FDVWN81XRMRNCTXG"
+                ],
+                "httpResponse": {"success":true},
+                "parsedResponse": {
+                    "success": true
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create limit sell order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    2000
+                ],
+                "httpResponse": {"order_id":"01JNK9AF9AT4M6GHKAQ6Y8ZPBH"},
+                "parsedResponse": {
+                    "id": "01JNK9AF9AT4M6GHKAQ6Y8ZPBH",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "01JNK9AF9AT4M6GHKAQ6Y8ZPBH"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "Create market buy order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    1
+                ],
+                "httpResponse": {"order_id":"01JNK99ERV4YY09NGBSAE2853Y"},
+                "parsedResponse": {
+                    "id": "01JNK99ERV4YY09NGBSAE2853Y",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "01JNK99ERV4YY09NGBSAE2853Y"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "Create market sell order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005
+                ],
+                "httpResponse": {"order_id":"01JNK995N4FC84SM6JBT17EN63"},
+                "parsedResponse": {
+                    "id": "01JNK995N4FC84SM6JBT17EN63",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "01JNK995N4FC84SM6JBT17EN63"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ]
+    }
+}

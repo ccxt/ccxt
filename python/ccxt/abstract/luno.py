@@ -31,5 +31,7 @@ class ImplicitAPI:
     private_post_withdrawals = privatePostWithdrawals = Entry('withdrawals', 'private', 'POST', {'cost': 1})
     private_post_send = privatePostSend = Entry('send', 'private', 'POST', {'cost': 1})
     private_post_oauth2_grant = privatePostOauth2Grant = Entry('oauth2/grant', 'private', 'POST', {'cost': 1})
+    private_post_beneficiaries = privatePostBeneficiaries = Entry('beneficiaries', 'private', 'POST', {'cost': 1})
     private_put_accounts_id_name = privatePutAccountsIdName = Entry('accounts/{id}/name', 'private', 'PUT', {'cost': 1})
     private_delete_withdrawals_id = privateDeleteWithdrawalsId = Entry('withdrawals/{id}', 'private', 'DELETE', {'cost': 1})
+    private_delete_beneficiaries_id = privateDeleteBeneficiariesId = Entry('beneficiaries/{id}', 'private', 'DELETE', {'cost': 1})

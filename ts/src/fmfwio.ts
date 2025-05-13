@@ -6,7 +6,7 @@ import hitbtc from './hitbtc.js';
 //  ---------------------------------------------------------------------------
 
 export default class fmfwio extends hitbtc {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'fmfwio',
             'name': 'FMFW.io',

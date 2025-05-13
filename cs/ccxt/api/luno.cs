@@ -156,6 +156,11 @@ public partial class luno : Exchange
         return await this.callAsync ("privatePostOauth2Grant",parameters);
     }
 
+    public async Task<object> privatePostBeneficiaries (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBeneficiaries",parameters);
+    }
+
     public async Task<object> privatePutAccountsIdName (object parameters = null)
     {
         return await this.callAsync ("privatePutAccountsIdName",parameters);
@@ -164,6 +169,11 @@ public partial class luno : Exchange
     public async Task<object> privateDeleteWithdrawalsId (object parameters = null)
     {
         return await this.callAsync ("privateDeleteWithdrawalsId",parameters);
+    }
+
+    public async Task<object> privateDeleteBeneficiariesId (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteBeneficiariesId",parameters);
     }
 
 }

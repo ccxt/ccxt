@@ -73,7 +73,7 @@ public partial class Exchange
                 break;
         }
 
-        return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
+        return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
     }
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
@@ -115,7 +115,7 @@ public partial class Exchange
         {
             return signature;
         }
-        return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
+        return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
     }
 
     private static byte[] HashBytes(object request2, Delegate hash = null)
@@ -167,25 +167,25 @@ public partial class Exchange
             header.Remove("iat");
         }
         var stringHeader = Exchange.Json(header);
-        var encodedHeader = Exchange.Base64urlEncode(Exchange.StringToBase64(stringHeader));
-        var encodedData = Exchange.Base64urlEncode(Exchange.StringToBase64(Exchange.Json(data)));
+        var encodedHeader = Exchange.Base64urlEncode(stringHeader);
+        var encodedData = Exchange.Base64urlEncode(Exchange.Json(data));
         var token = encodedHeader + "." + encodedData;
         string signature = null;
         var algoType = alg.Substring(0, 2);
         if (isRsa)
         {
-            signature = Exchange.Base64urlEncode(Exchange.Rsa(token, secret, hash));
+            signature = Exchange.Base64urlEncode(Exchange.Base64ToBinary(Exchange.Rsa(token, secret, hash) as object));
         }
         else if (algoType == "ES")
         {
             var ec = Ecdsa(token, secret, p256, hash) as Dictionary<string, object>;
             var r = ec["r"] as string;
             var s = ec["s"] as string;
-            signature = Exchange.Base64urlEncode(Exchange.binaryToBase64(Exchange.ConvertHexStringToByteArray(r + s)));
+            signature = Exchange.Base64urlEncode(Exchange.ConvertHexStringToByteArray(r + s));
         }
         else
         {
-            signature = Exchange.Base64urlEncode(Exchange.Hmac(token, secret, hash, "binary"));
+            signature = Exchange.Base64urlEncode(Exchange.Base64ToBinary(Exchange.Hmac(token, secret, hash, "binary") as object));
         }
         var res = token + "." + signature;
         return res;
@@ -461,9 +461,17 @@ public partial class Exchange
     public object eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
-        var msg = Hex.HexToBytes((string)request);
+        byte[] msg;
+        if (request is string)
+        {
+            msg = Encoding.UTF8.GetBytes((string)request);
+        }
+        else
+        {
+            msg = request as byte[];
+        }
         var signer = new Ed25519Signer();
-        var privateKey = ReadEDDSAPrivateKeyFromPem(secret as string);
+        var privateKey = (secret is string) ? ReadEDDSAPrivateKeyFromPem(secret as string) : new Ed25519PrivateKeyParameters(secret as byte[]);
         signer.Init(true, privateKey);
         signer.BlockUpdate(msg, 0, msg.Length);
         byte[] signature = signer.GenerateSignature();
@@ -640,22 +648,19 @@ public partial class Exchange
 
     public static byte[] SignP256(object msg, string pemPrivateKey, string hashName, out int recoveryId)
     {
-
-        string algoDelegate() => hashName as string;
+        // Create the ECDSA signer
         var curveParams = NistNamedCurves.GetByName("P-256");
-        var rawBytes = Encoding.UTF8.GetBytes((string)msg);
         var ecPrivateKeyParameters = ReadPemPrivateKey(pemPrivateKey, curveParams);
         ECDsa ecdsa = ConvertToECDsa(ecPrivateKeyParameters);
+
+        // Sign the message
+        var rawBytes = Encoding.UTF8.GetBytes((string)msg);
         byte[] signature = ecdsa.SignData(rawBytes, HashAlgorithmName.SHA256);
 
-        var hashed = HashBytes(msg, algoDelegate);
-        var signer = new ECDsaSigner();
-
         recoveryId = 0; // check this later;
-        var r = signature.Take(32).ToArray();
-        var s = signature.Skip(32).ToArray();
         return signature;
     }
+
     private static ECPrivateKeyParameters ReadPemPrivateKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
     {
         using (TextReader textReader = new StringReader(pemContents))
@@ -727,19 +732,15 @@ public partial class Exchange
     private static ECDsa ConvertToECDsa(ECPrivateKeyParameters privateKeyParameters)
     {
         // Use BouncyCastle to convert to .NET's ECDsa
-        var q = privateKeyParameters.Parameters.G.Multiply(privateKeyParameters.D);
-        var domainParameters = privateKeyParameters.Parameters;
-        var curve = domainParameters.Curve;
-        var point = curve.DecodePoint(domainParameters.G.GetEncoded()).Normalize();
-
+        var q = privateKeyParameters.Parameters.G.Multiply(privateKeyParameters.D).Normalize();
         ECDsa ecdsa = ECDsa.Create(new ECParameters
         {
             Curve = ECCurve.NamedCurves.nistP256, // Ensure this matches your key's curve
             D = privateKeyParameters.D.ToByteArrayUnsigned(),
             Q = new ECPoint
             {
-                X = point.AffineXCoord.GetEncoded(),
-                Y = point.AffineYCoord.GetEncoded()
+                X = q.AffineXCoord.GetEncoded(),
+                Y = q.AffineYCoord.GetEncoded()
             }
         });
 

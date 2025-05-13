@@ -205,6 +205,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function public_mix_get_v2_mix_market_query_position_lever($params = array()) {
         return $this->request('v2/mix/market/query-position-lever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function public_mix_get_v2_mix_market_account_long_short($params = array()) {
+        return $this->request('v2/mix/market/account-long-short', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_margin_get_margin_v1_cross_public_interestrateandlimit($params = array()) {
         return $this->request('margin/v1/cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -222,6 +225,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function public_margin_get_v2_margin_currencies($params = array()) {
         return $this->request('v2/margin/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_v2_margin_market_long_short_ratio($params = array()) {
+        return $this->request('v2/margin/market/long-short-ratio', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function public_earn_get_v2_earn_loan_public_coininfos($params = array()) {
         return $this->request('v2/earn/loan/public/coinInfos', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
@@ -303,6 +309,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_spot_get_v2_spot_account_transferrecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_v2_account_funding_assets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_bot_assets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_all_account_balance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_spot_get_v2_spot_wallet_deposit_address($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -652,6 +667,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_get_v2_mix_order_orders_plan_history($params = array()) {
         return $this->request('v2/mix/order/orders-plan-history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_get_v2_mix_market_position_long_short($params = array()) {
+        return $this->request('v2/mix/market/position-long-short', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_mix_post_mix_v1_account_sub_account_contract_assets($params = array()) {
         return $this->request('mix/v1/account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
     }
@@ -791,7 +809,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_v2_mix_order_place_order($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_v2_mix_order_click_backhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
@@ -1486,6 +1504,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_earn_get_v2_earn_loan_reduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_earn_get_v2_earn_account_assets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_earn_post_v2_earn_savings_subscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -1705,6 +1726,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function publicMixGetV2MixMarketQueryPositionLever($params = array()) {
         return $this->request('v2/mix/market/query-position-lever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function publicMixGetV2MixMarketAccountLongShort($params = array()) {
+        return $this->request('v2/mix/market/account-long-short', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function publicMarginGetMarginV1CrossPublicInterestRateAndLimit($params = array()) {
         return $this->request('margin/v1/cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1722,6 +1746,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function publicMarginGetV2MarginCurrencies($params = array()) {
         return $this->request('v2/margin/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetV2MarginMarketLongShortRatio($params = array()) {
+        return $this->request('v2/margin/market/long-short-ratio', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function publicEarnGetV2EarnLoanPublicCoinInfos($params = array()) {
         return $this->request('v2/earn/loan/public/coinInfos', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
@@ -1803,6 +1830,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotGetV2SpotAccountTransferRecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetV2AccountFundingAssets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountBotAssets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountAllAccountBalance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateSpotGetV2SpotWalletDepositAddress($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -2152,6 +2188,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateMixGetV2MixOrderOrdersPlanHistory($params = array()) {
         return $this->request('v2/mix/order/orders-plan-history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateMixGetV2MixMarketPositionLongShort($params = array()) {
+        return $this->request('v2/mix/market/position-long-short', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateMixPostMixV1AccountSubAccountContractAssets($params = array()) {
         return $this->request('mix/v1/account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
     }
@@ -2291,7 +2330,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostV2MixOrderPlaceOrder($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostV2MixOrderClickBackhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
@@ -2985,6 +3024,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateEarnGetV2EarnLoanReduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateEarnGetV2EarnAccountAssets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateEarnPostV2EarnSavingsSubscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));

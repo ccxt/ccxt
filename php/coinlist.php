@@ -10,7 +10,7 @@ use ccxt\abstract\coinlist as Exchange;
 
 class coinlist extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinlist',
             'name' => 'Coinlist',
@@ -62,7 +62,7 @@ class coinlist extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
@@ -86,7 +86,11 @@ class coinlist extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -150,6 +154,7 @@ class coinlist extends Exchange {
                         'v1/leaderboard' => 1,
                         'v1/affiliate/{competition_code}' => 1,
                         'v1/competition/{competition_id}' => 1,
+                        'v1/symbols/{symbol}/funding' => 1,
                     ),
                 ),
                 'private' => array(
@@ -173,6 +178,7 @@ class coinlist extends Exchange {
                         'v1/credits' => 1, // not unified
                         'v1/positions' => 1,
                         'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/closedPositions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -191,12 +197,97 @@ class coinlist extends Exchange {
                         'v1/orders/{order_id}' => 1,
                         'v1/orders/bulk' => 1, // not unified
                     ),
+                    'put' => array(
+                        'v1/accounts/{trader_id}/alias' => 1,
+                    ),
                     'delete' => array(
                         'v1/keys/{key}' => 1,  // not unified
                         'v1/orders' => 1,
                         'v1/orders/{order_id}' => 1,
                         'v1/orders/bulk' => 1,
                     ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'fees' => array(
@@ -305,10 +396,12 @@ class coinlist extends Exchange {
         return 1;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -323,10 +416,12 @@ class coinlist extends Exchange {
         return $this->parse8601($string);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
@@ -381,6 +476,7 @@ class coinlist extends Exchange {
                     'withdraw' => array( 'min' => $minWithdrawal, 'max' => null ),
                 ),
                 'networks' => array(),
+                'type' => 'crypto',
             );
         }
         return $result;
@@ -389,7 +485,9 @@ class coinlist extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinlist
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -398,7 +496,7 @@ class coinlist extends Exchange {
         //     {
         //         "symbols" => array(
         //             array(
-        //                 "symbol" => "CQT-USDT",
+        //                 "symbol" => "CQT-USDT", // spot
         //                 "base_currency" => "CQT",
         //                 "is_trader_geofenced" => false,
         //                 "list_time" => "2021-06-15T00:00:00.000Z",
@@ -423,7 +521,63 @@ class coinlist extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
+        // perp
+        //   {
+        //       "symbol":"BTC-PERP",
+        //       "base_currency":"BTC",
+        //       "is_trader_geofenced":false,
+        //       "expiry_name":null,
+        //       "expiry_time":null,
+        //       "list_time":"2024-09-16T00:00:00.000Z",
+        //       "type":"perp-swap",
+        //       "series_code":"BTC",
+        //       "long_name":"Bitcoin",
+        //       "asset_class":"CRYPTO",
+        //       "minimum_price_increment":"0.01",
+        //       "minimum_size_increment":"0.0001",
+        //       "quote_currency":"USDT",
+        //       "multiplier":"1",
+        //       "contract_frequency":"FGHJKMNQUVXZ",
+        //       "index_code":".BTC-USDT",
+        //       "price_band_threshold_market":"0.05",
+        //       "price_band_threshold_limit":"0.25",
+        //       "maintenance_initial_ratio":"0.500000000000000000",
+        //       "liquidation_initial_ratio":"0.500000000000000000",
+        //       "last_price":"75881.36000000",
+        //       "fair_price":"76256.00000000",
+        //       "index_price":"77609.90000000",
+        //       "mark_price":"76237.75000000",
+        //       "mark_price_dollarizer":"0.99950000",
+        //       "funding_interval":array(
+        //          "hours":"8"
+        //       ),
+        //       "funding_rate_index_code":".BTC-USDT-FR8H",
+        //       "initial_margin_base":"0.200000000000000000",
+        //       "initial_margin_per_contract":"0.160000000000000000",
+        //       "position_limit":"5.0000"
+        //   }
+        // spot
+        //    {
+        //        "symbol" => "CQT-USDT", // spot
+        //        "base_currency" => "CQT",
+        //        "is_trader_geofenced" => false,
+        //        "list_time" => "2021-06-15T00:00:00.000Z",
+        //        "type" => "spot",
+        //        "series_code" => "CQT-USDT-SPOT",
+        //        "long_name" => "Covalent",
+        //        "asset_class" => "CRYPTO",
+        //        "minimum_price_increment" => "0.0001",
+        //        "minimum_size_increment" => "0.0001",
+        //        "quote_currency" => "USDT",
+        //        "index_code" => null,
+        //        "price_band_threshold_market" => "0.05",
+        //        "price_band_threshold_limit" => "0.25",
+        //        "last_price" => "0.12160000",
+        //        "fair_price" => "0.12300000",
+        //        "index_price" => null
+        //    }
+        $isSwap = $this->safe_string($market, 'type') === 'perp-swap';
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
@@ -432,26 +586,41 @@ class coinlist extends Exchange {
         $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
         $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
         $created = $this->safe_string($market, 'list_time');
+        $settledId = null;
+        $settled = null;
+        $linear = null;
+        $inverse = null;
+        $contractSize = null;
+        $symbol = $base . '/' . $quote;
+        if ($isSwap) {
+            $contractSize = $this->parse_number('1');
+            $linear = true;
+            $inverse = false;
+            $settledId = $quoteId;
+            $settled = $quote;
+            $symbol = $symbol . ':' . $quote;
+        }
+        $type = $isSwap ? 'swap' : 'spot';
         return array(
             'id' => $id,
-            'symbol' => $base . '/' . $quote,
+            'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
-            'settle' => null,
+            'settle' => $settled,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => null,
-            'type' => 'spot',
-            'spot' => true,
+            'settleId' => $settledId,
+            'type' => $type,
+            'spot' => !$isSwap,
             'margin' => false,
-            'swap' => false,
+            'swap' => $isSwap,
             'future' => false,
             'option' => false,
             'active' => true,
-            'contract' => false,
-            'linear' => null,
-            'inverse' => null,
-            'contractSize' => null,
+            'contract' => $isSwap,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -486,14 +655,16 @@ class coinlist extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $request = array();
-        $tickers = $this->publicGetV1SymbolsSummary (array_merge($request, $params));
+        $tickers = $this->publicGetV1SymbolsSummary ($this->extend($request, $params));
         //
         //     {
         //         "MATIC-USD" => array(
@@ -522,7 +693,9 @@ class coinlist extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -532,7 +705,7 @@ class coinlist extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $ticker = $this->publicGetV1SymbolsSymbolSummary (array_merge($request, $params));
+        $ticker = $this->publicGetV1SymbolsSymbolSummary ($this->extend($request, $params));
         //
         //     {
         //         "type":"spot",
@@ -556,7 +729,7 @@ class coinlist extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -613,7 +786,9 @@ class coinlist extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -624,7 +799,7 @@ class coinlist extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1SymbolsSymbolBook (array_merge($request, $params));
+        $response = $this->publicGetV1SymbolsSymbolBook ($this->extend($request, $params));
         //
         //     {
         //         "bids" => array(
@@ -651,7 +826,9 @@ class coinlist extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$candles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -676,12 +853,12 @@ class coinlist extends Exchange {
                 $request['end_time'] = $this->iso8601($this->milliseconds());
             }
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
-        $response = $this->publicGetV1SymbolsSymbolCandles (array_merge($request, $params));
+        $response = $this->publicGetV1SymbolsSymbolCandles ($this->extend($request, $params));
         //
         //     {
         //         "candles" => array(
@@ -735,7 +912,9 @@ class coinlist extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$auctions
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -754,12 +933,12 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = min ($limit, 500);
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
-        $response = $this->publicGetV1SymbolsSymbolAuctions (array_merge($request, $params));
+        $response = $this->publicGetV1SymbolsSymbolAuctions ($this->extend($request, $params));
         //
         //     {
         //         "auctions" => array(
@@ -788,7 +967,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -867,7 +1046,9 @@ class coinlist extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=fee-structure fee structures~ indexed by $market symbols
          */
@@ -1050,7 +1231,9 @@ class coinlist extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -1088,7 +1271,9 @@ class coinlist extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -1133,7 +1318,9 @@ class coinlist extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fills
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve (default 200, max 500)
@@ -1154,12 +1341,12 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
-        $response = $this->privateGetV1Fills (array_merge($request, $params));
+        $response = $this->privateGetV1Fills ($this->extend($request, $params));
         //
         //     {
         //         "fills" => array(
@@ -1195,7 +1382,9 @@ class coinlist extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all the trades made from a single order
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1206,13 +1395,15 @@ class coinlist extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
+         *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
@@ -1240,12 +1431,12 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
-        $response = $this->privateGetV1Orders (array_merge($request, $params));
+        $response = $this->privateGetV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "orders":array(
@@ -1279,7 +1470,9 @@ class coinlist extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-$id
+         *
          * @param {int|string} $id order $id
          * @param {string} $symbol not used by coinlist fetchOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1289,7 +1482,7 @@ class coinlist extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetV1OrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetV1OrdersOrderId ($this->extend($request, $params));
         //
         //     {
         //         "order_id" => "93101167-9065-4b9c-b98b-5d789a3ed9fe",
@@ -1320,7 +1513,9 @@ class coinlist extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+         *
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve (default 200, max 500)
@@ -1332,13 +1527,15 @@ class coinlist extends Exchange {
         $request = array(
             'status' => 'accepted',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 200, max 500)
@@ -1350,13 +1547,15 @@ class coinlist extends Exchange {
         $request = array(
             'status' => 'done',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
@@ -1368,13 +1567,15 @@ class coinlist extends Exchange {
         $request = array(
             'status' => 'canceled',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel open $orders of $market
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-$orders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1386,7 +1587,7 @@ class coinlist extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteV1Orders (array_merge($request, $params));
+        $response = $this->privateDeleteV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "message" => "Order cancellation $request received.",
@@ -1400,7 +1601,9 @@ class coinlist extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-$id
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinlist cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1410,7 +1613,7 @@ class coinlist extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateDeleteV1OrdersOrderId (array_merge($request, $params));
+        $response = $this->privateDeleteV1OrdersOrderId ($this->extend($request, $params));
         //
         //     {
         //         "message" => "Cancel order $request received.",
@@ -1423,8 +1626,10 @@ class coinlist extends Exchange {
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
-         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
+         * cancel multiple $orders
+         *
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-$orders
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinlist cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1433,18 +1638,39 @@ class coinlist extends Exchange {
         $this->load_markets();
         $params = $ids;
         $response = $this->privateDeleteV1OrdersBulk ($params);
-        return $response;
+        //
+        //    {
+        //        "message" => "Cancel order requests received.",
+        //        "order_ids" => array(
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ),
+        //        "timestamp" => "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        $orderIds = $this->safe_list($response, 'order_ids', array());
+        $orders = array();
+        $datetime = $this->safe_string($response, 'timestamp');
+        for ($i = 0; $i < count($orderIds); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $orderIds[$i],
+                'id' => $orderIds[$i],
+                'lastUpdateTimestamp' => $this->parse8601($datetime),
+            ));
+        }
+        return $orders;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#create-new-$order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately (default false)
          * @param {float} [$params->triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the $price at which an $order is triggered)
@@ -1483,14 +1709,14 @@ class coinlist extends Exchange {
                 $request['type'] = 'stop_limit';
             }
         } elseif (($type === 'stop_market') || ($type === 'stop_limit') || ($type === 'take_market') || ($type === 'take_limit')) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         }
-        $response = $this->privatePostV1Orders (array_merge($request, $params));
+        $response = $this->privatePostV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "message" => "New $order $request received.",
@@ -1512,12 +1738,15 @@ class coinlist extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
+         *
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1535,11 +1764,11 @@ class coinlist extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePatchV1OrdersOrderId (array_merge($request, $params));
+        $response = $this->privatePatchV1OrdersOrderId ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1626,7 +1855,7 @@ class coinlist extends Exchange {
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stop_price');
+        $triggerPrice = $this->safe_string($order, 'stop_price');
         $average = $this->safe_string($order, 'average_fill_price'); // from documentation
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'size_filled');
@@ -1652,8 +1881,7 @@ class coinlist extends Exchange {
             'timeInForce' => 'GTC',
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => $amount,
             'cost' => null,
@@ -1666,7 +1894,7 @@ class coinlist extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending' => 'open',
             'accepted' => 'open',
@@ -1692,9 +1920,11 @@ class coinlist extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-between-entities
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-from-wallet-to-pro
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-from-pro-to-wallet
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -1704,23 +1934,22 @@ class coinlist extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
         $request = array(
             'asset' => $currency['id'],
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
         );
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromAcc = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAcc = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $response = null;
         if (($fromAcc === 'funding') && ($toAcc === 'trading')) {
-            $response = $this->privatePostV1TransfersFromWallet (array_merge($request, $params));
+            $response = $this->privatePostV1TransfersFromWallet ($this->extend($request, $params));
         } elseif (($fromAcc === 'trading') && ($toAcc === 'funding')) {
-            $response = $this->privatePostV1TransfersToWallet (array_merge($request, $params));
+            $response = $this->privatePostV1TransfersToWallet ($this->extend($request, $params));
         } else {
             $request['from_trader_id'] = $fromAcc;
             $request['to_trader_id'] = $toAcc;
-            $response = $this->privatePostV1TransfersInternalTransfer (array_merge($request, $params));
+            $response = $this->privatePostV1TransfersInternalTransfer ($this->extend($request, $params));
         }
         //
         // privatePostV1TransfersInternalTransfer
@@ -1740,10 +1969,12 @@ class coinlist extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$transfers
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 200, max 500)
@@ -1763,12 +1994,12 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
-        $response = $this->privateGetV1Transfers (array_merge($request, $params));
+        $response = $this->privateGetV1Transfers ($this->extend($request, $params));
         //
         //     {
         //         "transfers" => array(
@@ -1795,7 +2026,7 @@ class coinlist extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers
         //     {
@@ -1853,7 +2084,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'confirmed' => 'ok',
         );
@@ -1863,7 +2094,9 @@ class coinlist extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
+         *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [$limit] max number of deposit/withdrawals to return (default 200, max 500)
@@ -1887,7 +2120,7 @@ class coinlist extends Exchange {
             $request['count'] = $limit;
         }
         $params = $this->omit($params, array( 'trader_id', 'traderId' ));
-        $response = $this->privateGetV1AccountsTraderIdWalletLedger (array_merge($request, $params));
+        $response = $this->privateGetV1AccountsTraderIdWalletLedger ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1936,10 +2169,12 @@ class coinlist extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -1954,7 +2189,7 @@ class coinlist extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'destination_address' => $address,
         );
-        $response = $this->privatePostV1TransfersWithdrawalRequest (array_merge($request, $params));
+        $response = $this->privatePostV1TransfersWithdrawalRequest ($this->extend($request, $params));
         //
         //     {
         //         "transfer_id" => "d4a2d8dd-7def-4545-a062-761683b9aa05"
@@ -1964,7 +2199,7 @@ class coinlist extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2035,16 +2270,18 @@ class coinlist extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
-         * @param {string} $code unified $currency $code, default is null
+         *
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-         * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
+         * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
         if ($traderId === null) {
@@ -2064,13 +2301,13 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $params = $this->omit($params, array( 'trader_id', 'traderId' ));
-        $response = $this->privateGetV1AccountsTraderIdLedger (array_merge($request, $params));
+        $response = $this->privateGetV1AccountsTraderIdLedger ($this->extend($request, $params));
         //
         //     {
         //         "transactions" => array(
@@ -2140,7 +2377,7 @@ class coinlist extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
@@ -2225,8 +2462,9 @@ class coinlist extends Exchange {
         }
         $currencyId = $this->safe_string($item, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -2242,7 +2480,7 @@ class coinlist extends Exchange {
             'after' => null,
             'status' => 'ok',
             'fee' => null,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -2255,20 +2493,109 @@ class coinlist extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetV1SymbolsSymbolFunding ($this->extend($request, $params));
+        //
+        //     {
+        //         "last" => array(
+        //             "funding_rate" => "-0.00043841",
+        //             "funding_time" => "2025-04-15T04:00:00.000Z"
+        //         ),
+        //         "next" => array(
+        //             "funding_rate" => "-0.00046952",
+        //             "funding_time" => "2025-04-15T12:00:00.000Z"
+        //         ),
+        //         "indicative" => array(
+        //             "funding_rate" => "-0.00042517",
+        //             "funding_time" => "2025-04-15T20:00:00.000Z"
+        //         ),
+        //         "timestamp" => "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        return $this->parse_funding_rate($response, $market);
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //     {
+        //         "last" => array(
+        //             "funding_rate" => "-0.00043841",
+        //             "funding_time" => "2025-04-15T04:00:00.000Z"
+        //         ),
+        //         "next" => array(
+        //             "funding_rate" => "-0.00046952",
+        //             "funding_time" => "2025-04-15T12:00:00.000Z"
+        //         ),
+        //         "indicative" => array(
+        //             "funding_rate" => "-0.00042517",
+        //             "funding_time" => "2025-04-15T20:00:00.000Z"
+        //         ),
+        //         "timestamp" => "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        $previous = $this->safe_dict($contract, 'last', array());
+        $current = $this->safe_dict($contract, 'next', array());
+        $next = $this->safe_dict($contract, 'indicative', array());
+        $previousDatetime = $this->safe_string($previous, 'funding_time');
+        $currentDatetime = $this->safe_string($current, 'funding_time');
+        $nextDatetime = $this->safe_string($next, 'funding_time');
+        $datetime = $this->safe_string($contract, 'timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'fundingRate' => $this->safe_number($current, 'funding_rate'),
+            'fundingTimestamp' => $this->parse8601($currentDatetime),
+            'fundingDatetime' => $currentDatetime,
+            'nextFundingRate' => $this->safe_number($next, 'funding_rate'),
+            'nextFundingTimestamp' => $this->parse8601($nextDatetime),
+            'nextFundingDatetime' => $nextDatetime,
+            'previousFundingRate' => $this->safe_number($previous, 'funding_rate'),
+            'previousFundingTimestamp' => $this->parse8601($previousDatetime),
+            'previousFundingDatetime' => $previousDatetime,
+            'interval' => '8h',
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $query = $this->urlencode($request);
+        $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
+        $query = null;
+        if (!$isBulk) {
+            $query = $this->urlencode($request);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . $method . $endpoint;
-            $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
             if (($method === 'POST') || ($method === 'PATCH') || $isBulk) {
                 $body = $this->json($request);
                 $auth .= $body;
-            } elseif (strlen($query) !== 0) {
+            } elseif ($query !== null && strlen($query) !== 0) {
                 $auth .= '?' . $query;
                 $url .= '?' . $query;
             }
@@ -2279,13 +2606,13 @@ class coinlist extends Exchange {
                 'CL-ACCESS-TIMESTAMP' => $timestamp,
                 'Content-Type' => 'application/json',
             );
-        } elseif (strlen($query) !== 0) {
+        } elseif ($query !== null && strlen($query) !== 0) {
             $url .= '?' . $query;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             // In some cases the exchange returns 202 Accepted for bad orders.
             // The $body of that $response contains order_id of the order.

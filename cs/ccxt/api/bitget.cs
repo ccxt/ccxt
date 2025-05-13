@@ -341,6 +341,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("publicMixGetV2MixMarketQueryPositionLever",parameters);
     }
 
+    public async Task<object> publicMixGetV2MixMarketAccountLongShort (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketAccountLongShort",parameters);
+    }
+
     public async Task<object> publicMarginGetMarginV1CrossPublicInterestRateAndLimit (object parameters = null)
     {
         return await this.callAsync ("publicMarginGetMarginV1CrossPublicInterestRateAndLimit",parameters);
@@ -369,6 +374,11 @@ public partial class bitget : Exchange
     public async Task<object> publicMarginGetV2MarginCurrencies (object parameters = null)
     {
         return await this.callAsync ("publicMarginGetV2MarginCurrencies",parameters);
+    }
+
+    public async Task<object> publicMarginGetV2MarginMarketLongShortRatio (object parameters = null)
+    {
+        return await this.callAsync ("publicMarginGetV2MarginMarketLongShortRatio",parameters);
     }
 
     public async Task<object> publicEarnGetV2EarnLoanPublicCoinInfos (object parameters = null)
@@ -504,6 +514,21 @@ public partial class bitget : Exchange
     public async Task<object> privateSpotGetV2SpotAccountTransferRecords (object parameters = null)
     {
         return await this.callAsync ("privateSpotGetV2SpotAccountTransferRecords",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountFundingAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountFundingAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountBotAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountBotAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountAllAccountBalance",parameters);
     }
 
     public async Task<object> privateSpotGetV2SpotWalletDepositAddress (object parameters = null)
@@ -1084,6 +1109,11 @@ public partial class bitget : Exchange
     public async Task<object> privateMixGetV2MixOrderOrdersPlanHistory (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixOrderOrdersPlanHistory",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixMarketPositionLongShort (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixMarketPositionLongShort",parameters);
     }
 
     public async Task<object> privateMixPostMixV1AccountSubAccountContractAssets (object parameters = null)
@@ -2474,6 +2504,11 @@ public partial class bitget : Exchange
     public async Task<object> privateEarnGetV2EarnLoanReduces (object parameters = null)
     {
         return await this.callAsync ("privateEarnGetV2EarnLoanReduces",parameters);
+    }
+
+    public async Task<object> privateEarnGetV2EarnAccountAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetV2EarnAccountAssets",parameters);
     }
 
     public async Task<object> privateEarnPostV2EarnSavingsSubscribe (object parameters = null)

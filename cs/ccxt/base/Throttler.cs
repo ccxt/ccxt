@@ -75,13 +75,14 @@ public class Throttler
 
     public async Task<Task> throttle(object cost2)
     {
-        var cost = (cost2 != null) ? double.Parse(cost2.ToString(), CultureInfo.InvariantCulture) : this.config["cost"];
+
+        var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
         if (this.queue.Count > (int)this.config["maxCapacity"])
         {
             throw new Exception("throttle queue is over maxCapacity (" + this.config["maxCapacity"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
         }
         var t = new Task(() => { });
-        this.queue.Enqueue((t, (double)cost));
+        this.queue.Enqueue((t, cost));
         if (!this.running)
         {
             this.running = true;

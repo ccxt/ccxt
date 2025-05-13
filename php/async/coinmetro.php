@@ -10,12 +10,12 @@ use ccxt\async\abstract\coinmetro as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinmetro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmetro',
             'name' => 'Coinmetro',
@@ -115,6 +115,7 @@ class coinmetro extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -164,6 +165,7 @@ class coinmetro extends Exchange {
                 'private' => array(
                     'get' => array(
                         'users/balances' => 1,
+                        'users/wallets' => 1,
                         'users/wallets/history/{since}' => 1.67,
                         'exchange/orders/status/{orderID}' => 1,
                         'exchange/orders/active' => 1,
@@ -206,11 +208,83 @@ class coinmetro extends Exchange {
                     'maker' => $this->parse_number('0'),
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
-                'currencyIdsListForParseMarket' => null,
+                'currencyIdsListForParseMarket' => array( 'QRDO' ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true, // todo implement
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => false,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'exceptions' => array(
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
@@ -254,7 +328,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -310,7 +386,6 @@ class coinmetro extends Exchange {
                 $deposit = $this->safe_value($currency, 'canDeposit');
                 $canTrade = $this->safe_value($currency, 'canTrade');
                 $active = $canTrade ? $withdraw : true;
-                $precision = $this->safe_integer($currency, 'digits');
                 $minAmount = $this->safe_number($currency, 'minQty');
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
@@ -321,7 +396,7 @@ class coinmetro extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'digits'))),
                     'limits' => array(
                         'amount' => array( 'min' => $minAmount, 'max' => null ),
                         'withdraw' => array( 'min' => null, 'max' => null ),
@@ -332,7 +407,12 @@ class coinmetro extends Exchange {
             if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
                 $currenciesById = $this->index_by($result, 'id');
                 $this->options['currenciesByIdForParseMarket'] = $currenciesById;
-                $this->options['currencyIdsListForParseMarket'] = is_array($currenciesById) ? array_keys($currenciesById) : array();
+                $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
+                $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
+                for ($i = 0; $i < count($currencyIdsList); $i++) {
+                    $currentCurrencyIdsList[] = $currencyIdsList[$i];
+                }
+                $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
             }
             return $result;
         }) ();
@@ -342,7 +422,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinmetro
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -353,19 +435,14 @@ class coinmetro extends Exchange {
             //
             //     array(
             //         array(
-            //             "pair" => "PERPEUR",
-            //             "precision" => 5,
-            //             "margin" => false
-            //         ),
-            //         array(
-            //             "pair" => "PERPUSD",
-            //             "precision" => 5,
-            //             "margin" => false
-            //         ),
-            //         array(
             //             "pair" => "YFIEUR",
             //             "precision" => 5,
             //             "margin" => false
+            //         ),
+            //         array(
+            //             "pair" => "BTCEUR",
+            //             "precision" => 2,
+            //             "margin" => true
             //         ),
             //         ...
             //     )
@@ -374,7 +451,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'pair');
         $parsedMarketId = $this->parse_market_id($id);
         $baseId = $this->safe_string($parsedMarketId, 'baseId');
@@ -413,9 +490,7 @@ class coinmetro extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $basePrecisionAndLimits['precision'],
-                'price' => $quotePrecisionAndLimits['precision'],
-                'base' => $basePrecisionAndLimits['precision'],
-                'quote' => $quotePrecisionAndLimits['precision'],
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -444,10 +519,22 @@ class coinmetro extends Exchange {
         $baseId = null;
         $quoteId = null;
         $currencyIds = $this->safe_value($this->options, 'currencyIdsListForParseMarket', array());
+        // Bubble sort by length (longest first)
+        $currencyIdsLength = count($currencyIds);
+        for ($i = 0; $i < $currencyIdsLength; $i++) {
+            for ($j = 0; $j < $currencyIdsLength - $i - 1; $j++) {
+                $a = $currencyIds[$j];
+                $b = $currencyIds[$j + 1];
+                if (strlen($a) < strlen($b)) {
+                    $currencyIds[$j] = $b;
+                    $currencyIds[$j + 1] = $a;
+                }
+            }
+        }
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $entryIndex = mb_strpos($marketId, $currencyId);
-            if ($entryIndex !== -1) {
+            if ($entryIndex === 0) {
                 $restId = str_replace($currencyId, '', $marketId);
                 if ($this->in_array($restId, $currencyIds)) {
                     if ($entryIndex === 0) {
@@ -471,12 +558,11 @@ class coinmetro extends Exchange {
     public function parse_market_precision_and_limits($currencyId) {
         $currencies = $this->safe_value($this->options, 'currenciesByIdForParseMarket', array());
         $currency = $this->safe_value($currencies, $currencyId, array());
-        $precision = $this->safe_integer($currency, 'precision');
         $limits = $this->safe_value($currency, 'limits', array());
         $amountLimits = $this->safe_value($limits, 'amount', array());
         $minLimit = $this->safe_number($amountLimits, 'min');
         $result = array(
-            'precision' => $precision,
+            'precision' => $this->safe_number($currency, 'precision'),
             'minLimit' => $minLimit,
         );
         return $result;
@@ -486,7 +572,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -511,14 +599,14 @@ class coinmetro extends Exchange {
             } else {
                 $request['from'] = ':from'; // this endpoint doesn't accept empty from and to $params (setting them into the value described in the documentation)
             }
-            $until = $this->safe_integer_2($params, 'till', 'until', $until);
+            $until = $this->safe_integer($params, 'until', $until);
             if ($until !== null) {
-                $params = $this->omit($params, array( 'till', 'until' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['to'] = $until;
             } else {
                 $request['to'] = ':to';
             }
-            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo ($this->extend($request, $params)));
             //
             //     {
             //         "candleHistory" => array(
@@ -566,7 +654,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -584,7 +674,7 @@ class coinmetro extends Exchange {
                 // this endpoint accepts empty from param
                 $request['from'] = '';
             }
-            $response = Async\await($this->publicGetExchangeTicksPairFrom (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeTicksPairFrom ($this->extend($request, $params)));
             //
             //     {
             //         "tickHistory" => array(
@@ -622,7 +712,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve (default 500, max 1000)
@@ -641,7 +733,7 @@ class coinmetro extends Exchange {
                 // the exchange requires a value for the $since param
                 $request['since'] = 0;
             }
-            $response = Async\await($this->privateGetExchangeFillsSince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeFillsSince ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -660,7 +752,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -733,7 +825,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
              * @param {int} [$limit] the maximum amount of order $book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -744,7 +838,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetExchangeBookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeBookPair ($this->extend($request, $params)));
             //
             //     {
             //         "book" => {
@@ -801,7 +895,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -872,7 +968,7 @@ class coinmetro extends Exchange {
                 $marketId = $this->safe_string($twentyFourHInfo, 'pair');
                 if ($marketId !== null) {
                     $latestPrice = $this->safe_value($tickersObject, $marketId, array());
-                    $tickersObject[$marketId] = array_merge($twentyFourHInfo, $latestPrice);
+                    $tickersObject[$marketId] = $this->extend($twentyFourHInfo, $latestPrice);
                 }
             }
             $tickers = is_array($tickersObject) ? array_values($tickersObject) : array();
@@ -884,7 +980,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -896,7 +994,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "pair" => "PERPUSD",
@@ -954,67 +1052,70 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+             *
+             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetUsersBalances ($params));
-            return $this->parse_balance($response);
+            $response = Async\await($this->privateGetUsersWallets ($params));
+            $list = $this->safe_list($response, 'list', array());
+            return $this->parse_balance($list);
         }) ();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance($balances): array {
         //
-        //     {
-        //         "USDC" => array(
-        //             "USDC" => 99,
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
+        //     array(
+        //         array(
+        //             "xcmLocks" => array(),
+        //             "xcmLockAmounts" => array(),
+        //             "refList" => array(),
+        //             "balanceHistory" => array(),
+        //             "_id" => "5fecd3c998e75c2e4d63f7c3",
+        //             "currency" => "BTC",
+        //             "label" => "BTC",
+        //             "userId" => "5fecd3c97fbfed1521db23bd",
+        //             "__v" => 0,
+        //             "balance" => 0.5,
+        //             "createdAt" => "2020-12-30T19:23:53.646Z",
+        //             "disabled" => false,
+        //             "updatedAt" => "2020-12-30T19:23:53.653Z",
+        //             "reserved" => 0,
+        //             "id" => "5fecd3c998e75c2e4d63f7c3"
         //         ),
-        //         "XCM" => array(
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         ),
-        //         "TOTAL" => array(
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
-        //         ),
-        //         "REF" => {
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         }
-        //     }
+        //         ...
+        //     )
         //
         $result = array(
-            'info' => $response,
+            'info' => $balances,
         );
-        $balances = $this->omit($response, array( 'TOTAL', 'REF' ));
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+        for ($i = 0; $i < count($balances); $i++) {
+            $balanceEntry = $this->safe_dict($balances, $i, array());
+            $currencyId = $this->safe_string($balanceEntry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $currency = $this->safe_value($balances, $currencyId, array());
-            $account['total'] = $this->safe_string($currency, $currencyId);
+            $account['total'] = $this->safe_string($balanceEntry, 'balance');
+            $account['used'] = $this->safe_string($balanceEntry, 'reserved');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
-             * @param {string} $code unified $currency $code, default is null
+             *
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-             * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
+             * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1028,7 +1129,7 @@ class coinmetro extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetUsersWalletsHistorySince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUsersWalletsHistorySince ($this->extend($request, $params)));
             //
             //     {
             //         "list" => array(
@@ -1133,7 +1234,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $datetime = $this->safe_string($item, 'timestamp');
         $currencyId = $this->safe_string($item, 'currencyId');
         $item = $this->omit($item, 'currencyId');
@@ -1207,12 +1308,14 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount in $market orders
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "GTD"
@@ -1230,9 +1333,9 @@ class coinmetro extends Exchange {
             $request = array(
             );
             $request['orderType'] = $type;
-            $precisedAmount = null;
+            $formattedAmount = null;
             if ($amount !== null) {
-                $precisedAmount = $this->amount_to_precision($symbol, $amount);
+                $formattedAmount = $this->amount_to_precision($symbol, $amount);
             }
             $cost = $this->safe_value($params, 'cost');
             $params = $this->omit($params, 'cost');
@@ -1240,7 +1343,7 @@ class coinmetro extends Exchange {
                 if (($price === null) && ($cost === null)) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $price or $params->cost argument for a ' . $type . ' order');
                 } elseif (($price !== null) && ($amount !== null)) {
-                    $costString = Precise::string_mul($this->number_to_string($price), $this->number_to_string($precisedAmount));
+                    $costString = Precise::string_mul($this->number_to_string($price), $this->number_to_string($formattedAmount));
                     $cost = $this->parse_to_numeric($costString);
                 }
             }
@@ -1249,19 +1352,19 @@ class coinmetro extends Exchange {
                 $precisedCost = $this->cost_to_precision($symbol, $cost);
             }
             if ($side === 'sell') {
-                $request = $this->handle_create_order_side($market['baseId'], $market['quoteId'], $precisedAmount, $precisedCost, $request);
+                $request = $this->handle_create_order_side($market['baseId'], $market['quoteId'], $formattedAmount, $precisedCost, $request);
             } elseif ($side === 'buy') {
-                $request = $this->handle_create_order_side($market['quoteId'], $market['baseId'], $precisedCost, $precisedAmount, $request);
+                $request = $this->handle_create_order_side($market['quoteId'], $market['baseId'], $precisedCost, $formattedAmount, $request);
             }
             $timeInForce = $this->safe_value($params, 'timeInForce');
             if ($timeInForce !== null) {
                 $params = $this->omit($params, 'timeInForce');
                 $request['timeInForce'] = $this->encode_order_time_in_force($timeInForce);
             }
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice !== null) {
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice' ));
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $userData = $this->safe_value($params, 'userData', array());
             $comment = $this->safe_string_2($params, 'clientOrderId', 'comment');
@@ -1282,7 +1385,7 @@ class coinmetro extends Exchange {
             if (!$this->is_empty($userData)) {
                 $request['userData'] = $userData;
             }
-            $response = Async\await($this->privatePostExchangeOrdersCreate (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCreate ($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1341,8 +1444,10 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinmetro cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1359,9 +1464,9 @@ class coinmetro extends Exchange {
             $params = $this->omit($params, 'margin');
             $response = null;
             if ($isMargin || ($marginMode !== null)) {
-                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params)));
+                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID (array_merge($request, $params)));
+                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1390,7 +1495,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes an open position
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+             *
              * @param {string} $symbol not used by coinmetro closePosition ()
              * @param {string} [$side] not used by coinmetro closePosition ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1406,7 +1513,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $orderId,
             );
-            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1444,7 +1551,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of open $order structures to retrieve
@@ -1470,7 +1579,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled and closed orders made by the user
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1486,7 +1597,7 @@ class coinmetro extends Exchange {
             if ($since !== null) {
                 $request['since'] = $since;
             }
-            $response = Async\await($this->privateGetExchangeOrdersHistorySince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersHistorySince ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1495,7 +1606,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
+             *
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by coinmetro fetchOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1505,7 +1618,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $id,
             );
-            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID ($this->extend($request, $params)));
             //
             //     {
             //         "_id" => "657b4e6d60a954244939ac6f",
@@ -1545,7 +1658,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder $market
         //     {
@@ -1792,7 +1905,6 @@ class coinmetro extends Exchange {
         }
         $trades = $this->safe_value($order, 'fills', array());
         $userData = $this->safe_value($order, 'userData', array());
-        $triggerPrice = $this->safe_string($order, 'stopPrice');
         $clientOrderId = $this->safe_string($userData, 'comment');
         $takeProfitPrice = $this->safe_string($userData, 'takeProfit');
         $stopLossPrice = $this->safe_string($userData, 'stopLoss');
@@ -1808,7 +1920,7 @@ class coinmetro extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_integer($order, 'timeInForce')),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => null,
@@ -1838,7 +1950,9 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
+             *
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110
+             *
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1849,13 +1963,13 @@ class coinmetro extends Exchange {
             $currencyId = $currency['id'];
             $request = array();
             $request[$currencyId] = $this->currency_to_precision($code, $amount);
-            $response = Async\await($this->privatePutUsersMarginCollateral (array_merge($request, $params)));
+            $response = Async\await($this->privatePutUsersMarginCollateral ($this->extend($request, $params)));
             //
             //     array( "message" => "OK" )
             //
             $result = $this->safe_value($response, 'result', array());
             $transaction = $this->parse_margin_loan($result, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
             ));
         }) ();
@@ -1920,7 +2034,7 @@ class coinmetro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

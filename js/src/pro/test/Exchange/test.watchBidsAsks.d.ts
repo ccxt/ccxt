@@ -1,2 +1,3 @@
-declare function testWatchBidsAsks(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
+import { Exchange } from "../../../../ccxt";
+declare function testWatchBidsAsks(exchange: Exchange, skippedProperties: object, symbol: string): Promise<void>;
 export default testWatchBidsAsks;

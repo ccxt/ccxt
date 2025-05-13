@@ -13,6 +13,39 @@
     "methods": {
         "createOrder": [
             {
+                "description": "market sell in hedged mode and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A20%3A43&Signature=5XXNO0j22IP1G%2FnMNsvEfJTy6xx51wYNiwSXP%2Bi5xfM%3D",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "hedged": true,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"reduce_only\":1,\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"close\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "market buy in hedged mode",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A10%3A49&Signature=UEdfY1wFs1SjNrtboBA1DBhw%2BzQE%2FXbtof4LGH3NqKw%3D",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"open\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-10-31T18%3A05%3A01&Signature=%2FSW3LCI9ob9vzRUna%2F3iwfAfKDZRIj5X1oPKMxO0Re0%3D",
@@ -211,6 +244,22 @@
                   }
                 ],
                 "output": "{\"contract_code\":\"ADA-USDT\",\"volume\":\"3\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "spot order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-09-30T11%3A03%3A36&Signature=qYLiFqhMjJvmXzkiU0OCNEHrNnuTrCgfub3N35YM9Co%3D",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.21,
+                  50,
+                  {
+                    "clientOrderId": "101"
+                  }
+                ],
+                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"101\",\"amount\":\"0.21\",\"price\":\"50\"}"
             }
         ],
         "createOrders": [
@@ -514,6 +563,26 @@
                 "output": "{\"contract_code\":\"BTC-USDT\"}"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.huobi.pro/v2/algo-orders/cancel-all-after?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A57&Signature=T7k1MsUZ8RDbFdly3alFH%2F%2B5TfQHMkRe3bRCR9SAz4Q%3D",
+                "input": [
+                    10000
+                ],
+                "output": "{\"timeout\":10}"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.huobi.pro/v2/algo-orders/cancel-all-after?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A57&Signature=T7k1MsUZ8RDbFdly3alFH%2F%2B5TfQHMkRe3bRCR9SAz4Q%3D",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeout\":0}"
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch linear position",
@@ -627,6 +696,39 @@
                 "url": "https://api.hbdm.com/api/v1/contract_open_interest?contract_code=BTC231124&contract_type=next_week&symbol=btc",
                 "input": [
                     "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "inverse swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_open_interest",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ]
+            },
+            {
+                "description": "linear swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_open_interest?contract_type=swap",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "future fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/api/v1/contract_open_interest",
+                "input": [
+                  null,
+                  {
+                    "type": "future"
+                  }
                 ]
             }
         ],
@@ -1408,6 +1510,61 @@
                 ],
                 "output": "{\"position_mode\":\"dual_side\",\"margin_account\":\"USDT\"}"
             }
+        ],
+        "closePosition": [
+            {
+                "description": "closePosition for an inverse future",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/api/v1/lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A12%3A28&Signature=Ku0JINwbbWJOQSKRLn%2BzzMXYyFKMO8m%2FCPgbJtJXjS0%3D",
+                "input": [
+                    "BTC/USD:BTC-240628",
+                    "sell",
+                    {
+                        "amount": 1
+                    }
+                ],
+                "output": "{\"contract_code\":\"BTC240628\",\"direction\":\"sell\",\"volume\":\"1\"}"
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A24%3A01&Signature=cDskzuI6HjGPNLBDQKWkUKmidBYM7ukoso%2BJKecAdiw%3D",
+                "input": [
+                  "ETH/USDT:USDT-240607",
+                  "sell",
+                  {
+                    "amount": 1,
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"contract_code\":\"ETH-USDT-240607\",\"direction\":\"sell\"}"
+            },
+            {
+                "description": "Close position for an inverse swap",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A49%3A14&Signature=JoyjhToitlWbE2Hc4aGDB31emyJWr%2BVk2PCQO0RFDrQ%3D",
+                "input": [
+                  "XRP/USD:XRP",
+                  "sell",
+                  {
+                    "amount": 1
+                  }
+                ],
+                "output": "{\"contract_code\":\"XRP-USD\",\"direction\":\"sell\",\"volume\":\"1\"}"
+            },
+            {
+                "description": "Close position for a linear swap short with isolated margin",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A54%3A03&Signature=b%2F5hXnh6DaWNJp4cgzHlOem5PzxG13n47kjzAppylEg%3D",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "buy",
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "output": "{\"contract_code\":\"ADA-USDT\",\"direction\":\"buy\"}"
+              }
         ]
     }
 }

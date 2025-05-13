@@ -55,7 +55,7 @@ export declare class JSEncryptRSAKey extends RSAKey {
      * @returns {string}  DER Encoded String representing the rsa private key
      * @private
      */
-    getPrivateBaseKey(): string;
+    getPrivateBaseKey(): any;
     /**
      * base64 (pem) encoded version of the DER encoded representation
      * @returns {string} pem encoded representation without header and footer
@@ -82,7 +82,7 @@ export declare class JSEncryptRSAKey extends RSAKey {
      * @returns {string} DER Encoded String representing the rsa public key
      * @private
      */
-    getPublicBaseKey(): string;
+    getPublicBaseKey(): any;
     /**
      * base64 (pem) encoded version of the DER encoded representation
      * @returns {string} pem encoded representation without header and footer

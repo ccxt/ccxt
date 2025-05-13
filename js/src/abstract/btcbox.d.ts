@@ -4,6 +4,7 @@ interface Exchange {
     publicGetDepth(params?: {}): Promise<implicitReturnType>;
     publicGetOrders(params?: {}): Promise<implicitReturnType>;
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetTickers(params?: {}): Promise<implicitReturnType>;
     privatePostBalance(params?: {}): Promise<implicitReturnType>;
     privatePostTradeAdd(params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancel(params?: {}): Promise<implicitReturnType>;

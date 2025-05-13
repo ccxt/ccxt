@@ -6,6 +6,26 @@
     ],
     "outputType": "json",
     "methods": {
+    "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://www.deribit.com/api/v2/private/get_account_summaries",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch balance with code",
+                "method": "fetchBalance",
+                "url": "https://www.deribit.com/api/v2/private/get_account_summary?currency=USDC",
+                "input": [
+                    {
+                        "code": "USDC"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "Spot fetch trades",
@@ -672,23 +692,31 @@
         ],
         "fetchPositions": [
             {
+                "description": "Fetch all positions",
+                "method": "fetchPositions",
+                "url": "https://www.deribit.com/api/v2/private/get_positions",
+                "input": []
+            },
+            {
                 "description": "Swap fetch positions",
                 "method": "fetchPositions",
-                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=USDT&kind=future",
+                "url": "https://www.deribit.com/api/v2/private/get_positions?kind=future",
                 "input": [
-                    [
-                        "BTC/USDT:USDT"
-                    ]
+                    null,
+                    {
+                        "kind": "future"
+                    }
                 ]
             },
             {
-                "description": "Option fetch positions",
+                "description": "Fetch postions for currency BTC",
                 "method": "fetchPositions",
-                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=BTC&kind=option",
+                "url": "https://www.deribit.com/api/v2/private/get_positions?currency=BTC",
                 "input": [
-                    [
-                        "BTC/USD:BTC-240126-39000-C"
-                    ]
+                  null,
+                  {
+                    "currency": "BTC"
+                  }
                 ]
             }
         ],
@@ -744,8 +772,7 @@
                 "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
                 "input": [
                     [
-                        "BTC/USDT",
-                        "ETH/USDT"
+                        "BTC/USDT"
                     ],
                     {"code": "BTC"}
                 ]
@@ -756,9 +783,7 @@
                 "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
                 "input": [
                     [
-                        "BTC/USDT:USDT",
-                        "ETH/USDT:USDT"
-                    ],
+                        "BTC/USDT:USDT"                    ],
                     {"code": "BTC"}
                 ]
             }

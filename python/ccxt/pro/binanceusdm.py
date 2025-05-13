@@ -4,23 +4,26 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
+from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
 
 
 class binanceusdm(binance):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binanceusdm, self).describe(), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'doc': 'https://developers.binance.com/en',
             },
             'options': {
                 'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
             },
             # https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            # https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions': {
                 'exact': {
                     '-5021': InvalidOrder,  # {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
