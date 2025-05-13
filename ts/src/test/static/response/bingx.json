@@ -6,6 +6,7 @@
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
+                "disabled":"because of private endpoint",
                 "input": [],
                 "httpResponse": {
                     "code": "0",
