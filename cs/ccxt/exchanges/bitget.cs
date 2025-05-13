@@ -4283,6 +4283,7 @@ public partial class bitget : Exchange
         object timestamp = this.safeInteger2(order, "cTime", "ctime");
         object updateTimestamp = this.safeInteger(order, "uTime");
         object rawStatus = this.safeString2(order, "status", "state");
+        rawStatus = this.safeString(order, "planStatus", rawStatus);
         object fee = null;
         object feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
