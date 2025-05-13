@@ -790,7 +790,7 @@ export default class bingx extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'networks': networks,
-                'fee': fee,
+                'fee': undefined,
                 'limits': undefined,
             });
         }
