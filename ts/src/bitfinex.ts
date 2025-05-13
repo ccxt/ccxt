@@ -875,30 +875,6 @@ export default class bitfinex extends Exchange {
             const dwStatuses = this.safeValue (indexed['statuses'], id, []);
             const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
-            result[code] = {
-                'id': fid,
-                'uppercaseId': id,
-                'code': code,
-                'info': [ id, label, pool, feeValues, undl ],
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
-                'precision': parseInt (precision),
-                'limits': {
-                    'amount': {
-                        'min': this.parseNumber (this.parsePrecision (precision)),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': fee,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            };
             const networks: Dict = {};
             const currencyNetworks = indexed['networks'];
             for (let j = 0; j < currencyNetworks.length; j++) {
@@ -925,11 +901,30 @@ export default class bitfinex extends Exchange {
                     };
                 }
             }
-            const keysNetworks = Object.keys (networks);
-            const networksLength = keysNetworks.length;
-            if (networksLength > 0) {
-                result[code]['networks'] = networks;
-            }
+            result[code] = this.safeCurrencyStructure ({
+                'id': fid,
+                'uppercaseId': id,
+                'code': code,
+                'info': [ id, label, pool, feeValues, undl ],
+                'type': type,
+                'name': name,
+                'active': true,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': fee,
+                'precision': parseInt (precision),
+                'limits': {
+                    'amount': {
+                        'min': this.parseNumber (this.parsePrecision (precision)),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
         }
         return result;
     }
