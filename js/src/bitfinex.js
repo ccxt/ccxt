@@ -742,7 +742,8 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:pool',
             'pub:map:currency:explorer',
             'pub:map:currency:tx:fee',
-            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:map:tx:method',
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ];
         const config = labels.join(',');
         const request = {
@@ -825,6 +826,11 @@ export default class bitfinex extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         const indexed = {
@@ -835,12 +841,14 @@ export default class bitfinex extends Exchange {
             'pool': this.indexBy(this.safeValue(response, 5, []), 0),
             'explorer': this.indexBy(this.safeValue(response, 6, []), 0),
             'fees': this.indexBy(this.safeValue(response, 7, []), 0),
+            'networks': this.safeValue(response, 8, []),
+            'statuses': this.indexBy(this.safeValue(response, 9, []), 0),
         };
         const ids = this.safeValue(response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (id.indexOf('F0') >= 0) {
+            if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
@@ -860,38 +868,16 @@ export default class bitfinex extends Exchange {
             const undl = this.safeValue(indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
-            result[code] = {
-                'id': fid,
-                'uppercaseId': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
-                'precision': parseInt(precision),
-                'limits': {
-                    'amount': {
-                        'min': this.parseNumber(this.parsePrecision(precision)),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': fee,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            };
+            const dwStatuses = this.safeValue(indexed['statuses'], id, []);
+            const depositEnabled = this.safeInteger(dwStatuses, 1) === 1;
+            const withdrawEnabled = this.safeInteger(dwStatuses, 2) === 1;
             const networks = {};
-            const currencyNetworks = this.safeValue(response, 8, []);
-            const cleanId = id.replace('F0', '');
+            const currencyNetworks = indexed['networks'];
             for (let j = 0; j < currencyNetworks.length; j++) {
                 const pair = currencyNetworks[j];
                 const networkId = this.safeString(pair, 0);
                 const currencyId = this.safeString(this.safeValue(pair, 1, []), 0);
-                if (currencyId === cleanId) {
+                if (currencyId === id) {
                     const network = this.networkIdToCode(networkId);
                     networks[network] = {
                         'info': networkId,
@@ -911,11 +897,30 @@ export default class bitfinex extends Exchange {
                     };
                 }
             }
-            const keysNetworks = Object.keys(networks);
-            const networksLength = keysNetworks.length;
-            if (networksLength > 0) {
-                result[code]['networks'] = networks;
-            }
+            result[code] = this.safeCurrencyStructure({
+                'id': fid,
+                'uppercaseId': id,
+                'code': code,
+                'info': [id, label, pool, feeValues, undl],
+                'type': type,
+                'name': name,
+                'active': true,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': fee,
+                'precision': parseInt(precision),
+                'limits': {
+                    'amount': {
+                        'min': this.parseNumber(this.parsePrecision(precision)),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
         }
         return result;
     }
