@@ -764,6 +764,7 @@ export default class Exchange {
     currency(code: string): any;
     market(symbol: string): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
+    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;
     handleWithdrawTagAndParams(tag: any, params: any): any;
     createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
     createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;

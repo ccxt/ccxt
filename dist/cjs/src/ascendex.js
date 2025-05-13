@@ -605,7 +605,7 @@ class ascendex extends ascendex$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': {}, // todo
             };
         }
         return result;

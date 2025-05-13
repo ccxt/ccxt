@@ -845,7 +845,11 @@ export default class bitfinex extends Exchange {
             'pool': this.indexBy (this.safeValue (response, 5, []), 0),
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+<<<<<<< HEAD
             'networks': this.indexBy (this.safeValue (response, 8, []), 0),
+=======
+            'networks': this.safeValue (response, 8, []), // indexing not needed
+>>>>>>> 9887ad6cead7b543ad8fec1c1a257b4b4c3d4a1f
             'statuses': this.indexBy (this.safeValue (response, 9, []), 0),
         };
         const ids = this.safeValue (response, 0, []);

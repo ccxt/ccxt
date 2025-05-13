@@ -30,7 +30,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
-                "allowNull": ["type"]
+                "networks": "not provided",
+                "type": "todo"
             },
             "watchOrderBook": {
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
@@ -537,21 +538,21 @@
     "bigone": {
         "skipMethods": {
             "loadMarkets": {
-                "taker": "key is there when run locally, but not on travis",
-                "maker": "key is there when run locally, but not on travis",
+                "taker":"not provided",
+                "maker":"not provided",
                 "currencyIdAndCode": true
             },
             "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
+                "withdrawForNonCrypto": "not available",
+                "depositForNonCrypto": "not available"
             },
             "ticker": {
-                "bid": "broken bid-ask",
+                "spread": "broken bid-ask",
                 "baseVolume": "negative value",
                 "compareQuoteVolumeBaseVolume":"tmp"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
+                "timestamp": "not present"
             }
         }
     },
@@ -582,6 +583,12 @@
                 "deposit":"not provided",
                 "withdraw": "not provided",
                 "activeMajorCurrencies": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
             }
         }
     },

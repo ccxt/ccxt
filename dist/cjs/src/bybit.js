@@ -1714,6 +1714,7 @@ class bybit extends bybit$1 {
                     },
                 },
                 'networks': networks,
+                'type': 'crypto', // atm exchange api provides only cryptos
             };
         }
         return result;
@@ -2172,6 +2173,7 @@ class bybit extends bybit$1 {
             const strike = this.safeString(splitId, 2);
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
+            const isInverse = base === settle;
             if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
                 result.push(this.safeMarketStructure({
                     'id': id,
@@ -2191,8 +2193,8 @@ class bybit extends bybit$1 {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': !isInverse,
+                    'inverse': isInverse,
                     'taker': this.safeNumber(market, 'takerFee', this.parseNumber('0.0006')),
                     'maker': this.safeNumber(market, 'makerFee', this.parseNumber('0.0001')),
                     'contractSize': this.parseNumber('1'),

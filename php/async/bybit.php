@@ -1733,6 +1733,7 @@ class bybit extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
+                    'type' => 'crypto', // atm exchange api provides only cryptos
                 );
             }
             return $result;
@@ -2192,6 +2193,7 @@ class bybit extends Exchange {
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
+                $isInverse = $base === $settle;
                 if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
                     $result[] = $this->safe_market_structure(array(
                         'id' => $id,
@@ -2211,8 +2213,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => null,
-                        'inverse' => null,
+                        'linear' => !$isInverse,
+                        'inverse' => $isInverse,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->parse_number('1'),
