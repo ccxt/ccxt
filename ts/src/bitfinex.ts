@@ -838,17 +838,17 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const indexed: Dict = {
-            'sym': this.indexBy (this.safeValue (response, 1, []), 0),
-            'label': this.indexBy (this.safeValue (response, 2, []), 0),
-            'unit': this.indexBy (this.safeValue (response, 3, []), 0),
-            'undl': this.indexBy (this.safeValue (response, 4, []), 0),
-            'pool': this.indexBy (this.safeValue (response, 5, []), 0),
-            'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
-            'fees': this.indexBy (this.safeValue (response, 7, []), 0),
-            'networks': this.indexBy (this.safeValue (response, 8, []), 0),
-            'statuses': this.indexBy (this.safeValue (response, 9, []), 0),
+            'sym': this.indexBy (this.safeList (response, 1, []), 0),
+            'label': this.indexBy (this.safeList (response, 2, []), 0),
+            'unit': this.indexBy (this.safeList (response, 3, []), 0),
+            'undl': this.indexBy (this.safeList (response, 4, []), 0),
+            'pool': this.indexBy (this.safeList (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeList (response, 6, []), 0),
+            'fees': this.indexBy (this.safeList (response, 7, []), 0),
+            'networks': this.indexBy (this.safeList (response, 8, []), 0),
+            'statuses': this.indexBy (this.safeList (response, 9, []), 0),
         };
-        const ids = this.safeValue (response, 0, []);
+        const ids = this.safeList (response, 0, []);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -857,26 +857,28 @@ export default class bitfinex extends Exchange {
                 continue;
             }
             const code = this.safeCurrencyCode (id);
-            const label = this.safeValue (indexed['label'], id, []);
+            const label = this.safeList (indexed['label'], id, []);
             const name = this.safeString (label, 1);
-            const pool = this.safeValue (indexed['pool'], id, []);
+            const pool = this.safeList (indexed['pool'], id, []);
             const rawType = this.safeString (pool, 1);
             const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
             let type = undefined;
             if (isCryptoCoin) {
                 type = 'crypto';
             }
-            const feeValues = this.safeValue (indexed['fees'], id, []);
-            const fees = this.safeValue (feeValues, 1, []);
+            const feeValues = this.safeList (indexed['fees'], id, []);
+            const fees = this.safeList (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
-            const undl = this.safeValue (indexed['undl'], id, []);
+            const undl = this.safeList (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
-            const dwStatuses = this.safeValue (indexed['statuses'], id, []);
+            const dwStatuses = this.safeList (indexed['statuses'], id, []);
             const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
             const networks: Dict = {};
-            const networksContainer = this.safeList (indexed['networks'], id);
+            const networkLabelDict = this.safeList (indexed['label'], id);
+            const networkLabel = this.safeStringUpper (networkLabelDict, 1);
+            const networksContainer = this.safeList (indexed['networks'], networkLabel);
             const netwokIds = this.safeList (networksContainer, 1, []);
             for (let j = 0; j < netwokIds.length; j++) {
                 const networkId = netwokIds[j];
