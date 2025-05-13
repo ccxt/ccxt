@@ -510,10 +510,10 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': !this.safeBool (chain, 'stopDeposit'),
+                            'deposit': !this.safeBool (chain, 'depositDisable'),
                             'withdraw': this.safeBool (token, 'withdrawEnable'),
                             'fee': this.safeNumber (token, 'minFee'),
-                            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
+                            'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
                             'limits': {
                                 'withdraw': {
                                     'min': this.safeNumber (token, 'minWithdraw'),
