@@ -850,17 +850,28 @@ class bitfinex extends Exchange {
             //     ]
             //
             $indexed = array(
-                'sym' => $this->index_by($this->safe_value($response, 1, array()), 0),
-                'label' => $this->index_by($this->safe_value($response, 2, array()), 0),
-                'unit' => $this->index_by($this->safe_value($response, 3, array()), 0),
-                'undl' => $this->index_by($this->safe_value($response, 4, array()), 0),
-                'pool' => $this->index_by($this->safe_value($response, 5, array()), 0),
-                'explorer' => $this->index_by($this->safe_value($response, 6, array()), 0),
-                'fees' => $this->index_by($this->safe_value($response, 7, array()), 0),
-                'networks' => $this->safe_value($response, 8, array()), // indexing not needed
-                'statuses' => $this->index_by($this->safe_value($response, 9, array()), 0),
+                'sym' => $this->index_by($this->safe_list($response, 1, array()), 0),
+                'label' => $this->index_by($this->safe_list($response, 2, array()), 0),
+                'unit' => $this->index_by($this->safe_list($response, 3, array()), 0),
+                'undl' => $this->index_by($this->safe_list($response, 4, array()), 0),
+                'pool' => $this->index_by($this->safe_list($response, 5, array()), 0),
+                'explorer' => $this->index_by($this->safe_list($response, 6, array()), 0),
+                'fees' => $this->index_by($this->safe_list($response, 7, array()), 0),
+                'networks' => $this->safe_list($response, 8, array()),
+                'statuses' => $this->index_by($this->safe_list($response, 9, array()), 0),
             );
-            $ids = $this->safe_value($response, 0, array());
+            $indexedNetworks = array();
+            for ($i = 0; $i < count($indexed['networks']); $i++) {
+                $networkObj = $indexed['networks'][$i];
+                $networkId = $this->safe_string($networkObj, 0);
+                $valuesList = $this->safe_list($networkObj, 1);
+                $networkName = $this->safe_string($valuesList, 0);
+                // for GOlang transpiler, do with "safe" method
+                $networksList = $this->safe_list($indexedNetworks, $networkName, array());
+                $networksList[] = $networkId;
+                $indexedNetworks[$networkName] = $networksList;
+            }
+            $ids = $this->safe_list($response, 0, array());
             $result = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
@@ -869,49 +880,45 @@ class bitfinex extends Exchange {
                     continue;
                 }
                 $code = $this->safe_currency_code($id);
-                $label = $this->safe_value($indexed['label'], $id, array());
+                $label = $this->safe_list($indexed['label'], $id, array());
                 $name = $this->safe_string($label, 1);
-                $pool = $this->safe_value($indexed['pool'], $id, array());
+                $pool = $this->safe_list($indexed['pool'], $id, array());
                 $rawType = $this->safe_string($pool, 1);
                 $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
                 $type = null;
                 if ($isCryptoCoin) {
                     $type = 'crypto';
                 }
-                $feeValues = $this->safe_value($indexed['fees'], $id, array());
-                $fees = $this->safe_value($feeValues, 1, array());
+                $feeValues = $this->safe_list($indexed['fees'], $id, array());
+                $fees = $this->safe_list($feeValues, 1, array());
                 $fee = $this->safe_number($fees, 1);
-                $undl = $this->safe_value($indexed['undl'], $id, array());
+                $undl = $this->safe_list($indexed['undl'], $id, array());
                 $precision = '8'; // default $precision, todo => fix "magic constants"
                 $fid = 'f' . $id;
-                $dwStatuses = $this->safe_value($indexed['statuses'], $id, array());
+                $dwStatuses = $this->safe_list($indexed['statuses'], $id, array());
                 $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
                 $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
                 $networks = array();
-                $currencyNetworks = $indexed['networks'];
-                for ($j = 0; $j < count($currencyNetworks); $j++) {
-                    $pair = $currencyNetworks[$j];
-                    $networkId = $this->safe_string($pair, 0);
-                    $currencyId = $this->safe_string($this->safe_value($pair, 1, array()), 0);
-                    if ($currencyId === $id) {
-                        $network = $this->network_id_to_code($networkId);
-                        $networks[$network] = array(
-                            'info' => $networkId,
-                            'id' => strtolower($networkId),
-                            'network' => $networkId,
-                            'active' => null,
-                            'deposit' => null,
-                            'withdraw' => null,
-                            'fee' => null,
-                            'precision' => null,
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
+                $netwokIds = $this->safe_list($indexedNetworks, $id, array());
+                for ($j = 0; $j < count($netwokIds); $j++) {
+                    $networkId = $netwokIds[$j];
+                    $network = $this->network_id_to_code($networkId);
+                    $networks[$network] = array(
+                        'info' => $networkId,
+                        'id' => strtolower($networkId),
+                        'network' => $networkId,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
                             ),
-                        );
-                    }
+                        ),
+                    );
                 }
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $fid,
