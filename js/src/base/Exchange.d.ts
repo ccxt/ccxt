@@ -252,7 +252,7 @@ export default class Exchange {
     }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
-    urlencode: (object: object) => string;
+    urlencode: (object: object, sort?: boolean) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
