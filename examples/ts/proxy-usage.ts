@@ -36,6 +36,7 @@ async function example_webSockets () {
     // await myEx.watch ('ws://188.34.194.190:9876/'); // in the incoming logs, confirm that you  see the proxy IP in "hello" message
     //
     console.log (await myEx.watchTicker ('BTC/USDT'));
+    await myEx.close ();
 }
 
 
