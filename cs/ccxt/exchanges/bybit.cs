@@ -1696,6 +1696,7 @@ public partial class bybit : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "type", "crypto" },
             };
         }
         return result;
@@ -2196,6 +2197,7 @@ public partial class bybit : Exchange
             object strike = this.safeString(splitId, 2);
             object optionLetter = this.safeString(splitId, 3);
             object isActive = (isEqual(status, "Trading"));
+            object isInverse = isEqual(bs, settle);
             if (isTrue(isTrue(isTrue(isActive) || isTrue((getValue(this.options, "loadAllOptions")))) || isTrue((getValue(this.options, "loadExpiredOptions")))))
             {
                 ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -2216,8 +2218,8 @@ public partial class bybit : Exchange
                     { "option", true },
                     { "active", isActive },
                     { "contract", true },
-                    { "linear", null },
-                    { "inverse", null },
+                    { "linear", !isTrue(isInverse) },
+                    { "inverse", isInverse },
                     { "taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")) },
                     { "maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")) },
                     { "contractSize", this.parseNumber("1") },
