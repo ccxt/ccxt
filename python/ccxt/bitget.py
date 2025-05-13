@@ -4038,6 +4038,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(order, 'cTime', 'ctime')
         updateTimestamp = self.safe_integer(order, 'uTime')
         rawStatus = self.safe_string_2(order, 'status', 'state')
+        rawStatus = self.safe_string(order, 'planStatus', rawStatus)
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
