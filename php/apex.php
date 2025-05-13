@@ -493,11 +493,6 @@ class apex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $name = $this->safe_string($currency, 'displayName');
             $networks = array();
-            $minPrecision = null;
-            $minWithdrawFeeString = null;
-            $minWithdrawString = null;
-            $deposit = false;
-            $withdraw = false;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $tokens = $this->safe_list($chain, 'tokens', array());
@@ -507,31 +502,22 @@ class apex extends Exchange {
                     if ($tokenName === $currencyId) {
                         $networkId = $this->safe_string($chain, 'chainId');
                         $networkCode = $this->network_id_to_code($networkId);
-                        $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-                        $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
-                        $depositAllowed = !$this->safe_bool($chain, 'stopDeposit');
-                        $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                        $withdrawAllowed = $this->safe_bool($token, 'withdrawEnable');
-                        $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                        $minWithdrawFeeString = $this->safe_string($token, 'minFee');
-                        $minWithdrawString = $this->safe_string($token, 'minWithdraw');
-                        $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
                         $networks[$networkCode] = array(
                             'info' => $chain,
                             'id' => $networkId,
                             'network' => $networkCode,
-                            'active' => $depositAllowed && $withdrawAllowed,
-                            'deposit' => $depositAllowed,
-                            'withdraw' => $withdrawAllowed,
-                            'fee' => $this->parse_number($minWithdrawFeeString),
-                            'precision' => $precision,
+                            'active' => null,
+                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                            'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                            'fee' => $this->safe_number($token, 'minFee'),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
                             'limits' => array(
                                 'withdraw' => array(
-                                    'min' => $this->parse_number($minWithdrawString),
+                                    'min' => $this->safe_number($token, 'minWithdraw'),
                                     'max' => null,
                                 ),
                                 'deposit' => array(
-                                    'min' => $this->parse_number($minNetworkDepositString),
+                                    'min' => $this->safe_number($chain, 'minDeposit'),
                                     'max' => null,
                                 ),
                             ),
@@ -539,24 +525,28 @@ class apex extends Exchange {
                     }
                 }
             }
-            $result[$code] = array(
+            $networkKeys = is_array($networks) ? array_keys($networks) : array();
+            $networksLength = count($networkKeys);
+            $emptyChains = $networksLength === 0; // non-functional coins
+            $valueForEmpty = $emptyChains ? false : null;
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'code' => $code,
                 'id' => $currencyId,
                 'type' => 'crypto',
                 'name' => $name,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $this->parse_number($minWithdrawFeeString),
-                'precision' => $minPrecision,
+                'active' => null,
+                'deposit' => $valueForEmpty,
+                'withdraw' => $valueForEmpty,
+                'fee' => null,
+                'precision' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minWithdrawString),
+                        'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -565,7 +555,7 @@ class apex extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }

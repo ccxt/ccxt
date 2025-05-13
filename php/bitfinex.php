@@ -744,6 +744,7 @@ class bitfinex extends Exchange {
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins => 1 = enabled, 0 = maintenance
         );
         $config = implode(',', $labels);
         $request = array(
@@ -826,6 +827,11 @@ class bitfinex extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         $indexed = array(
@@ -836,12 +842,14 @@ class bitfinex extends Exchange {
             'pool' => $this->index_by($this->safe_value($response, 5, array()), 0),
             'explorer' => $this->index_by($this->safe_value($response, 6, array()), 0),
             'fees' => $this->index_by($this->safe_value($response, 7, array()), 0),
+            'networks' => $this->safe_value($response, 8, array()), // indexing not needed
+            'statuses' => $this->index_by($this->safe_value($response, 9, array()), 0),
         );
         $ids = $this->safe_value($response, 0, array());
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            if (mb_strpos($id, 'F0') !== false) {
+            if (str_ends_with($id, 'F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
@@ -861,38 +869,16 @@ class bitfinex extends Exchange {
             $undl = $this->safe_value($indexed['undl'], $id, array());
             $precision = '8'; // default $precision, todo => fix "magic constants"
             $fid = 'f' . $id;
-            $result[$code] = array(
-                'id' => $fid,
-                'uppercaseId' => $id,
-                'code' => $code,
-                'info' => array( $id, $label, $pool, $feeValues, $undl ),
-                'type' => $type,
-                'name' => $name,
-                'active' => true,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $fee,
-                'precision' => intval($precision),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->parse_number($this->parse_precision($precision)),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $fee,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => array(),
-            );
+            $dwStatuses = $this->safe_value($indexed['statuses'], $id, array());
+            $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
+            $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
             $networks = array();
-            $currencyNetworks = $this->safe_value($response, 8, array());
-            $cleanId = str_replace('F0', '', $id);
+            $currencyNetworks = $indexed['networks'];
             for ($j = 0; $j < count($currencyNetworks); $j++) {
                 $pair = $currencyNetworks[$j];
                 $networkId = $this->safe_string($pair, 0);
                 $currencyId = $this->safe_string($this->safe_value($pair, 1, array()), 0);
-                if ($currencyId === $cleanId) {
+                if ($currencyId === $id) {
                     $network = $this->network_id_to_code($networkId);
                     $networks[$network] = array(
                         'info' => $networkId,
@@ -912,11 +898,30 @@ class bitfinex extends Exchange {
                     );
                 }
             }
-            $keysNetworks = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($keysNetworks);
-            if ($networksLength > 0) {
-                $result[$code]['networks'] = $networks;
-            }
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $fid,
+                'uppercaseId' => $id,
+                'code' => $code,
+                'info' => array( $id, $label, $pool, $feeValues, $undl ),
+                'type' => $type,
+                'name' => $name,
+                'active' => true,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
+                'fee' => $fee,
+                'precision' => intval($precision),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->parse_number($this->parse_precision($precision)),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $fee,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            ));
         }
         return $result;
     }
