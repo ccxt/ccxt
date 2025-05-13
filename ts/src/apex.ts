@@ -489,7 +489,6 @@ export default class apex extends Exchange {
         // }
         const rows = this.safeList (spotConfig, 'assets', []);
         const chains = this.safeList (multiChain, 'chains', []);
-        const chainsLength = chains.length;
         const result: Dict = {};
         for (let i = 0; i < rows.length; i++) {
             const currency = rows[i];
@@ -497,7 +496,7 @@ export default class apex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'displayName');
             const networks: Dict = {};
-            for (let j = 0; j < chainsLength; j++) {
+            for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const tokens = this.safeList (chain, 'tokens', []);
                 for (let f = 0; f < tokens.length; f++) {
@@ -529,7 +528,9 @@ export default class apex extends Exchange {
                     }
                 }
             }
-            const emptyChains = chainsLength === 0; // non-functional coins
+            const networkKeys = Object.keys (networks);
+            const networksLength = networkKeys.length;
+            const emptyChains = networksLength === 0; // non-functional coins
             const valueForEmpty = emptyChains ? false : undefined;
             result[code] = this.safeCurrencyStructure ({
                 'info': currency,
