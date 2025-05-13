@@ -34,6 +34,7 @@ export default class mexc extends mexcRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
+                'unWatchTicker': true,
             },
             'urls': {
                 'api': {
@@ -193,6 +194,37 @@ export default class mexc extends mexcRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker:' + market['symbol'];
+        if (market['spot']) {
+            let miniTicker = false;
+            [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
+            let channel = undefined;
+            if (miniTicker) {
+                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
+            } else {
+                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
+            }
+            return await this.unWatchSpotPublic (channel, messageHash, params);
+        } else {
+            const channel = 'unsub.ticker';
+            const requestParams: Dict = {
+                'symbol': market['id'],
+            };
+            return await this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
     }
 
     /**
@@ -497,6 +529,15 @@ export default class mexc extends mexcRest {
         const url = this.urls['api']['ws']['spot'];
         const request: Dict = {
             'method': 'SUBSCRIPTION',
+            'params': [ channel ],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), channel);
+    }
+
+    async unWatchSpotPublic (channel, messageHash, params = {}) {
+        const url = this.urls['api']['ws']['spot'];
+        const request: Dict = {
+            'method': 'UNSUBSCRIPTION',
             'params': [ channel ],
         };
         return await this.watch (url, messageHash, this.extend (request, params), channel);
