@@ -747,6 +747,7 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ];
         const config = labels.join (',');
         const request: Dict = {
@@ -829,6 +830,11 @@ export default class bitfinex extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         const indexed: Dict = {
@@ -839,12 +845,14 @@ export default class bitfinex extends Exchange {
             'pool': this.indexBy (this.safeValue (response, 5, []), 0),
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+            'networks': this.safeValue (response, 8, []), // indexing not needed
+            'statuses': this.indexBy (this.safeValue (response, 9, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (id.indexOf ('F0') >= 0) {
+            if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
@@ -864,6 +872,9 @@ export default class bitfinex extends Exchange {
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
+            const dwStatuses = this.safeValue (indexed['statuses'], id, []);
+            const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
+            const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
             result[code] = {
                 'id': fid,
                 'uppercaseId': id,
@@ -872,8 +883,8 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
@@ -889,13 +900,12 @@ export default class bitfinex extends Exchange {
                 'networks': {},
             };
             const networks: Dict = {};
-            const currencyNetworks = this.safeValue (response, 8, []);
-            const cleanId = id.replace ('F0', '');
+            const currencyNetworks = indexed['networks'];
             for (let j = 0; j < currencyNetworks.length; j++) {
                 const pair = currencyNetworks[j];
                 const networkId = this.safeString (pair, 0);
                 const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
-                if (currencyId === cleanId) {
+                if (currencyId === id) {
                     const network = this.networkIdToCode (networkId);
                     networks[network] = {
                         'info': networkId,
