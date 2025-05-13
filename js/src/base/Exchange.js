@@ -5553,6 +5553,29 @@ export default class Exchange {
     createExpiredOptionMarket(symbol) {
         throw new NotSupported(this.id + ' createExpiredOptionMarket () is not supported yet');
     }
+    isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
+        const leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
+            'UP', 'DOWN',
+            'BULL', 'BEAR', // similar
+        ];
+        for (let i = 0; i < leverageSuffixes.length; i++) {
+            const leverageSuffix = leverageSuffixes[i];
+            if (currencyCode.endsWith(leverageSuffix)) {
+                if (!checkBaseCoin) {
+                    return true;
+                }
+                else {
+                    // check if base currency is inside dict
+                    const baseCurrencyCode = currencyCode.replace(leverageSuffix, '');
+                    if (baseCurrencyCode in existingCurrencies) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     handleWithdrawTagAndParams(tag, params) {
         if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend(tag, params);

@@ -96,10 +96,6 @@ function testMarket(exchange, skippedProperties, method, market) {
         emptyAllowedFor.push('optionType');
         emptyAllowedFor.push('strike');
     }
-    if (option) {
-        emptyAllowedFor.push('linear');
-        emptyAllowedFor.push('inverse');
-    }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate(exchange, method, market);
