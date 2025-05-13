@@ -4123,6 +4123,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
         $updateTimestamp = $this->safe_integer($order, 'uTime');
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
+        $rawStatus = $this->safe_string($order, 'planStatus', $rawStatus);
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {
