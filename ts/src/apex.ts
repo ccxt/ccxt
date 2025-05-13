@@ -529,9 +529,8 @@ export default class apex extends Exchange {
                     }
                 }
             }
-            if (chainsLength === 0) {
-                continue; // non-functional coins
-            }
+            const emptyChains = chainsLength === 0; // non-functional coins
+            const valueForEmpty = emptyChains ? false : undefined;
             result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'code': code,
@@ -539,8 +538,8 @@ export default class apex extends Exchange {
                 'type': 'crypto',
                 'name': name,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
