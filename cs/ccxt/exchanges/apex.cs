@@ -495,11 +495,6 @@ public partial class apex : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object name = this.safeString(currency, "displayName");
             object networks = new Dictionary<string, object>() {};
-            object minPrecision = null;
-            object minWithdrawFeeString = null;
-            object minWithdrawString = null;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -512,31 +507,22 @@ public partial class apex : Exchange
                     {
                         object networkId = this.safeString(chain, "chainId");
                         object networkCode = this.networkIdToCode(networkId);
-                        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-                        minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : mathMin(minPrecision, precision);
-                        object depositAllowed = !isTrue(this.safeBool(chain, "stopDeposit"));
-                        deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-                        object withdrawAllowed = this.safeBool(token, "withdrawEnable");
-                        withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString(token, "minFee");
-                        minWithdrawString = this.safeString(token, "minWithdraw");
-                        object minNetworkDepositString = this.safeString(chain, "depositMin");
                         ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                             { "info", chain },
                             { "id", networkId },
                             { "network", networkCode },
-                            { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                            { "deposit", depositAllowed },
-                            { "withdraw", withdrawAllowed },
-                            { "fee", this.parseNumber(minWithdrawFeeString) },
-                            { "precision", precision },
+                            { "active", null },
+                            { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
+                            { "withdraw", this.safeBool(token, "withdrawEnable") },
+                            { "fee", this.safeNumber(token, "minFee") },
+                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
                             { "limits", new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minWithdrawString) },
+                                    { "min", this.safeNumber(token, "minWithdraw") },
                                     { "max", null },
                                 } },
                                 { "deposit", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minNetworkDepositString) },
+                                    { "min", this.safeNumber(chain, "minDeposit") },
                                     { "max", null },
                                 } },
                             } },
@@ -544,24 +530,28 @@ public partial class apex : Exchange
                     }
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+            object networksLength = getArrayLength(networkKeys);
+            object emptyChains = isEqual(networksLength, 0); // non-functional coins
+            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
                 { "type", "crypto" },
                 { "name", name },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
+                { "active", null },
+                { "deposit", valueForEmpty },
+                { "withdraw", valueForEmpty },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -570,7 +560,7 @@ public partial class apex : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
