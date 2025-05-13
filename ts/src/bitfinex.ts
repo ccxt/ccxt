@@ -845,9 +845,20 @@ export default class bitfinex extends Exchange {
             'pool': this.indexBy (this.safeList (response, 5, []), 0),
             'explorer': this.indexBy (this.safeList (response, 6, []), 0),
             'fees': this.indexBy (this.safeList (response, 7, []), 0),
-            'networks': this.indexBy (this.safeList (response, 8, []), 0),
+            'networks': this.safeList (response, 8, []),
             'statuses': this.indexBy (this.safeList (response, 9, []), 0),
         };
+        const indexedNetworks = {};
+        for (let i = 0; i < indexed['networks'].length; i++) {
+            const networkObj = indexed['networks'][i];
+            const networkId = this.safeString (networkObj, 0);
+            const valuesList = this.safeList (networkObj, 1);
+            const networkName = this.safeString (valuesList, 0);
+            if (!(networkName in indexedNetworks)) {
+                indexedNetworks[networkName] = [];
+            }
+            indexedNetworks[networkName].push (networkId);
+        }
         const ids = this.safeList (response, 0, []);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -876,10 +887,7 @@ export default class bitfinex extends Exchange {
             const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
             const networks: Dict = {};
-            const networkLabelDict = this.safeList (indexed['label'], id);
-            const networkLabel = this.safeStringUpper (networkLabelDict, 1);
-            const networksContainer = this.safeList (indexed['networks'], networkLabel);
-            const netwokIds = this.safeList (networksContainer, 1, []);
+            const netwokIds = this.safeList (indexedNetworks, id, []);
             for (let j = 0; j < netwokIds.length; j++) {
                 const networkId = netwokIds[j];
                 const network = this.networkIdToCode (networkId);
