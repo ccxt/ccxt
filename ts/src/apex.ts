@@ -528,7 +528,7 @@ export default class apex extends Exchange {
                     }
                 }
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
@@ -554,7 +554,7 @@ export default class apex extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
