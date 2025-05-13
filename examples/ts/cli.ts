@@ -56,6 +56,7 @@ if (nameIndex >= 0) {
 }
 
 let lastParamObject;
+let symbol
 for (let i = 0; i < process.argv.length; i++) {
     if (process.argv[i] === '--param') {
         const nextParam = process.argv[i + 1]
@@ -68,7 +69,12 @@ for (let i = 0; i < process.argv.length; i++) {
                         if (!lastParamObject) {
                             lastParamObject = {}
                         }
-                        lastParamObject[parsed[0]] = parsed[1]
+                        const key = parsed[0];
+                        const value = parsed[1];
+                        if (key === 'symbol') {
+                            symbol = value
+                        }
+                        lastParamObject[key] = value
                         params.splice(paramIndex, 1)
                     } else {
                         throw new Error ('Invalid usage of --param. Please provide a key=value pair after --param.')
@@ -353,14 +359,6 @@ async function run () {
                     }
                 })();
             })
-            if (typeof lastParamObject === 'object') {
-                const lastArgument = args[args.length - 1];
-                if (lastParam && typeof lastArgument === 'object') {
-                    args[args.length - 1]  = Object.assign (lastArgument, lastParamObject)
-                } else {
-                    args.push (lastParamObject)
-                }
-            }
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -386,6 +384,35 @@ async function run () {
                 if (cache_markets) {
                     await fsPromises.writeFile (path, jsonStringify (exchange.markets))
                 }
+            }
+        }
+
+        if (symbol && lastParamObject) {
+            let marketId
+            try {
+                marketId = exchange.marketId(symbol)
+            } catch (e) {
+                // noop possible loaded from cache
+            }
+            if (!marketId) {
+                try {
+                    await exchange.loadMarkets();
+                    marketId = exchange.marketId(symbol)
+                } catch (e) {
+                    // noop
+                }
+            }
+            if (marketId) {
+                lastParamObject.symbol = marketId
+            }
+        }
+
+        if (typeof lastParamObject === 'object') {
+            const lastArgument = args[args.length - 1];
+            if (lastParam && typeof lastArgument === 'object') {
+                args[args.length - 1]  = Object.assign (lastArgument, lastParamObject)
+            } else {
+                args.push (lastParamObject)
             }
         }
 
