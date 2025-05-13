@@ -96,10 +96,6 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'optionType';
         $empty_allowed_for[] = 'strike';
     }
-    if ($option) {
-        $empty_allowed_for[] = 'linear';
-        $empty_allowed_for[] = 'inverse';
-    }
     assert_structure($exchange, $skipped_properties, $method, $market, $format, $empty_allowed_for);
     assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
     $log_text = log_template($exchange, $method, $market);
