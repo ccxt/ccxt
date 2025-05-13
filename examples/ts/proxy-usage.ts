@@ -28,15 +28,14 @@ async function example_webSockets () {
     myEx.httpProxy = 'http://188.34.194.190:8911'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
     myEx.wsProxy = 'http://188.34.194.190:8911'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     await myEx.loadMarkets ();
-    // To ensure your proxy works, uncomment below code and watch the log, it should show your proxy IP in sample message
+    //
+    // To ensure your proxy works, uncomment below code and watch the log
     //
     // myEx.verbose = true;
-    // await myEx.watch ('http://188.34.194.190:9876/');
+    // await myEx.loadHttpProxyAgent ();
+    // await myEx.watch ('ws://188.34.194.190:9876/'); // in the incoming logs, confirm that you  see the proxy IP in "hello" message
     //
-    while (true) {
-        const ticker = await myEx.watchTicker ('BTC/USDT');
-        console.log (ticker);
-    }
+    console.log (await myEx.watchTicker ('BTC/USDT'));
 }
 
 
