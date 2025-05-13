@@ -498,11 +498,6 @@ class apex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'displayName')
             networks: dict = {}
-            minPrecision = None
-            minWithdrawFeeString = None
-            minWithdrawString = None
-            deposit = False
-            withdraw = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 tokens = self.safe_list(chain, 'tokens', [])
@@ -512,53 +507,48 @@ class apex(Exchange, ImplicitAPI):
                     if tokenName == currencyId:
                         networkId = self.safe_string(chain, 'chainId')
                         networkCode = self.network_id_to_code(networkId)
-                        precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
-                        minPrecision = precision if (minPrecision is None) else min(minPrecision, precision)
-                        depositAllowed = not self.safe_bool(chain, 'stopDeposit')
-                        deposit = depositAllowed if (depositAllowed) else deposit
-                        withdrawAllowed = self.safe_bool(token, 'withdrawEnable')
-                        withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
-                        minWithdrawFeeString = self.safe_string(token, 'minFee')
-                        minWithdrawString = self.safe_string(token, 'minWithdraw')
-                        minNetworkDepositString = self.safe_string(chain, 'depositMin')
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
                             'network': networkCode,
-                            'active': depositAllowed and withdrawAllowed,
-                            'deposit': depositAllowed,
-                            'withdraw': withdrawAllowed,
-                            'fee': self.parse_number(minWithdrawFeeString),
-                            'precision': precision,
+                            'active': None,
+                            'deposit': not self.safe_bool(chain, 'depositDisable'),
+                            'withdraw': self.safe_bool(token, 'withdrawEnable'),
+                            'fee': self.safe_number(token, 'minFee'),
+                            'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
                             'limits': {
                                 'withdraw': {
-                                    'min': self.parse_number(minWithdrawString),
+                                    'min': self.safe_number(token, 'minWithdraw'),
                                     'max': None,
                                 },
                                 'deposit': {
-                                    'min': self.parse_number(minNetworkDepositString),
+                                    'min': self.safe_number(chain, 'minDeposit'),
                                     'max': None,
                                 },
                             },
                         }
-            result[code] = {
+            networkKeys = list(networks.keys())
+            networksLength = len(networkKeys)
+            emptyChains = networksLength == 0  # non-functional coins
+            valueForEmpty = False if emptyChains else None
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
                 'type': 'crypto',
                 'name': name,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': self.parse_number(minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': None,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': None,
                         'max': None,
                     },
                     'deposit': {
@@ -567,7 +557,7 @@ class apex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:

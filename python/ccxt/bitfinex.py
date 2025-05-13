@@ -751,6 +751,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method',  # maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status',  # maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ]
         config = ','.join(labels)
         request: dict = {
@@ -833,6 +834,11 @@ class bitfinex(Exchange, ImplicitAPI):
         #             ["ABS",[0,131.3]],
         #             ["ADA",[0,0.3]],
         #         ],
+        #         # deposit/withdrawal data
+        #         [
+        #           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        #           ...
+        #         ]
         #     ]
         #
         indexed: dict = {
@@ -843,12 +849,14 @@ class bitfinex(Exchange, ImplicitAPI):
             'pool': self.index_by(self.safe_value(response, 5, []), 0),
             'explorer': self.index_by(self.safe_value(response, 6, []), 0),
             'fees': self.index_by(self.safe_value(response, 7, []), 0),
+            'networks': self.safe_value(response, 8, []),  # indexing not needed
+            'statuses': self.index_by(self.safe_value(response, 9, []), 0),
         }
         ids = self.safe_value(response, 0, [])
         result: dict = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            if id.find('F0') >= 0:
+            if id.endswith('F0'):
                 # we get a lot of F0 currencies, skip those
                 continue
             code = self.safe_currency_code(id)
@@ -866,38 +874,16 @@ class bitfinex(Exchange, ImplicitAPI):
             undl = self.safe_value(indexed['undl'], id, [])
             precision = '8'  # default precision, todo: fix "magic constants"
             fid = 'f' + id
-            result[code] = {
-                'id': fid,
-                'uppercaseId': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': True,
-                'deposit': None,
-                'withdraw': None,
-                'fee': fee,
-                'precision': int(precision),
-                'limits': {
-                    'amount': {
-                        'min': self.parse_number(self.parse_precision(precision)),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': fee,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-            }
+            dwStatuses = self.safe_value(indexed['statuses'], id, [])
+            depositEnabled = self.safe_integer(dwStatuses, 1) == 1
+            withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
             networks: dict = {}
-            currencyNetworks = self.safe_value(response, 8, [])
-            cleanId = id.replace('F0', '')
+            currencyNetworks = indexed['networks']
             for j in range(0, len(currencyNetworks)):
                 pair = currencyNetworks[j]
                 networkId = self.safe_string(pair, 0)
                 currencyId = self.safe_string(self.safe_value(pair, 1, []), 0)
-                if currencyId == cleanId:
+                if currencyId == id:
                     network = self.network_id_to_code(networkId)
                     networks[network] = {
                         'info': networkId,
@@ -915,10 +901,30 @@ class bitfinex(Exchange, ImplicitAPI):
                             },
                         },
                     }
-            keysNetworks = list(networks.keys())
-            networksLength = len(keysNetworks)
-            if networksLength > 0:
-                result[code]['networks'] = networks
+            result[code] = self.safe_currency_structure({
+                'id': fid,
+                'uppercaseId': id,
+                'code': code,
+                'info': [id, label, pool, feeValues, undl],
+                'type': type,
+                'name': name,
+                'active': True,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': fee,
+                'precision': int(precision),
+                'limits': {
+                    'amount': {
+                        'min': self.parse_number(self.parse_precision(precision)),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            })
         return result
 
     def fetch_balance(self, params={}) -> Balances:
