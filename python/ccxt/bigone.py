@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -509,19 +509,15 @@ class bigone(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            type = 'fiat' if self.safe_bool(currency, 'is_fiat') else 'crypto'
             networks: dict = {}
             chains = self.safe_list(currency, 'binding_gateways', [])
             currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
-            currencyDepositEnabled: Bool = None
-            currencyWithdrawEnabled: Bool = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'gateway_name')
                 networkCode = self.network_id_to_code(networkId)
                 deposit = self.safe_bool(chain, 'is_deposit_enabled')
                 withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
-                isActive = (deposit and withdraw)
                 minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
                 minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
                 withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
@@ -532,7 +528,7 @@ class bigone(Exchange, ImplicitAPI):
                     'margin': None,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': None,
                     'fee': self.parse_number(withdrawalFee),
                     'precision': self.parse_number(precision),
                     'limits': {
@@ -547,19 +543,26 @@ class bigone(Exchange, ImplicitAPI):
                     },
                     'info': chain,
                 }
-                # fill global values
-                currencyDepositEnabled = (currencyDepositEnabled is None) or deposit if deposit else currencyDepositEnabled
-                currencyWithdrawEnabled = (currencyWithdrawEnabled is None) or withdraw if withdraw else currencyWithdrawEnabled
-                currencyMaxPrecision = (currencyMaxPrecision is None) or precision if Precise.string_gt(currencyMaxPrecision, precision) else currencyMaxPrecision
-            result[code] = {
+            chainLength = len(chains)
+            type: Str = None
+            if self.safe_bool(currency, 'is_fiat'):
+                type = 'fiat'
+            elif chainLength == 0:
+                if self.is_leveraged_currency(id):
+                    type = 'leveraged'
+                else:
+                    type = 'other'
+            else:
+                type = 'crypto'
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': None,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': self.parse_number(currencyMaxPrecision),
                 'limits': {
@@ -573,7 +576,7 @@ class bigone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

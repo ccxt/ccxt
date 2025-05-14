@@ -375,8 +375,7 @@ class coinbase extends coinbase$1 {
                 'fetchAccounts': 'fetchAccountsV3',
                 'fetchBalance': 'v2PrivateGetAccounts',
                 'fetchTime': 'v2PublicGetTime',
-                'user_native_currency': 'USD',
-                'aliasCbMarketIds': {},
+                'user_native_currency': 'USD', // needed to get fees for v3
             },
             'features': {
                 'default': {
@@ -1510,8 +1509,6 @@ class coinbase extends coinbase$1 {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push(this.parseContractMarket(perpetualData[i], perpetualFeeTier));
         }
-        // remove aliases
-        this.options['aliasCbMarketIds'] = {};
         const newMarkets = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
@@ -1519,24 +1516,14 @@ class coinbase extends coinbase$1 {
             const realMarketIds = this.safeList(info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {
-                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
-                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
+                market['alias'] = realMarketIds[0];
             }
             else {
-                newMarkets.push(market);
+                market['alias'] = undefined;
             }
+            newMarkets.push(market);
         }
         return newMarkets;
-    }
-    market(symbol) {
-        const finalSymbol = this.safeString(this.options['aliasCbMarketIds'], symbol, symbol);
-        return super.market(finalSymbol);
-    }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        if (marketId in this.options['aliasCbMarketIds']) {
-            return this.market(marketId);
-        }
-        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     parseSpotMarket(market, feeTier) {
         //

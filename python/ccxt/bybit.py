@@ -1704,6 +1704,7 @@ class bybit(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto',  # atm exchange api provides only cryptos
             }
         return result
 
@@ -2127,6 +2128,7 @@ class bybit(Exchange, ImplicitAPI):
             strike = self.safe_string(splitId, 2)
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
+            isInverse = base == settle
             if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
                 result.append(self.safe_market_structure({
                     'id': id,
@@ -2138,7 +2140,7 @@ class bybit(Exchange, ImplicitAPI):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
-                    'subType': 'linear',
+                    'subType': None,
                     'spot': False,
                     'margin': False,
                     'swap': False,
@@ -2146,8 +2148,8 @@ class bybit(Exchange, ImplicitAPI):
                     'option': True,
                     'active': isActive,
                     'contract': True,
-                    'linear': True,
-                    'inverse': False,
+                    'linear': not isInverse,
+                    'inverse': isInverse,
                     'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
                     'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                     'contractSize': self.parse_number('1'),
@@ -3911,12 +3913,12 @@ class bybit(Exchange, ImplicitAPI):
                 request['price'] = priceString
         if market['spot']:
             request['category'] = 'spot'
+        elif market['option']:
+            request['category'] = 'option'
         elif market['linear']:
             request['category'] = 'linear'
         elif market['inverse']:
             request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -5661,7 +5663,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            if subType == 'inverse':
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 5)  # 3/4 uta 1.0, 5/6 uta 2.0
+            if subType == 'inverse' and (unifiedMarginStatus < 5):
                 response = self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
             else:
                 response = self.privateGetV5AccountTransactionLog(self.extend(request, params))

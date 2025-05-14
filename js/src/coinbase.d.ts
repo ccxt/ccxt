@@ -136,8 +136,6 @@ export default class coinbase extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<Market[]>;
     fetchMarketsV3(params?: {}): Promise<Market[]>;
-    market(symbol: string): MarketInterface;
-    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     parseSpotMarket(market: any, feeTier: any): MarketInterface;
     parseContractMarket(market: any, feeTier: any): MarketInterface;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;

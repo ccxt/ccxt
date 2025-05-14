@@ -500,7 +500,7 @@ class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -509,7 +509,7 @@ class Exchange {
         }
         else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -519,7 +519,7 @@ class Exchange {
         }
         else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
@@ -5568,6 +5568,29 @@ class Exchange {
     }
     createExpiredOptionMarket(symbol) {
         throw new errors.NotSupported(this.id + ' createExpiredOptionMarket () is not supported yet');
+    }
+    isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
+        const leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
+            'UP', 'DOWN',
+            'BULL', 'BEAR', // similar
+        ];
+        for (let i = 0; i < leverageSuffixes.length; i++) {
+            const leverageSuffix = leverageSuffixes[i];
+            if (currencyCode.endsWith(leverageSuffix)) {
+                if (!checkBaseCoin) {
+                    return true;
+                }
+                else {
+                    // check if base currency is inside dict
+                    const baseCurrencyCode = currencyCode.replace(leverageSuffix, '');
+                    if (baseCurrencyCode in existingCurrencies) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     handleWithdrawTagAndParams(tag, params) {
         if ((tag !== undefined) && (typeof tag === 'object')) {

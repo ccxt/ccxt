@@ -64,7 +64,7 @@ class oxfun extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => 'emulated',
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -1107,6 +1107,27 @@ class oxfun extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rates($data, $symbols);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rates for a $symbol
+         *
+         * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+         *
+         * @param {string} $symbol unified market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         */
+        $this->load_markets();
+        $request = array(
+            'marketCode' => $this->market_id($symbol),
+        );
+        $response = $this->publicGetV3FundingEstimates ($this->extend($request, $params));
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_funding_rate($first, $this->market($symbol));
     }
 
     public function parse_funding_rate($fundingRate, ?array $market = null): array {
