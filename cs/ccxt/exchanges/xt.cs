@@ -897,6 +897,15 @@ public partial class xt : Exchange
                     } },
                 };
             }
+            object typeRaw = this.safeString(entry, "type");
+            object type = null;
+            if (isTrue(isEqual(typeRaw, "FT")))
+            {
+                type = "crypto";
+            } else
+            {
+                type = "other";
+            }
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "info", entry },
                 { "id", currencyId },
@@ -908,6 +917,7 @@ public partial class xt : Exchange
                 { "deposit", deposit },
                 { "withdraw", withdraw },
                 { "networks", networks },
+                { "type", type },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },

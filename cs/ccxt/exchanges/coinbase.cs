@@ -1564,7 +1564,23 @@ public partial class coinbase : Exchange
         {
             ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
         }
-        return result;
+        object newMarkets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        {
+            object market = getValue(result, i);
+            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            object realMarketIds = this.safeList(info, "alias_to", new List<object>() {});
+            object length = getArrayLength(realMarketIds);
+            if (isTrue(isGreaterThan(length, 0)))
+            {
+                ((IDictionary<string,object>)market)["alias"] = getValue(realMarketIds, 0);
+            } else
+            {
+                ((IDictionary<string,object>)market)["alias"] = null;
+            }
+            ((IList<object>)newMarkets).Add(market);
+        }
+        return newMarkets;
     }
 
     public virtual object parseSpotMarket(object market, object feeTier)
@@ -1986,6 +2002,7 @@ public partial class coinbase : Exchange
                 { "withdraw", null },
                 { "fee", null },
                 { "precision", null },
+                { "networks", new Dictionary<string, object>() {} },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", this.safeNumber(currency, "min_size") },
@@ -2344,10 +2361,11 @@ public partial class coinbase : Exchange
             askVolume = this.safeNumber(getValue(asks, 0), "size");
         }
         object marketId = this.safeString(ticker, "product_id");
+        market = this.safeMarket(marketId, market);
         object last = this.safeNumber(ticker, "price");
         object datetime = this.safeString(ticker, "time");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", getValue(market, "symbol") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "bid", bid },

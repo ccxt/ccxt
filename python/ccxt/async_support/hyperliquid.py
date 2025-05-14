@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -380,6 +380,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'networks': None,
                 'fee': None,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
@@ -772,12 +773,15 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.type]: wallet type, ['spot', 'swap'], defaults to swap
+        :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchBalance', params)
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isSpot = (type == 'spot')
         reqType = 'spotClearinghouseState' if (isSpot) else 'clearinghouseState'
         request: dict = {
@@ -834,12 +838,16 @@ class hyperliquid(Exchange, ImplicitAPI):
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
+        usdcBalance = {
+            'total': self.safe_number(data, 'accountValue'),
+        }
+        if (marginMode is not None) and (marginMode == 'isolated'):
+            usdcBalance['free'] = self.safe_number(response, 'withdrawable')
+        else:
+            usdcBalance['used'] = self.safe_number(data, 'totalMarginUsed')
         result: dict = {
             'info': response,
-            'USDC': {
-                'total': self.safe_number(data, 'accountValue'),
-                'used': self.safe_number(data, 'totalMarginUsed'),
-            },
+            'USDC': usdcBalance,
         }
         timestamp = self.safe_integer(response, 'time')
         result['timestamp'] = timestamp
@@ -2172,6 +2180,10 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
+        # createOrdersWs error
+        #
+        #  {error: 'Insufficient margin to place order. asset=159'}
+        #
         #  fetchOpenOrders
         #
         #     {
@@ -2262,6 +2274,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     "triggerPx": "0.6"
         # }
         #
+        error = self.safe_string(order, 'error')
+        if error is not None:
+            return self.safe_order({
+                'info': order,
+                'status': 'rejected',
+            })
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
         if entry is None:
             entry = order
@@ -2453,7 +2471,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -3437,9 +3455,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
         status = self.safe_string(response, 'status', '')
+        error = self.safe_string(response, 'error')
         message = None
         if status == 'err':
             message = self.safe_string(response, 'response')
+        elif error is not None:
+            message = error
         else:
             responsePayload = self.safe_dict(response, 'response', {})
             data = self.safe_dict(responsePayload, 'data', {})

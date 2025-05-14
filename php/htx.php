@@ -941,6 +941,7 @@ class htx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'include_OS_certificates' => false, // temporarily leave this, remove in future
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
@@ -2197,7 +2198,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2206,7 +2207,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -3381,7 +3382,7 @@ class htx extends Exchange {
         //                        "withdrawQuotaPerYear" => null,
         //                        "withdrawQuotaTotal" => null,
         //                        "withdrawFeeType" => "fixed",
-        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "transactFeeWithdraw" => "11.1654",
         //                        "addrWithTag" => false,
         //                        "addrDepositTag" => false
         //                    }
@@ -3404,6 +3405,8 @@ class htx extends Exchange {
             $chains = $this->safe_value($entry, 'chains', array());
             $networks = array();
             $instStatus = $this->safe_string($entry, 'instStatus');
+            $assetType = $this->safe_string($entry, 'assetType');
+            $type = $assetType === '1' ? 'crypto' : 'fiat';
             $currencyActive = $instStatus === 'normal';
             $minPrecision = null;
             $minDeposit = null;
@@ -3463,6 +3466,7 @@ class htx extends Exchange {
                 'withdraw' => $withdraw,
                 'fee' => null,
                 'name' => null,
+                'type' => $type,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -7315,7 +7319,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest);
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7392,7 +7396,7 @@ class htx extends Exchange {
                     $sortedQuery = $this->keysort($query);
                     $request = $this->extend($request, $sortedQuery);
                 }
-                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7747,7 +7751,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

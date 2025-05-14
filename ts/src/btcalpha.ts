@@ -214,7 +214,7 @@ export default class btcalpha extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'max': 720,
+                        'limit': 720,
                     },
                 },
                 'swap': {

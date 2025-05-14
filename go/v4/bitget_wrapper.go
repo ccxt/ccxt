@@ -471,6 +471,7 @@ func (this *Bitget) FetchTradingFees(params ...interface{}) (TradingFees, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+ * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1298,8 +1299,10 @@ func (this *Bitget) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @name bitget#fetchFundingRate
  * @description fetch the current funding rate
  * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
  */
 func (this *Bitget) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {

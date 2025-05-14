@@ -731,6 +731,7 @@ public partial class coinex : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
                 { "info", coin },
             };
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))

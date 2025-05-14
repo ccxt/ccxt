@@ -748,6 +748,7 @@ export default class coinex extends Exchange {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
                 'info': coin,
             };
             for (let j = 0; j < chains.length; j++) {

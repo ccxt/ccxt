@@ -475,6 +475,7 @@ class coinlist extends coinlist$1 {
                     'withdraw': { 'min': minWithdrawal, 'max': undefined },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

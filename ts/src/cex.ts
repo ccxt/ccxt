@@ -560,7 +560,7 @@ export default class cex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeString (ticker, 'lastTradePrice'),
+            'close': this.safeString (ticker, 'last'), // last indicative price per api docs (difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose': undefined,
             'change': this.safeNumber (ticker, 'priceChange'),
             'percentage': this.safeNumber (ticker, 'priceChangePercentage'),

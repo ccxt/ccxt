@@ -616,7 +616,7 @@ func  (this *cex) ParseTicker(ticker interface{}, optionalArgs ...interface{}) i
         "askVolume": nil,
         "vwap": nil,
         "open": nil,
-        "close": this.SafeString(ticker, "lastTradePrice"),
+        "close": this.SafeString(ticker, "last"),
         "previousClose": nil,
         "change": this.SafeNumber(ticker, "priceChange"),
         "percentage": this.SafeNumber(ticker, "priceChangePercentage"),

@@ -212,6 +212,7 @@ class bitmart extends Exchange {
                         'contract/private/order' => 1.2,
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
+                        'contract/private/position-v2' => 10,
                         'contract/private/get-open-orders' => 1.2,
                         'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
@@ -1225,6 +1226,7 @@ class bitmart extends Exchange {
             //                 {
             //                     "currency" => "BTC",
             //                     "name" => "Bitcoin",
+            //                     "recharge_minsize" => '0.00000001',
             //                     "contract_address" => null,
             //                     "network" => "BTC",
             //                     "withdraw_enabled" => true,
@@ -1246,7 +1248,8 @@ class bitmart extends Exchange {
                 $fullId = $this->safe_string($currency, 'currency');
                 $currencyId = $fullId;
                 $networkId = $this->safe_string($currency, 'network');
-                if (mb_strpos($fullId, 'NFT') === false) {
+                $isNtf = (mb_strpos($fullId, 'NFT') !== false);
+                if (!$isNtf) {
                     $parts = explode('-', $fullId);
                     $currencyId = $this->safe_string($parts, 0);
                     $second = $this->safe_string($parts, 1);
@@ -1267,6 +1270,7 @@ class bitmart extends Exchange {
                         'withdraw' => null,
                         'active' => null,
                         'networks' => array(),
+                        'type' => $isNtf ? 'other' : 'crypto',
                     );
                 }
                 $networkCode = $this->network_id_to_code($networkId);
@@ -4982,12 +4986,13 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open contract $positions
              *
              * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
              *
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5006,7 +5011,7 @@ class bitmart extends Exchange {
                 // only supports $symbols or sending one symbol
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetContractPrivatePosition ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetContractPrivatePositionV2 ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,

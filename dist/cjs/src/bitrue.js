@@ -819,7 +819,8 @@ class bitrue extends bitrue$1 {
                 'withdraw': withdraw,
                 'networks': networks,
                 'fee': this.parseNumber(minWithdrawFeeString),
-                // 'fees': fees,
+                'fees': undefined,
+                'type': 'crypto',
                 'limits': {
                     'withdraw': {
                         'min': this.parseNumber(minWithdrawString),

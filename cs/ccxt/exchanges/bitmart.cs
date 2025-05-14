@@ -188,6 +188,7 @@ public partial class bitmart : Exchange
                         { "contract/private/order", 1.2 },
                         { "contract/private/order-history", 10 },
                         { "contract/private/position", 10 },
+                        { "contract/private/position-v2", 10 },
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
@@ -1125,6 +1126,7 @@ public partial class bitmart : Exchange
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1147,7 +1149,8 @@ public partial class bitmart : Exchange
             object fullId = this.safeString(currency, "currency");
             object currencyId = fullId;
             object networkId = this.safeString(currency, "network");
-            if (isTrue(isLessThan(getIndexOf(fullId, "NFT"), 0)))
+            object isNtf = (isGreaterThanOrEqual(getIndexOf(fullId, "NFT"), 0));
+            if (!isTrue(isNtf))
             {
                 object parts = ((string)fullId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 currencyId = this.safeString(parts, 0);
@@ -1171,6 +1174,7 @@ public partial class bitmart : Exchange
                     { "withdraw", null },
                     { "active", null },
                     { "networks", new Dictionary<string, object>() {} },
+                    { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
             object networkCode = this.networkIdToCode(networkId);
@@ -5088,6 +5092,7 @@ public partial class bitmart : Exchange
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5110,7 +5115,7 @@ public partial class bitmart : Exchange
             // only supports symbols as undefined or sending one symbol
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object response = await this.privateGetContractPrivatePosition(this.extend(request, parameters));
+        object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //
         //     {
         //         "code": 1000,

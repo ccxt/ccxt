@@ -861,12 +861,14 @@ export default class kraken extends Exchange {
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString(currency, 'status') === 'enabled';
+            const isFiat = code.indexOf('.HOLD') >= 0;
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': this.safeString(currency, 'altname'),
                 'active': active,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,

@@ -491,6 +491,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.useHistoryEndpointForPagination</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint for pagination (default true)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1474,11 +1480,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
     /// </description>
     /// </item>
     /// </list>

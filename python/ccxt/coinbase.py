@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
+from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1473,7 +1473,18 @@ class coinbase(Exchange, ImplicitAPI):
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
             result.append(self.parse_contract_market(perpetualData[i], perpetualFeeTier))
-        return result
+        newMarkets = []
+        for i in range(0, len(result)):
+            market = result[i]
+            info = self.safe_value(market, 'info', {})
+            realMarketIds = self.safe_list(info, 'alias_to', [])
+            length = len(realMarketIds)
+            if length > 0:
+                market['alias'] = realMarketIds[0]
+            else:
+                market['alias'] = None
+            newMarkets.append(market)
+        return newMarkets
 
     def parse_spot_market(self, market, feeTier) -> MarketInterface:
         #
@@ -1882,6 +1893,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'fee': None,
                 'precision': None,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'min_size'),
@@ -2193,10 +2205,11 @@ class coinbase(Exchange, ImplicitAPI):
             ask = self.safe_number(asks[0], 'price')
             askVolume = self.safe_number(asks[0], 'size')
         marketId = self.safe_string(ticker, 'product_id')
+        market = self.safe_market(marketId, market)
         last = self.safe_number(ticker, 'price')
         datetime = self.safe_string(ticker, 'time')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': market['symbol'],
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'bid': bid,
@@ -4409,7 +4422,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'success_response', {})
         return self.parse_order(order)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

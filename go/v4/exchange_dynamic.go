@@ -10,10 +10,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         ExchangeItf := &Exchange{}
         ExchangeItf.Init(exchangeArgs)
         return ExchangeItf, true
-    case "ace":
-        aceItf := &ace{}
-        aceItf.Init(exchangeArgs)
-        return aceItf, true
     case "alpaca":
         alpacaItf := &alpaca{}
         alpacaItf.Init(exchangeArgs)

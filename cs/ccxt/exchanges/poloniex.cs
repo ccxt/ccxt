@@ -1227,6 +1227,7 @@ public partial class poloniex : Exchange
                     { "withdraw", withdrawEnabled },
                     { "fee", this.parseNumber(feeString) },
                     { "precision", null },
+                    { "type", "crypto" },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },
@@ -1923,7 +1924,7 @@ public partial class poloniex : Exchange
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object response = null;
-        if (!isTrue(getValue(market, "spot")))
+        if (isTrue(!isEqual(marketType, "spot")))
         {
             object raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters));
             //

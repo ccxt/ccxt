@@ -3,7 +3,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types';
+import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, int } from './base/types';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -267,6 +267,7 @@ export default class apex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -495,11 +496,6 @@ export default class apex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'displayName');
             const networks: Dict = {};
-            let minPrecision = undefined;
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const tokens = this.safeList (chain, 'tokens', []);
@@ -509,31 +505,22 @@ export default class apex extends Exchange {
                     if (tokenName === currencyId) {
                         const networkId = this.safeString (chain, 'chainId');
                         const networkCode = this.networkIdToCode (networkId);
-                        const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
-                        minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
-                        const depositAllowed = !this.safeBool (chain, 'stopDeposit');
-                        deposit = (depositAllowed) ? depositAllowed : deposit;
-                        const withdrawAllowed = this.safeBool (token, 'withdrawEnable');
-                        withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString (token, 'minFee');
-                        minWithdrawString = this.safeString (token, 'minWithdraw');
-                        const minNetworkDepositString = this.safeString (chain, 'depositMin');
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
                             'network': networkCode,
-                            'active': depositAllowed && withdrawAllowed,
-                            'deposit': depositAllowed,
-                            'withdraw': withdrawAllowed,
-                            'fee': this.parseNumber (minWithdrawFeeString),
-                            'precision': precision,
+                            'active': undefined,
+                            'deposit': !this.safeBool (chain, 'depositDisable'),
+                            'withdraw': this.safeBool (token, 'withdrawEnable'),
+                            'fee': this.safeNumber (token, 'minFee'),
+                            'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
                             'limits': {
                                 'withdraw': {
-                                    'min': this.parseNumber (minWithdrawString),
+                                    'min': this.safeNumber (token, 'minWithdraw'),
                                     'max': undefined,
                                 },
                                 'deposit': {
-                                    'min': this.parseNumber (minNetworkDepositString),
+                                    'min': this.safeNumber (chain, 'minDeposit'),
                                     'max': undefined,
                                 },
                             },
@@ -541,23 +528,28 @@ export default class apex extends Exchange {
                     }
                 }
             }
-            result[code] = {
+            const networkKeys = Object.keys (networks);
+            const networksLength = networkKeys.length;
+            const emptyChains = networksLength === 0; // non-functional coins
+            const valueForEmpty = emptyChains ? false : undefined;
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
+                'type': 'crypto',
                 'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber (minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': undefined,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber (minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -566,7 +558,7 @@ export default class apex extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -733,8 +725,6 @@ export default class apex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         const percentage = this.safeString (ticker, 'price24hPcnt');
-        const percent = Precise.stringMul (percentage, '100');
-        const open = Precise.stringDiv (last, Precise.stringMul ('1', percentage), 8);
         const quoteVolume = this.safeString (ticker, 'turnover24h');
         const baseVolume = this.safeString (ticker, 'volume24h');
         const high = this.safeString (ticker, 'highPrice24h');
@@ -750,12 +740,12 @@ export default class apex extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percent,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -838,7 +828,7 @@ export default class apex extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        // {
+        //  {
         //     "start": 1647511440000,
         //     "symbol": "BTC-USD",
         //     "interval": "1",
@@ -848,7 +838,7 @@ export default class apex extends Exchange {
         //     "close": "40000",
         //     "volume": "1.002",
         //     "turnover": "3"
-        // } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return [
             this.safeIntegerN (ohlcv, [ 'start', 't' ]),
@@ -1407,7 +1397,6 @@ export default class apex extends Exchange {
      * @method
      * @name apex#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -1867,7 +1856,7 @@ export default class apex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.privateGetV3Account (params);
         const data = this.safeDict (response, 'data', {});

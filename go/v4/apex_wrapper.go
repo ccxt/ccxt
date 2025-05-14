@@ -375,7 +375,6 @@ func (this *Apex) CreateOrder(symbol string, typeVar string, side string, amount
  * @method
  * @name apex#transfer
  * @description transfer currency internally between wallets on the same account
- * @see
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from

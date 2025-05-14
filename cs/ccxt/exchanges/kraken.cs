@@ -854,12 +854,14 @@ public partial class kraken : Exchange
             object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
             // assumes all currencies are active except those listed above
             object active = isEqual(this.safeString(currency, "status"), "enabled");
+            object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", this.safeString(currency, "altname") },
                 { "active", active },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },

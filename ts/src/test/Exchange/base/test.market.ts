@@ -98,6 +98,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const logText = testSharedMethods.logTemplate (exchange, method, market);
 
     // check taker/maker
+    // todo: check not all to be within 0-1.0
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');

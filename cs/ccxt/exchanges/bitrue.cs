@@ -789,6 +789,8 @@ public partial class bitrue : Exchange
                 { "withdraw", withdraw },
                 { "networks", networks },
                 { "fee", this.parseNumber(minWithdrawFeeString) },
+                { "fees", null },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.parseNumber(minWithdrawString) },

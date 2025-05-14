@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -961,6 +961,12 @@ class xt(Exchange, ImplicitAPI):
                         },
                     },
                 }
+            typeRaw = self.safe_string(entry, 'type')
+            type: Str = None
+            if typeRaw == 'FT':
+                type = 'crypto'
+            else:
+                type = 'other'
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -972,6 +978,7 @@ class xt(Exchange, ImplicitAPI):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -4486,7 +4493,7 @@ class xt(Exchange, ImplicitAPI):
                 return self.parse_position(entry, marketInner)
         return None
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

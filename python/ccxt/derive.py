@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, FundingRate, Trade, Transaction
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2027,7 +2027,7 @@ class derive(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

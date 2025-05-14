@@ -873,12 +873,14 @@ class kraken extends Exchange {
                 $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
                 // assumes all $currencies are $active except those listed above
                 $active = $this->safe_string($currency, 'status') === 'enabled';
+                $isFiat = mb_strpos($code, '.HOLD') !== false;
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
                     'name' => $this->safe_string($currency, 'altname'),
                     'active' => $active,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
@@ -3323,7 +3325,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

@@ -1572,7 +1572,7 @@ class timex extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -1586,7 +1586,7 @@ class timex extends Exchange {
             'cost' => $cost,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

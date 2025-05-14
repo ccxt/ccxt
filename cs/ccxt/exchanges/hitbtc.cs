@@ -769,6 +769,8 @@ public partial class hitbtc : Exchange
             object transferEnabled = this.safeBool(entry, "transfer_enabled", false);
             object active = isTrue(isTrue(payinEnabled) && isTrue(payoutEnabled)) && isTrue(transferEnabled);
             object rawNetworks = this.safeValue(entry, "networks", new List<object>() {});
+            object isCrypto = this.safeBool(entry, "crypto");
+            object type = ((bool) isTrue(isCrypto)) ? "crypto" : "fiat";
             object networks = new Dictionary<string, object>() {};
             object fee = null;
             object depositEnabled = null;
@@ -834,6 +836,7 @@ public partial class hitbtc : Exchange
                         { "max", null },
                     } },
                 } },
+                { "type", type },
             };
         }
         return result;

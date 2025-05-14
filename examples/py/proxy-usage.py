@@ -42,9 +42,15 @@ async def example_web_sockets():
     my_ex.http_proxy = 'http://188.34.194.190:8911'  # even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
     my_ex.ws_proxy = 'http://188.34.194.190:8911'  # "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     await my_ex.load_markets()
-    while True:
-        ticker = await my_ex.watch_ticker('BTC/USDT')
-        print(ticker)
+    #
+    # To ensure your proxy works, uncomment below code and watch the log
+    #
+    # myEx.verbose = true;
+    # await myEx.loadHttpProxyAgent ();
+    # await myEx.watch ('ws://188.34.194.190:9876/'); # in the incoming logs, confirm that you  see the proxy IP in "hello" message
+    #
+    print(await my_ex.watch_ticker('BTC/USDT'))
+    await my_ex.close()
 
 
     await my_ex.close()

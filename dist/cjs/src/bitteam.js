@@ -644,6 +644,7 @@ class bitteam extends bitteam$1 {
             const networkIds = Object.keys(feesByNetworkId);
             const networks = {};
             const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
+            const typeRaw = this.safeString(currency, 'type');
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode(networkId, code);
@@ -698,6 +699,7 @@ class bitteam extends bitteam$1 {
                         'max': undefined,
                     },
                 },
+                'type': typeRaw,
                 'networks': networks,
             };
         }

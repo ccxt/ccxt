@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -955,6 +955,13 @@ export default class xt extends Exchange {
                     },
                 };
             }
+            const typeRaw = this.safeString (entry, 'type');
+            let type: Str = undefined;
+            if (typeRaw === 'FT') {
+                type = 'crypto';
+            } else {
+                type = 'other';
+            }
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -966,6 +973,7 @@ export default class xt extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -4693,7 +4701,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);

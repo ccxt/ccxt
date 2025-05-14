@@ -75,6 +75,7 @@ export default class coincatch extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -713,6 +714,75 @@ export default class coincatch extends Exchange {
         }
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetApiSpotV1PublicCurrencies (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseDepositWithdrawFees (data, codes, 'coinName');
+    }
+
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        const chains = this.safeList (fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result: Dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString (chain, 'chain');
+            const currencyCode = this.safeString (currency, 'code');
+            const networkCode = this.networkIdToCode (networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+            };
+            if (chainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
         }
         return result;
     }

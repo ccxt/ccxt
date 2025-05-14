@@ -326,6 +326,7 @@ export default class coinone extends Exchange {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

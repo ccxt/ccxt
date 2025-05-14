@@ -159,7 +159,7 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"timeInForce\":\"PostOnly\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit buy with takeProfitPrice(Type2)",
+                "description": "Swap limit sell with takeProfitPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
@@ -169,13 +169,14 @@
                     0.1,
                     100,
                     {
-                        "takeProfitPrice": 110
+                        "takeProfitPrice": 110,
+                        "method": "privatePostV5OrderCreate"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"triggerDirection\":1,\"triggerPrice\":\"110\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "description": "Swap limit sell with stopLossPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",  
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
@@ -185,10 +186,43 @@
                     0.16,
                     51,
                     {
-                        "stopLossPrice": 56
+                        "stopLossPrice": 56,
+                        "method": "privatePostV5OrderCreate"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"51\",\"triggerDirection\":2,\"triggerPrice\":\"56\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  81000,
+                  {
+                    "stopLossPrice": 82000
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"82000\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"81000\",\"slSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap limit sell with takeProfitPrice(Type2)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  99000,
+                  {
+                    "takeProfitPrice": 98000
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",
@@ -940,6 +974,37 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetchLedger using uta 1.0",
+                "options": {
+                    "unifiedMarginStatus": 4
+                },
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLedger (inverse) using uta 2.0",
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Default fetchLedger",
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
@@ -947,6 +1012,9 @@
             },
             {
                 "description": "Ledger from inverse wallet",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
                 "input": [

@@ -1422,6 +1422,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

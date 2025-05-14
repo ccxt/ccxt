@@ -637,6 +637,7 @@ public partial class deribit : Exchange
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
+                { "type", "crypto" },
                 { "fee", this.safeNumber(currency, "withdrawal_fee") },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "fee_precision"))) },
                 { "limits", new Dictionary<string, object>() {

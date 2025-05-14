@@ -323,6 +323,7 @@ class coinone extends coinone$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

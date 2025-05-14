@@ -742,6 +742,7 @@ class coinex extends Exchange {
                     ),
                 ),
                 'networks' => array(),
+                'type' => 'crypto',
                 'info' => $coin,
             );
             for ($j = 0; $j < count($chains); $j++) {
@@ -3996,7 +3997,7 @@ class coinex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

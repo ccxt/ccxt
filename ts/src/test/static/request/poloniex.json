@@ -119,6 +119,27 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.poloniex.com/v3/trade/order/opens",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot open orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.poloniex.com/orders",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.poloniex.com/orders?symbol=LTC_USDT",

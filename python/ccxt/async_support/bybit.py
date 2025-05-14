@@ -1041,9 +1041,6 @@ class bybit(Exchange, ImplicitAPI):
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
-                'createOrder': {
-                    'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
-                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -1708,6 +1705,7 @@ class bybit(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto',  # atm exchange api provides only cryptos
             }
         return result
 
@@ -2131,6 +2129,7 @@ class bybit(Exchange, ImplicitAPI):
             strike = self.safe_string(splitId, 2)
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
+            isInverse = base == settle
             if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
                 result.append(self.safe_market_structure({
                     'id': id,
@@ -2142,7 +2141,7 @@ class bybit(Exchange, ImplicitAPI):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
-                    'subType': 'linear',
+                    'subType': None,
                     'spot': False,
                     'margin': False,
                     'swap': False,
@@ -2150,8 +2149,8 @@ class bybit(Exchange, ImplicitAPI):
                     'option': True,
                     'active': isActive,
                     'contract': True,
-                    'linear': True,
-                    'inverse': False,
+                    'linear': not isInverse,
+                    'inverse': isInverse,
                     'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
                     'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                     'contractSize': self.parse_number('1'),
@@ -3775,12 +3774,21 @@ class bybit(Exchange, ImplicitAPI):
         parts = await self.is_unified_enabled()
         enableUnifiedAccount = parts[1]
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isTrailingAmountOrder = trailingAmount is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
-        options = self.safe_dict(self.options, 'createOrder', {})
-        defaultMethod = self.safe_string(options, 'method', 'privatePostV5OrderCreate')
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLoss or isTakeProfit:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
         response = None
-        if isTrailingAmountOrder or (defaultMethod == 'privatePostV5PositionTradingStop'):
+        if method == 'privatePostV5PositionTradingStop':
             response = await self.privatePostV5PositionTradingStop(orderRequest)
         else:
             response = await self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
@@ -3805,8 +3813,6 @@ class bybit(Exchange, ImplicitAPI):
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostV5OrderCreate')
         request: dict = {
             'symbol': market['id'],
             # 'side': self.capitalize(side),
@@ -3850,7 +3856,14 @@ class bybit(Exchange, ImplicitAPI):
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         isBuy = side == 'buy'
-        isAlternativeEndpoint = defaultMethod == 'privatePostV5PositionTradingStop'
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
+        isAlternativeEndpoint = method == 'privatePostV5PositionTradingStop'
         amountString = self.get_amount(symbol, amount)
         priceString = self.get_price(symbol, self.number_to_string(price)) if (price is not None) else None
         if isTrailingAmountOrder or isAlternativeEndpoint:
@@ -3901,12 +3914,12 @@ class bybit(Exchange, ImplicitAPI):
                 request['price'] = priceString
         if market['spot']:
             request['category'] = 'spot'
+        elif market['option']:
+            request['category'] = 'option'
         elif market['linear']:
             request['category'] = 'linear'
         elif market['inverse']:
             request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -5651,7 +5664,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            if subType == 'inverse':
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 5)  # 3/4 uta 1.0, 5/6 uta 2.0
+            if subType == 'inverse' and (unifiedMarginStatus < 5):
                 response = await self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
             else:
                 response = await self.privateGetV5AccountTransactionLog(self.extend(request, params))

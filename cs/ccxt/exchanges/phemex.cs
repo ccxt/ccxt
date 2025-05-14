@@ -1151,7 +1151,8 @@ public partial class phemex : Exchange
                     } },
                 } },
                 { "valueScale", valueScale },
-                { "networks", new Dictionary<string, object>() {} },
+                { "networks", null },
+                { "type", "crypto" },
             };
         }
         return result;

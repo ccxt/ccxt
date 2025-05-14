@@ -1556,7 +1556,7 @@ export default class timex extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeTrade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1570,7 +1570,7 @@ export default class timex extends Exchange {
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        });
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
