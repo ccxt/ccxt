@@ -23,5 +23,6 @@ public partial class BaseTest
             testGroupBy();
             testFilterBy();
             testHandleMethods();
+            testRemoveRepeatedElementsFromArray();
         }
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bl3p.js';
-import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, IndexType, Currency, Num, TradingFees, Dict } from './base/types.js';
+import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, IndexType, Currency, Num, TradingFees, Dict, DepositAddress } from './base/types.js';
 /**
  * @class bl3p
  * @augments Exchange
@@ -99,13 +99,7 @@ export default class bl3p extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
         currency: string;

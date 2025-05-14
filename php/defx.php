@@ -610,7 +610,7 @@ class defx extends Exchange {
             'active' => $this->safe_string($market, 'status', '') === 'active',
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $this->safe_number($fees, 'taker'),
             'maker' => $this->safe_number($fees, 'maker'),
             'contractSize' => $this->parse_number('1'),
@@ -1543,7 +1543,7 @@ class defx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

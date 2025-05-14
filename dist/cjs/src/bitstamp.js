@@ -1307,10 +1307,9 @@ class bitstamp extends bitstamp$1 {
     }
     parseTradingFees(fees) {
         const result = { 'info': fees };
-        const symbols = this.symbols;
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
+            const symbol = fee['symbol'];
             result[symbol] = fee;
         }
         return result;

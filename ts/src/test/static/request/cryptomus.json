@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "Trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/account/tariffs",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch balance",

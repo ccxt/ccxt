@@ -66,7 +66,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,

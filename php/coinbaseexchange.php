@@ -29,6 +29,7 @@ class coinbaseexchange extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -1871,7 +1872,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit $address
          *
@@ -1904,6 +1905,7 @@ class coinbaseexchange extends Exchange {
         return array(
             'currency' => $code,
             'address' => $this->check_address($address),
+            'network' => null,
             'tag' => $tag,
             'info' => $response,
         );

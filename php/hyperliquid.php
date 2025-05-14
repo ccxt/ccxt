@@ -367,6 +367,7 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
+                'type' => 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -776,12 +777,15 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
          */
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $isSpot = ($type === 'spot');
         $reqType = ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
         $request = array(
@@ -840,12 +844,17 @@ class hyperliquid extends Exchange {
             return $this->safe_balance($spotBalances);
         }
         $data = $this->safe_dict($response, 'marginSummary', array());
+        $usdcBalance = array(
+            'total' => $this->safe_number($data, 'accountValue'),
+        );
+        if (($marginMode !== null) && ($marginMode === 'isolated')) {
+            $usdcBalance['free'] = $this->safe_number($response, 'withdrawable');
+        } else {
+            $usdcBalance['used'] = $this->safe_number($data, 'totalMarginUsed');
+        }
         $result = array(
             'info' => $response,
-            'USDC' => array(
-                'total' => $this->safe_number($data, 'accountValue'),
-                'free' => $this->safe_number($response, 'withdrawable'),
-            ),
+            'USDC' => $usdcBalance,
         );
         $timestamp = $this->safe_integer($response, 'time');
         $result['timestamp'] = $timestamp;
@@ -1832,11 +1841,12 @@ class hyperliquid extends Exchange {
             $isTrigger = ($stopLossPrice || $takeProfitPrice);
             $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
             $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
-            $px = (string) $price;
+            $px = $this->number_to_string($price);
             if ($isMarket) {
-                $px = ($isBuy) ? (string) Precise::string_mul($price, Precise::string_add('1', $slippage)) : (string) Precise::string_mul($price, Precise::string_sub('1', $slippage));
+                $px = ($isBuy) ? Precise::string_mul($px, Precise::string_add('1', $slippage)) : Precise::string_mul($px, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px);
             } else {
-                $px = $this->price_to_precision($symbol, (string) $price);
+                $px = $this->price_to_precision($symbol, $px);
             }
             $sz = $this->amount_to_precision($symbol, $amount);
             $orderType = array();
@@ -1981,6 +1991,45 @@ class hyperliquid extends Exchange {
         $dataObject = $this->safe_dict($responseObject, 'data', array());
         $statuses = $this->safe_list($dataObject, 'statuses', array());
         return $this->parse_orders($statuses);
+    }
+
+    public function create_vault(string $name, string $description, int $initialUsd, $params = array ()) {
+        /**
+         * creates a value
+         * @param {string} $name The $name of the vault
+         * @param {string} $description The $description of the vault
+         * @param {number} $initialUsd The $initialUsd of the vault
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->check_required_credentials();
+        $this->load_markets();
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+        );
+        $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($initialUsd), '1000000'));
+        $action = array(
+            'type' => 'createVault',
+            'name' => $name,
+            'description' => $description,
+            'initialUsd' => $usd,
+            'nonce' => $nonce,
+        );
+        $signature = $this->sign_l1_action($action, $nonce);
+        $request['action'] = $action;
+        $request['signature'] = $signature;
+        $response = $this->privatePostExchange ($this->extend($request, $params));
+        //
+        // {
+        //     "status" => "ok",
+        //     "response" => {
+        //         "type" => "createVault",
+        //         "data" => "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        //     }
+        // }
+        //
+        return $response;
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2232,6 +2281,10 @@ class hyperliquid extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
+        // createOrdersWs $error
+        //
+        //  array($error => 'Insufficient margin to place $order-> asset=159')
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2322,6 +2375,13 @@ class hyperliquid extends Exchange {
         //     "triggerPx" => "0.6"
         // }
         //
+        $error = $this->safe_string($order, 'error');
+        if ($error !== null) {
+            return $this->safe_order(array(
+                'info' => $order,
+                'status' => 'rejected',
+            ));
+        }
         $entry = $this->safe_dict_n($order, array( 'order', 'resting', 'filled' ));
         if ($entry === null) {
             $entry = $order;
@@ -2346,6 +2406,11 @@ class hyperliquid extends Exchange {
         }
         $totalAmount = $this->safe_string_2($entry, 'origSz', 'totalSz');
         $remaining = $this->safe_string($entry, 'sz');
+        $tif = $this->safe_string_upper($entry, 'tif');
+        $postOnly = null;
+        if ($tif !== null) {
+            $postOnly = ($tif === 'ALO');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -2356,8 +2421,8 @@ class hyperliquid extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($order, 'statusTimestamp'),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
-            'timeInForce' => $this->safe_string_upper($entry, 'tif'),
-            'postOnly' => null,
+            'timeInForce' => $tif,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
@@ -2482,6 +2547,11 @@ class hyperliquid extends Exchange {
             $side = ($side === 'A') ? 'sell' : 'buy';
         }
         $fee = $this->safe_string($trade, 'fee');
+        $takerOrMaker = null;
+        $crossed = $this->safe_bool($trade, 'crossed');
+        if ($crossed !== null) {
+            $takerOrMaker = $crossed ? 'taker' : 'maker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -2491,7 +2561,7 @@ class hyperliquid extends Exchange {
             'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -2518,7 +2588,7 @@ class hyperliquid extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *
@@ -3073,7 +3143,7 @@ class hyperliquid extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => null,
-            'amount' => $this->safe_integer($delta, 'usdc'),
+            'amount' => $this->safe_number($delta, 'usdc'),
             'currency' => null,
             'status' => $this->safe_string($transaction, 'status'),
             'updated' => null,
@@ -3559,20 +3629,23 @@ class hyperliquid extends Exchange {
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return null; // fallback to default error handler
+            return null; // fallback to default $error handler
         }
         // array("status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist.")
         //
         //     {
         //         $status => 'ok',
-        //         $response => array( type => 'order', $data => array( $statuses => array( array( error => 'Insufficient margin to place order. asset=4' ) ) ) )
+        //         $response => array( type => 'order', $data => array( $statuses => array( array( $error => 'Insufficient margin to place order. asset=4' ) ) ) )
         //     }
         // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
         $status = $this->safe_string($response, 'status', '');
+        $error = $this->safe_string($response, 'error');
         $message = null;
         if ($status === 'err') {
             $message = $this->safe_string($response, 'response');
+        } elseif ($error !== null) {
+            $message = $error;
         } else {
             $responsePayload = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responsePayload, 'data', array());

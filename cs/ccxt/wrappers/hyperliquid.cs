@@ -92,6 +92,12 @@ public partial class hyperliquid
     /// string : wallet type, ['spot', 'swap'], defaults to swap
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -576,6 +582,25 @@ public partial class hyperliquid
     {
         var res = await this.editOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// creates a value
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CreateVault(string name, string description, Int64 initialUsd, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createVault(name, description, initialUsd, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches historical funding rate prices

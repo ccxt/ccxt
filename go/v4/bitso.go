@@ -805,7 +805,7 @@ func  (this *bitso) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             //             {
             //                 "bucket_start_time":1648219140000,
             //                 "first_trade_time":1648219154990,
-            //                 "last_trade_time":1648219189441,
+            //                 "last_trade_time":1648219189442,
             //                 "first_rate":"44958.60",
             //                 "last_rate":"44979.88",
             //                 "min_rate":"44957.33",
@@ -2199,6 +2199,6 @@ func  (this *bitso) HandleErrors(httpCode interface{}, reason interface{}, url i
 
 func (this *bitso) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

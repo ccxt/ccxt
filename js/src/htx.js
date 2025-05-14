@@ -894,6 +894,7 @@ export default class htx extends Exchange {
                     '1041': InvalidOrder,
                     '1047': InsufficientFunds,
                     '1048': InsufficientFunds,
+                    '1061': OrderNotFound,
                     '1051': InvalidOrder,
                     '1066': BadSymbol,
                     '1067': InvalidOrder,
@@ -946,6 +947,7 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -2209,7 +2211,7 @@ export default class htx extends Exchange {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray(ticker['bid'])) {
                 bid = this.safeString(ticker['bid'], 0);
                 bidVolume = this.safeString(ticker['bid'], 1);
             }
@@ -2219,7 +2221,7 @@ export default class htx extends Exchange {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray(ticker['ask'])) {
                 ask = this.safeString(ticker['ask'], 0);
                 askVolume = this.safeString(ticker['ask'], 1);
             }
@@ -3425,7 +3427,7 @@ export default class htx extends Exchange {
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3448,6 +3450,8 @@ export default class htx extends Exchange {
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString(entry, 'instStatus');
+            const assetType = this.safeString(entry, 'assetType');
+            const type = assetType === '1' ? 'crypto' : 'fiat';
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
             let minDeposit = undefined;
@@ -3507,6 +3511,7 @@ export default class htx extends Exchange {
                 'withdraw': withdraw,
                 'fee': undefined,
                 'name': undefined,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -7299,14 +7304,18 @@ export default class htx extends Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString(options, 'subType', defaultSubType);
-        subType = this.safeString(params, 'subType', subType);
+        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request = {
         // 'contract_code': market['id'],
         };
-        params = this.omit(params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));
@@ -7492,7 +7501,7 @@ export default class htx extends Exchange {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest);
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
@@ -7574,7 +7583,7 @@ export default class htx extends Exchange {
                     const sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
+                let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
@@ -7608,6 +7617,7 @@ export default class htx extends Exchange {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
@@ -7625,6 +7635,16 @@ export default class htx extends Exchange {
             const feedback = this.id + ' ' + body;
             const code = this.safeString(response, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict(response, 'data');
+        const errorsList = this.safeList(data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict(errorsList, 0);
+            const errcode = this.safeString(first, 'err_code');
+            const errmessage = this.safeString(first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }

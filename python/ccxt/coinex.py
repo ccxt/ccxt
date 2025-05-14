@@ -757,11 +757,14 @@ class coinex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
                 'info': coin,
             }
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
+                if networkId is None:
+                    continue
                 precisionString = self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))
                 feeString = self.safe_string(chain, 'withdrawal_fee')
                 minNetworkDepositString = self.safe_string(chain, 'min_deposit_amount')
@@ -3678,7 +3681,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    def create_deposit_address(self, code: str, params={}):
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -3856,7 +3859,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

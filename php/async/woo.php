@@ -568,6 +568,7 @@ class woo extends Exchange {
         $symbol = $base . '/' . $quote;
         $contractSize = null;
         $linear = null;
+        $inverse = null;
         $margin = true;
         $contract = $swap;
         if ($contract) {
@@ -577,7 +578,9 @@ class woo extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             $contractSize = $this->parse_number('1');
             $linear = true;
+            $inverse = false;
         }
+        $active = $this->safe_string($market, 'is_trading') === '1';
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -593,10 +596,10 @@ class woo extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => $this->safe_string($market, 'is_trading') === '1',
+            'active' => $active,
             'contract' => $contract,
             'linear' => $linear,
-            'inverse' => null,
+            'inverse' => $inverse,
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -947,6 +950,7 @@ class woo extends Exchange {
                     'networks' => $resultingNetworks,
                     'deposit' => null,
                     'withdraw' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'deposit' => array(
                             'min' => null,
@@ -3434,7 +3438,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $response = Async\await($this->v3PrivateGetPositions ($params));

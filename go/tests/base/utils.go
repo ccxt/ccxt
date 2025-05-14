@@ -527,6 +527,10 @@ func GetRootDir() string {
 	if strings.HasSuffix(dir, "/ccxt") {
 		return dir + "/"
 	}
+	if strings.HasSuffix(dir, "/tests") {
+		return dir + ROOT_DIR + ROOT_DIR
+	}
+
 	res := dir + ROOT_DIR
 	// baseDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	// res := baseDir + ROOT_DIR

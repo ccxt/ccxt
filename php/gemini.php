@@ -1962,7 +1962,7 @@ class gemini extends Exchange {
         return null;
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit $address
          *
@@ -1984,6 +1984,7 @@ class gemini extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }

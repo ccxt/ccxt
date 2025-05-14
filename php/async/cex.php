@@ -34,6 +34,7 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
@@ -327,6 +328,7 @@ class cex extends Exchange {
                 'margin' => null,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'active' => null,
                 'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -568,7 +570,7 @@ class cex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_string($ticker, 'lastTradePrice'),
+            'close' => $this->safe_string($ticker, 'last'), // last indicative price per api docs (difference also seen here => https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'priceChange'),
             'percentage' => $this->safe_number($ticker, 'priceChangePercentage'),

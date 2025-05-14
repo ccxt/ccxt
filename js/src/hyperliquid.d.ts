@@ -64,6 +64,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -286,6 +287,17 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<any>;
     /**
      * @method
      * @name hyperliquid#fetchFundingRateHistory

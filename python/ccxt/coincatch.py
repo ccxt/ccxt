@@ -90,6 +90,7 @@ class coincatch(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -722,6 +723,71 @@ class coincatch(Exchange, ImplicitAPI):
             }
         if self.safe_list(self.options, 'currencyIdsListForParseMarket') is None:
             self.options['currencyIdsListForParseMarket'] = currenciesIds
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+        """
+        fetch deposit and withdraw fees
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
+        :param str[] [codes]: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetApiSpotV1PublicCurrencies(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
+
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+        #
+        # {
+        #     "coinId":"1",
+        #     "coinName":"BTC",
+        #     "transfer":"true",
+        #     "chains":[
+        #         {
+        #             "chain":null,
+        #             "needTag":"false",
+        #             "withdrawable":"true",
+        #             "rechargeAble":"true",
+        #             "withdrawFee":"0.005",
+        #             "depositConfirm":"1",
+        #             "withdrawConfirm":"1",
+        #             "minDepositAmount":"0.001",
+        #             "minWithdrawAmount":"0.001",
+        #             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        #         }
+        #     ]
+        # }
+        #
+        chains = self.safe_list(fee, 'chains', [])
+        chainsLength = len(chains)
+        result: dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

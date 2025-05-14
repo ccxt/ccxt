@@ -25,6 +25,7 @@ public partial class coinbaseexchange : Exchange
                 { "cancelOrder", true },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
@@ -1968,6 +1969,7 @@ public partial class coinbaseexchange : Exchange
         return new Dictionary<string, object>() {
             { "currency", code },
             { "address", this.checkAddress(address) },
+            { "network", null },
             { "tag", tag },
             { "info", response },
         };

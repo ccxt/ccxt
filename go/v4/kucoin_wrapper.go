@@ -592,7 +592,7 @@ func (this *Kucoin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

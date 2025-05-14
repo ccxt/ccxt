@@ -731,12 +731,17 @@ public partial class coinex : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
                 { "info", coin },
             };
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
+                if (isTrue(isEqual(networkId, null)))
+                {
+                    continue;
+                }
                 object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
                 object feeString = this.safeString(chain, "withdrawal_fee");
                 object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");

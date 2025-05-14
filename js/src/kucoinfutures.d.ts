@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -137,7 +137,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
     /**
      * @method
      * @name kucoinfutures#fetchPositions
@@ -147,7 +147,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     /**
      * @method
      * @name kucoinfutures#fetchPositionsHistory
@@ -161,8 +161,8 @@ export default class kucoinfutures extends kucoin {
      * @param {int} [params.pageId] page id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name kucoinfutures#createOrder

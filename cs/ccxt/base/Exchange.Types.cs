@@ -820,23 +820,6 @@ public struct WithdrawlResponse
     }
 }
 
-public struct DepositAddressResponse
-{
-    public string? address;
-    public string? tag;
-    public string? status;
-    public Dictionary<string, object>? info;
-
-    public DepositAddressResponse(object depositAddressResponse2)
-    {
-        var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
-        address = Exchange.SafeString(depositAddressResponse, "address");
-        tag = Exchange.SafeString(depositAddressResponse, "tag");
-        status = Exchange.SafeString(depositAddressResponse, "status");
-        info = Helper.GetInfo(depositAddressResponse);
-    }
-}
-
 public struct DepositAddress
 {
     public Dictionary<string, object>? info;

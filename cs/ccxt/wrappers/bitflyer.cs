@@ -362,10 +362,10 @@ public partial class bitflyer
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// make a withdrawal

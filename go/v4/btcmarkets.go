@@ -501,7 +501,7 @@ func  (this *btcmarkets) FetchMarkets(optionalArgs ...interface{}) <- chan inter
             //             "marketId":"COMP-AUD",
             //             "baseAssetName":"COMP",
             //             "quoteAssetName":"AUD",
-            //             "minOrderAmount":"0.00007",
+            //             "minOrderAmount":"0.00006",
             //             "maxOrderAmount":"1000000",
             //             "amountDecimals":"8",
             //             "priceDecimals":"2",
@@ -1711,6 +1711,6 @@ func  (this *btcmarkets) HandleErrors(code interface{}, reason interface{}, url 
 
 func (this *btcmarkets) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

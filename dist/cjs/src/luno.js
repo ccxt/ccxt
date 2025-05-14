@@ -32,6 +32,7 @@ class luno extends luno$1 {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
@@ -40,6 +41,7 @@ class luno extends luno$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1207,6 +1209,116 @@ class luno extends luno$1 {
             'status': status,
             'fee': undefined,
         }, currency);
+    }
+    /**
+     * @method
+     * @name luno#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] an optional name for the new address
+     * @param {int} [params.account_id] an optional account id for the new address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async createDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privatePostFundingAddress(this.extend(request, params));
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+    /**
+     * @method
+     * @name luno#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privateGetFundingAddress(this.extend(request, params));
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        const currencyId = this.safeStringUpper(depositAddress, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        return {
+            'info': depositAddress,
+            'currency': code,
+            'network': undefined,
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': this.safeString(depositAddress, 'name'),
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);

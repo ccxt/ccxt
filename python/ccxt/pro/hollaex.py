@@ -572,8 +572,8 @@ class hollaex(ccxt.async_support.hollaex):
 
     def on_error(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_error(client, error)
+        super(hollaex, self).on_error(client, error)
 
     def on_close(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_close(client, error)
+        super(hollaex, self).on_close(client, error)

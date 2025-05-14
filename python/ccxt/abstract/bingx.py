@@ -140,6 +140,7 @@ class ImplicitAPI:
     account_v1_private_get_uid = accountV1PrivateGetUid = Entry('uid', ['account', 'v1', 'private'], 'GET', {'cost': 1})
     account_v1_private_get_apikey_query = accountV1PrivateGetApiKeyQuery = Entry('apiKey/query', ['account', 'v1', 'private'], 'GET', {'cost': 2})
     account_v1_private_get_account_apipermissions = accountV1PrivateGetAccountApiPermissions = Entry('account/apiPermissions', ['account', 'v1', 'private'], 'GET', {'cost': 5})
+    account_v1_private_get_allaccountbalance = accountV1PrivateGetAllAccountBalance = Entry('allAccountBalance', ['account', 'v1', 'private'], 'GET', {'cost': 2})
     account_v1_private_post_innertransfer_authorizesubaccount = accountV1PrivatePostInnerTransferAuthorizeSubAccount = Entry('innerTransfer/authorizeSubAccount', ['account', 'v1', 'private'], 'POST', {'cost': 1})
     account_transfer_v1_private_get_subaccount_asset_transferhistory = accountTransferV1PrivateGetSubAccountAssetTransferHistory = Entry('subAccount/asset/transferHistory', ['account', 'transfer', 'v1', 'private'], 'GET', {'cost': 1})
     account_transfer_v1_private_post_subaccount_transferasset_supportcoins = accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins = Entry('subAccount/transferAsset/supportCoins', ['account', 'transfer', 'v1', 'private'], 'POST', {'cost': 1})

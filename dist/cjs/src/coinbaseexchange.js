@@ -32,6 +32,7 @@ class coinbaseexchange extends coinbaseexchange$1 {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -1890,6 +1891,7 @@ class coinbaseexchange extends coinbaseexchange$1 {
         return {
             'currency': code,
             'address': this.checkAddress(address),
+            'network': undefined,
             'tag': tag,
             'info': response,
         };

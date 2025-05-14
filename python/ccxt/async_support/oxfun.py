@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oxfun import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -84,7 +84,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -1103,6 +1103,26 @@ class oxfun(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rates for a symbol
+
+        https://docs.ox.fun/?json#get-v3-funding-estimates
+
+        :param str symbol: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'marketCode': self.market_id(symbol),
+        }
+        response = await self.publicGetV3FundingEstimates(self.extend(request, params))
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_funding_rate(first, self.market(symbol))
 
     def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
@@ -2130,7 +2150,7 @@ class oxfun(Exchange, ImplicitAPI):
         data['type'] = 'withdrawal'
         return self.parse_transaction(data, currency)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

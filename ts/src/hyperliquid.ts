@@ -374,6 +374,7 @@ export default class hyperliquid extends Exchange {
                 'withdraw': undefined,
                 'networks': undefined,
                 'fee': undefined,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -784,6 +785,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -791,6 +793,8 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isSpot = (type === 'spot');
         const reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
         const request: Dict = {
@@ -849,12 +853,17 @@ export default class hyperliquid extends Exchange {
             return this.safeBalance (spotBalances);
         }
         const data = this.safeDict (response, 'marginSummary', {});
+        const usdcBalance = {
+            'total': this.safeNumber (data, 'accountValue'),
+        };
+        if ((marginMode !== undefined) && (marginMode === 'isolated')) {
+            usdcBalance['free'] = this.safeNumber (response, 'withdrawable');
+        } else {
+            usdcBalance['used'] = this.safeNumber (data, 'totalMarginUsed');
+        }
         const result: Dict = {
             'info': response,
-            'USDC': {
-                'total': this.safeNumber (data, 'accountValue'),
-                'free': this.safeNumber (response, 'withdrawable'),
-            },
+            'USDC': usdcBalance,
         };
         const timestamp = this.safeInteger (response, 'time');
         result['timestamp'] = timestamp;
@@ -1845,11 +1854,12 @@ export default class hyperliquid extends Exchange {
             const isTrigger = (stopLossPrice || takeProfitPrice);
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             orderParams = this.omit (orderParams, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ]);
-            let px = price.toString ();
+            let px = this.numberToString (price);
             if (isMarket) {
-                px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
+                px = (isBuy) ? Precise.stringMul (px, Precise.stringAdd ('1', slippage)) : Precise.stringMul (px, Precise.stringSub ('1', slippage));
+                px = this.priceToPrecision (symbol, px);
             } else {
-                px = this.priceToPrecision (symbol, price.toString ());
+                px = this.priceToPrecision (symbol, px);
             }
             const sz = this.amountToPrecision (symbol, amount);
             const orderType: Dict = {};
@@ -1994,6 +2004,47 @@ export default class hyperliquid extends Exchange {
         const dataObject = this.safeDict (responseObject, 'data', {});
         const statuses = this.safeList (dataObject, 'statuses', []);
         return this.parseOrders (statuses);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    async createVault (name: string, description: string, initialUsd: int, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.milliseconds ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const usd = this.parseToInt (Precise.stringMul (this.numberToString (initialUsd), '1000000'));
+        const action: Dict = {
+            'type': 'createVault',
+            'name': name,
+            'description': description,
+            'initialUsd': usd,
+            'nonce': nonce,
+        };
+        const signature = this.signL1Action (action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "createVault",
+        //         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        //     }
+        // }
+        //
+        return response;
     }
 
     /**
@@ -2253,6 +2304,10 @@ export default class hyperliquid extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2343,6 +2398,13 @@ export default class hyperliquid extends Exchange {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder ({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
             entry = order;
@@ -2367,6 +2429,11 @@ export default class hyperliquid extends Exchange {
         }
         const totalAmount = this.safeString2 (entry, 'origSz', 'totalSz');
         const remaining = this.safeString (entry, 'sz');
+        const tif = this.safeStringUpper (entry, 'tif');
+        let postOnly = undefined;
+        if (tif !== undefined) {
+            postOnly = (tif === 'ALO');
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -2377,8 +2444,8 @@ export default class hyperliquid extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType (this.safeStringLower (entry, 'orderType')),
-            'timeInForce': this.safeStringUpper (entry, 'tif'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString (entry, 'limitPx'),
@@ -2503,6 +2570,11 @@ export default class hyperliquid extends Exchange {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         const fee = this.safeString (trade, 'fee');
+        let takerOrMaker = undefined;
+        const crossed = this.safeBool (trade, 'crossed');
+        if (crossed !== undefined) {
+            takerOrMaker = crossed ? 'taker' : 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -2512,7 +2584,7 @@ export default class hyperliquid extends Exchange {
             'order': this.safeString (trade, 'oid'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -2549,7 +2621,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
@@ -3098,7 +3170,7 @@ export default class hyperliquid extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeInteger (delta, 'usdc'),
+            'amount': this.safeNumber (delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString (transaction, 'status'),
             'updated': undefined,
@@ -3609,9 +3681,12 @@ export default class hyperliquid extends Exchange {
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString (response, 'status', '');
+        const error = this.safeString (response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString (response, 'response');
+        } else if (error !== undefined) {
+            message = error;
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});

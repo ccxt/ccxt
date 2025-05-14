@@ -38,6 +38,7 @@ class cex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'fetchAccounts': True,
@@ -327,6 +328,7 @@ class cex(Exchange, ImplicitAPI):
                 'margin': None,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': None,
                 'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {
@@ -552,7 +554,7 @@ class cex(Exchange, ImplicitAPI):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': self.safe_string(ticker, 'lastTradePrice'),
+            'close': self.safe_string(ticker, 'last'),  # last indicative price per api docs(difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose': None,
             'change': self.safe_number(ticker, 'priceChange'),
             'percentage': self.safe_number(ticker, 'priceChangePercentage'),

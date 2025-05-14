@@ -20,6 +20,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
                     TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
                 }
+                DetectMarketConflicts(exchange, markets)
             
                 ch <- true
                 return nil
@@ -27,3 +28,18 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
+    func DetectMarketConflicts(exchange ccxt.IExchange, marketValues interface{}) interface{}  {
+        // detect if there are markets with different ids for the same symbol
+        var ids interface{} = map[string]interface{} {}
+        for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
+            var market interface{} = GetValue(marketValues, i)
+            var symbol interface{} = GetValue(market, "symbol")
+            if !IsTrue((InOp(ids, symbol))) {
+                AddElementToObject(ids, symbol, GetValue(market, "id"))
+            } else {
+                var isDifferent interface{} = !IsEqual(GetValue(ids, symbol), GetValue(market, "id"))
+                Assert(!IsTrue(isDifferent), Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchMarkets() has different ids for the same symbol: "), symbol), " "), GetValue(ids, symbol)), " "), GetValue(market, "id")))
+            }
+        }
+        return true
+    }

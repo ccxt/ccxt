@@ -613,7 +613,7 @@ public partial class phemex
     /// <item>
     /// <term>params.code</term>
     /// <description>
-    /// string : the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+    /// string : the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
     /// </description>
     /// </item>
     /// <item>

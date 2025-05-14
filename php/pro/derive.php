@@ -459,12 +459,12 @@ class derive extends \ccxt\async\derive {
                 $requestId = $this->request_id($url);
                 $now = (string) $this->milliseconds();
                 $signature = $this->signMessage ($now, $this->privateKey);
-                $contractWalletAddress = $this->safe_string($this->options, 'contractWalletAddress');
+                $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
                 $request = array(
                     'id' => $requestId,
                     'method' => 'public/login',
                     'params' => array(
-                        'wallet' => $contractWalletAddress,
+                        'wallet' => $deriveWalletAddress,
                         'timestamp' => $now,
                         'signature' => $signature,
                     ),

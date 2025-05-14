@@ -376,15 +376,16 @@ class bitopro extends \ccxt\async\bitopro {
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
-        $market = $this->safe_market($marketId, null, '_');
+        // $market-ids are lowercase in REST API and uppercase in WS API
+        $market = $this->safe_market(strtolower($marketId), null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
         $messageHash = $event . ':' . $symbol;
-        $result = $this->parse_ticker($message);
+        $result = $this->parse_ticker($message, $market);
+        $result['symbol'] = $this->safe_string($market, 'symbol'); // $symbol returned from REST's parseTicker is distorted for WS, so re-set it from $market object
         $timestamp = $this->safe_integer($message, 'timestamp');
-        $datetime = $this->safe_string($message, 'datetime');
         $result['timestamp'] = $timestamp;
-        $result['datetime'] = $datetime;
+        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
         $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
     }

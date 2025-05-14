@@ -821,6 +821,7 @@ public partial class htx : Exchange
                     { "1041", typeof(InvalidOrder) },
                     { "1047", typeof(InsufficientFunds) },
                     { "1048", typeof(InsufficientFunds) },
+                    { "1061", typeof(OrderNotFound) },
                     { "1051", typeof(InvalidOrder) },
                     { "1066", typeof(BadSymbol) },
                     { "1067", typeof(InvalidOrder) },
@@ -872,6 +873,7 @@ public partial class htx : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
+                { "include_OS_certificates", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new Dictionary<string, object>() {
                         { "spot", true },
@@ -2179,7 +2181,7 @@ public partial class htx : Exchange
         object askVolume = null;
         if (isTrue(inOp(ticker, "bid")))
         {
-            if (isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "bid"), null)) && isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 bid = this.safeString(getValue(ticker, "bid"), 0);
                 bidVolume = this.safeString(getValue(ticker, "bid"), 1);
@@ -2191,7 +2193,7 @@ public partial class htx : Exchange
         }
         if (isTrue(inOp(ticker, "ask")))
         {
-            if (isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (isTrue(isTrue(!isEqual(getValue(ticker, "ask"), null)) && isTrue(((getValue(ticker, "ask") is IList<object>) || (getValue(ticker, "ask").GetType().IsGenericType && getValue(ticker, "ask").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 ask = this.safeString(getValue(ticker, "ask"), 0);
                 askVolume = this.safeString(getValue(ticker, "ask"), 1);
@@ -3423,7 +3425,7 @@ public partial class htx : Exchange
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3447,6 +3449,8 @@ public partial class htx : Exchange
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             object instStatus = this.safeString(entry, "instStatus");
+            object assetType = this.safeString(entry, "assetType");
+            object type = ((bool) isTrue(isEqual(assetType, "1"))) ? "crypto" : "fiat";
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
             object minDeposit = null;
@@ -3508,6 +3512,7 @@ public partial class htx : Exchange
                 { "withdraw", withdraw },
                 { "fee", null },
                 { "name", null },
+                { "type", type },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -7599,12 +7604,19 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "fetchFundingRates", new Dictionary<string, object>() {});
-        object defaultSubType = this.safeString(this.options, "defaultSubType", "inverse");
-        object subType = this.safeString(options, "subType", defaultSubType);
-        subType = this.safeString(parameters, "subType", subType);
+        object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+        object subType = null;
+        var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object firstSymbol = this.safeString(symbols, 0);
+            object market = this.market(firstSymbol);
+            object isLinear = getValue(market, "linear");
+            subType = ((bool) isTrue(isLinear)) ? "linear" : "inverse";
+        }
         object request = new Dictionary<string, object>() {};
-        parameters = this.omit(parameters, "subType");
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {
@@ -7814,7 +7826,7 @@ public partial class htx : Exchange
                     request = this.extend(request, query);
                 }
                 object sortedRequest = this.keysort(request);
-                object auth = this.urlencode(sortedRequest);
+                object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
@@ -7909,7 +7921,7 @@ public partial class htx : Exchange
                     object sortedQuery = ((object)this.keysort(query));
                     request = this.extend(request, sortedQuery);
                 }
-                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
+                object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
@@ -7956,6 +7968,7 @@ public partial class htx : Exchange
         {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             object status = this.safeString(response, "status");
             if (isTrue(isEqual(status, "error")))
@@ -7975,6 +7988,17 @@ public partial class htx : Exchange
             object feedback = add(add(this.id, " "), body);
             object code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        object data = this.safeDict(response, "data");
+        object errorsList = this.safeList(data, "errors");
+        if (isTrue(!isEqual(errorsList, null)))
+        {
+            object first = this.safeDict(errorsList, 0);
+            object errcode = this.safeString(first, "err_code");
+            object errmessage = this.safeString(first, "err_msg");
+            object feedBack = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
         }
         return null;
     }

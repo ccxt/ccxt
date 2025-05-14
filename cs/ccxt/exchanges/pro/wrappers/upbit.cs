@@ -147,6 +147,41 @@ public partial class upbit
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
     /// <summary>
+    /// watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/websocket-candle"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/websocket-candle"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>OHLCV[]</term> a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}.</returns>
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1s", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>

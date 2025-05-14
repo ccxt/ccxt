@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1166,7 +1166,8 @@ class phemex(Exchange, ImplicitAPI):
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
+                'networks': None,
+                'type': 'crypto',
             }
         return result
 
@@ -3570,7 +3571,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -3580,14 +3581,14 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        code = self.safe_string_2(params, 'currency', 'code', 'USD')
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
         params = self.omit(params, ['currency', 'code'])
         settle = None
         market = None

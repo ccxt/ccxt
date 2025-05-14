@@ -688,7 +688,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve ($parsed, $messageHash . ':' . $symbol);
     }
 
-    public function parse_ws_position($position, ?array $market = null): Position {
+    public function parse_ws_position($position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 's');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($position, 'E');

@@ -2,7 +2,1662 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "linear",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "SELL",
+                            "type": "MARKET",
+                            "ordId": "420071851256287232",
+                            "clOrdId": "polo420071851256287232",
+                            "mgnMode": "CROSS",
+                            "px": "0",
+                            "sz": "3",
+                            "lever": "75",
+                            "state": "FILLED",
+                            "cancelReason": "",
+                            "source": "WEB",
+                            "reduceOnly": "false",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "88233.926666666666666666",
+                            "execQty": "3",
+                            "execAmt": "264.70178",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.13235089",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741119333897",
+                            "uTime": "1741119333908",
+                            "posSide": "LONG",
+                            "qCcy": "USDT"
+                        },
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "ordId": "420071604060774400",
+                            "clOrdId": "polo420071604060774400",
+                            "mgnMode": "CROSS",
+                            "px": "88188.95",
+                            "sz": "3",
+                            "lever": "75",
+                            "state": "FILLED",
+                            "cancelReason": "",
+                            "source": "WEB",
+                            "reduceOnly": "false",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "88186.586666666666666666",
+                            "execQty": "3",
+                            "execAmt": "264.55976",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.13227988",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741119274961",
+                            "uTime": "1741119274973",
+                            "posSide": "LONG",
+                            "qCcy": "USDT"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "ordId": "420071604060774400",
+                            "clOrdId": "polo420071604060774400",
+                            "mgnMode": "CROSS",
+                            "px": "88188.95",
+                            "sz": "3",
+                            "lever": "75",
+                            "state": "FILLED",
+                            "cancelReason": "",
+                            "source": "WEB",
+                            "reduceOnly": "false",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "88186.586666666666666666",
+                            "execQty": "3",
+                            "execAmt": "264.55976",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.13227988",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741119274961",
+                            "uTime": "1741119274973",
+                            "posSide": "LONG",
+                            "qCcy": "USDT"
+                        },
+                        "id": "420071604060774400",
+                        "clientOrderId": "polo420071604060774400",
+                        "timestamp": 1741119274961,
+                        "datetime": "2025-03-04T20:14:34.961Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 88188.95,
+                        "triggerPrice": null,
+                        "cost": 264.55976,
+                        "average": 88186.58666666667,
+                        "amount": 3,
+                        "filled": 3,
+                        "remaining": 0,
+                        "trades": [],
+                        "fee": {
+                            "rate": null,
+                            "cost": "0.13227988",
+                            "currency": "USDT"
+                        },
+                        "marginMode": "cross",
+                        "reduceOnly": null,
+                        "leverage": 75,
+                        "hedged": true,
+                        "fees": [
+                            {
+                                "rate": null,
+                                "cost": 0.13227988,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "SELL",
+                            "type": "MARKET",
+                            "ordId": "420071851256287232",
+                            "clOrdId": "polo420071851256287232",
+                            "mgnMode": "CROSS",
+                            "px": "0",
+                            "sz": "3",
+                            "lever": "75",
+                            "state": "FILLED",
+                            "cancelReason": "",
+                            "source": "WEB",
+                            "reduceOnly": "false",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "88233.926666666666666666",
+                            "execQty": "3",
+                            "execAmt": "264.70178",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.13235089",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741119333897",
+                            "uTime": "1741119333908",
+                            "posSide": "LONG",
+                            "qCcy": "USDT"
+                        },
+                        "id": "420071851256287232",
+                        "clientOrderId": "polo420071851256287232",
+                        "timestamp": 1741119333897,
+                        "datetime": "2025-03-04T20:15:33.897Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 88233.92666666667,
+                        "triggerPrice": null,
+                        "cost": 264.70178,
+                        "average": 88233.92666666667,
+                        "amount": 3,
+                        "filled": 3,
+                        "remaining": 0,
+                        "trades": [],
+                        "fee": {
+                            "rate": null,
+                            "cost": "0.13235089",
+                            "currency": "USDT"
+                        },
+                        "marginMode": "cross",
+                        "reduceOnly": null,
+                        "leverage": 75,
+                        "hedged": true,
+                        "fees": [
+                            {
+                                "rate": null,
+                                "cost": 0.13235089,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "linear",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "posSide": "LONG",
+                            "side": "BUY",
+                            "mgnMode": "CROSS",
+                            "openAvgPx": "88186.586666666666666666",
+                            "qty": "3",
+                            "availQty": "3",
+                            "lever": "75",
+                            "adl": "0.4897",
+                            "liqPx": "86347.445746143527880952",
+                            "im": "3.529424",
+                            "mm": "1.5882408",
+                            "upl": "0.14704",
+                            "uplRatio": "0.0416",
+                            "pnl": "0",
+                            "markPx": "88232.54",
+                            "mgnRatio": "0.22",
+                            "state": "NORMAL",
+                            "cTime": "1740950344402",
+                            "uTime": "1741119274973",
+                            "mgn": "3.529424",
+                            "actType": "TRADING",
+                            "maxWAmt": "0",
+                            "tpTrgPx": "",
+                            "slTrgPx": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "posSide": "LONG",
+                            "side": "BUY",
+                            "mgnMode": "CROSS",
+                            "openAvgPx": "88186.586666666666666666",
+                            "qty": "3",
+                            "availQty": "3",
+                            "lever": "75",
+                            "adl": "0.4897",
+                            "liqPx": "86347.445746143527880952",
+                            "im": "3.529424",
+                            "mm": "1.5882408",
+                            "upl": "0.14704",
+                            "uplRatio": "0.0416",
+                            "pnl": "0",
+                            "markPx": "88232.54",
+                            "mgnRatio": "0.22",
+                            "state": "NORMAL",
+                            "cTime": "1740950344402",
+                            "uTime": "1741119274973",
+                            "mgn": "3.529424",
+                            "actType": "TRADING",
+                            "maxWAmt": "0",
+                            "tpTrgPx": "",
+                            "slTrgPx": ""
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": "264.7068",
+                        "marginMode": "cross",
+                        "liquidationPrice": 86347.44574614352,
+                        "entryPrice": 88186.58666666667,
+                        "unrealizedPnl": 0.14704,
+                        "percentage": null,
+                        "contracts": 3,
+                        "contractSize": 0.001,
+                        "markPrice": 88232.54,
+                        "lastPrice": null,
+                        "side": "long",
+                        "hedged": null,
+                        "timestamp": 1740950344402,
+                        "datetime": "2025-03-02T21:19:04.402Z",
+                        "lastUpdateTimestamp": null,
+                        "maintenanceMargin": 1.5882408,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": "264559.759999999999999998",
+                        "initialMargin": "3.529424",
+                        "initialMarginPercentage": null,
+                        "leverage": 75,
+                        "marginRatio": 0.22,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "linear",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "linear",
+                "method": "fetchPositionMode",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "posMode": "ONE_WAY"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 200,
+                        "msg": "Success",
+                        "data": {
+                            "posMode": "ONE_WAY"
+                        }
+                    },
+                    "hedged": false
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "linear",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "lever": "20",
+                            "mgnMode": "CROSS",
+                            "posSide": "BOTH"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 200,
+                        "msg": "",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT_PERP",
+                                "lever": "20",
+                                "mgnMode": "CROSS",
+                                "posSide": "BOTH"
+                            }
+                        ]
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "CROSS",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "linear",
+                "method": "setLeverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "symbol": "BTC_USDT_PERP",
+                        "lever": 20,
+                        "mgnMode": "CROSS",
+                        "posSide": ""
+                    }
+                },
+                "parsedResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "symbol": "BTC_USDT_PERP",
+                        "lever": 20,
+                        "mgnMode": "CROSS",
+                        "posSide": ""
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "linear",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "88135.13",
+                                "567"
+                            ],
+                            [
+                                "88133.47",
+                                "337"
+                            ],
+                            [
+                                "88133.36",
+                                "23"
+                            ],
+                            [
+                                "88131.59",
+                                "245"
+                            ],
+                            [
+                                "88130.13",
+                                "81"
+                            ],
+                            [
+                                "88129.82",
+                                "166"
+                            ],
+                            [
+                                "88128.36",
+                                "4"
+                            ],
+                            [
+                                "88128.05",
+                                "42"
+                            ],
+                            [
+                                "88126.59",
+                                "8"
+                            ],
+                            [
+                                "88125.86",
+                                "1"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "88164.78",
+                                "3"
+                            ],
+                            [
+                                "88164.79",
+                                "4"
+                            ],
+                            [
+                                "88173.61",
+                                "4"
+                            ],
+                            [
+                                "88182.43",
+                                "596"
+                            ],
+                            [
+                                "88182.64",
+                                "44"
+                            ],
+                            [
+                                "88189.69",
+                                "670"
+                            ],
+                            [
+                                "88191.25",
+                                "1467"
+                            ],
+                            [
+                                "88196.74",
+                                "1884"
+                            ],
+                            [
+                                "88200.07",
+                                "340"
+                            ],
+                            [
+                                "88200.78",
+                                "354"
+                            ]
+                        ],
+                        "ts": 1741118899817,
+                        "s": "0.01"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "bids": [
+                        [
+                            88135.13,
+                            567
+                        ],
+                        [
+                            88133.47,
+                            337
+                        ],
+                        [
+                            88133.36,
+                            23
+                        ],
+                        [
+                            88131.59,
+                            245
+                        ],
+                        [
+                            88130.13,
+                            81
+                        ],
+                        [
+                            88129.82,
+                            166
+                        ],
+                        [
+                            88128.36,
+                            4
+                        ],
+                        [
+                            88128.05,
+                            42
+                        ],
+                        [
+                            88126.59,
+                            8
+                        ],
+                        [
+                            88125.86,
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            88164.78,
+                            3
+                        ],
+                        [
+                            88164.79,
+                            4
+                        ],
+                        [
+                            88173.61,
+                            4
+                        ],
+                        [
+                            88182.43,
+                            596
+                        ],
+                        [
+                            88182.64,
+                            44
+                        ],
+                        [
+                            88189.69,
+                            670
+                        ],
+                        [
+                            88191.25,
+                            1467
+                        ],
+                        [
+                            88196.74,
+                            1884
+                        ],
+                        [
+                            88200.07,
+                            340
+                        ],
+                        [
+                            88200.78,
+                            354
+                        ]
+                    ],
+                    "timestamp": 1741118899817,
+                    "datetime": "2025-03-04T20:08:19.817Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "linear",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "code": 200,
+                            "msg": "Success",
+                            "ordId": "420069049645752320",
+                            "clOrdId": "polo420069049645752320"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": 200,
+                            "msg": "Success",
+                            "ordId": "420069049645752320",
+                            "clOrdId": "polo420069049645752320"
+                        },
+                        "id": "420069049645752320",
+                        "clientOrderId": "polo420069049645752320",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "linear",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1730000000000,
+                    3
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "105868336",
+                            "side": "SELL",
+                            "type": "TRADE",
+                            "mgnMode": "CROSS",
+                            "ordType": "MARKET",
+                            "clOrdId": "polo420059153596510208",
+                            "role": "TAKER",
+                            "px": "88359.42",
+                            "qty": "1",
+                            "cTime": "1741116306550",
+                            "uTime": "1741116306563",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.04417971",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0.0005",
+                            "id": "420059153739132928",
+                            "posSide": "BOTH",
+                            "ordId": "420059153596510208",
+                            "qCcy": "USDT",
+                            "value": "88.35942",
+                            "actType": "TRADING"
+                        },
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "105868248",
+                            "side": "BUY",
+                            "type": "TRADE",
+                            "mgnMode": "CROSS",
+                            "ordType": "MARKET",
+                            "clOrdId": "polo420058057809432576",
+                            "role": "TAKER",
+                            "px": "88067.25",
+                            "qty": "1",
+                            "cTime": "1741116045292",
+                            "uTime": "1741116045312",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.044033625",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0.0005",
+                            "id": "420058057977212932",
+                            "posSide": "BOTH",
+                            "ordId": "420058057809432576",
+                            "qCcy": "USDT",
+                            "value": "88.06725",
+                            "actType": "TRADING"
+                        },
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "419997588881137664",
+                            "side": "SELL",
+                            "type": "LIQUID",
+                            "mgnMode": "CROSS",
+                            "ordType": "LIMIT",
+                            "clOrdId": "",
+                            "role": "TAKER",
+                            "px": "81533.970732499999973012",
+                            "qty": "5",
+                            "cTime": "1741101628376",
+                            "uTime": "1741101628376",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0",
+                            "id": "419997588952293376",
+                            "posSide": "BOTH",
+                            "ordId": "419997588881137664",
+                            "qCcy": "USDT",
+                            "value": "407.66985366249999986506",
+                            "actType": "TRADING"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "419997588952293376",
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "419997588881137664",
+                            "side": "SELL",
+                            "type": "LIQUID",
+                            "mgnMode": "CROSS",
+                            "ordType": "LIMIT",
+                            "clOrdId": "",
+                            "role": "TAKER",
+                            "px": "81533.970732499999973012",
+                            "qty": "5",
+                            "cTime": "1741101628376",
+                            "uTime": "1741101628376",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0",
+                            "id": "419997588952293376",
+                            "posSide": "BOTH",
+                            "ordId": "419997588881137664",
+                            "qCcy": "USDT",
+                            "value": "407.66985366249999986506",
+                            "actType": "TRADING"
+                        },
+                        "timestamp": 1741101628376,
+                        "datetime": "2025-03-04T15:20:28.376Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": "419997588881137664",
+                        "type": "limit",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 81533.9707325,
+                        "amount": 5,
+                        "cost": 407.6698536625,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id": "420058057977212932",
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "105868248",
+                            "side": "BUY",
+                            "type": "TRADE",
+                            "mgnMode": "CROSS",
+                            "ordType": "MARKET",
+                            "clOrdId": "polo420058057809432576",
+                            "role": "TAKER",
+                            "px": "88067.25",
+                            "qty": "1",
+                            "cTime": "1741116045292",
+                            "uTime": "1741116045312",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.044033625",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0.0005",
+                            "id": "420058057977212932",
+                            "posSide": "BOTH",
+                            "ordId": "420058057809432576",
+                            "qCcy": "USDT",
+                            "value": "88.06725",
+                            "actType": "TRADING"
+                        },
+                        "timestamp": 1741116045292,
+                        "datetime": "2025-03-04T19:20:45.292Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": "420058057809432576",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 88067.25,
+                        "amount": 1,
+                        "cost": 88.06725,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.044033625
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.044033625
+                            }
+                        ]
+                    },
+                    {
+                        "id": "420059153739132928",
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "trdId": "105868336",
+                            "side": "SELL",
+                            "type": "TRADE",
+                            "mgnMode": "CROSS",
+                            "ordType": "MARKET",
+                            "clOrdId": "polo420059153596510208",
+                            "role": "TAKER",
+                            "px": "88359.42",
+                            "qty": "1",
+                            "cTime": "1741116306550",
+                            "uTime": "1741116306563",
+                            "feeCcy": "USDT",
+                            "feeAmt": "0.04417971",
+                            "deductCcy": "",
+                            "deductAmt": "0",
+                            "feeRate": "0.0005",
+                            "id": "420059153739132928",
+                            "posSide": "BOTH",
+                            "ordId": "420059153596510208",
+                            "qCcy": "USDT",
+                            "value": "88.35942",
+                            "actType": "TRADING"
+                        },
+                        "timestamp": 1741116306550,
+                        "datetime": "2025-03-04T19:25:06.550Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": "420059153596510208",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 88359.42,
+                        "amount": 1,
+                        "cost": 88.35942,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.04417971
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.04417971
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "linear",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "s": "XRP_USDT_PERP",
+                            "o": "2.36",
+                            "l": "2.2073",
+                            "h": "2.5217",
+                            "c": "2.4998",
+                            "qty": "69446",
+                            "amt": "1619587.012",
+                            "tC": 3569,
+                            "sT": 1741031760000,
+                            "cT": 1741118156319,
+                            "dN": "XRP/USDT/PERP",
+                            "dC": "0.0592",
+                            "bPx": "2.4898",
+                            "bSz": "50",
+                            "aPx": "2.5046",
+                            "aSz": "49",
+                            "mPx": "2.4998",
+                            "iPx": "2.5049"
+                        },
+                        {
+                            "s": "TRX_USDT_PERP",
+                            "o": "0.22857",
+                            "l": "0.22636",
+                            "h": "0.24221",
+                            "c": "0.24136",
+                            "qty": "16422",
+                            "amt": "384161.276",
+                            "tC": 3191,
+                            "sT": 1741031760000,
+                            "cT": 1741118167634,
+                            "dN": "TRX/USDT/PERP",
+                            "dC": "0.056",
+                            "bPx": "0.24108",
+                            "bSz": "37",
+                            "aPx": "0.24167",
+                            "aSz": "66",
+                            "mPx": "0.24137",
+                            "iPx": "0.24137"
+                        },
+                        {
+                            "s": "ETH_USDT_PERP",
+                            "o": "2113.46",
+                            "l": "1988.01",
+                            "h": "2174.05",
+                            "c": "2170.89",
+                            "qty": "213994",
+                            "amt": "4476173.7402",
+                            "tC": 20120,
+                            "sT": 1741031760000,
+                            "cT": 1741118171233,
+                            "dN": "ETH/USDT/PERP",
+                            "dC": "0.0272",
+                            "bPx": "2170.13",
+                            "bSz": "1",
+                            "aPx": "2170.84",
+                            "aSz": "4",
+                            "mPx": "2170.89",
+                            "iPx": "2171.33"
+                        },
+                        {
+                            "s": "BTC_USDT_PERP",
+                            "o": "85945.76",
+                            "l": "81489.8",
+                            "h": "88415.49",
+                            "c": "88282.54",
+                            "qty": "285918",
+                            "amt": "24177111.04314",
+                            "tC": 22066,
+                            "sT": 1741031760000,
+                            "cT": 1741118169158,
+                            "dN": "BTC/USDT/PERP",
+                            "dC": "0.0272",
+                            "bPx": "88290.56",
+                            "bSz": "1",
+                            "aPx": "88293.05",
+                            "aSz": "1",
+                            "mPx": "88302.41",
+                            "iPx": "88324.59"
+                        },
+                        {
+                            "s": "BCH_USDT_PERP",
+                            "o": "325.36",
+                            "l": "291.17",
+                            "h": "329.66",
+                            "c": "315.64",
+                            "qty": "114144",
+                            "amt": "353957.8302",
+                            "tC": 3174,
+                            "sT": 1741031760000,
+                            "cT": 1741118173752,
+                            "dN": "BCH/USDT/PERP",
+                            "dC": "-0.0299",
+                            "bPx": "315.11",
+                            "bSz": "22",
+                            "aPx": "315.95",
+                            "aSz": "363",
+                            "mPx": "315.46",
+                            "iPx": "315.34"
+                        },
+                        {
+                            "s": "1000PEPE_USDT_PERP",
+                            "o": "0.0072682",
+                            "l": "0.0062691",
+                            "h": "0.0073728",
+                            "c": "0.0069296",
+                            "qty": "372310",
+                            "amt": "2581277.8948",
+                            "tC": 5541,
+                            "sT": 1741031760000,
+                            "cT": 1741118167896,
+                            "dN": "1000PEPE/USDT/PERP",
+                            "dC": "-0.0466",
+                            "bPx": "0.0069152",
+                            "bSz": "450",
+                            "aPx": "0.0069353",
+                            "aSz": "1156",
+                            "mPx": "0.0069205",
+                            "iPx": "0.0069205"
+                        },
+                        {
+                            "s": "APT_USDT_PERP",
+                            "o": "5.784",
+                            "l": "5.049",
+                            "h": "5.844",
+                            "c": "5.52",
+                            "qty": "52236",
+                            "amt": "285131.598",
+                            "tC": 3511,
+                            "sT": 1741031760000,
+                            "cT": 1741118146464,
+                            "dN": "APT/USDT/PERP",
+                            "dC": "-0.0456",
+                            "bPx": "5.516",
+                            "bSz": "39",
+                            "aPx": "5.529",
+                            "aSz": "50",
+                            "mPx": "5.52",
+                            "iPx": "5.52"
+                        },
+                        {
+                            "s": "AVAX_USDT_PERP",
+                            "o": "20.952",
+                            "l": "18.89",
+                            "h": "21.306",
+                            "c": "20.289",
+                            "qty": "174078",
+                            "amt": "350876.2892",
+                            "tC": 3121,
+                            "sT": 1741031760000,
+                            "cT": 1741118171546,
+                            "dN": "AVAX/USDT/PERP",
+                            "dC": "-0.0316",
+                            "bPx": "20.269",
+                            "bSz": "537",
+                            "aPx": "20.325",
+                            "aSz": "610",
+                            "mPx": "20.29",
+                            "iPx": "20.29"
+                        },
+                        {
+                            "s": "SOL_USDT_PERP",
+                            "o": "141.391",
+                            "l": "130.454",
+                            "h": "145.288",
+                            "c": "143.228",
+                            "qty": "133918",
+                            "amt": "1846013.5696",
+                            "tC": 3420,
+                            "sT": 1741031760000,
+                            "cT": 1741118172284,
+                            "dN": "SOL/USDT/PERP",
+                            "dC": "0.013",
+                            "bPx": "142.99",
+                            "bSz": "349",
+                            "aPx": "143.706",
+                            "aSz": "15",
+                            "mPx": "143.228",
+                            "iPx": "143.151"
+                        },
+                        {
+                            "s": "1000SHIB_USDT_PERP",
+                            "o": "0.012934",
+                            "l": "0.012202",
+                            "h": "0.013206",
+                            "c": "0.013095",
+                            "qty": "1534906",
+                            "amt": "1957201.5224",
+                            "tC": 5237,
+                            "sT": 1741031760000,
+                            "cT": 1741118170060,
+                            "dN": "1000SHIB/USDT/PERP",
+                            "dC": "0.0124",
+                            "bPx": "0.013075",
+                            "bSz": "1180",
+                            "aPx": "0.013101",
+                            "aSz": "15019",
+                            "mPx": "0.013082",
+                            "iPx": "0.01308"
+                        },
+                        {
+                            "s": "BNB_USDT_PERP",
+                            "o": "573.006",
+                            "l": "547.355",
+                            "h": "583.583",
+                            "c": "582.974",
+                            "qty": "8354",
+                            "amt": "475105.826",
+                            "tC": 3091,
+                            "sT": 1741031760000,
+                            "cT": 1741118155024,
+                            "dN": "BNB/USDT/PERP",
+                            "dC": "0.0174",
+                            "bPx": "582.691",
+                            "bSz": "7",
+                            "aPx": "583.429",
+                            "aSz": "10",
+                            "mPx": "582.964",
+                            "iPx": "582.963"
+                        },
+                        {
+                            "s": "DOGE_USDT_PERP",
+                            "o": "0.19826",
+                            "l": "0.18254",
+                            "h": "0.20147",
+                            "c": "0.20059",
+                            "qty": "30688",
+                            "amt": "595034.826",
+                            "tC": 3234,
+                            "sT": 1741031760000,
+                            "cT": 1741118157645,
+                            "dN": "DOGE/USDT/PERP",
+                            "dC": "0.0118",
+                            "bPx": "0.20042",
+                            "bSz": "107",
+                            "aPx": "0.20093",
+                            "aSz": "16",
+                            "mPx": "0.20064",
+                            "iPx": "0.20064"
+                        },
+                        {
+                            "s": "LTC_USDT_PERP",
+                            "o": "108.27",
+                            "l": "94.03",
+                            "h": "110.95",
+                            "c": "103.74",
+                            "qty": "870430",
+                            "amt": "889172.8782",
+                            "tC": 4523,
+                            "sT": 1741031760000,
+                            "cT": 1741118155207,
+                            "dN": "LTC/USDT/PERP",
+                            "dC": "-0.0418",
+                            "bPx": "103.74",
+                            "bSz": "2407",
+                            "aPx": "103.96",
+                            "aSz": "1",
+                            "mPx": "103.86",
+                            "iPx": "103.87"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "id": "ETH_USDT_PERP",
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1741118171233,
+                        "datetime": "2025-03-04T19:56:11.233Z",
+                        "high": 2174.05,
+                        "low": 1988.01,
+                        "bid": 2170.13,
+                        "bidVolume": 1,
+                        "ask": 2170.84,
+                        "askVolume": 4,
+                        "vwap": 20.917286186528596,
+                        "open": 2113.46,
+                        "close": 2170.89,
+                        "previousClose": null,
+                        "change": 57.43,
+                        "percentage": 2.7173450171756266,
+                        "average": 2142.17,
+                        "baseVolume": 213994,
+                        "quoteVolume": 4476173.7402,
+                        "markPrice": 2170.89,
+                        "indexPrice": 2171.33,
+                        "info": {
+                            "s": "ETH_USDT_PERP",
+                            "o": "2113.46",
+                            "l": "1988.01",
+                            "h": "2174.05",
+                            "c": "2170.89",
+                            "qty": "213994",
+                            "amt": "4476173.7402",
+                            "tC": 20120,
+                            "sT": 1741031760000,
+                            "cT": 1741118171233,
+                            "dN": "ETH/USDT/PERP",
+                            "dC": "0.0272",
+                            "bPx": "2170.13",
+                            "bSz": "1",
+                            "aPx": "2170.84",
+                            "aSz": "4",
+                            "mPx": "2170.89",
+                            "iPx": "2171.33"
+                        },
+                        "last": 2170.89
+                    },
+                    "BTC/USDT:USDT": {
+                        "id": "BTC_USDT_PERP",
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1741118169158,
+                        "datetime": "2025-03-04T19:56:09.158Z",
+                        "high": 88415.49,
+                        "low": 81489.8,
+                        "bid": 88290.56,
+                        "bidVolume": 1,
+                        "ask": 88293.05,
+                        "askVolume": 1,
+                        "vwap": 84.55959765785994,
+                        "open": 85945.76,
+                        "close": 88282.54,
+                        "previousClose": null,
+                        "change": 2336.78,
+                        "percentage": 2.7189008509553,
+                        "average": 87114.15,
+                        "baseVolume": 285918,
+                        "quoteVolume": 24177111.04314,
+                        "markPrice": 88302.41,
+                        "indexPrice": 88324.59,
+                        "info": {
+                            "s": "BTC_USDT_PERP",
+                            "o": "85945.76",
+                            "l": "81489.8",
+                            "h": "88415.49",
+                            "c": "88282.54",
+                            "qty": "285918",
+                            "amt": "24177111.04314",
+                            "tC": 22066,
+                            "sT": 1741031760000,
+                            "cT": 1741118169158,
+                            "dN": "BTC/USDT/PERP",
+                            "dC": "0.0272",
+                            "bPx": "88290.56",
+                            "bSz": "1",
+                            "aPx": "88293.05",
+                            "aSz": "1",
+                            "mPx": "88302.41",
+                            "iPx": "88324.59"
+                        },
+                        "last": 88282.54
+                    }
+                }
+            }
+        ],
+        
+        "fetchBalance": [
+            {
+                "description": "linear",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": {
+                        "state": "NORMAL",
+                        "eq": "7.203956664999999859",
+                        "isoEq": "0",
+                        "im": "1.12",
+                        "mm": "0.504",
+                        "mmr": "0.069961553551349688",
+                        "upl": "0",
+                        "availMgn": "6.083956664999999859",
+                        "cTime": "1738093601775",
+                        "uTime": "1741117766893",
+                        "details": [
+                            {
+                                "ccy": "USDT",
+                                "eq": "7.203956664999999859",
+                                "isoEq": "0",
+                                "avail": "7.203956664999999859",
+                                "trdHold": "0",
+                                "upl": "0",
+                                "isoAvail": "0",
+                                "isoHold": "0",
+                                "isoUpl": "0",
+                                "im": "1.12",
+                                "mm": "0.504",
+                                "mmr": "0.069961553551349688",
+                                "imr": "0.155470119002999308",
+                                "cTime": "1740829116236",
+                                "uTime": "1741117766893"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "state": "NORMAL",
+                        "eq": "7.203956664999999859",
+                        "isoEq": "0",
+                        "im": "1.12",
+                        "mm": "0.504",
+                        "mmr": "0.069961553551349688",
+                        "upl": "0",
+                        "availMgn": "6.083956664999999859",
+                        "cTime": "1738093601775",
+                        "uTime": "1741117766893",
+                        "details": [
+                            {
+                                "ccy": "USDT",
+                                "eq": "7.203956664999999859",
+                                "isoEq": "0",
+                                "avail": "7.203956664999999859",
+                                "trdHold": "0",
+                                "upl": "0",
+                                "isoAvail": "0",
+                                "isoHold": "0",
+                                "isoUpl": "0",
+                                "im": "1.12",
+                                "mm": "0.504",
+                                "mmr": "0.069961553551349688",
+                                "imr": "0.155470119002999308",
+                                "cTime": "1740829116236",
+                                "uTime": "1741117766893"
+                            }
+                        ]
+                    },
+                    "timestamp": 1741117766893,
+                    "datetime": "2025-03-04T19:49:26.893Z",
+                    "USDT": {
+                        "free": 6.083956665,
+                        "used": 1.12,
+                        "total": 7.203956665
+                    },
+                    "free": {
+                        "USDT": 6.083956665
+                    },
+                    "used": {
+                        "USDT": 1.12
+                    },
+                    "total": {
+                        "USDT": 7.203956665
+                    }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "linear, market sell",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420059153596510208",
+                        "clOrdId": "polo420059153596510208"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420059153596510208",
+                        "clOrdId": "polo420059153596510208"
+                    },
+                    "id": "420059153596510208",
+                    "clientOrderId": "polo420059153596510208",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear, market buy",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420058057809432576",
+                        "clOrdId": "polo420058057809432576"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420058057809432576",
+                        "clOrdId": "polo420058057809432576"
+                    },
+                    "id": "420058057809432576",
+                    "clientOrderId": "polo420058057809432576",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear, limi buy",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    84000
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "ordId": "420051664352153600",
+                        "clOrdId": "polo420051664352153600"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ordId": "420051664352153600",
+                        "clOrdId": "polo420051664352153600"
+                    },
+                    "id": "420051664352153600",
+                    "clientOrderId": "polo420051664352153600",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": true,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchTrades": [
+            {
+                "description": "linear",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "id": 105880625,
+                            "side": "sell",
+                            "px": "88580.04",
+                            "qty": "1",
+                            "amt": "88.58004",
+                            "cT": 1741187783022
+                        },
+                        {
+                            "id": 105880624,
+                            "side": "buy",
+                            "px": "88553.09",
+                            "qty": "1",
+                            "amt": "88.55309",
+                            "cT": 1741187774859
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "105880624",
+                        "info": {
+                            "id": 105880624,
+                            "side": "buy",
+                            "px": "88553.09",
+                            "qty": "1",
+                            "amt": "88.55309",
+                            "cT": 1741187774859
+                        },
+                        "timestamp": 1741187774859,
+                        "datetime": "2025-03-05T15:16:14.859Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 88553.09,
+                        "amount": 1,
+                        "cost": 88.55309,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "105880625",
+                        "info": {
+                            "id": 105880625,
+                            "side": "sell",
+                            "px": "88580.04",
+                            "qty": "1",
+                            "amt": "88.58004",
+                            "cT": 1741187783022
+                        },
+                        "timestamp": 1741187783022,
+                        "datetime": "2025-03-05T15:16:23.022Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 88580.04,
+                        "amount": 1,
+                        "cost": 88.58004,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+           
             {
                 "description": "public spot trades",
                 "method": "fetchTrades",
@@ -51,6 +1706,81 @@
             }
         ],
         "fetchTicker": [
+            {
+                "description": "linear",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "s": "BTC_USDT_PERP",
+                            "o": "86713.35",
+                            "l": "81489.8",
+                            "h": "88415.49",
+                            "c": "88134.38",
+                            "qty": "300580",
+                            "amt": "25438374.49354",
+                            "tC": 22311,
+                            "sT": 1741031460000,
+                            "cT": 1741117912439,
+                            "dN": "BTC/USDT/PERP",
+                            "dC": "0.0164",
+                            "bPx": "88154.14",
+                            "bSz": "313",
+                            "aPx": "88201.52",
+                            "aSz": "27",
+                            "mPx": "88167.06"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "BTC_USDT_PERP",
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1741117912439,
+                    "datetime": "2025-03-04T19:51:52.439Z",
+                    "high": 88415.49,
+                    "low": 81489.8,
+                    "bid": 88154.14,
+                    "bidVolume": 313,
+                    "ask": 88201.52,
+                    "askVolume": 27,
+                    "vwap": 84.63096178568102,
+                    "open": 86713.35,
+                    "close": 88134.38,
+                    "previousClose": null,
+                    "change": 1421.03,
+                    "percentage": 1.6387672717061443,
+                    "average": 87423.86,
+                    "baseVolume": 300580,
+                    "quoteVolume": 25438374.49354,
+                    "markPrice": 88167.06,
+                    "indexPrice": null,
+                    "info": {
+                        "s": "BTC_USDT_PERP",
+                        "o": "86713.35",
+                        "l": "81489.8",
+                        "h": "88415.49",
+                        "c": "88134.38",
+                        "qty": "300580",
+                        "amt": "25438374.49354",
+                        "tC": 22311,
+                        "sT": 1741031460000,
+                        "cT": 1741117912439,
+                        "dN": "BTC/USDT/PERP",
+                        "dC": "0.0164",
+                        "bPx": "88154.14",
+                        "bSz": "313",
+                        "aPx": "88201.52",
+                        "aSz": "27",
+                        "mPx": "88167.06"
+                    },
+                    "last": 88134.38
+                }
+            },
             {
                 "description": "public spot ticker",
                 "method": "fetchTicker",
@@ -125,6 +1855,60 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "linear",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        [
+                            "85723.52",
+                            "85852.68",
+                            "85852.68",
+                            "85802.46",
+                            "1886.99636",
+                            "22",
+                            "11",
+                            "1741111860000",
+                            "1741111919999"
+                        ],
+                        [
+                            "85809.9",
+                            "85942.88",
+                            "85809.9",
+                            "85942.88",
+                            "1545.65516",
+                            "18",
+                            "9",
+                            "1741111920000",
+                            "1741111979999"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1741111860000,
+                        85852.68,
+                        85852.68,
+                        85723.52,
+                        85802.46,
+                        22
+                    ],
+                    [
+                        1741111920000,
+                        85809.9,
+                        85942.88,
+                        85809.9,
+                        85942.88,
+                        18
+                    ]
+                ]
+            },
+            {
                 "description": "public spot ohlcv",
                 "method": "fetchOHLCV",
                 "input": [
@@ -165,82 +1949,115 @@
         ],
         "fetchOpenOrders": [
             {
-                "description": "fetchOpenOrders",
+                "description": "linear",
                 "method": "fetchOpenOrders",
                 "input": [
-                  "LTC/USDT"
+                    "BTC/USDT:USDT"
                 ],
-                "httpResponse": [
-                  {
-                    "id": "345975213604921344",
-                    "clientOrderId": "",
-                    "symbol": "LTC_USDT",
-                    "state": "NEW",
-                    "accountType": "SPOT",
-                    "side": "BUY",
-                    "type": "LIMIT",
-                    "timeInForce": "GTC",
-                    "quantity": "0.1",
-                    "price": "55",
-                    "avgPrice": "0",
-                    "amount": "0",
-                    "filledQuantity": "0",
-                    "filledAmount": "0",
-                    "createTime": 1723453318832,
-                    "updateTime": 1723453318832,
-                    "orderSource": "API",
-                    "loan": false
-                  }
-                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "ordId": "420059500360601600",
+                            "clOrdId": "polo420059500360601600",
+                            "mgnMode": "CROSS",
+                            "px": "84000",
+                            "reduceOnly": false,
+                            "lever": "75",
+                            "state": "NEW",
+                            "source": "API",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "0",
+                            "execQty": "0",
+                            "execAmt": "0",
+                            "feeCcy": "",
+                            "feeAmt": "0",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741116389214",
+                            "uTime": "1741116512507",
+                            "sz": "1",
+                            "posSide": "BOTH",
+                            "qCcy": "USDT"
+                        }
+                    ]
+                },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "id": "345975213604921344",
-                      "clientOrderId": "",
-                      "symbol": "LTC_USDT",
-                      "state": "NEW",
-                      "accountType": "SPOT",
-                      "side": "BUY",
-                      "type": "LIMIT",
-                      "timeInForce": "GTC",
-                      "quantity": "0.1",
-                      "price": "55",
-                      "avgPrice": "0",
-                      "amount": "0",
-                      "filledQuantity": "0",
-                      "filledAmount": "0",
-                      "createTime": 1723453318832,
-                      "updateTime": 1723453318832,
-                      "orderSource": "API",
-                      "loan": false
-                    },
-                    "id": "345975213604921344",
-                    "clientOrderId": null,
-                    "timestamp": 1723453318832,
-                    "datetime": "2024-08-12T09:01:58.832Z",
-                    "lastTradeTimestamp": 1723453318832,
-                    "status": "open",
-                    "symbol": "LTC/USDT",
-                    "type": "limit",
-                    "timeInForce": "GTC",
-                    "postOnly": false,
-                    "side": "buy",
-                    "price": 55,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "cost": 0,
-                    "average": null,
-                    "amount": 0.1,
-                    "filled": 0,
-                    "remaining": 0.1,
-                    "trades": [],
-                    "fee": null,
-                    "fees": [],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                  }
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "ordId": "420059500360601600",
+                            "clOrdId": "polo420059500360601600",
+                            "mgnMode": "CROSS",
+                            "px": "84000",
+                            "reduceOnly": false,
+                            "lever": "75",
+                            "state": "NEW",
+                            "source": "API",
+                            "timeInForce": "GTC",
+                            "tpTrgPx": "",
+                            "tpPx": "",
+                            "tpTrgPxType": "",
+                            "slTrgPx": "",
+                            "slPx": "",
+                            "slTrgPxType": "",
+                            "avgPx": "0",
+                            "execQty": "0",
+                            "execAmt": "0",
+                            "feeCcy": "",
+                            "feeAmt": "0",
+                            "deductCcy": "0",
+                            "deductAmt": "0",
+                            "stpMode": "NONE",
+                            "cTime": "1741116389214",
+                            "uTime": "1741116512507",
+                            "sz": "1",
+                            "posSide": "BOTH",
+                            "qCcy": "USDT"
+                        },
+                        "id": "420059500360601600",
+                        "clientOrderId": "polo420059500360601600",
+                        "timestamp": 1741116389214,
+                        "datetime": "2025-03-04T19:26:29.214Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 84000,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "average": null,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": "cross",
+                        "reduceOnly": false,
+                        "leverage": 75,
+                        "hedged": false,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
                 ]
             }
         ]

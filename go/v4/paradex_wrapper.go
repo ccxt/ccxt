@@ -745,3 +745,125 @@ func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
     }
     return NewTransactionArray(res), nil
 }
+/**
+ * @method
+ * @name paradex#fetchMarginMode
+ * @description fetches the margin mode of a specific symbol
+ * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ */
+func (this *Paradex) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
+
+    opts := FetchMarginModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchMarginMode(symbol, params)
+    if IsError(res) {
+        return MarginMode{}, CreateReturnError(res)
+    }
+    return NewMarginMode(res), nil
+}
+/**
+ * @method
+ * @name paradex#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.leverage] the rate of leverage
+ * @returns {object} response from the exchange
+ */
+func (this *Paradex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+
+    opts := SetMarginModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetMarginMode(marginMode, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name paradex#fetchLeverage
+ * @description fetch the set leverage for a market
+ * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ */
+func (this *Paradex) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
+
+    opts := FetchLeverageOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchLeverage(symbol, params)
+    if IsError(res) {
+        return Leverage{}, CreateReturnError(res)
+    }
+    return NewLeverage(res), nil
+}
+/**
+ * @method
+ * @name paradex#setLeverage
+ * @description set the level of leverage for a market
+ * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+ * @param {float} leverage the rate of leverage
+ * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @returns {object} response from the exchange
+ */
+func (this *Paradex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+
+    opts := SetLeverageOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetLeverage(leverage, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}

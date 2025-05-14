@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ export default class oxfun extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -1112,6 +1112,27 @@ export default class oxfun extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
+    }
+
+    /**
+     * @method
+     * @name oxfun#fetchFundingRate
+     * @description fetch the current funding rates for a symbol
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string} symbol unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'marketCode': this.marketId (symbol),
+        };
+        const response = await this.publicGetV3FundingEstimates (this.extend (request, params));
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseFundingRate (first, this.market (symbol));
     }
 
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
@@ -2215,7 +2236,7 @@ export default class oxfun extends Exchange {
      * @param {boolean} [params.subAcc]
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         // Calling this endpoint using an API key pair linked to the parent account with the parameter "subAcc"
         // allows the caller to include positions of additional sub-accounts in the response.
         // This feature does not work when using API key pairs linked to a sub-account

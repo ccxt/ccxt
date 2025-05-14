@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -909,6 +909,7 @@ class htx(Exchange, ImplicitAPI):
                     '1041': InvalidOrder,  # {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit(170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds,  # {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  # {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061': OrderNotFound,  # {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
                     '1051': InvalidOrder,  # {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
@@ -961,6 +962,7 @@ class htx(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': False,  # temporarily leave self, remove in future
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
@@ -2171,14 +2173,14 @@ class htx(Exchange, ImplicitAPI):
         ask = None
         askVolume = None
         if 'bid' in ticker:
-            if isinstance(ticker['bid'], list):
+            if ticker['bid'] is not None and isinstance(ticker['bid'], list):
                 bid = self.safe_string(ticker['bid'], 0)
                 bidVolume = self.safe_string(ticker['bid'], 1)
             else:
                 bid = self.safe_string(ticker, 'bid')
                 bidVolume = self.safe_string(ticker, 'bidSize')
         if 'ask' in ticker:
-            if isinstance(ticker['ask'], list):
+            if ticker['ask'] is not None and isinstance(ticker['ask'], list):
                 ask = self.safe_string(ticker['ask'], 0)
                 askVolume = self.safe_string(ticker['ask'], 1)
             else:
@@ -3269,7 +3271,7 @@ class htx(Exchange, ImplicitAPI):
         #                        "withdrawQuotaPerYear": null,
         #                        "withdrawQuotaTotal": null,
         #                        "withdrawFeeType": "fixed",
-        #                        "transactFeeWithdraw": "11.1653",
+        #                        "transactFeeWithdraw": "11.1654",
         #                        "addrWithTag": False,
         #                        "addrDepositTag": False
         #                    }
@@ -3292,6 +3294,8 @@ class htx(Exchange, ImplicitAPI):
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
             instStatus = self.safe_string(entry, 'instStatus')
+            assetType = self.safe_string(entry, 'assetType')
+            type = assetType == 'crypto' if '1' else 'fiat'
             currencyActive = instStatus == 'normal'
             minPrecision = None
             minDeposit = None
@@ -3349,6 +3353,7 @@ class htx(Exchange, ImplicitAPI):
                 'withdraw': withdraw,
                 'fee': None,
                 'name': None,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -6756,14 +6761,17 @@ class htx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchFundingRates', {})
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+        subType = None
+        subType, params = self.handle_option_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+            isLinear = market['linear']
+            subType = 'linear' if isLinear else 'inverse'
         request: dict = {
             # 'contract_code': market['id'],
         }
-        params = self.omit(params, 'subType')
         response = None
         if subType == 'linear':
             response = self.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(self.extend(request, params))
@@ -6937,7 +6945,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     request = self.extend(request, query)
                 sortedRequest = self.keysort(request)
-                auth = self.urlencode(sortedRequest)
+                auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -7003,7 +7011,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     sortedQuery = self.keysort(query)
                     request = self.extend(request, sortedQuery)
-                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
+                auth = self.urlencode(request, True).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -7031,6 +7039,7 @@ class htx(Exchange, ImplicitAPI):
         if 'status' in response:
             #
             #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             #
             status = self.safe_string(response, 'status')
             if status == 'error':
@@ -7046,6 +7055,15 @@ class htx(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             code = self.safe_string(response, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        data = self.safe_dict(response, 'data')
+        errorsList = self.safe_list(data, 'errors')
+        if errorsList is not None:
+            first = self.safe_dict(errorsList, 0)
+            errcode = self.safe_string(first, 'err_code')
+            errmessage = self.safe_string(first, 'err_msg')
+            feedBack = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errcode, feedBack)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errmessage, feedBack)
         return None
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -7323,7 +7341,7 @@ class htx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

@@ -552,7 +552,7 @@ class woofipro extends Exchange {
             'active' => null,
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'contractSize' => $this->parse_number('1'),
             'expiry' => null,
             'expiryDatetime' => null,
@@ -2795,7 +2795,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

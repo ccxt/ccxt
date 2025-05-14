@@ -231,6 +231,22 @@ func (this *coinlist) PublicGetV1CompetitionCompetitionId (args ...interface{}) 
    return ch
 }
 
+func (this *coinlist) PublicGetV1SymbolsSymbolFunding (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("publicGetV1SymbolsSymbolFunding", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *coinlist) PrivateGetV1Fees (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -535,6 +551,22 @@ func (this *coinlist) PrivateGetV1AccountsTraderIdCompetitions (args ...interfac
    return ch
 }
 
+func (this *coinlist) PrivateGetV1ClosedPositions (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetV1ClosedPositions", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *coinlist) PrivatePostV1Keys (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -738,6 +770,22 @@ func (this *coinlist) PrivatePatchV1OrdersBulk (args ...interface{}) <-chan inte
            }
        }()
        ch <- (<-this.callEndpoint ("privatePatchV1OrdersBulk", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *coinlist) PrivatePutV1AccountsTraderIdAlias (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePutV1AccountsTraderIdAlias", parameters))
        PanicOnError(ch)
    }()
    return ch

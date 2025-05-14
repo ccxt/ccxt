@@ -506,7 +506,7 @@ func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -1568,6 +1568,7 @@ func (this *Bybit) FetchPosition(symbol string, options ...FetchPositionOptions)
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bybit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

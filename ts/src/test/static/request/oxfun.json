@@ -3,6 +3,17 @@
     "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "singular funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.ox.fun/v3/funding/estimates?marketCode=BTC-USD-SWAP-LIN",
+                "input": [
+                    "BTC/USD:OX"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit buy",

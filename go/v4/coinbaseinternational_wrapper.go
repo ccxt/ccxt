@@ -225,7 +225,7 @@ func (this *Coinbaseinternational) FetchTransfers(options ...FetchTransfersOptio
  * @param {string} [params.network] unified network code to identify the blockchain network
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-func (this *Coinbaseinternational) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Coinbaseinternational) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
     opts := CreateDepositAddressOptionsStruct{}
 
@@ -239,9 +239,9 @@ func (this *Coinbaseinternational) CreateDepositAddress(code string, options ...
     }
     res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return DepositAddress{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewDepositAddress(res), nil
 }
 /**
  * @method

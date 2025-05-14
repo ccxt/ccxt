@@ -554,6 +554,7 @@ func  (this *derive) ParseMarket(market interface{}) interface{}  {
     var swap interface{} = false
     var option interface{} = false
     var linear interface{} = nil
+    var inverse interface{} = nil
     var baseId interface{} = this.SafeString(market, "base_currency")
     var quoteId interface{} = this.SafeString(market, "quote_currency")
     var base interface{} = this.SafeCurrencyCode(baseId)
@@ -576,6 +577,7 @@ func  (this *derive) ParseMarket(market interface{}) interface{}  {
         symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
         swap = true
         linear = true
+        inverse = false
         marketType = "swap"
     } else if IsTrue(IsEqual(typeVar, "option")) {
         settleId = "USDC"
@@ -593,6 +595,8 @@ func  (this *derive) ParseMarket(market interface{}) interface{}  {
         } else {
             optionType = "call"
         }
+        linear = true
+        inverse = false
     }
     return this.SafeMarketStructure(map[string]interface{} {
         "id": marketId,
@@ -612,7 +616,7 @@ func  (this *derive) ParseMarket(market interface{}) interface{}  {
         "active": this.SafeBool(market, "is_active"),
         "contract": (IsTrue(swap) || IsTrue(option)),
         "linear": linear,
-        "inverse": nil,
+        "inverse": inverse,
         "contractSize": Ternary(IsTrue((spot)), nil, 1),
         "expiry": expiry,
         "expiryDatetime": this.Iso8601(expiry),
@@ -663,8 +667,8 @@ func  (this *derive) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7098 := (<-this.LoadMarkets())
-            PanicOnError(retRes7098)
+            retRes7138 := (<-this.LoadMarkets())
+            PanicOnError(retRes7138)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "instrument_name": GetValue(market, "id"),
@@ -852,8 +856,8 @@ func  (this *derive) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8798 := (<-this.LoadMarkets())
-            PanicOnError(retRes8798)
+            retRes8838 := (<-this.LoadMarkets())
+            PanicOnError(retRes8838)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -993,8 +997,8 @@ func  (this *derive) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9998 := (<-this.LoadMarkets())
-            PanicOnError(retRes9998)
+            retRes10038 := (<-this.LoadMarkets())
+            PanicOnError(retRes10038)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "instrument_name": GetValue(market, "id"),
@@ -1133,6 +1137,7 @@ func  (this *derive) HashMessage(message interface{}) interface{}  {
     return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func  (this *derive) SignHash(hash interface{}, privateKey interface{}) interface{}  {
+    this.CheckRequiredCredentials()
     var signature interface{} = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
     var r interface{} = GetValue(signature, "r")
     var s interface{} = GetValue(signature, "s")
@@ -1177,8 +1182,8 @@ func  (this *derive) CreateOrder(symbol interface{}, typeVar interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11608 := (<-this.LoadMarkets())
-            PanicOnError(retRes11608)
+            retRes11658 := (<-this.LoadMarkets())
+            PanicOnError(retRes11658)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(price, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
@@ -1377,8 +1382,8 @@ func  (this *derive) EditOrder(id interface{}, symbol interface{}, typeVar inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes13538 := (<-this.LoadMarkets())
-            PanicOnError(retRes13538)
+            retRes13588 := (<-this.LoadMarkets())
+            PanicOnError(retRes13588)
             var market interface{} = this.Market(symbol)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("editOrder", params);
@@ -1546,8 +1551,8 @@ func  (this *derive) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes15218 := (<-this.LoadMarkets())
-            PanicOnError(retRes15218)
+            retRes15268 := (<-this.LoadMarkets())
+            PanicOnError(retRes15268)
             var market interface{} = this.Market(symbol)
             var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
             var subaccountId interface{} = nil
@@ -1659,8 +1664,8 @@ func  (this *derive) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16108 := (<-this.LoadMarkets())
-            PanicOnError(retRes16108)
+            retRes16158 := (<-this.LoadMarkets())
+            PanicOnError(retRes16158)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1731,17 +1736,17 @@ func  (this *derive) FetchOrders(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16588 := (<-this.LoadMarkets())
-            PanicOnError(retRes16588)
+            retRes16638 := (<-this.LoadMarkets())
+            PanicOnError(retRes16638)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes166219 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-                    PanicOnError(retRes166219)
-                    ch <- retRes166219
+                    retRes166719 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+                    PanicOnError(retRes166719)
+                    ch <- retRes166719
                     return nil
             }
             var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
@@ -1859,15 +1864,15 @@ func  (this *derive) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17568 := (<-this.LoadMarkets())
-            PanicOnError(retRes17568)
+            retRes17618 := (<-this.LoadMarkets())
+            PanicOnError(retRes17618)
             var extendedParams interface{} = this.Extend(params, map[string]interface{} {
                 "status": "open",
             })
         
-                retRes175815 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
-                PanicOnError(retRes175815)
-                ch <- retRes175815
+                retRes176315 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+                PanicOnError(retRes176315)
+                ch <- retRes176315
                 return nil
         
             }()
@@ -1899,15 +1904,15 @@ func  (this *derive) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17748 := (<-this.LoadMarkets())
-            PanicOnError(retRes17748)
+            retRes17798 := (<-this.LoadMarkets())
+            PanicOnError(retRes17798)
             var extendedParams interface{} = this.Extend(params, map[string]interface{} {
                 "status": "filled",
             })
         
-                retRes177615 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
-                PanicOnError(retRes177615)
-                ch <- retRes177615
+                retRes178115 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+                PanicOnError(retRes178115)
+                ch <- retRes178115
                 return nil
         
             }()
@@ -1939,15 +1944,15 @@ func  (this *derive) FetchCanceledOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17928 := (<-this.LoadMarkets())
-            PanicOnError(retRes17928)
+            retRes17978 := (<-this.LoadMarkets())
+            PanicOnError(retRes17978)
             var extendedParams interface{} = this.Extend(params, map[string]interface{} {
                 "status": "cancelled",
             })
         
-                retRes179415 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
-                PanicOnError(retRes179415)
-                ch <- retRes179415
+                retRes179915 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+                PanicOnError(retRes179915)
+                ch <- retRes179915
                 return nil
         
             }()
@@ -2033,7 +2038,7 @@ func  (this *derive) ParseOrder(rawOrder interface{}, optionalArgs ...interface{
     if IsTrue(IsEqual(order, nil)) {
         order = rawOrder
     }
-    var timestamp interface{} = this.SafeInteger(rawOrder, "nonce")
+    var timestamp interface{} = this.SafeInteger2(rawOrder, "creation_timestamp", "nonce")
     var orderId interface{} = this.SafeString(order, "order_id")
     var marketId interface{} = this.SafeString(order, "instrument_name")
     if IsTrue(!IsEqual(marketId, nil)) {
@@ -2128,8 +2133,8 @@ func  (this *derive) FetchOrderTrades(id interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes19608 := (<-this.LoadMarkets())
-            PanicOnError(retRes19608)
+            retRes19658 := (<-this.LoadMarkets())
+            PanicOnError(retRes19658)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
@@ -2224,17 +2229,17 @@ func  (this *derive) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes20348 := (<-this.LoadMarkets())
-            PanicOnError(retRes20348)
+            retRes20398 := (<-this.LoadMarkets())
+            PanicOnError(retRes20398)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes203819 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-                    PanicOnError(retRes203819)
-                    ch <- retRes203819
+                    retRes204319 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+                    PanicOnError(retRes204319)
+                    ch <- retRes204319
                     return nil
             }
             var subaccountId interface{} = nil
@@ -2333,8 +2338,8 @@ func  (this *derive) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes21178 := (<-this.LoadMarkets())
-            PanicOnError(retRes21178)
+            retRes21228 := (<-this.LoadMarkets())
+            PanicOnError(retRes21228)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
@@ -2497,17 +2502,17 @@ func  (this *derive) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes22588 := (<-this.LoadMarkets())
-            PanicOnError(retRes22588)
+            retRes22638 := (<-this.LoadMarkets())
+            PanicOnError(retRes22638)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes226219 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-                    PanicOnError(retRes226219)
-                    ch <- retRes226219
+                    retRes226719 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+                    PanicOnError(retRes226719)
+                    ch <- retRes226719
                     return nil
             }
             var subaccountId interface{} = nil
@@ -2624,8 +2629,8 @@ func  (this *derive) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes23608 := (<-this.LoadMarkets())
-            PanicOnError(retRes23608)
+            retRes23658 := (<-this.LoadMarkets())
+            PanicOnError(retRes23658)
             var deriveWalletAddress interface{} = nil
             deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params);
             deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable,0);
@@ -2696,17 +2701,20 @@ func  (this *derive) ParseBalance(response interface{}) interface{}  {
     var result interface{} = map[string]interface{} {
         "info": response,
     }
-    // TODO:
-    // checked multiple subaccounts
-    // checked balance after open orders / positions
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var subaccount interface{} = GetValue(response, i)
         var collaterals interface{} = this.SafeList(subaccount, "collaterals", []interface{}{})
         for j := 0; IsLessThan(j, GetArrayLength(collaterals)); j++ {
             var balance interface{} = GetValue(collaterals, j)
             var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
-            var account interface{} = this.Account()
-            AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+            var account interface{} = this.SafeDict(result, code)
+            if IsTrue(IsEqual(account, nil)) {
+                account = this.Account()
+                AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+            } else {
+                var amount interface{} = this.SafeString(balance, "amount")
+                AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), amount))
+            }
             AddElementToObject(result, code, account)
         }
     }
@@ -2738,8 +2746,8 @@ func  (this *derive) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes24538 := (<-this.LoadMarkets())
-            PanicOnError(retRes24538)
+            retRes24618 := (<-this.LoadMarkets())
+            PanicOnError(retRes24618)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
@@ -2807,8 +2815,8 @@ func  (this *derive) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes25008 := (<-this.LoadMarkets())
-            PanicOnError(retRes25008)
+            retRes25088 := (<-this.LoadMarkets())
+            PanicOnError(retRes25088)
             var subaccountId interface{} = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params);
             subaccountId = GetValue(subaccountIdparamsVariable,0);
@@ -2961,7 +2969,6 @@ func  (this *derive) Sign(path interface{}, optionalArgs ...interface{}) interfa
             "Content-Type": "application/json",
         }
         if IsTrue(IsEqual(api, "private")) {
-            this.CheckRequiredCredentials()
             var now interface{} = ToString(this.Milliseconds())
             var signature interface{} = this.SignMessage(now, this.PrivateKey)
             AddElementToObject(headers, "X-LyraWallet", this.SafeString(this.Options, "deriveWalletAddress"))
@@ -2981,6 +2988,6 @@ func  (this *derive) Sign(path interface{}, optionalArgs ...interface{}) interfa
 
 func (this *derive) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

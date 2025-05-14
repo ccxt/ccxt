@@ -26,6 +26,7 @@ from ccxt.test.base.test_group_by import test_group_by  # noqa E402
 from ccxt.test.base.test_filter_by import test_filter_by  # noqa E402
 from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
+from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 
 def base_tests_init():
     test_language_specific()
@@ -43,3 +44,4 @@ def base_tests_init():
     test_group_by()
     test_filter_by()
     test_handle_methods()
+    test_remove_repeated_elements_from_array()

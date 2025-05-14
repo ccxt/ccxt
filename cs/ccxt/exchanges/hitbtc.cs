@@ -19,7 +19,7 @@ public partial class hitbtc : Exchange
                 { "margin", true },
                 { "swap", true },
                 { "future", false },
-                { "option", null },
+                { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
@@ -51,6 +51,7 @@ public partial class hitbtc : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -63,6 +64,7 @@ public partial class hitbtc : Exchange
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
@@ -70,6 +72,8 @@ public partial class hitbtc : Exchange
                 { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
@@ -78,12 +82,14 @@ public partial class hitbtc : Exchange
                 { "fetchPosition", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", true },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "sandbox", true },
@@ -763,6 +769,8 @@ public partial class hitbtc : Exchange
             object transferEnabled = this.safeBool(entry, "transfer_enabled", false);
             object active = isTrue(isTrue(payinEnabled) && isTrue(payoutEnabled)) && isTrue(transferEnabled);
             object rawNetworks = this.safeValue(entry, "networks", new List<object>() {});
+            object isCrypto = this.safeBool(entry, "crypto");
+            object type = ((bool) isTrue(isCrypto)) ? "crypto" : "fiat";
             object networks = new Dictionary<string, object>() {};
             object fee = null;
             object depositEnabled = null;
@@ -828,6 +836,7 @@ public partial class hitbtc : Exchange
                         { "max", null },
                     } },
                 } },
+                { "type", type },
             };
         }
         return result;

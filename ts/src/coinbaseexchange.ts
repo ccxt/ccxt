@@ -6,7 +6,7 @@ import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ export default class coinbaseexchange extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -1889,7 +1890,7 @@ export default class coinbaseexchange extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let accounts = this.safeValue (this.options, 'coinbaseAccounts');
@@ -1913,9 +1914,10 @@ export default class coinbaseexchange extends Exchange {
         return {
             'currency': code,
             'address': this.checkAddress (address),
+            'network': undefined,
             'tag': tag,
             'info': response,
-        };
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
