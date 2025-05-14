@@ -338,7 +338,7 @@ export default class bithumb extends bithumbRest {
         //        "contPrice" : "10579000",
         //        "contQty" : "0.01",
         //        "contAmt" : "105790.00",
-        //        "contDtm" : "2020-01-29 12:24:18.830039",
+        //        "contDtm" : "2020-01-29 12:24:18.830038",
         //        "updn" : "dn"
         //    }
         //
