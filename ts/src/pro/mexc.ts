@@ -207,23 +207,40 @@ export default class mexc extends mexcRest {
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'ticker:' + market['symbol'];
+        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        let url = undefined;
+        let channel = undefined;
         if (market['spot']) {
             let miniTicker = false;
             [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            let channel = undefined;
+            
             if (miniTicker) {
                 channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
             } else {
                 channel = 'spot@public.bookTicker.v3.api@' + market['id'];
             }
-            return await this.unWatchSpotPublic (channel, messageHash, params);
+            url = this.urls['api']['ws']['spot'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic (channel, messageHash, params);
         } else {
-            const channel = 'unsub.ticker';
+            channel = 'unsub.ticker';
             const requestParams: Dict = {
                 'symbol': market['id'],
             };
-            return await this.watchSwapPublic (channel, messageHash, requestParams, params);
+            url = this.urls['api']['ws']['swap'];
+            this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
+        const client = this.client (url);
+        this.handleUnsubscription (client, symbol, messageHash);
+    }
+
+    handleUnsubscription (client: Client, symbol: string, messageHash: string) {
+        const subMessageHash = messageHash.replace ('unsubscribe:', '');
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (messageHash.indexOf ('ticker') > 0) {
+            if (symbol in this.tickers) {
+                delete this.tickers[symbol];
+            }
         }
     }
 
@@ -526,21 +543,15 @@ export default class mexc extends mexcRest {
     }
 
     async watchSpotPublic (channel, messageHash, params = {}) {
+        const unsubscribed = this.safeBool (params, 'unsubscribed', false);
+        params = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
+        const method = (unsubscribed) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
         const request: Dict = {
-            'method': 'SUBSCRIPTION',
+            'method': method,
             'params': [ channel ],
         };
-        return await this.watch (url, messageHash, this.extend (request, params), channel);
-    }
-
-    async unWatchSpotPublic (channel, messageHash, params = {}) {
-        const url = this.urls['api']['ws']['spot'];
-        const request: Dict = {
-            'method': 'UNSUBSCRIPTION',
-            'params': [ channel ],
-        };
-        return await this.watch (url, 'unsubscribe:' + messageHash, this.extend (request, params), 'unsubscribe:' + channel);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     async watchSpotPrivate (channel, messageHash, params = {}) {
