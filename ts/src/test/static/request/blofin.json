@@ -198,7 +198,7 @@
                   "10811191",
                   "LTC/USDT:USDT",
                   {
-                    "trigger": true
+                    "tpsl": true
                   }
                 ],
                 "output": "[{\"tpslId\":\"10811191\",\"instId\":\"LTC-USDT\"}]"
