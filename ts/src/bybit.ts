@@ -1654,28 +1654,22 @@ export default class bybit extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (networkId);
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy')));
-                const depositAllowed = this.safeInteger (chain, 'chainDeposit') === 1;
-                const withdrawAllowed = this.safeInteger (chain, 'chainWithdraw') === 1;
-                const withdrawFeeString = this.safeString (chain, 'withdrawFee');
-                const minNetworkWithdrawString = this.safeString (chain, 'withdrawMin');
-                const minNetworkDepositString = this.safeString (chain, 'depositMin');
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': depositAllowed && withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': this.parseNumber (withdrawFeeString),
-                    'precision': precision,
+                    'active': undefined,
+                    'deposit': this.safeInteger (chain, 'chainDeposit') === 1,
+                    'withdraw': this.safeInteger (chain, 'chainWithdraw') === 1,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy'))),
                     'limits': {
                         'withdraw': {
-                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'min': this.safeNumber (chain, 'withdrawMin'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.parseNumber (minNetworkDepositString),
+                            'min': this.safeNumber (chain, 'depositMin'),
                             'max': undefined,
                         },
                     },
