@@ -840,7 +840,8 @@
         "skipMethods": {
             "ohlcv": {
                 "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
-            }
+            },
+            "watchBidsAsks": "temporary skip, because of null values being returned https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:505"
         }
     },
     "delta": {
