@@ -347,7 +347,7 @@ export default class cex extends Exchange {
             'deposit': this.safeBool (rawCurrency, 'walletDeposit'),
             'withdraw': this.safeBool (rawCurrency, 'walletWithdrawal'),
             'fee': undefined,
-            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision'))),
+            'precision': currencyPrecision,
             'limits': {
                 'amount': {
                     'min': undefined,

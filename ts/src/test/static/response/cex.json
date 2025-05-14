@@ -12,6 +12,12 @@
                     "data": {
                         "USDT": {
                             "name": "Tether",
+                            "currency": "USDT",
+                            "fiat": false,
+                            "precision": "8",
+                            "walletPrecision": "6",
+                            "walletDeposit": true,
+                            "walletWithdrawal": true,
                             "blockchains": {
                                 "ethereum": {
                                     "type": "ERC20",
