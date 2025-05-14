@@ -187,6 +187,7 @@ public partial class blofin : Exchange
                         { "account/margin-mode", 1 },
                         { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
+                        { "trade/orders-algo-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
                         { "user/query-apikey", 1 },
@@ -206,7 +207,9 @@ public partial class blofin : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "trade/order", 1 },
+                        { "trade/order-algo", 1 },
                         { "trade/cancel-order", 1 },
+                        { "trade/cancel-algo", 1 },
                         { "account/set-leverage", 1 },
                         { "trade/batch-orders", 1 },
                         { "trade/order-tpsl", 1 },
@@ -1218,6 +1221,7 @@ public partial class blofin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
+        object triggerPrice = this.safeString(parameters, "triggerPrice");
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         object isMarketOrder = isEqual(type, "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
@@ -1228,7 +1232,8 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["orderType"] = "market";
         } else
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            object key = ((bool) isTrue((!isEqual(triggerPrice, null)))) ? "orderPrice" : "price";
+            ((IDictionary<string,object>)request)[(string)key] = this.priceToPrecision(symbol, price);
         }
         object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(type, "post_only"), parameters);
@@ -1259,6 +1264,10 @@ public partial class blofin : Exchange
                 object tpPrice = this.safeString(takeProfit, "price", "-1");
                 ((IDictionary<string,object>)request)["tpOrderPrice"] = this.priceToPrecision(symbol, tpPrice);
             }
+        } else if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["orderType"] = "trigger";
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         return this.extend(request, parameters);
     }
@@ -1313,7 +1322,7 @@ public partial class blofin : Exchange
         //     "instType": "SWAP", // only in WS
         // }
         //
-        object id = this.safeString2(order, "tpslId", "orderId");
+        object id = this.safeStringN(order, new List<object>() {"tpslId", "orderId", "algoId"});
         object timestamp = this.safeInteger(order, "createTime");
         object lastUpdateTimestamp = this.safeInteger(order, "updateTime");
         object lastTradeTimestamp = this.safeInteger(order, "fillTime");
@@ -1417,6 +1426,7 @@ public partial class blofin : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] the trigger price for a trigger order
      * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
      * @param {bool} [params.postOnly] true to place a post only order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
@@ -1445,16 +1455,27 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)methodparametersVariable)[1];
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
+        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
         object isType2Order = (isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined));
         object response = null;
         if (isTrue(isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order)))
         {
             object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
+        } else if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        {
+            object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            response = await ((Task<object>)callDynamically(this, "privatePostTradeOrderAlgo", new object[] { triggerRequest }));
         } else
         {
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrder(request);
+        }
+        if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        {
+            object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object triggerOrder = this.parseOrder(dataDict, market);
+            return triggerOrder;
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0);
@@ -1521,7 +1542,8 @@ public partial class blofin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
+     * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -1536,27 +1558,36 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger"}, false);
+        object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
         {
-            if (!isTrue(isTrigger))
+            if (isTrue(!isTrue(isTrigger) && !isTrue(isTpsl)))
             {
                 ((IDictionary<string,object>)request)["orderId"] = ((object)id).ToString();
-            } else
+            } else if (isTrue(isTpsl))
             {
                 ((IDictionary<string,object>)request)["tpslId"] = ((object)id).ToString();
+            } else if (isTrue(isTrigger))
+            {
+                ((IDictionary<string,object>)request)["algoId"] = ((object)id).ToString();
             }
         }
         object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
-        if (isTrue(isTrigger))
+        if (isTrue(isTpsl))
         {
             object tpslResponse = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             object first = this.safeDict(tpslResponse, 0);
             return first;
+        } else if (isTrue(isTrigger))
+        {
+            object triggerResponse = await ((Task<object>)callDynamically(this, "privatePostTradeCancelAlgo", new object[] { this.extend(request, query) }));
+            object triggerData = this.safeDict(triggerResponse, "data");
+            return this.parseOrder(triggerData, market);
         }
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         object data = this.safeList(response, "data", new List<object>() {});
@@ -1602,6 +1633,7 @@ public partial class blofin : Exchange
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
      * @see https://blofin.com/docs#get-active-tpsl-orders
+     * @see https://docs.blofin.com/index.html#get-active-algo-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1633,16 +1665,21 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger"}, false);
+        object isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
-        if (isTrue(isTrue(isTrigger) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
+        if (isTrue(isTrue(isTpSl) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
+        } else if (isTrue(isTrue(isTrigger) || isTrue((isEqual(method, "privateGetTradeOrdersAlgoPending")))))
+        {
+            ((IDictionary<string,object>)request)["orderType"] = "trigger";
+            response = await ((Task<object>)callDynamically(this, "privateGetTradeOrdersAlgoPending", new object[] { this.extend(request, query) }));
         } else
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, query));
