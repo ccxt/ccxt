@@ -3,6 +3,36 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch tpsl  orders",
+                "method": "fetchOpenOrders",
+                "url": "https://openapi.blofin.com/api/v1/trade/orders-tpsl-pending",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "tpsl": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://openapi.blofin.com/api/v1/trade/orders-algo-pending?orderType=trigger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "open position with tp+sl",

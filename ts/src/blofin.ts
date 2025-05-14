@@ -196,6 +196,7 @@ export default class blofin extends Exchange {
                         'account/margin-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
+                        'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
@@ -1509,6 +1510,7 @@ export default class blofin extends Exchange {
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
      * @see https://blofin.com/docs#get-active-tpsl-orders
+     * @see https://docs.blofin.com/index.html#get-active-algo-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1534,13 +1536,17 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger' ], false);
+        const isTpSl = this.safeBool2 (params, 'tpsl', 'TPSL', false);
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
-        if (isTrigger || (method === 'privateGetTradeOrdersTpslPending')) {
+        if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
+        } else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
+            request['orderType'] = 'trigger';
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, query));
         }
