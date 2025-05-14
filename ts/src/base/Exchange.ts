@@ -3015,7 +3015,7 @@ export default class Exchange {
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
                 const key = keys[i];
-                const network = networks[key];
+                let network = networks[key];
                 const deposit = this.safeBool (network, 'deposit');
                 const currencyDeposit = this.safeBool (currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
@@ -3035,6 +3035,7 @@ export default class Exchange {
                         currency['networks'][key]['active'] = false;
                     }
                 }
+                network = currency['networks'][key]; // refresh with possibly new data
                 active = this.safeBool (network, 'active');
                 const currencyActive = this.safeBool (currency, 'active');
                 if (currencyActive === undefined || active) {
