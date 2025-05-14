@@ -18,13 +18,6 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
-                "method": "fetchCurrencies",
-                "url": "https://trade.cex.io/api/spot/rest-public/get_processing_info",
-                "input": [],
-                "output": "{}"
-            },
-            {
                 "disabled": "multi urls",
                 "description": "default",
                 "method": "fetchCurrencies",
