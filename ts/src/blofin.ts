@@ -216,7 +216,9 @@ export default class blofin extends Exchange {
                     },
                     'post': {
                         'trade/order': 1,
+                        'trade/order-algo': 1,
                         'trade/cancel-order': 1,
+                        'trade/cancel-algo': 1,
                         'account/set-leverage': 1,
                         'trade/batch-orders': 1,
                         'trade/order-tpsl': 1,
@@ -1169,6 +1171,7 @@ export default class blofin extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
+        const triggerPrice = this.safeString (params, 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const isMarketOrder = type === 'market';
         params = this.omit (params, [ 'timeInForce' ]);
@@ -1177,7 +1180,8 @@ export default class blofin extends Exchange {
         if (isMarketOrder || marketIOC) {
             request['orderType'] = 'market';
         } else {
-            request['price'] = this.priceToPrecision (symbol, price);
+            const key = (triggerPrice !== undefined) ? 'orderPrice' : 'price';
+            request[key] = this.priceToPrecision (symbol, price);
         }
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
@@ -1202,6 +1206,9 @@ export default class blofin extends Exchange {
                 const tpPrice = this.safeString (takeProfit, 'price', '-1');
                 request['tpOrderPrice'] = this.priceToPrecision (symbol, tpPrice);
             }
+        } else if (triggerPrice !== undefined) {
+            request['orderType'] = 'trigger';
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         return this.extend (request, params);
     }
@@ -1254,7 +1261,7 @@ export default class blofin extends Exchange {
         //     "instType": "SWAP", // only in WS
         // }
         //
-        const id = this.safeString2 (order, 'tpslId', 'orderId');
+        const id = this.safeStringN (order, [ 'tpslId', 'orderId', 'algoId' ]);
         const timestamp = this.safeInteger (order, 'createTime');
         const lastUpdateTimestamp = this.safeInteger (order, 'updateTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
@@ -1352,6 +1359,7 @@ export default class blofin extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] the trigger price for a trigger order
      * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
      * @param {bool} [params.postOnly] true to place a post only order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
@@ -1376,14 +1384,23 @@ export default class blofin extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
+        const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
         if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
             const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl (tpslRequest);
+        } else if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+            const triggerRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostTradeOrderAlgo (triggerRequest);
         } else {
             const request = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder (request);
+        }
+        if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+            const dataDict = this.safeDict (response, 'data', {});
+            const triggerOrder = this.parseOrder (dataDict, market);
+            return triggerOrder;
         }
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0);
@@ -1440,7 +1457,8 @@ export default class blofin extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
+     * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1452,22 +1470,29 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'trigger' ], false);
+        const isTpsl = this.safeBool2 (params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         } else {
-            if (!isTrigger) {
+            if (!isTrigger && !isTpsl) {
                 request['orderId'] = id.toString ();
-            } else {
+            } else if (isTpsl) {
                 request['tpslId'] = id.toString ();
+            } else if (isTrigger) {
+                request['algoId'] = id.toString ();
             }
         }
         const query = this.omit (params, [ 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ]);
-        if (isTrigger) {
+        if (isTpsl) {
             const tpslResponse = await this.cancelOrders ([ id ], symbol, params);
             const first = this.safeDict (tpslResponse, 0);
             return first as Order;
+        } else if (isTrigger) {
+            const triggerResponse = await this.privatePostTradeCancelAlgo (this.extend (request, query));
+            const triggerData = this.safeDict (triggerResponse, 'data');
+            return this.parseOrder (triggerData, market);
         }
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         const data = this.safeList (response, 'data', []);
