@@ -325,7 +325,7 @@
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "currencyIdAndCode": "broken currencies",
+                "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
