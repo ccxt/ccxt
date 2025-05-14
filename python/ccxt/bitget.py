@@ -1566,6 +1566,8 @@ class bitget(Exchange, ImplicitAPI):
                     'method': 'privateMixGetV2MixPositionAllPosition',  # or privateMixGetV2MixPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                # fiat currencies on deposit page
+                'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
             },
             'features': {
                 'spot': {
@@ -2058,6 +2060,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         result: dict = {}
         data = self.safe_value(response, 'data', [])
+        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
         for i in range(0, len(data)):
             entry = data[i]
             id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
@@ -2090,12 +2093,13 @@ class bitget(Exchange, ImplicitAPI):
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
+            isFiat = self.in_array(code, fiatCurrencies)
             result[code] = self.safe_currency_structure({
                 'info': entry,
                 'id': id,
                 'code': code,
                 'networks': networks,
-                'type': None,
+                'type': 'fiat' if isFiat else 'crypto',
                 'name': None,
                 'active': None,
                 'deposit': None,
@@ -3403,6 +3407,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
+        :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -3411,11 +3416,13 @@ class bitget(Exchange, ImplicitAPI):
         defaultLimit = 100  # default 100, max 1000
         maxLimitForRecentEndpoint = 1000
         maxLimitForHistoryEndpoint = 200  # note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+        useHistoryEndpointForPagination = self.safe_bool(params, 'useHistoryEndpointForPagination', True)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint)
-        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+            limitForPagination = maxLimitForHistoryEndpoint if useHistoryEndpointForPagination else maxLimitForRecentEndpoint
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination)
         market = self.market(symbol)
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
@@ -4034,6 +4041,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(order, 'cTime', 'ctime')
         updateTimestamp = self.safe_integer(order, 'uTime')
         rawStatus = self.safe_string_2(order, 'status', 'state')
+        rawStatus = self.safe_string(order, 'planStatus', rawStatus)
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:

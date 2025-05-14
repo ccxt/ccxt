@@ -381,7 +381,6 @@ class coinbase extends Exchange {
                 'fetchBalance' => 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
-                'aliasCbMarketIds' => array(),
             ),
             'features' => array(
                 'default' => array(
@@ -1554,8 +1553,6 @@ class coinbase extends Exchange {
             for ($i = 0; $i < count($perpetualData); $i++) {
                 $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
             }
-            // remove aliases
-            $this->options['aliasCbMarketIds'] = array();
             $newMarkets = array();
             for ($i = 0; $i < count($result); $i++) {
                 $market = $result[$i];
@@ -1563,26 +1560,14 @@ class coinbase extends Exchange {
                 $realMarketIds = $this->safe_list($info, 'alias_to', array());
                 $length = count($realMarketIds);
                 if ($length > 0) {
-                    $this->options['aliasCbMarketIds'][$market['id']] = $realMarketIds[0];
-                    $this->options['aliasCbMarketIds'][$market['symbol']] = $realMarketIds[0];
+                    $market['alias'] = $realMarketIds[0];
                 } else {
-                    $newMarkets[] = $market;
+                    $market['alias'] = null;
                 }
+                $newMarkets[] = $market;
             }
             return $newMarkets;
         }) ();
-    }
-
-    public function market(string $symbol): array {
-        $finalSymbol = $this->safe_string($this->options['aliasCbMarketIds'], $symbol, $symbol);
-        return parent::market($finalSymbol);
-    }
-
-    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
-        if (is_array($this->options['aliasCbMarketIds']) && array_key_exists($marketId, $this->options['aliasCbMarketIds'])) {
-            return $this->market($marketId);
-        }
-        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function parse_spot_market($market, $feeTier): array {

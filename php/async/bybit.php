@@ -1733,6 +1733,7 @@ class bybit extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
+                    'type' => 'crypto', // atm exchange api provides only cryptos
                 );
             }
             return $result;
@@ -2192,6 +2193,7 @@ class bybit extends Exchange {
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
+                $isInverse = $base === $settle;
                 if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
                     $result[] = $this->safe_market_structure(array(
                         'id' => $id,
@@ -2203,7 +2205,7 @@ class bybit extends Exchange {
                         'quoteId' => $quoteId,
                         'settleId' => $settleId,
                         'type' => 'option',
-                        'subType' => 'linear',
+                        'subType' => null,
                         'spot' => false,
                         'margin' => false,
                         'swap' => false,
@@ -2211,8 +2213,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => true,
-                        'inverse' => false,
+                        'linear' => !$isInverse,
+                        'inverse' => $isInverse,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->parse_number('1'),
@@ -4124,12 +4126,12 @@ class bybit extends Exchange {
         }
         if ($market['spot']) {
             $request['category'] = 'spot';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
         } elseif ($market['linear']) {
             $request['category'] = 'linear';
         } elseif ($market['inverse']) {
             $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
         }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
@@ -6065,7 +6067,8 @@ class bybit extends Exchange {
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
             $response = null;
             if ($enableUnified[1]) {
-                if ($subType === 'inverse') {
+                $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+                if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
                     $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->privateGetV5AccountTransactionLog ($this->extend($request, $params)));

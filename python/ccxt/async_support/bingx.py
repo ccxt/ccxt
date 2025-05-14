@@ -767,56 +767,41 @@ class bingx(Exchange, ImplicitAPI):
             name = self.safe_string(entry, 'name')
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
-            fee = None
-            depositEnabled = False
-            withdrawEnabled = False
-            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
-                isDefault = self.safe_bool(rawNetwork, 'isDefault')
-                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
-                if networkDepositEnabled:
-                    depositEnabled = True
-                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                if networkWithdrawEnabled:
-                    withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
                 }
-                fee = self.safe_number(rawNetwork, 'withdrawFee')
-                if isDefault:
-                    defaultLimits = limits
-                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
-                networkActive = networkDepositEnabled or networkWithdrawEnabled
+                precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': networkActive,
-                    'deposit': networkDepositEnabled,
-                    'withdraw': networkWithdrawEnabled,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'active': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
                     'precision': precision,
                     'limits': limits,
                 }
-            active = depositEnabled or withdrawEnabled
             result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
                 'precision': None,
                 'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'networks': networks,
-                'fee': fee,
-                'limits': defaultLimits,
+                'fee': None,
+                'limits': None,
+                'type': 'crypto',  # only cryptos now
             })
         return result
 
@@ -5536,18 +5521,14 @@ class bingx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
+        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType')
-        if walletType is None:
-            walletType = 1
-        if not self.in_array(walletType, [1, 2, 3]):
-            raise BadRequest(self.id + ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType')
+        walletType = self.safe_integer(params, 'walletType', 1)
         request: dict = {
             'coin': currency['id'],
             'address': address,

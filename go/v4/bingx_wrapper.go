@@ -1592,7 +1592,7 @@ func (this *Bingx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesO
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+ * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Bingx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {

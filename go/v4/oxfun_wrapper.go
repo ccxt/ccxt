@@ -205,6 +205,33 @@ func (this *Oxfun) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
 }
 /**
  * @method
+ * @name oxfun#fetchFundingRate
+ * @description fetch the current funding rates for a symbol
+ * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+ * @param {string} symbol unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Oxfun) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+    opts := FetchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRate(symbol, params)
+    if IsError(res) {
+        return FundingRate{}, CreateReturnError(res)
+    }
+    return NewFundingRate(res), nil
+}
+/**
+ * @method
  * @name oxfun#fetchFundingRateHistory
  * @description Fetches the history of funding rates
  * @see https://docs.ox.fun/?json#get-v3-funding-rates

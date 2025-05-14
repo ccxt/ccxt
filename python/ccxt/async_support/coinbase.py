@@ -387,7 +387,6 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchBalance': 'v2PrivateGetAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD',  # needed to get fees for v3
-                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1475,8 +1474,6 @@ class coinbase(Exchange, ImplicitAPI):
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
             result.append(self.parse_contract_market(perpetualData[i], perpetualFeeTier))
-        # remove aliases
-        self.options['aliasCbMarketIds'] = {}
         newMarkets = []
         for i in range(0, len(result)):
             market = result[i]
@@ -1484,20 +1481,11 @@ class coinbase(Exchange, ImplicitAPI):
             realMarketIds = self.safe_list(info, 'alias_to', [])
             length = len(realMarketIds)
             if length > 0:
-                self.options['aliasCbMarketIds'][market['id']] = realMarketIds[0]
-                self.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0]
+                market['alias'] = realMarketIds[0]
             else:
-                newMarkets.append(market)
+                market['alias'] = None
+            newMarkets.append(market)
         return newMarkets
-
-    def market(self, symbol: str) -> MarketInterface:
-        finalSymbol = self.safe_string(self.options['aliasCbMarketIds'], symbol, symbol)
-        return super(coinbase, self).market(finalSymbol)
-
-    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
-        if marketId in self.options['aliasCbMarketIds']:
-            return self.market(marketId)
-        return super(coinbase, self).safe_market(marketId, market, delimiter, marketType)
 
     def parse_spot_market(self, market, feeTier) -> MarketInterface:
         #

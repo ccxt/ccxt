@@ -610,7 +610,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': {},  # todo
             }
         return result
 

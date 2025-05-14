@@ -768,7 +768,7 @@ class bitso extends Exchange {
             //             array(
             //                 "bucket_start_time":1648219140000,
             //                 "first_trade_time":1648219154990,
-            //                 "last_trade_time":1648219189441,
+            //                 "last_trade_time":1648219189442,
             //                 "first_rate":"44958.60",
             //                 "last_rate":"44979.88",
             //                 "min_rate":"44957.33",

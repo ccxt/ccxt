@@ -378,7 +378,6 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
-                'aliasCbMarketIds': {},
             },
             'features': {
                 'default': {
@@ -1522,8 +1521,6 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        // remove aliases
-        this.options['aliasCbMarketIds'] = {};
         const newMarkets = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
@@ -1531,25 +1528,13 @@ export default class coinbase extends Exchange {
             const realMarketIds = this.safeList (info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {
-                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
-                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
+                market['alias'] = realMarketIds[0];
             } else {
-                newMarkets.push (market);
+                market['alias'] = undefined;
             }
+            newMarkets.push (market);
         }
         return newMarkets;
-    }
-
-    market (symbol: string): MarketInterface {
-        const finalSymbol = this.safeString (this.options['aliasCbMarketIds'], symbol, symbol);
-        return super.market (finalSymbol);
-    }
-
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        if (marketId in this.options['aliasCbMarketIds']) {
-            return this.market (marketId);
-        }
-        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
