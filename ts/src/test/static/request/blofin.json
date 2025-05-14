@@ -46,8 +46,7 @@
                     90,
                     {
                         "triggerPrice": 91
-                    },
-                    "create trigger order"
+                    }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
             },
@@ -63,8 +62,7 @@
                     90,
                     {
                         "triggerPrice": 91
-                    },
-                    "create trigger order"
+                    }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
             },
