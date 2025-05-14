@@ -128,6 +128,8 @@ export default class kraken extends krakenRest {
         const trailingLimitPercent = this.safeString (params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
+        const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
         const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
@@ -154,7 +156,7 @@ export default class kraken extends krakenRest {
             if (isLimitOrder) {
                 request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
-        } else if (isTrailingAmountOrder || isTrailingPercentOrder) {
+        } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
             request['params']['triggers'] = {};
             const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
             const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
@@ -167,16 +169,16 @@ export default class kraken extends krakenRest {
             const trailingActivationPriceType = this.safeString (params, 'reference', 'last');
             request['params']['triggers']['price_type'] = priceType;
             request['params']['triggers']['reference'] = trailingActivationPriceType;
-            if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
+            if (isLimitOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
                 request['params']['order_type'] = 'trailing-stop-limit';
-                if (trailingLimitPercent !== undefined) {
+                if (isTrailingLimitPercentOrder) {
                     request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitPercentString);
-                } else if (trailingLimitAmount !== undefined) {
+                } else if (isTrailingLimitAmountOrder) {
                     request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitAmountString);
                 }
             } else {
                 request['params']['order_type'] = 'trailing-stop';
-                if (trailingPercent !== undefined) {
+                if (isTrailingPercentOrder) {
                     request['params']['triggers']['price'] = this.parseToNumeric (trailingPercentString);
                 } else {
                     request['params']['triggers']['price'] = this.parseToNumeric (trailingAmountString);
