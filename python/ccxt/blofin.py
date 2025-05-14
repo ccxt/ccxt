@@ -203,6 +203,7 @@ class blofin(Exchange, ImplicitAPI):
                         'account/margin-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
+                        'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
@@ -222,7 +223,9 @@ class blofin(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'trade/order': 1,
+                        'trade/order-algo': 1,
                         'trade/cancel-order': 1,
+                        'trade/cancel-algo': 1,
                         'account/set-leverage': 1,
                         'trade/batch-orders': 1,
                         'trade/order-tpsl': 1,
@@ -1135,6 +1138,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
         request['marginMode'] = marginMode
+        triggerPrice = self.safe_string(params, 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         isMarketOrder = type == 'market'
         params = self.omit(params, ['timeInForce'])
@@ -1143,7 +1147,8 @@ class blofin(Exchange, ImplicitAPI):
         if isMarketOrder or marketIOC:
             request['orderType'] = 'market'
         else:
-            request['price'] = self.price_to_precision(symbol, price)
+            key = 'orderPrice' if (triggerPrice is not None) else 'price'
+            request[key] = self.price_to_precision(symbol, price)
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
         if postOnly:
@@ -1164,6 +1169,9 @@ class blofin(Exchange, ImplicitAPI):
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 tpPrice = self.safe_string(takeProfit, 'price', '-1')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpPrice)
+        elif triggerPrice is not None:
+            request['orderType'] = 'trigger'
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         return self.extend(request, params)
 
     def parse_order_status(self, status: Str):
@@ -1213,7 +1221,7 @@ class blofin(Exchange, ImplicitAPI):
         #     "instType": "SWAP",  # only in WS
         # }
         #
-        id = self.safe_string_2(order, 'tpslId', 'orderId')
+        id = self.safe_string_n(order, ['tpslId', 'orderId', 'algoId'])
         timestamp = self.safe_integer(order, 'createTime')
         lastUpdateTimestamp = self.safe_integer(order, 'updateTime')
         lastTradeTimestamp = self.safe_integer(order, 'fillTime')
@@ -1307,6 +1315,7 @@ class blofin(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.triggerPrice]: the trigger price for a trigger order
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin, swap and future orders
         :param bool [params.postOnly]: True to place a post only order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
@@ -1330,14 +1339,22 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
+        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
         if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostTradeOrderTpsl(tpslRequest)
+        elif isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+            triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
+            response = self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostTradeOrder(request)
+        if isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+            dataDict = self.safe_dict(response, 'data', {})
+            triggerOrder = self.parse_order(dataDict, market)
+            return triggerOrder
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         order = self.parse_order(first, market)
@@ -1387,7 +1404,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: True if cancelling a trigger/conditional order/tp sl orders
+        :param boolean [params.trigger]: True if cancelling a trigger/conditional
+        :param boolean [params.tpsl]: True if cancelling a tpsl order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1397,20 +1415,27 @@ class blofin(Exchange, ImplicitAPI):
         request: dict = {
             'instId': market['id'],
         }
-        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'], False)
+        isTrigger = self.safe_bool_n(params, ['trigger'], False)
+        isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            if not isTrigger:
+            if not isTrigger and not isTpsl:
                 request['orderId'] = str(id)
-            else:
+            elif isTpsl:
                 request['tpslId'] = str(id)
+            elif isTrigger:
+                request['algoId'] = str(id)
         query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
-        if isTrigger:
+        if isTpsl:
             tpslResponse = self.cancel_orders([id], symbol, params)
             first = self.safe_dict(tpslResponse, 0)
             return first
+        elif isTrigger:
+            triggerResponse = self.privatePostTradeCancelAlgo(self.extend(request, query))
+            triggerData = self.safe_dict(triggerResponse, 'data')
+            return self.parse_order(triggerData, market)
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
@@ -1449,6 +1474,7 @@ class blofin(Exchange, ImplicitAPI):
 
         https://blofin.com/docs#get-active-orders
         https://blofin.com/docs#get-active-tpsl-orders
+        https://docs.blofin.com/index.html#get-active-algo-orders
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1471,13 +1497,17 @@ class blofin(Exchange, ImplicitAPI):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        isTrigger = self.safe_bool_n(params, ['stop', 'trigger'], False)
+        isTpSl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None
-        if isTrigger or (method == 'privateGetTradeOrdersTpslPending'):
+        if isTpSl or (method == 'privateGetTradeOrdersTpslPending'):
             response = self.privateGetTradeOrdersTpslPending(self.extend(request, query))
+        elif isTrigger or (method == 'privateGetTradeOrdersAlgoPending'):
+            request['orderType'] = 'trigger'
+            response = self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
         else:
             response = self.privateGetTradeOrdersPending(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
