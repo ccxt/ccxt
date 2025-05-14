@@ -1831,6 +1831,53 @@ export default class coinbase extends Exchange {
         });
     }
 
+    async fetchCurrenciesFromCache (params = {}) {
+        const options = this.safeDict (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const promises = [
+                this.v2PublicGetCurrencies (params),
+                this.v2PublicGetCurrenciesCrypto (params),
+            ];
+            const promisesResult = await Promise.all (promises);
+            const fiatResponse = this.safeDict (promisesResult, 0, {});
+            //
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
+            //        ...
+            //    ]
+            //
+            const cryptoResponse = this.safeDict (promisesResult, 1, {});
+            //
+            //    {
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            const fiatData = this.safeList (fiatResponse, 'data', []);
+            const cryptoData = this.safeList (cryptoResponse, 'data', []);
+            const exchangeRates = await this.v2PublicGetExchangeRates (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'currencies': this.arrayConcat (fiatData, cryptoData),
+                'exchangeRates': exchangeRates,
+                'timestamp': now,
+            });
+        }
+        return this.safeDict (this.options, 'fetchCurrencies', {});
+    }
+
     /**
      * @method
      * @name coinbase#fetchCurrencies
