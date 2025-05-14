@@ -7,6 +7,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.bybit.com/v5/asset/coin/query-info?",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot market buy order",
