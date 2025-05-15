@@ -619,7 +619,7 @@ export default class coincatch extends Exchange {
                     'info': network,
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'numericId': this.safeInteger (currecy, 'coinId'),
                 'code': code,
@@ -642,7 +642,7 @@ export default class coincatch extends Exchange {
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            };
+            });
         }
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
