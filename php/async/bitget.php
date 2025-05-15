@@ -2084,9 +2084,7 @@ class bitget extends Exchange {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
-                    if ($network !== null) {
-                        $network = strtoupper($network);
-                    }
+                    $network = strtoupper($network);
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
