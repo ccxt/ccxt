@@ -37,7 +37,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "status": null,
-                    "symbol": "LTC/USD",
+                    "symbol": "LTCUSD",
                     "type": "market",
                     "timeInForce": "IOC",
                     "postOnly": false,
