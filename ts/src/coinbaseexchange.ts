@@ -334,30 +334,45 @@ export default class coinbaseexchange extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetCurrencies (params);
         //
-        //     [
-        //         {
-        //             "id": "XTZ",
-        //             "name": "Tezos",
-        //             "min_size": "0.000001",
-        //             "status": "online",
-        //             "message": '',
-        //             "max_precision": "0.000001",
-        //             "convertible_to": [],
-        //             "details": {
-        //                 "type": "crypto",
-        //                 "symbol": "Τ",
-        //                 "network_confirmations": 60,
-        //                 "sort_order": 53,
-        //                 "crypto_address_link": "https://tzstats.com/{{address}}",
-        //                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
-        //                 "push_payment_methods": [ "crypto" ],
-        //                 "group_types": [],
-        //                 "display_name": '',
-        //                 "processing_time_seconds": 0,
-        //                 "min_withdrawal_amount": 1
-        //             }
-        //         }
-        //     ]
+        //   {
+        //     "id": "USDT",
+        //     "name": "Tether",
+        //     "min_size": "0.000001",
+        //     "status": "online",
+        //     "message": "",
+        //     "max_precision": "0.000001",
+        //     "convertible_to": [],
+        //     "details": {
+        //       "type": "crypto",
+        //       "symbol": null,
+        //       "network_confirmations": 14,
+        //       "sort_order": 0,
+        //       "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //       "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //       "push_payment_methods": [],
+        //       "group_types": [],
+        //       "display_name": null,
+        //       "processing_time_seconds": null,
+        //       "min_withdrawal_amount": 0.000001,
+        //       "max_withdrawal_amount": 20000000
+        //     },
+        //     "default_network": "ethereum",
+        //     "supported_networks": [
+        //       {
+        //         "id": "ethereum",
+        //         "name": "Ethereum",
+        //         "status": "online",
+        //         "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //         "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //         "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //         "min_withdrawal_amount": 0.000001,
+        //         "max_withdrawal_amount": 20000000,
+        //         "network_confirmations": 14,
+        //         "processing_time_seconds": null
+        //       }
+        //     ],
+        //     "display_name": "USDT"
+        //   }
         //
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
@@ -365,16 +380,36 @@ export default class coinbaseexchange extends Exchange {
             const id = this.safeString (currency, 'id');
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const details = this.safeValue (currency, 'details', {});
-            const status = this.safeString (currency, 'status');
-            const active = (status === 'online');
-            result[code] = {
+            const details = this.safeDict (currency, 'details', {});
+            const networks: Dict = {};
+            const supportedNetworks = this.safeList (currency, 'supported_networks', []);
+            for (let j = 0; j < supportedNetworks.length; j++) {
+                const network = supportedNetworks[j];
+                const networkId = this.safeString (network, 'id');
+                const networkCode = this.safeCurrencyCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': this.safeString (network, 'name'),
+                    'active': this.safeString (network, 'status') === 'online',
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'min_withdrawal_amount'),
+                            'max': this.safeNumber (network, 'max_withdrawal_amount'),
+                        },
+                    },
+                    'contract': this.safeString (network, 'contract_address'),
+                    'info': network,
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': this.safeString (details, 'type'),
                 'name': name,
-                'active': active,
+                'active': this.safeString (currency, 'status') === 'online',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -386,11 +421,11 @@ export default class coinbaseexchange extends Exchange {
                     },
                     'withdraw': {
                         'min': this.safeNumber (details, 'min_withdrawal_amount'),
-                        'max': undefined,
+                        'max': this.safeNumber (details, 'max_withdrawal_amount'),
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+            });
         }
         return result;
     }
