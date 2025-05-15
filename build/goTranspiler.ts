@@ -1164,7 +1164,7 @@ ${caseStatements.join('\n')}
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
-        this.transpileExamples(); // disabled for now
+        // this.transpileExamples(); // disabled for now
 
         if (examplesOnly) {
             return;
