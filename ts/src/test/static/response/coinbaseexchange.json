@@ -158,6 +158,8 @@
                                 "name": "Arbitrum",
                                 "network": "ARBONE",
                                 "active": true,
+                                "withdraw": null,
+                                "deposit": null,
                                 "fee": null,
                                 "precision": null,
                                 "limits": {
@@ -185,6 +187,8 @@
                                 "name": "Ethereum",
                                 "network": "ETH",
                                 "active": true,
+                                "withdraw": null,
+                                "deposit": null,
                                 "fee": null,
                                 "precision": null,
                                 "limits": {
@@ -212,6 +216,8 @@
                                 "name": "Optimism",
                                 "network": "OP",
                                 "active": true,
+                                "withdraw": null,
+                                "deposit": null,
                                 "fee": null,
                                 "precision": null,
                                 "limits": {

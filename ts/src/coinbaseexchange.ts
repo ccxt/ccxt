@@ -464,6 +464,8 @@ export default class coinbaseexchange extends Exchange {
                     'name': this.safeString (network, 'name'),
                     'network': networkCode,
                     'active': this.safeString (network, 'status') === 'online',
+                    'withdraw': undefined,
+                    'deposit': undefined,
                     'fee': undefined,
                     'precision': undefined,
                     'limits': {

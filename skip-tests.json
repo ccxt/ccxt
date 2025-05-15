@@ -600,7 +600,9 @@
             },
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551",
+                "deposit": "not provided",
+                "withdraw": "not provided"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
