@@ -2071,8 +2071,7 @@ class bitget(Exchange, ImplicitAPI):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                if network is not None:
-                    network = network.upper()
+                network = network.upper()
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
