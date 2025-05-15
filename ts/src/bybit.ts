@@ -1675,7 +1675,7 @@ export default class bybit extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
@@ -1701,7 +1701,7 @@ export default class bybit extends Exchange {
                 },
                 'networks': networks,
                 'type': 'crypto', // atm exchange api provides only cryptos
-            };
+            });
         }
         return result;
     }
