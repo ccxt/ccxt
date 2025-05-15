@@ -181,7 +181,8 @@ export default class kraken extends krakenRest {
                 } else if (isPresetTakeProfit) {
                     request['params']['conditional']['order_type'] = 'take-profit';
                     request['params']['conditional']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfit));
-                } else if (presetStopLossLimit !== undefined) {
+                }
+                if (presetStopLossLimit !== undefined) {
                     request['params']['conditional']['order_type'] = 'stop-loss-limit';
                     request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLossLimit));
                 } else if (presetTakeProfitLimit !== undefined) {
