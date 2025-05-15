@@ -191,51 +191,85 @@
                 ]
             },
             {
-                "description": "Fetch trades for swap",
+                "description": "linear +limit",
                 "method": "fetchTrades",
                 "input": [
                     "ETH/USDT:USDT",
-                    1726956360000,
-                    1
+                    null,
+                    2
                 ],
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
-                    "requestTime": "1726957779791",
+                    "requestTime": "1747313840116",
                     "data": [
                         {
-                            "tradeId": "1221508997762031617",
-                            "price": "2560.25",
-                            "size": "26.21",
+                            "tradeId": "1306894443987378181",
+                            "price": "2549.8",
+                            "size": "27.32",
                             "side": "Sell",
-                            "timestamp": "1726956360000",
+                            "timestamp": "1747313837000",
+                            "symbol": "ETHUSDT_UMCBL"
+                        },
+                        {
+                            "tradeId": "1306894440959090689",
+                            "price": "2549.75",
+                            "size": "13.48",
+                            "side": "Sell",
+                            "timestamp": "1747313836000",
                             "symbol": "ETHUSDT_UMCBL"
                         }
                     ]
                 },
                 "parsedResponse": [
                     {
-                        "id": "1221508997762031617",
+                        "id": "1306894440959090689",
                         "order": null,
-                        "timestamp": 1726956360000,
-                        "datetime": "2024-09-21T22:06:00.000Z",
+                        "timestamp": 1747313836000,
+                        "datetime": "2025-05-15T12:57:16.000Z",
                         "symbol": "ETH/USDT:USDT",
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": null,
-                        "price": 2560.25,
-                        "amount": 26.21,
-                        "cost": 0.00010237281515476997,
+                        "price": 2549.75,
+                        "amount": 13.48,
+                        "cost": 343.7063,
                         "fee": {
-                        "cost": null,
-                        "currency": null
+                            "cost": null,
+                            "currency": null
                         },
                         "info": {
-                            "tradeId": "1221508997762031617",
-                            "price": "2560.25",
-                            "size": "26.21",
+                            "tradeId": "1306894440959090689",
+                            "price": "2549.75",
+                            "size": "13.48",
                             "side": "Sell",
-                            "timestamp": "1726956360000",
+                            "timestamp": "1747313836000",
+                            "symbol": "ETHUSDT_UMCBL"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "1306894443987378181",
+                        "order": null,
+                        "timestamp": 1747313837000,
+                        "datetime": "2025-05-15T12:57:17.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2549.8,
+                        "amount": 27.32,
+                        "cost": 696.60536,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "tradeId": "1306894443987378181",
+                            "price": "2549.8",
+                            "size": "27.32",
+                            "side": "Sell",
+                            "timestamp": "1747313837000",
                             "symbol": "ETHUSDT_UMCBL"
                         },
                         "fees": []
