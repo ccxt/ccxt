@@ -1003,7 +1003,8 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
-        baseClass = baseClass.replaceAll(/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
@@ -1160,22 +1161,22 @@ ${caseStatements.join('\n')}
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
 
-        if (examplesOnly) {
-            return;
-        }
+        // if (examplesOnly) {
+        //     return;
+        // }
 
-        if (transpilingSingleExchange) {
-            this.createDynamicInstanceFile();
-            return;
-        }
-        if (child) {
-            return;
-        }
+        // if (transpilingSingleExchange) {
+        //     this.createDynamicInstanceFile();
+        //     return;
+        // }
+        // if (child) {
+        //     return;
+        // }
 
         this.transpileBaseMethods (exchangeBase)
         this.createDynamicInstanceFile();
@@ -1185,9 +1186,9 @@ ${caseStatements.join('\n')}
         }
 
 
-        this.transpileTests()
+        // this.transpileTests()
 
-        this.transpileErrorHierarchy ()
+        // this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }
