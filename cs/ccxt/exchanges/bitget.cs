@@ -2044,10 +2044,7 @@ public partial class bitget : Exchange
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
                 object network = this.networkIdToCode(networkId, code);
-                if (isTrue(!isEqual(network, null)))
-                {
-                    network = ((string)network).ToUpper();
-                }
+                network = ((string)network).ToUpper();
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },

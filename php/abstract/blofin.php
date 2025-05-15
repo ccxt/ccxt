@@ -67,6 +67,9 @@ abstract class blofin extends \ccxt\Exchange {
     public function private_get_trade_orders_tpsl_pending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_trade_orders_algo_pending($params = array()) {
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_trade_orders_history($params = array()) {
         return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -118,8 +121,14 @@ abstract class blofin extends \ccxt\Exchange {
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_trade_order_algo($params = array()) {
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_cancel_order($params = array()) {
         return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trade_cancel_algo($params = array()) {
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_account_set_leverage($params = array()) {
         return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -232,6 +241,9 @@ abstract class blofin extends \ccxt\Exchange {
     public function privateGetTradeOrdersTpslPending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradeOrdersAlgoPending($params = array()) {
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradeOrdersHistory($params = array()) {
         return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -283,8 +295,14 @@ abstract class blofin extends \ccxt\Exchange {
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostTradeOrderAlgo($params = array()) {
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradeCancelOrder($params = array()) {
         return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradeCancelAlgo($params = array()) {
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccountSetLeverage($params = array()) {
         return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));

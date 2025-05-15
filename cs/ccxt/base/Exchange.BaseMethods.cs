@@ -1681,7 +1681,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
                     }
                 }
-                active = this.safeBool(network, "active");
+                active = this.safeBool(getValue(getValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
                 object currencyActive = this.safeBool(currency, "active");
                 if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
                 {

@@ -1130,9 +1130,10 @@ public partial class apex : Exchange
         {
             object entry = getValue(resultList, i);
             object timestamp = this.safeInteger(entry, "fundingTimestamp");
+            object marketId = this.safeString(entry, "symbol");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", this.safeString(entry, "symbol") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "fundingRate", this.safeNumber(entry, "rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
