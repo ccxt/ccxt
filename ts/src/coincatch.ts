@@ -360,56 +360,18 @@ export default class coincatch extends Exchange {
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB', // todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE', // todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP', // todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX', // todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20', // todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX', // todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT', // todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain', // todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM', // todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO', // todo check
                 },
             },
