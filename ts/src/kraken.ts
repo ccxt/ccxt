@@ -1670,7 +1670,8 @@ export default class kraken extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const orderRequest = this.orderRequest ('createOrder', symbol, type, request, amount, price, params);
-        const isUsingCost = this.safeString (orderRequest[0], 'oflags', '').indexOf ('viqc') > -1;
+        const flags = this.safeString (orderRequest[0], 'oflags', '');
+        const isUsingCost = flags.indexOf ('viqc') > -1;
         const response = await this.privatePostAddOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
