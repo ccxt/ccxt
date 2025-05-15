@@ -327,6 +327,22 @@ func (this *blofin) PrivateGetTradeOrdersTpslPending (args ...interface{}) <-cha
    return ch
 }
 
+func (this *blofin) PrivateGetTradeOrdersAlgoPending (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetTradeOrdersAlgoPending", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *blofin) PrivateGetTradeOrdersHistory (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -599,6 +615,22 @@ func (this *blofin) PrivatePostTradeOrder (args ...interface{}) <-chan interface
    return ch
 }
 
+func (this *blofin) PrivatePostTradeOrderAlgo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostTradeOrderAlgo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *blofin) PrivatePostTradeCancelOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -610,6 +642,22 @@ func (this *blofin) PrivatePostTradeCancelOrder (args ...interface{}) <-chan int
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostTradeCancelOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *blofin) PrivatePostTradeCancelAlgo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostTradeCancelAlgo", parameters))
        PanicOnError(ch)
    }()
    return ch

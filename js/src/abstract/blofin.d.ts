@@ -21,6 +21,7 @@ interface Exchange {
     privateGetAccountMarginMode(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBatchLeverageInfo(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslPending(params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrdersAlgoPending(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslHistory(params?: {}): Promise<implicitReturnType>;
     privateGetUserQueryApikey(params?: {}): Promise<implicitReturnType>;
@@ -38,7 +39,9 @@ interface Exchange {
     privateGetCopytradingTradeOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingTradePendingTpslByOrder(params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostTradeOrderAlgo(params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostTradeCancelAlgo(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetLeverage(params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderTpsl(params?: {}): Promise<implicitReturnType>;

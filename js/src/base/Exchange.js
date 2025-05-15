@@ -2579,7 +2579,7 @@ export default class Exchange {
                         currency['networks'][key]['active'] = false;
                     }
                 }
-                active = this.safeBool(network, 'active');
+                active = this.safeBool(currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
                 const currencyActive = this.safeBool(currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;

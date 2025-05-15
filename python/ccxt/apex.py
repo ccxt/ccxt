@@ -1077,9 +1077,10 @@ class apex(Exchange, ImplicitAPI):
         for i in range(0, len(resultList)):
             entry = resultList[i]
             timestamp = self.safe_integer(entry, 'fundingTimestamp')
+            marketId = self.safe_string(entry, 'symbol')
             rates.append({
                 'info': entry,
-                'symbol': self.safe_string(entry, 'symbol'),
+                'symbol': self.safe_symbol(marketId, market),
                 'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),

@@ -1098,9 +1098,10 @@ class apex extends Exchange {
         for ($i = 0; $i < count($resultList); $i++) {
             $entry = $resultList[$i];
             $timestamp = $this->safe_integer($entry, 'fundingTimestamp');
+            $marketId = $this->safe_string($entry, 'symbol');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $this->safe_string($entry, 'symbol'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
