@@ -2080,9 +2080,7 @@ export default class bitget extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
-                if (network !== undefined) {
-                    network = network.toUpperCase();
-                }
+                network = network.toUpperCase();
                 networks[network] = {
                     'info': chain,
                     'id': networkId,

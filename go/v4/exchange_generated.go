@@ -2022,7 +2022,7 @@ func  (this *Exchange) SafeCurrencyStructure(currency interface{}) interface{}  
                     AddElementToObject(GetValue(GetValue(currency, "networks"), key), "active", false)
                 }
             }
-            active = this.SafeBool(network, "active")
+            active = this.SafeBool(GetValue(GetValue(currency, "networks"), key), "active") // dict might have been updated on above lines, so access directly instead of `network` variable
             var currencyActive interface{} = this.SafeBool(currency, "active")
             if IsTrue(IsTrue(IsEqual(currencyActive, nil)) || IsTrue(active)) {
                 AddElementToObject(currency, "active", active)
@@ -4148,7 +4148,7 @@ func  (this *Exchange) Fetch2(path interface{}, optionalArgs ...interface{}) <- 
                 }
             }
         
-            ch <- nil  // this line is never reached, but exists for c# value return requirement
+            
             return nil
         
             }()

@@ -2077,9 +2077,7 @@ class bitget extends bitget$1 {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
-                if (network !== undefined) {
-                    network = network.toUpperCase();
-                }
+                network = network.toUpperCase();
                 networks[network] = {
                     'info': chain,
                     'id': networkId,

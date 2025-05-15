@@ -1003,7 +1003,8 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
-        baseClass = baseClass.replaceAll(/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
