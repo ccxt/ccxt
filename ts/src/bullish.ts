@@ -2,10 +2,10 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { BadRequest } from './base/errors.js';
+import { AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -136,6 +136,10 @@ export default class bullish extends Exchange {
                 'api': {
                     'public': 'https://api.exchange.bullish.com/trading-api',
                     'private': 'https://api.exchange.bullish.com/trading-api',
+                },
+                'test': {
+                    'public': 'https://api.simnext.bullish-test.com/trading-api',
+                    'private': 'https://api.simnext.bullish-test.com/trading-api',
                 },
                 'www': 'https://bullish.com/',
                 'referral': '',
@@ -889,7 +893,7 @@ export default class bullish extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for, not used by bullish
      * @param {int} [limit] the maximum number of order structures to retrieve, not used by bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1370,9 +1374,60 @@ export default class bullish extends Exchange {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.microseconds ().toString ();
+            const timestamp = this.milliseconds ().toString ();
+            let suffix = '';
+            if (method !== 'GET') {
+                body = this.json (params);
+                suffix = body;
+            }
+            const payload = timestamp + nonce + method + '/trading-api/' + path + suffix;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            headers = {
+                'BX-TIMESTAMP': timestamp,
+                'BX-NONCE': nonce,
+                'BX-SIGNATURE': signature,
+            };
+            if (path === 'v1/users/hmac/login') {
+                headers['BX-PUBLIC-KEY'] = this.apiKey;
+            } else {
+                const token = this.token;
+                if (token === undefined) {
+                    throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
+                }
+                headers['Authorization'] = 'Bearer ' + token;
+                // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
+            }
+        }
         const query = this.customUrlencode (request);
-        url += '?' + query;
+        if (query.length) {
+            url += '?' + query;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    /**
+     * @method
+     * @name bullish#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    async signIn (params = {}) {
+        const response = await this.privateGetV1UsersHmacLogin (params);
+        //
+        //     {
+        //         "authorizer": "113363EFA2CA00007368524E02000000",
+        //         "ownerAuthorizer": "113363EFA2CA00007368524E02000000",
+        //         "token": "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJiMXgtYXV0aC1zZXJ2aWNlIiwic3ViIjoiNDY0OTc4MzAiLCJleHAiOjE3NDczMzgzNDMsIlNUQUdFIjoiQVVUSEVOVElDQVRFRF9XSVRIX0JMT0NLQ0hBSU4ifQ.5FSyrihzc1wsJqAY8pVX36Y4ZXg3HopLJypPEbHg5bBK8FbL_oLxkj6zM_iOYL2a1x6-ICG0pQjr8hF_k8Yg-w"
+        //     }
+        //
+        const token = this.safeString (response, 'token');
+        this.token = token;
+        return response;
     }
 
     customUrlencode (params: Dict = {}): Str {
