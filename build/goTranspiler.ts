@@ -1161,22 +1161,22 @@ ${caseStatements.join('\n')}
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
-        // this.transpileExamples(); // disabled for now
+        this.transpileExamples(); // disabled for now
 
-        // if (examplesOnly) {
-        //     return;
-        // }
+        if (examplesOnly) {
+            return;
+        }
 
-        // if (transpilingSingleExchange) {
-        //     this.createDynamicInstanceFile();
-        //     return;
-        // }
-        // if (child) {
-        //     return;
-        // }
+        if (transpilingSingleExchange) {
+            this.createDynamicInstanceFile();
+            return;
+        }
+        if (child) {
+            return;
+        }
 
         this.transpileBaseMethods (exchangeBase)
         this.createDynamicInstanceFile();
@@ -1186,9 +1186,9 @@ ${caseStatements.join('\n')}
         }
 
 
-        // this.transpileTests()
+        this.transpileTests()
 
-        // this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }
