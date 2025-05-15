@@ -35,6 +35,7 @@ export default class mexc extends mexcRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'unWatchTicker': true,
+                'unWatchTickers': true,
             },
             'urls': {
                 'api': {
@@ -231,11 +232,12 @@ export default class mexc extends mexcRest {
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         const client = this.client (url);
-        this.handleUnsubscription (client, symbol, messageHash);
+        this.handleUnsubscription (client, messageHash);
     }
 
-    handleUnsubscription (client: Client, symbol: string, messageHash: string) {
+    handleUnsubscription (client: Client, messageHash: string) {
         const subMessageHash = messageHash.replace ('unsubscribe:', '');
+        const symbol = messageHash.replace ('unsubscribe:ticker:', '');
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (messageHash.indexOf ('ticker') > 0) {
             if (symbol in this.tickers) {
