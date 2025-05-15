@@ -7,6 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
+import { FILE } from 'node:dns';
 
 // ----------------------------------------------------------------------------
 
@@ -247,14 +248,80 @@ export default class coinbaseinternational extends Exchange {
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
+                'networks': {
+                    'BTC': 'bitcoin',
+                    // LIGHTNING unsupported
+                    'ETH': 'ethereum',
+                    // TRON unsupported
+                    'SOL': 'solana',
+                    // BSC unsupported
+                    'ARBONE': 'arbitrum',
+                    'AVAXC': 'avacchain',
+                    'MATIC': 'polygon',
+                    'BASE': 'base',
+                    'SUI': 'sui',
+                    'OP': 'optimism',
+                    'NEAR': 'near',
+                    // CRONOS unsupported
+                    // GNO unsupported
+                    'APT': 'aptos',
+                    // SCROLL unsupported
+                    'KAVA': 'kava',
+                    // TAIKO unsupported
+                    // BOB unsupported
+                    // LINEA unsupported
+                    'BLAST': 'blast',
+                    'XLM': 'stellar',
+                    // RSK unsupported
+                    'SEI': 'sei',
+                    // TON unsupported
+                    // MANTLE unsupported
+                    'ADA': 'cardano',
+                    // HYPE unsupported
+                    'CORE': 'coredao',
+                    'ALGO': 'algorand',
+                    // RUNE unsupported
+                    'OSMO': 'osmosis',
+                    // XIN unsupported
+                    'CELO': 'celo',
+                    'HBAR': 'hedera',
+                    // FTM unsupported
+                    // WEMIX unsupported
+                    'ZKSYNC': 'zksync',
+                    // KLAY unsupported
+                    // HT unsupported
+                    // FSN unsupported
+                    // EOS unsupported, eosio?
+                    // ACA unsupported
+                    'STX': 'stacks',
+                    'XTZ': 'tezos',
+                    // NEO unsupported
+                    // METIS unsupported
+                    // TLOS unsupported
+                    'EGLD': 'elrond',
+                    // ASTR unsupported
+                    // CFX unsupported
+                    // GLMR unsupported
+                    // CANTO unsupported
+                    // SCRT unsupported
+                    'LTC': 'litecoin',
+                    // AURORA unsupported
+                    // ONG unsupported
+                    'ATOM': 'cosmos',
+                    // CHZ unsupported
+                    'FIL': 'filecoin',
+                    'DOT': 'polkadot',
+                    'DOGE': 'dogecoin',
+                    // BRC20 unsupported
+                    'XRP': 'ripple',
+                    // XMR unsupported
+                    'DASH': 'dash',
+                    // akash, aleo,  axelar, bitcoincash, berachain, deso, ethereumclassic, unichain, flow, flare, dfinity, story,kusama,  mina, ronin, oasis, bittensor, celestia, noble, vara, vechain, zcash, horizen, zetachain
+                },
                 'networksById': {
-                    'ethereum': 'ETH',
                     'arbitrum': 'ARBITRUM',
                     'avacchain': 'AVAX',
                     'optimism': 'OPTIMISM',
-                    'polygon': 'MATIC',
-                    'solana': 'SOL',
-                    'bitcoin': 'BTC',
                 },
             },
             'features': {
