@@ -255,7 +255,7 @@ function printUsage () {
     log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
-    log ('node', process.argv[1], 'binance fetchTrades BTC/USDC undefined --param until=1746988377067')
+    log ('node', process.argv[1], 'binance fetchTrades BTC/USDC undefined undefined --param until=1746988377067')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
