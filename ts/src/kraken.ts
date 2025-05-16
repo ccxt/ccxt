@@ -1931,7 +1931,7 @@ export default class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeStringN (order, [ 'id', 'txid', 'order_id', 'amend_id' ]);
-        if ((id !== undefined) && (id.startsWith ('['))) {
+        if ((id === undefined) || (id.startsWith ('['))) {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
