@@ -46,6 +46,7 @@ from ccxt.pro.cryptocom import cryptocom                                  # noqa
 from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
+from ccxt.pro.dzengicom import dzengicom                                  # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
@@ -120,6 +121,7 @@ exchanges = [
     'defx',
     'deribit',
     'derive',
+    'dzengicom',
     'exmo',
     'gate',
     'gateio',
