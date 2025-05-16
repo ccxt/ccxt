@@ -1453,7 +1453,6 @@ export default class mexc extends mexcRest {
         if (market['spot']) {
             let miniTicker = false;
             [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            
             if (miniTicker) {
                 channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
             } else {
@@ -1673,7 +1672,7 @@ export default class mexc extends mexcRest {
     }
 
     handleUnsubscriptions (client: Client, messageHashes: string[]) {
-        for (let i =0; i < messageHashes.length; i++) {
+        for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const subMessageHash = messageHash.replace ('unsubscribe:', '');
             this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -1682,8 +1681,8 @@ export default class mexc extends mexcRest {
                 if (symbol.indexOf ('unsubscribe') >= 0) {
                     // unWatchTickers
                     const symbols = Object.keys (this.tickers);
-                    for (let i = 0; i < symbols.length; i++) {
-                        delete this.tickers[symbols[i]];
+                    for (let j = 0; j < symbols.length; j++) {
+                        delete this.tickers[symbols[j]];
                     }
                 } else if (symbol in this.tickers) {
                     delete this.tickers[symbol];
