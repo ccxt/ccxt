@@ -1614,6 +1614,38 @@ export default class mexc extends mexcRest {
         this.handleUnsubscriptions (client, [ messageHash ]);
     }
 
+    /**
+     * @method
+     * @name mexc#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + symbol;
+        let url = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic (channel, messageHash, params);
+        } else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.depth';
+            const requestParams: Dict = {
+                'symbol': market['id'],
+            };
+            this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
+
+        const client = this.client (url);
+        this.handleUnsubscriptions (client, [ messageHash ]);
+    }
+
     handleUnsubscriptions (client: Client, messageHashes: string[]) {
         for (let i =0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1643,6 +1675,11 @@ export default class mexc extends mexcRest {
                 }
                 if (symbol in this.ohlcvs) {
                     delete this.ohlcvs[symbol];
+                }
+            } else if (messageHash.indexOf ('orderbook') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:orderbook:', '');
+                if (symbol in this.orderbooks) {
+                    delete this.orderbooks[symbol];
                 }
             }
         }
