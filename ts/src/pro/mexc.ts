@@ -1444,7 +1444,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    async unWatchTicker (symbol: string, params = {}): Promise<void> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
@@ -1481,7 +1481,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<void> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined);
         const messageHashes = [];
@@ -1540,7 +1540,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<void> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         let marketType = undefined;
@@ -1582,7 +1582,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<void> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1616,7 +1616,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    async unWatchOrderBook (symbol: string, params = {}): Promise<void> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1648,7 +1648,7 @@ export default class mexc extends mexcRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    async unWatchTrades (symbol: string, params = {}): Promise<void> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
