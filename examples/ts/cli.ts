@@ -15,6 +15,20 @@ const { ExchangeError , NetworkError} = ccxt
 function jsonStringify (obj: any, indent = undefined) {
     return JSON.stringify (obj, function(k, v) { return v === undefined ? null : v; }, indent);
 }
+
+function countAllParams(fn) {
+    const fnStr = fn.toString()
+      .replace(/\/\/.*$/mg, '')
+      .replace(/\/\*[\s\S]*?\*\//mg, '')
+      .replace(/\s+/g, '');
+
+    const match = fnStr.match(/^[^(]*\(([^)]*)\)/);
+    if (!match) return 0;
+
+    const params = match[1].split(',').filter(p => p);
+    return params.length;
+}
+
 //-----------------------------------------------------------------------------
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
@@ -458,6 +472,22 @@ async function run () {
 
                 while (true) {
                     try {
+                        const fn = exchange[methodName]
+                        const fnParams = countAllParams(fn)
+                        const argsContainsParams = args.find( arg=> arg && typeof arg === 'object' && Object.keys(arg).length > 0)
+                        if (argsContainsParams && fnParams !== args.length) {
+                            // populate the missing params with undefined
+                            const missingParams = fnParams - args.length
+                            const paramsObj = args[args.length - 1]
+                            args.pop()
+                            const newArgsArray = args;
+                            for (let i = 0; i < missingParams; i++) {
+                                newArgsArray.push(undefined)
+                            }
+                            newArgsArray.push(paramsObj)
+                            args = newArgsArray
+                        }
+
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod && !raw) {
