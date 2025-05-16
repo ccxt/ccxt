@@ -38,6 +38,7 @@ export default class mexc extends mexcRest {
                 'unWatchTickers': true,
                 'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -1595,12 +1596,11 @@ export default class mexc extends mexcRest {
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
         let url = undefined;
-        let ohlcv = undefined;
         if (market['spot']) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
             params['unsubscribed'] = true;
-            ohlcv = await this.watchSpotPublic (channel, messageHash, params);
+            this.watchSpotPublic (channel, messageHash, params);
         } else {
             url = this.urls['api']['ws']['swap'];
             const channel = 'unsub.kline';
@@ -1608,7 +1608,7 @@ export default class mexc extends mexcRest {
                 'symbol': market['id'],
                 'interval': timeframeId,
             };
-            ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
+            this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
@@ -1619,7 +1619,7 @@ export default class mexc extends mexcRest {
             const messageHash = messageHashes[i];
             const subMessageHash = messageHash.replace ('unsubscribe:', '');
             this.cleanUnsubscription (client, subMessageHash, messageHash);
-            if (messageHash.indexOf ('ticker') > 0) {
+            if (messageHash.indexOf ('ticker') >= 0) {
                 const symbol = messageHash.replace ('unsubscribe:ticker:', '');
                 if (symbol.indexOf ('unsubscribe') >= 0) {
                     // unWatchTickers
@@ -1630,13 +1630,17 @@ export default class mexc extends mexcRest {
                 } else if (symbol in this.tickers) {
                     delete this.tickers[symbol];
                 }
-            } else if (messageHash.indexOf ('bidask') > 0) {
+            } else if (messageHash.indexOf ('bidask') >= 0) {
                 const symbol = messageHash.replace ('unsubscribe:bidask:', '');
                 if (symbol in this.bidsasks) {
                     delete this.bidsasks[symbol];
                 }
-            } else if (messageHash.indexOf ('candles') > 0) {
-                const symbol = messageHash.replace ('unsubscribe:candles:', '');
+            } else if (messageHash.indexOf ('candles') >= 0) {
+                const splitHashes = messageHash.split (':');
+                let symbol = this.safeString (splitHashes, 2);
+                if (splitHashes.length > 4) {
+                    symbol += ':' + this.safeString (splitHashes, 3);
+                }
                 if (symbol in this.ohlcvs) {
                     delete this.ohlcvs[symbol];
                 }
