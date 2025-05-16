@@ -36,6 +36,7 @@ export default class mexc extends mexcRest {
                 'watchTradesForSymbols': false,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchBidsAsks': true,
             },
             'urls': {
                 'api': {
@@ -294,6 +295,46 @@ export default class mexc extends mexcRest {
         this.handleUnsubscriptions (client, messageHashes);
     }
 
+    /**
+     * @method
+     * @name mexc#watchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        let marketType = undefined;
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
+        }
+        const markets = this.marketsForSymbols (symbols);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const isSpot = marketType === 'spot';
+        if (!isSpot) {
+            throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
+        }
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            if (isSpot) {
+                const market = this.market (symbols[i]);
+                topics.push ('spot@public.bookTicker.v3.api@' + market['id']);
+            }
+            messageHashes.push ('unsubscribe:bidask:' + symbols[i]);
+        }
+        const url = this.urls['api']['ws']['spot'];
+        const request: Dict = {
+            'method': 'UNSUBSCRIPTION',
+            'params': topics,
+        };
+        const client = this.client (url);
+        this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        this.handleUnsubscriptions (client, messageHashes);
+    }
+
     handleUnsubscriptions (client: Client, messageHashes: string[]) {
         for (let i =0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -309,6 +350,11 @@ export default class mexc extends mexcRest {
                     }
                 } else if (symbol in this.tickers) {
                     delete this.tickers[symbol];
+                }
+            } else if (messageHash.indexOf ('bidask') > 0) {
+                const symbol = messageHash.replace ('unsubscribe:bidask:', '');
+                if (symbol in this.bidsasks) {
+                    delete this.bidsasks[symbol];
                 }
             }
         }
