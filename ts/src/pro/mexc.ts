@@ -1547,7 +1547,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         let marketType = undefined;
