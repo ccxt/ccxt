@@ -39,6 +39,7 @@ export default class mexc extends mexcRest {
                 'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -1641,7 +1642,38 @@ export default class mexc extends mexcRest {
             };
             this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
+        const client = this.client (url);
+        this.handleUnsubscriptions (client, [ messageHash ]);
+    }
 
+    /**
+     * @method
+     * @name mexc#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'unsubscribe:trades:' + symbol;
+        let url = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.deals.v3.api@' + market['id'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic (channel, messageHash, params);
+        } else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.deal';
+            const requestParams: Dict = {
+                'symbol': market['id'],
+            };
+            this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
     }
@@ -1680,6 +1712,11 @@ export default class mexc extends mexcRest {
                 const symbol = messageHash.replace ('unsubscribe:orderbook:', '');
                 if (symbol in this.orderbooks) {
                     delete this.orderbooks[symbol];
+                }
+            } else if (messageHash.indexOf ('trades') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:trades:', '');
+                if (symbol in this.trades) {
+                    delete this.trades[symbol];
                 }
             }
         }
