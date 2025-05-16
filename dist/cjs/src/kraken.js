@@ -1646,6 +1646,8 @@ class kraken extends kraken$1 {
             'volume': this.amountToPrecision(symbol, amount),
         };
         const orderRequest = this.orderRequest('createOrder', symbol, type, request, amount, price, params);
+        const flags = this.safeString(orderRequest[0], 'oflags', '');
+        const isUsingCost = flags.indexOf('viqc') > -1;
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1657,6 +1659,10 @@ class kraken extends kraken$1 {
         //     }
         //
         const result = this.safeDict(response, 'result');
+        result['usingCost'] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
     findMarketByAltnameOrId(id) {
@@ -1832,6 +1838,8 @@ class kraken extends kraken$1 {
         //         "oflags": "fciq"
         //     }
         //
+        const isUsingCost = this.safeBool(order, 'usingCost', false);
+        order = this.omit(order, 'usingCost');
         const description = this.safeDict(order, 'descr', {});
         const orderDescriptionObj = this.safeDict(order, 'descr'); // can be null
         let orderDescription = undefined;
@@ -1846,11 +1854,17 @@ class kraken extends kraken$1 {
         let marketId = undefined;
         let price = undefined;
         let amount = undefined;
+        let cost = undefined;
         let triggerPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split(' ');
             side = this.safeString(parts, 0);
-            amount = this.safeString(parts, 1);
+            if (!isUsingCost) {
+                amount = this.safeString(parts, 1);
+            }
+            else {
+                cost = this.safeString(parts, 1);
+            }
             marketId = this.safeString(parts, 2);
             const part4 = this.safeString(parts, 4);
             const part5 = this.safeString(parts, 5);
@@ -1985,7 +1999,7 @@ class kraken extends kraken$1 {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,

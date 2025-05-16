@@ -1728,6 +1728,8 @@ public partial class kraken : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
+        object flags = this.safeString(getValue(orderRequest, 0), "oflags", "");
+        object isUsingCost = isGreaterThan(getIndexOf(flags, "viqc"), -1);
         object response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -1739,6 +1741,10 @@ public partial class kraken : Exchange
         //     }
         //
         object result = this.safeDict(response, "result");
+        ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
 
@@ -1927,6 +1933,8 @@ public partial class kraken : Exchange
         //         "oflags": "fciq"
         //     }
         //
+        object isUsingCost = this.safeBool(order, "usingCost", false);
+        order = this.omit(order, "usingCost");
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
         object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
@@ -1942,12 +1950,19 @@ public partial class kraken : Exchange
         object marketId = null;
         object price = null;
         object amount = null;
+        object cost = null;
         object triggerPrice = null;
         if (isTrue(!isEqual(orderDescription, null)))
         {
             object parts = ((string)orderDescription).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
-            amount = this.safeString(parts, 1);
+            if (!isTrue(isUsingCost))
+            {
+                amount = this.safeString(parts, 1);
+            } else
+            {
+                cost = this.safeString(parts, 1);
+            }
             marketId = this.safeString(parts, 2);
             object part4 = this.safeString(parts, 4);
             object part5 = this.safeString(parts, 5);
@@ -2103,7 +2118,7 @@ public partial class kraken : Exchange
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
-            { "cost", null },
+            { "cost", cost },
             { "amount", amount },
             { "filled", filled },
             { "average", average },
