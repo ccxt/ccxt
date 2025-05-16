@@ -37,6 +37,7 @@ export default class mexc extends mexcRest {
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchBidsAsks': true,
+                'unWatchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -1576,6 +1577,43 @@ export default class mexc extends mexcRest {
         this.handleUnsubscriptions (client, messageHashes);
     }
 
+    /**
+     * @method
+     * @name mexc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframeId = this.safeString (timeframes, timeframe);
+        const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
+        let url = undefined;
+        let ohlcv = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
+            params['unsubscribed'] = true;
+            ohlcv = await this.watchSpotPublic (channel, messageHash, params);
+        } else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.kline';
+            const requestParams: Dict = {
+                'symbol': market['id'],
+                'interval': timeframeId,
+            };
+            ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
+        }
+        const client = this.client (url);
+        this.handleUnsubscriptions (client, [ messageHash ]);
+    }
+
     handleUnsubscriptions (client: Client, messageHashes: string[]) {
         for (let i =0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1596,6 +1634,11 @@ export default class mexc extends mexcRest {
                 const symbol = messageHash.replace ('unsubscribe:bidask:', '');
                 if (symbol in this.bidsasks) {
                     delete this.bidsasks[symbol];
+                }
+            } else if (messageHash.indexOf ('candles') > 0) {
+                const symbol = messageHash.replace ('unsubscribe:candles:', '');
+                if (symbol in this.ohlcvs) {
+                    delete this.ohlcvs[symbol];
                 }
             }
         }
