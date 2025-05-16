@@ -1832,45 +1832,46 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_list(response, 'currencies', [])
+        promises = [
+            self.v2PublicGetCurrencies(params),
+            self.v2PublicGetCurrenciesCrypto(params),
+            self.v2PublicGetExchangeRates(params),
+        ]
+        promisesResult = promises
+        fiatResponse = self.safe_dict(promisesResult, 0, {})
         #
-        # fiat
+        #    [
+        #        "data": [
+        #            {
+        #                id: 'IMP',
+        #                name: 'Isle of Man Pound',
+        #                min_size: '0.01'
+        #            },
+        #        ...
         #
-        #    {
-        #        id: 'IMP',
-        #        name: 'Isle of Man Pound',
-        #        min_size: '0.01'
-        #    },
+        cryptoResponse = self.safe_dict(promisesResult, 1, {})
         #
-        # crypto
+        #     [
+        #        "data": [
+        #           {
+        #              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        #              code: 'AERO',
+        #              name: 'Aerodrome Finance',
+        #              color: '#0433FF',
+        #              sort_index: '340',
+        #              exponent: '8',
+        #              type: 'crypto',
+        #              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        #           },
+        #          ...
         #
-        #    {
-        #        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        #        code: 'AERO',
-        #        name: 'Aerodrome Finance',
-        #        color: '#0433FF',
-        #        sort_index: '340',
-        #        exponent: '8',
-        #        type: 'crypto',
-        #        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        #    }
-        #
-        #
-        #     {
-        #         "data":{
-        #             "currency":"USD",
-        #             "rates":{
-        #                 "AED":"3.67",
-        #                 "AFN":"78.21",
-        #                 "ALL":"110.42",
-        #                 "AMD":"474.18",
-        #                 "ANG":"1.75",
-        #                 ...
-        #             },
-        #         }
-        #     }
-        #
+        ratesResponse = self.safe_dict(promisesResult, 2, {})
+        fiatData = self.safe_list(fiatResponse, 'data', [])
+        cryptoData = self.safe_list(cryptoResponse, 'data', [])
+        ratesData = self.safe_dict(ratesResponse, 'data', {})
+        rates = self.safe_dict(ratesData, 'rates', {})
+        ratesIds = list(rates.keys())
+        currencies = self.array_concat(fiatData, cryptoData)
         result: dict = {}
         networks: dict = {}
         networksById: dict = {}
@@ -1882,18 +1883,19 @@ class coinbase(Exchange, ImplicitAPI):
             name = self.safe_string(currency, 'name')
             self.options['networks'][code] = name.lower()
             self.options['networksById'][code] = name.lower()
-            result[code] = {
-                'info': currency,  # the original payload
+            type = 'crypto' if (assetId is not None) else 'fiat'
+            result[code] = self.safe_currency_structure({
+                'info': currency,
                 'id': id,
                 'code': code,
-                'type': 'crypto' if (assetId is not None) else 'fiat',
-                'name': self.safe_string(currency, 'name'),
+                'type': type,
+                'name': name,
                 'active': True,
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
                 'precision': None,
-                'networks': {},
+                'networks': {},  # todo
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'min_size'),
@@ -1904,11 +1906,23 @@ class coinbase(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
             if assetId is not None:
                 lowerCaseName = name.lower()
                 networks[code] = lowerCaseName
                 networksById[lowerCaseName] = code
+        # we have to add other currencies here( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for i in range(0, len(ratesIds)):
+            currencyId = ratesIds[i]
+            code = self.safe_currency_code(currencyId)
+            if not (code in result):
+                result[code] = self.safe_currency_structure({
+                    'info': {},
+                    'id': currencyId,
+                    'code': code,
+                    'type': 'crypto',
+                    'networks': {},  # todo
+                })
         self.options['networks'] = self.extend(networks, self.options['networks'])
         self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
