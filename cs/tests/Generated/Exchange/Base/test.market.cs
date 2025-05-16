@@ -98,11 +98,6 @@ public partial class testMainClass : BaseTest
             ((IList<object>)emptyAllowedFor).Add("optionType");
             ((IList<object>)emptyAllowedFor).Add("strike");
         }
-        if (isTrue(option))
-        {
-            ((IList<object>)emptyAllowedFor).Add("linear");
-            ((IList<object>)emptyAllowedFor).Add("inverse");
-        }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);

@@ -401,8 +401,9 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 			res := <-this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
 			PanicOnError(res)
 			ch <- res
+		} else {
+			ch <- nil
 		}
-		ch <- nil
 	}()
 	return ch
 }

@@ -1616,6 +1616,8 @@ class kraken(Exchange, ImplicitAPI):
             'volume': self.amount_to_precision(symbol, amount),
         }
         orderRequest = self.order_request('createOrder', symbol, type, request, amount, price, params)
+        flags = self.safe_string(orderRequest[0], 'oflags', '')
+        isUsingCost = flags.find('viqc') > -1
         response = await self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1627,6 +1629,10 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result')
+        result['usingCost'] = isUsingCost
+        # it's impossible to know if the order was created using cost or base currency
+        # becuase kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
+        # self usingCost flag is used to help the parsing but omited from the order
         return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
@@ -1796,6 +1802,8 @@ class kraken(Exchange, ImplicitAPI):
         #         "oflags": "fciq"
         #     }
         #
+        isUsingCost = self.safe_bool(order, 'usingCost', False)
+        order = self.omit(order, 'usingCost')
         description = self.safe_dict(order, 'descr', {})
         orderDescriptionObj = self.safe_dict(order, 'descr')  # can be null
         orderDescription = None
@@ -1808,11 +1816,15 @@ class kraken(Exchange, ImplicitAPI):
         marketId = None
         price = None
         amount = None
+        cost = None
         triggerPrice = None
         if orderDescription is not None:
             parts = orderDescription.split(' ')
             side = self.safe_string(parts, 0)
-            amount = self.safe_string(parts, 1)
+            if not isUsingCost:
+                amount = self.safe_string(parts, 1)
+            else:
+                cost = self.safe_string(parts, 1)
             marketId = self.safe_string(parts, 2)
             part4 = self.safe_string(parts, 4)
             part5 = self.safe_string(parts, 5)
@@ -1922,7 +1934,7 @@ class kraken(Exchange, ImplicitAPI):
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'cost': None,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,

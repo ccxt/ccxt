@@ -2080,9 +2080,7 @@ export default class bitget extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
-                if (network !== undefined) {
-                    network = network.toUpperCase();
-                }
+                network = network.toUpperCase();
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -3477,6 +3475,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3486,12 +3485,14 @@ export default class bitget extends Exchange {
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        const useHistoryEndpoint = this.safeBool(params, 'useHistoryEndpoint', false);
+        const useHistoryEndpointForPagination = this.safeBool(params, 'useHistoryEndpointForPagination', true);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint);
+            const limitForPagination = useHistoryEndpointForPagination ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
         }
-        const useHistoryEndpoint = this.safeBool(params, 'useHistoryEndpoint', false);
         const market = this.market(symbol);
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
@@ -4140,7 +4141,8 @@ export default class bitget extends Exchange {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'cTime', 'ctime');
         const updateTimestamp = this.safeInteger(order, 'uTime');
-        const rawStatus = this.safeString2(order, 'status', 'state');
+        let rawStatus = this.safeString2(order, 'status', 'state');
+        rawStatus = this.safeString(order, 'planStatus', rawStatus);
         let fee = undefined;
         const feeCostString = this.safeString(order, 'fee');
         if (feeCostString !== undefined) {

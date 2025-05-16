@@ -91,10 +91,6 @@ import "github.com/ccxt/ccxt/go/v4"
             AppendToArray(&emptyAllowedFor,"optionType")
             AppendToArray(&emptyAllowedFor,"strike")
         }
-        if IsTrue(option) {
-            AppendToArray(&emptyAllowedFor,"linear")
-            AppendToArray(&emptyAllowedFor,"inverse")
-        }
         AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor)
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")
         var logText interface{} = LogTemplate(exchange, method, market)

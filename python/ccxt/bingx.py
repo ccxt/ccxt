@@ -766,56 +766,41 @@ class bingx(Exchange, ImplicitAPI):
             name = self.safe_string(entry, 'name')
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
-            fee = None
-            depositEnabled = False
-            withdrawEnabled = False
-            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
-                isDefault = self.safe_bool(rawNetwork, 'isDefault')
-                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
-                if networkDepositEnabled:
-                    depositEnabled = True
-                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                if networkWithdrawEnabled:
-                    withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
                 }
-                fee = self.safe_number(rawNetwork, 'withdrawFee')
-                if isDefault:
-                    defaultLimits = limits
                 precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
-                networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': networkActive,
-                    'deposit': networkDepositEnabled,
-                    'withdraw': networkWithdrawEnabled,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'active': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
                     'precision': precision,
                     'limits': limits,
                 }
-            active = depositEnabled or withdrawEnabled
             result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
                 'precision': None,
                 'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'networks': networks,
-                'fee': fee,
-                'limits': defaultLimits,
+                'fee': None,
+                'limits': None,
+                'type': 'crypto',  # only cryptos now
             })
         return result
 

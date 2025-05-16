@@ -7826,7 +7826,7 @@ public partial class htx : Exchange
                     request = this.extend(request, query);
                 }
                 object sortedRequest = this.keysort(request);
-                object auth = this.urlencode(sortedRequest);
+                object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
@@ -7921,7 +7921,7 @@ public partial class htx : Exchange
                     object sortedQuery = ((object)this.keysort(query));
                     request = this.extend(request, sortedQuery);
                 }
-                object auth = ((string)this.urlencode(request)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
+                object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");

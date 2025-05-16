@@ -6946,7 +6946,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     request = self.extend(request, query)
                 sortedRequest = self.keysort(request)
-                auth = self.urlencode(sortedRequest)
+                auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -7012,7 +7012,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     sortedQuery = self.keysort(query)
                     request = self.extend(request, sortedQuery)
-                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
+                auth = self.urlencode(request, True).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

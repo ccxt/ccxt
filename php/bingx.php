@@ -752,60 +752,42 @@ class bingx extends Exchange {
             $name = $this->safe_string($entry, 'name');
             $networkList = $this->safe_list($entry, 'networkList');
             $networks = array();
-            $fee = null;
-            $depositEnabled = false;
-            $withdrawEnabled = false;
-            $defaultLimits = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $rawNetwork = $networkList[$j];
                 $network = $this->safe_string($rawNetwork, 'network');
                 $networkCode = $this->network_id_to_code($network);
-                $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                if ($networkDepositEnabled) {
-                    $depositEnabled = true;
-                }
-                $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                if ($networkWithdrawEnabled) {
-                    $withdrawEnabled = true;
-                }
                 $limits = array(
                     'withdraw' => array(
                         'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
                         'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                     ),
                 );
-                $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                if ($isDefault) {
-                    $defaultLimits = $limits;
-                }
                 $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
-                $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
                     'id' => $network,
                     'network' => $networkCode,
-                    'fee' => $fee,
-                    'active' => $networkActive,
-                    'deposit' => $networkDepositEnabled,
-                    'withdraw' => $networkWithdrawEnabled,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                    'active' => null,
+                    'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
                     'precision' => $precision,
                     'limits' => $limits,
                 );
             }
-            $active = $depositEnabled || $withdrawEnabled;
             $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
                 'precision' => null,
                 'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'networks' => $networks,
-                'fee' => $fee,
-                'limits' => $defaultLimits,
+                'fee' => null,
+                'limits' => null,
+                'type' => 'crypto', // only cryptos now
             ));
         }
         return $result;
