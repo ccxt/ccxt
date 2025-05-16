@@ -808,12 +808,6 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue (client.subscriptions, messageHash);
         const limit = this.safeInteger (subscription, 'limit');
-        if (subscription === true) {
-            // we set client.subscriptions[messageHash] to 1
-            // once we have received the first delta and initialized the orderbook
-            client.subscriptions[messageHash] = 1;
-            this.orderbooks[symbol] = this.countedOrderBook ({});
-        }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
