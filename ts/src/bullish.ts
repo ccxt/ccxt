@@ -898,6 +898,7 @@ export default class bullish extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        await this.signIn ();
         let market = undefined;
         const request: Dict = {
         };
@@ -1174,8 +1175,8 @@ export default class bullish extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const id = this.safeString (order, 'clientOrderId');
-        const timestamp = this.parse8601 (this.safeString (order, 'createdAtTimestamp'));
+        const id = this.safeString (order, 'orderId');
+        const timestamp = this.safeInteger (order, 'createdAtTimestamp');
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price');
@@ -1194,7 +1195,7 @@ export default class bullish extends Exchange {
         const average = this.safeString (order, 'averageFillPrice');
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
