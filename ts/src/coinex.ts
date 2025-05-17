@@ -764,7 +764,7 @@ export default class coinex extends Exchange {
                 };
                 networks[networkId] = network;
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'code': code,
                 'name': undefined,
@@ -790,7 +790,7 @@ export default class coinex extends Exchange {
                 'networks': {},
                 'type': 'crypto',
                 'info': coin,
-            };
+            });
         }
         return result;
     }
