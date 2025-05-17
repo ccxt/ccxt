@@ -592,7 +592,7 @@ class NewTranspiler {
             'fetch',
             'setSandBoxMode',
             'loadOrderBook',
-            'fetchCurrencies',
+            // 'fetchCurrencies',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setProperty',
