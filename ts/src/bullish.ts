@@ -962,15 +962,24 @@ export default class bullish extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        await this.signIn ();
+        const accounts: List = await this.fetchAccounts ();
+        const account = this.safeDict (accounts, 0);
+        const tradingAccountId = this.safeString (account, 'id');
+        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
+        if (traidingAccountIdByUser !== undefined) {
+            params['tradingAccountId'] = traidingAccountIdByUser;
+            params = this.omit (params, 'tradingAccountId');
+        } else {
+            params['tradingAccountId'] = tradingAccountId;
+        }
         const request: Dict = {
             'orderId': id,
         };
-        const tradingAccountId = this.safeString (params, 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new BadRequest (this.id + ' fetchOrders() requires a tradingAccountId parameter');
-        }
-        params = this.omit (params, 'tradingAccountId');
-        request['tradingAccountId'] = tradingAccountId;
         const response = await this.privateGetV2OrdersOrderId (this.extend (request, params));
         //
         //     {
@@ -999,7 +1008,7 @@ export default class bullish extends Exchange {
         //         "createdAtTimestamp": "1621490985000",
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     /**
@@ -1178,6 +1187,9 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
+        if (market === undefined) {
+            market = this.safeMarket (marketId);
+        }
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createdAtTimestamp');
