@@ -631,6 +631,9 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "type": "todo",
+                "withdraw":"todo, needs fix",
+                "deposit":"todo, needs fix",
+                "active" : "todo, needs fix",
                 "activeMajorCurrencies": "todo",
                 "activeCurrenciesQuota": "activeCurrenciesQuota"
             },
