@@ -1889,6 +1889,8 @@ func  (this *kraken) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 "volume": this.AmountToPrecision(symbol, amount),
             }
             var orderRequest interface{} = this.OrderRequest("createOrder", symbol, typeVar, request, amount, price, params)
+            var flags interface{} = this.SafeString(GetValue(orderRequest, 0), "oflags", "")
+            var isUsingCost interface{} = IsGreaterThan(GetIndexOf(flags, "viqc"), OpNeg(1))
         
             response:= (<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1))))
             PanicOnError(response)
@@ -1902,8 +1904,12 @@ func  (this *kraken) CreateOrder(symbol interface{}, typeVar interface{}, side i
             //     }
             //
             var result interface{} = this.SafeDict(response, "result")
+            AddElementToObject(result, "usingCost", isUsingCost)
         
-            ch <- this.ParseOrder(result)
+                // it's impossible to know if the order was created using cost or base currency
+            // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+            // this usingCost flag is used to help the parsing but omited from the order
+        ch <- this.ParseOrder(result)
             return nil
         
             }()
@@ -2081,6 +2087,8 @@ func  (this *kraken) ParseOrder(order interface{}, optionalArgs ...interface{}) 
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
+    var isUsingCost interface{} = this.SafeBool(order, "usingCost", false)
+    order = this.Omit(order, "usingCost")
     var description interface{} = this.SafeDict(order, "descr", map[string]interface{} {})
     var orderDescriptionObj interface{} = this.SafeDict(order, "descr") // can be null
     var orderDescription interface{} = nil
@@ -2094,11 +2102,16 @@ func  (this *kraken) ParseOrder(order interface{}, optionalArgs ...interface{}) 
     var marketId interface{} = nil
     var price interface{} = nil
     var amount interface{} = nil
+    var cost interface{} = nil
     var triggerPrice interface{} = nil
     if IsTrue(!IsEqual(orderDescription, nil)) {
         var parts interface{} = Split(orderDescription, " ")
         side = this.SafeString(parts, 0)
-        amount = this.SafeString(parts, 1)
+        if !IsTrue(isUsingCost) {
+            amount = this.SafeString(parts, 1)
+        } else {
+            cost = this.SafeString(parts, 1)
+        }
         marketId = this.SafeString(parts, 2)
         var part4 interface{} = this.SafeString(parts, 4)
         var part5 interface{} = this.SafeString(parts, 5)
@@ -2230,7 +2243,7 @@ func  (this *kraken) ParseOrder(order interface{}, optionalArgs ...interface{}) 
         "triggerPrice": triggerPrice,
         "takeProfitPrice": takeProfitPrice,
         "stopLossPrice": stopLossPrice,
-        "cost": nil,
+        "cost": cost,
         "amount": amount,
         "filled": filled,
         "average": average,
@@ -2401,8 +2414,8 @@ func  (this *kraken) EditOrder(id interface{}, symbol interface{}, typeVar inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes21618 := (<-this.LoadMarkets())
-            PanicOnError(retRes21618)
+            retRes21748 := (<-this.LoadMarkets())
+            PanicOnError(retRes21748)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
@@ -2480,8 +2493,8 @@ func  (this *kraken) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes22228 := (<-this.LoadMarkets())
-            PanicOnError(retRes22228)
+            retRes22358 := (<-this.LoadMarkets())
+            PanicOnError(retRes22358)
             var clientOrderId interface{} = this.SafeValue2(params, "userref", "clientOrderId")
             var request interface{} = map[string]interface{} {
                 "trades": true,
@@ -2585,8 +2598,8 @@ func  (this *kraken) FetchOrderTrades(id interface{}, optionalArgs ...interface{
                 }
             }
         
-            retRes23068 := (<-this.LoadMarkets())
-            PanicOnError(retRes23068)
+            retRes23198 := (<-this.LoadMarkets())
+            PanicOnError(retRes23198)
             if IsTrue(!IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
             }
@@ -2667,8 +2680,8 @@ func  (this *kraken) FetchOrdersByIds(ids interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes23728 := (<-this.LoadMarkets())
-            PanicOnError(retRes23728)
+            retRes23858 := (<-this.LoadMarkets())
+            PanicOnError(retRes23858)
         
             response:= (<-this.PrivatePostQueryOrders(this.Extend(map[string]interface{} {
             "trades": true,
@@ -2720,8 +2733,8 @@ func  (this *kraken) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes24038 := (<-this.LoadMarkets())
-            PanicOnError(retRes24038)
+            retRes24168 := (<-this.LoadMarkets())
+            PanicOnError(retRes24168)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -2801,8 +2814,8 @@ func  (this *kraken) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes24748 := (<-this.LoadMarkets())
-            PanicOnError(retRes24748)
+            retRes24878 := (<-this.LoadMarkets())
+            PanicOnError(retRes24878)
             var response interface{} = nil
             var requestId interface{} = this.SafeValue(params, "userref", id) // string or integer
             params = this.Omit(params, "userref")
@@ -2914,8 +2927,8 @@ func  (this *kraken) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes25508 := (<-this.LoadMarkets())
-            PanicOnError(retRes25508)
+            retRes25638 := (<-this.LoadMarkets())
+            PanicOnError(retRes25638)
         
             response:= (<-this.PrivatePostCancelAll(params))
             PanicOnError(response)
@@ -2956,8 +2969,8 @@ func  (this *kraken) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...i
                 panic(BadRequest(Add(this.Id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")))
             }
         
-            retRes25808 := (<-this.LoadMarkets())
-            PanicOnError(retRes25808)
+            retRes25938 := (<-this.LoadMarkets())
+            PanicOnError(retRes25938)
             var request interface{} = map[string]interface{} {
                 "timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), (this.ParseToInt(Divide(timeout, 1000))), 0),
             }
@@ -3007,8 +3020,8 @@ func  (this *kraken) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes26118 := (<-this.LoadMarkets())
-            PanicOnError(retRes26118)
+            retRes26248 := (<-this.LoadMarkets())
+            PanicOnError(retRes26248)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -3113,8 +3126,8 @@ func  (this *kraken) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes26958 := (<-this.LoadMarkets())
-            PanicOnError(retRes26958)
+            retRes27088 := (<-this.LoadMarkets())
+            PanicOnError(retRes27088)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -3367,8 +3380,8 @@ func  (this *kraken) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes29218 := (<-this.LoadMarkets())
-            PanicOnError(retRes29218)
+            retRes29348 := (<-this.LoadMarkets())
+            PanicOnError(retRes29348)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(code, nil)) {
                 var currency interface{} = this.Currency(code)
@@ -3471,8 +3484,8 @@ func  (this *kraken) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes29938 := (<-this.LoadMarkets())
-            PanicOnError(retRes29938)
+            retRes30068 := (<-this.LoadMarkets())
+            PanicOnError(retRes30068)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
@@ -3480,9 +3493,9 @@ func  (this *kraken) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
             if IsTrue(paginate) {
                 AddElementToObject(params, "cursor", true)
         
-                    retRes299819 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
-                    PanicOnError(retRes299819)
-                    ch <- retRes299819
+                    retRes301119 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
+                    PanicOnError(retRes301119)
+                    ch <- retRes301119
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -3586,9 +3599,9 @@ func  (this *kraken) CreateDepositAddress(code interface{}, optionalArgs ...inte
                 "new": "true",
             }
         
-                retRes308915 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-                PanicOnError(retRes308915)
-                ch <- retRes308915
+                retRes310215 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+                PanicOnError(retRes310215)
+                ch <- retRes310215
                 return nil
         
             }()
@@ -3611,8 +3624,8 @@ func  (this *kraken) FetchDepositMethods(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes31028 := (<-this.LoadMarkets())
-            PanicOnError(retRes31028)
+            retRes31158 := (<-this.LoadMarkets())
+            PanicOnError(retRes31158)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -3667,8 +3680,8 @@ func  (this *kraken) FetchDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes31448 := (<-this.LoadMarkets())
-            PanicOnError(retRes31448)
+            retRes31578 := (<-this.LoadMarkets())
+            PanicOnError(retRes31578)
             var currency interface{} = this.Currency(code)
             var network interface{} = this.SafeStringUpper(params, "network")
             var networks interface{} = this.SafeValue(this.Options, "networks", map[string]interface{} {})
@@ -3778,8 +3791,8 @@ func  (this *kraken) Withdraw(code interface{}, amount interface{}, address inte
             this.CheckAddress(address)
             if IsTrue(InOp(params, "key")) {
         
-                retRes323412 := (<-this.LoadMarkets())
-                PanicOnError(retRes323412)
+                retRes324712 := (<-this.LoadMarkets())
+                PanicOnError(retRes324712)
                 var currency interface{} = this.Currency(code)
                 var request interface{} = map[string]interface{} {
                     "asset": GetValue(currency, "id"),
@@ -3826,8 +3839,8 @@ func  (this *kraken) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes32668 := (<-this.LoadMarkets())
-            PanicOnError(retRes32668)
+            retRes32798 := (<-this.LoadMarkets())
+            PanicOnError(retRes32798)
             var request interface{} = map[string]interface{} {
                 "docalcs": "true",
                 "consolidation": "market",
@@ -3966,9 +3979,9 @@ func  (this *kraken) TransferOut(code interface{}, amount interface{}, optionalA
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes339315 :=  (<-this.Transfer(code, amount, "spot", "swap", params))
-                PanicOnError(retRes339315)
-                ch <- retRes339315
+                retRes340615 :=  (<-this.Transfer(code, amount, "spot", "swap", params))
+                PanicOnError(retRes340615)
+                ch <- retRes340615
                 return nil
         
             }()
@@ -3994,8 +4007,8 @@ func  (this *kraken) Transfer(code interface{}, amount interface{}, fromAccount 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes34098 := (<-this.LoadMarkets())
-            PanicOnError(retRes34098)
+            retRes34228 := (<-this.LoadMarkets())
+            PanicOnError(retRes34228)
             var currency interface{} = this.Currency(code)
             fromAccount = this.ParseAccountType(fromAccount)
             toAccount = this.ParseAccountType(toAccount)

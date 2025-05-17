@@ -311,8 +311,6 @@ class cex(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
-        currencyDepositEnabled = self.safe_bool(rawCurrency, 'walletDeposit')
-        currencyWithdrawEnabled = self.safe_bool(rawCurrency, 'walletWithdrawal')
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks: dict = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
@@ -350,8 +348,8 @@ class cex(Exchange, ImplicitAPI):
             'name': None,
             'type': type,
             'active': None,
-            'deposit': currencyDepositEnabled,
-            'withdraw': currencyWithdrawEnabled,
+            'deposit': self.safe_bool(rawCurrency, 'walletDeposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'walletWithdrawal'),
             'fee': None,
             'precision': currencyPrecision,
             'limits': {
