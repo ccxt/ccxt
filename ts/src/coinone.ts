@@ -299,18 +299,16 @@ export default class coinone extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString (entry, 'symbol');
-            const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
-            const withdrawStatus = this.safeString (entry, 'withdraw_status', '');
-            const depositStatus = this.safeString (entry, 'deposit_status', '');
-            const isWithdrawEnabled = withdrawStatus === 'normal';
-            const isDepositEnabled = depositStatus === 'normal';
-            result[code] = {
+            const isWithdrawEnabled = this.safeString (entry, 'withdraw_status', '') === 'normal';
+            const isDepositEnabled = this.safeString (entry, 'deposit_status', '') === 'normal';
+            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled && isDepositEnabled,
+                'name': this.safeString (entry, 'name'),
+                'active': undefined,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': this.safeNumber (entry, 'withdrawal_fee'),
@@ -326,8 +324,8 @@ export default class coinone extends Exchange {
                     },
                 },
                 'networks': {},
-                'type': 'crypto',
-            };
+                'type': type,
+            });
         }
         return result;
     }

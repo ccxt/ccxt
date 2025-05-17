@@ -683,10 +683,6 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quote scale isn't right"
-            },
-            "fetchCurrencies": {
-                "type": "todo",
-                "activeMajorCurrencies": "todo"
             }
         }
     },
