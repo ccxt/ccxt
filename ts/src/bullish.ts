@@ -5,7 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ export default class bullish extends Exchange {
                 'createStopOrder': false,
                 'deposit': false,
                 'editOrder': false,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
@@ -168,8 +168,8 @@ export default class bullish extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1, // todo complete while get api keys
-                        'v2/orders/{orderId}': 1, // todo complete while get api keys
+                        'v2/orders': 1, // done
+                        'v2/orders/{orderId}': 1, // done
                         'v2/amm-instructions': 1,
                         'v2/amm-instructions/{instructionId}': 1,
                         'v1/wallets/transactions': 1,
@@ -184,7 +184,7 @@ export default class bullish extends Exchange {
                         'v1/accounts/asset/{symbol}': 1,
                         'v1/users/logout': 1,
                         'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
+                        'v1/accounts/trading-accounts': 1, // done
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1,
                         'v1/derivatives-positions': 1,
                         'v1/history/derivatives-settlement': 1,
@@ -1369,6 +1369,109 @@ export default class bullish extends Exchange {
             'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const response = await this.privateGetV1AccountsTradingAccounts (params);
+        //
+        //     [
+        //         {
+        //             "defaultedMarginUSD": "0.0000",
+        //             "endCustomerId": "222801149768465",
+        //             "fullLiquidationMarginUSD": "0.0000",
+        //             "initialMarginUSD": "0.0000",
+        //             "isBorrowing": "false",
+        //             "isConcentrationRiskEnabled": "true",
+        //             "isDefaulted": "false",
+        //             "isLending": "false",
+        //             "isPrimaryAccount": "true",
+        //             "liquidationMarginUSD": "0.0000",
+        //             "liquidityAddonUSD": "0.0000",
+        //             "makerFee": "0.00000000",
+        //             "marginProfile": {
+        //                 "defaultedMarketRiskMultiplierPct": "50.00",
+        //                 "fullLiquidationMarketRiskMultiplierPct": "75.00",
+        //                 "initialMarketRiskMultiplierPct": "200.00",
+        //                 "liquidationMarketRiskMultiplierPct": "100.00",
+        //                 "warningMarketRiskMultiplierPct": "150.00"
+        //             },
+        //             "marketRiskUSD": "0.0000",
+        //             "maxInitialLeverage": "1",
+        //             "rateLimitToken": "7fc358f0bad4124528318ff415e24f1ad6e530321827162a5e35d8de8dcfc750",
+        //             "riskLimitUSD": "0.0000",
+        //             "takerFee": "0.00000002",
+        //             "totalBorrowedUSD": "0.0000",
+        //             "totalCollateralUSD": "0.0000",
+        //             "totalLiabilitiesUSD": "0.0000",
+        //             "tradeFeeRate": [
+        //                 {
+        //                     "feeGroupId": "1",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "2",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "3",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "4",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "5",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "6",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "7",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 },
+        //                 {
+        //                     "feeGroupId": "8",
+        //                     "makerFee": "0.00000000",
+        //                     "takerFee": "0.00000000"
+        //                 }
+        //             ],
+        //             "tradingAccountDescription": null,
+        //             "tradingAccountId": "111309424211255",
+        //             "tradingAccountName": "Primary Account",
+        //             "warningMarginUSD": "0.0000"
+        //         }
+        //     ]
+        //
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        return {
+            'id': this.safeString (account, 'tradingAccountId'),
+            'type': 'trading',
+            'code': undefined,
+            'info': account,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
