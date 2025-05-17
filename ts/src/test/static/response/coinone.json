@@ -1,5 +1,68 @@
 {
     "exchange": "coinone",
     "skipKeys": [],
-    "methods": {}
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "error_code": "0",
+                    "server_time": "1747504992748",
+                    "currencies": [
+                        {
+                            "name": "Tether USDT",
+                            "symbol": "USDT",
+                            "deposit_status": "normal",
+                            "withdraw_status": "normal",
+                            "deposit_confirm_count": "20",
+                            "max_precision": "6",
+                            "deposit_fee": "0.0",
+                            "withdrawal_min_amount": "1.0",
+                            "withdrawal_fee": "2.0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "name": "Tether USDT",
+                            "symbol": "USDT",
+                            "deposit_status": "normal",
+                            "withdraw_status": "normal",
+                            "deposit_confirm_count": "20",
+                            "max_precision": "6",
+                            "deposit_fee": "0.0",
+                            "withdrawal_min_amount": "1.0",
+                            "withdrawal_fee": "2.0"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "Tether USDT",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 2,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+  }
 }
