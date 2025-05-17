@@ -707,33 +707,7 @@ public partial class coinex : Exchange
             object canWithdraw = this.safeBool(asset, "withdraw_enabled");
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "name", null },
-                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
-                { "fee", null },
-                { "precision", this.parseNumber(firstPrecisionString) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-                { "info", coin },
-            };
+            object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -773,10 +747,35 @@ public partial class coinex : Exchange
                     } },
                     { "info", chain },
                 };
-                object networks = this.safeDict(getValue(result, code), "networks", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkId] = network;
-                ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
             }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", currencyId },
+                { "code", code },
+                { "name", null },
+                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
+                { "deposit", canDeposit },
+                { "withdraw", canWithdraw },
+                { "fee", null },
+                { "precision", this.parseNumber(firstPrecisionString) },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
+                { "info", coin },
+            });
         }
         return result;
     }
