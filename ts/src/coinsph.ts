@@ -589,7 +589,7 @@ export default class coinsph extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': this.safeString (entry, 'name'),
                 'code': code,
@@ -603,7 +603,7 @@ export default class coinsph extends Exchange {
                 'fee': undefined,
                 'fees': undefined,
                 'limits': {},
-            };
+            });
         }
         return result;
     }
