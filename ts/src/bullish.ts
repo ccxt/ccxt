@@ -6,7 +6,6 @@ import { AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Account, Bool, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
