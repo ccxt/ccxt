@@ -83,14 +83,17 @@ setup(
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1',
-        'typing_extensions>=4.4.0'
+        'typing_extensions>=4.4.0',
+        'aiohttp[no-ext]'
     ],
 
     extras_require={
-        ':python_version>="3.5.2"': [
-            'aiohttp<=3.10.11',
-            'aiodns>=1.1.1',
-            'yarl>=1.7.2',
+        'all': [
+            'aiohttp<=3.10.11; python_version>="3.5.2" and python_version<"3.9"',
+            'aiodns>=1.1.1; python_version>="3.5.2" and python_version<"3.9"',
+            'yarl>=1.7.2; python_version>="3.5.2"',
+            'aiohttp[no-ext]>=3.11.12; python_version>="3.9"',
+            'aiodns>=3.2.0; python_version>="3.9"',
         ],
         'qa': [
             'ruff==0.0.292',
