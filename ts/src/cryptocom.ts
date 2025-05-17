@@ -614,7 +614,7 @@ export default class cryptocom extends Exchange {
                         'max': undefined,
                     },
                 },
-                'type': 'crypto',
+                'type': 'crypto', // only crypto now
                 'networks': networks,
             });
         }
