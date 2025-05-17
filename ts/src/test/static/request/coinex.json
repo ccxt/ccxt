@@ -8,6 +8,15 @@
     ],
     "outputType": "both",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coinex.com/v2/assets/all-deposit-withdraw-config",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot fetch my trades",
