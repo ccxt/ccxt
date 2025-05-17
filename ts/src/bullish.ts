@@ -5,7 +5,8 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Bool, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -899,6 +900,8 @@ export default class bullish extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.signIn ();
+        const accounts: List = await this.fetchAccounts ();
+        const account = this.safeDict (accounts, 0);
         let market = undefined;
         const request: Dict = {
         };
@@ -906,12 +909,14 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const tradingAccountId = this.safeString (params, 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new BadRequest (this.id + ' fetchOrders() requires a tradingAccountId parameter');
+        const tradingAccountId = this.safeString (account, 'id');
+        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
+        if (traidingAccountIdByUser !== undefined) {
+            request['tradingAccountId'] = traidingAccountIdByUser;
+            params = this.omit (params, 'tradingAccountId');
+        } else {
+            request['tradingAccountId'] = tradingAccountId;
         }
-        params = this.omit (params, 'tradingAccountId');
-        request['tradingAccountId'] = tradingAccountId;
         const response = await this.privateGetV2Orders (this.extend (request, params));
         //
         //     [
