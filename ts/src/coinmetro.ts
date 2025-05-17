@@ -382,7 +382,7 @@ export default class coinmetro extends Exchange {
             const code = this.safeCurrencyCode (id);
             const typeRaw = this.safeString (currency, 'type');
             let type = undefined;
-            if (typeRaw === 'coin') {
+            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
                 type = 'crypto';
             } else if (typeRaw === 'fiat') {
                 type = 'fiat';
