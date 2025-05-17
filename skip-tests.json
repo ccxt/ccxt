@@ -645,8 +645,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies show in fetchMarkets but not in fetchCurrencies"
             },
-            "fetchCurrencies": {
-            },
             "fetchTrades": {
                 "side":"side is undefined"
             },

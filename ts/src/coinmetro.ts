@@ -387,6 +387,7 @@ export default class coinmetro extends Exchange {
             } else if (typeRaw === 'fiat') {
                 type = 'fiat';
             }
+            const precisionDigits = this.safeString2 (currency, 'digits', 'notabeneDecimals');
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
@@ -397,7 +398,7 @@ export default class coinmetro extends Exchange {
                 'deposit': this.safeBool (currency, 'canDeposit'),
                 'withdraw': this.safeBool (currency, 'canWithdraw'),
                 'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'digits'))),
+                'precision': this.parseNumber (this.parsePrecision (precisionDigits)),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'minQty'),
