@@ -360,56 +360,18 @@ export default class coincatch extends Exchange {
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB', // todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE', // todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP', // todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX', // todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20', // todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX', // todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT', // todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain', // todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM', // todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO', // todo check
                 },
             },
@@ -645,72 +607,57 @@ export default class coincatch extends Exchange {
             const currencyId = this.safeString (currecy, 'coinName');
             currenciesIds.push (currencyId);
             const code = this.safeCurrencyCode (currencyId);
-            let allowDeposit = false;
-            let allowWithdraw = false;
-            let minDeposit: Str = undefined;
-            let minWithdraw: Str = undefined;
             const networks = this.safeList (currecy, 'chains');
-            const networksById = this.safeDict (this.options, 'networksById');
             const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chain');
-                const networkName = this.safeString (networksById, networkId, networkId);
-                const networkDepositString = this.safeString (network, 'rechargeable');
-                const networkDeposit = networkDepositString === 'true';
-                const networkWithdrawString = this.safeString (network, 'withdrawable');
-                const networkWithdraw = networkWithdrawString === 'true';
-                const networkMinDeposit = this.safeString (network, 'minDepositAmount');
-                const networkMinWithdraw = this.safeString (network, 'minWithdrawAmount');
+                const networkCode = this.networkCodeToId (networkId);
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': this.parseNumber (networkMinDeposit),
+                            'min': this.safeNumber (network, 'minDepositAmount'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber (networkMinWithdraw),
+                            'min': this.safeNumber (network, 'minWithdrawAmount'),
                             'max': undefined,
                         },
                     },
-                    'active': networkDeposit && networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': undefined,
+                    'deposit': this.safeString (network, 'rechargeable') === 'true',
+                    'withdraw': this.safeString (network, 'withdrawable') === 'true',
                     'fee': this.safeNumber (network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
-                allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
-                allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
-                minDeposit = minDeposit ? Precise.stringMin (networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = minWithdraw ? Precise.stringMin (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'numericId': this.safeInteger (currecy, 'coinId'),
                 'code': code,
                 'precision': undefined,
                 'type': undefined,
                 'name': undefined,
-                'active': allowWithdraw && allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'limits': {
                     'deposit': {
-                        'min': this.parseNumber (minDeposit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber (minWithdraw),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            };
+            });
         }
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
