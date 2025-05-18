@@ -155,8 +155,8 @@ class ArrayCacheBySymbolById(ArrayCache):
             self._index.popleft()
             try:
                 del self.hashmap[delete_item['symbol']][delete_item['id']]
-            except:
-                logger.error(f"Error deleting item from hashmap: {delete_item}")
+            except Exception as e:
+                logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
         self._deque.append(item)
         self._index.append(item['id'])
         if self._clear_all_updates:
