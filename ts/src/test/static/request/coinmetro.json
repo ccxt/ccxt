@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coinmetro.com/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit order",
