@@ -2566,7 +2566,7 @@ export default class Exchange {
             stream.subscribe ('liquidations::' + symbol, callback, synchronous);
         }
         stream.addWatchFunction ('liquidations', [ symbol, undefined, undefined, params ]);
-        await this.watchLiquidations (symbol, undefined, undefined, params);
+        return await this.watchLiquidations (symbol, undefined, undefined, params);
     }
 
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -2595,7 +2595,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchLiquidationsForSymbols', [ symbols, undefined, undefined, params ]);
-        await this.watchTradesForSymbols (symbols, undefined, undefined, params);
+        return await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -2629,7 +2629,7 @@ export default class Exchange {
             stream.subscribe ('trades::' + symbol, callback, synchronous);
         }
         stream.addWatchFunction ('watchTrades', [ symbol, undefined, undefined, params ]);
-        await this.watchTrades (symbol, undefined, undefined, params);
+        return await this.watchTrades (symbol, undefined, undefined, params);
     }
 
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
@@ -2662,7 +2662,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchTradesForSymbols', [ symbols, undefined, undefined, params ]);
-        await this.watchTradesForSymbols (symbols, undefined, undefined, params);
+        return await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
 
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -2696,7 +2696,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchMyTradesForSymbols', [ symbols, undefined, undefined, params ]);
-        await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
+        return await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2725,7 +2725,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchOrdersForSymbols', [ symbols, undefined, undefined, params ]);
-        await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
+        return await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
@@ -2755,7 +2755,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchOHLCVForSymbols', [ symbolsAndTimeframes, undefined, undefined, params ]);
-        await this.watchOHLCVForSymbols (symbolsAndTimeframes, undefined, undefined, params);
+        return await this.watchOHLCVForSymbols (symbolsAndTimeframes, undefined, undefined, params);
     }
 
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
@@ -2789,7 +2789,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchOrderBookForSymbols', [ symbols, undefined, params ]);
-        await this.watchOrderBookForSymbols (symbols, undefined, params);
+        return await this.watchOrderBookForSymbols (symbols, undefined, params);
     }
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -2850,7 +2850,7 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.subscribeOrderBookForSymbols ([ symbol ], callback, synchronous, params);
+        return await this.subscribeOrderBookForSymbols ([ symbol ], callback, synchronous, params);
     }
 
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
@@ -4357,7 +4357,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
-    async subscribeOHLCV (symbol: string, timeframe = '1m', callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}) {
+    async subscribeOHLCV (symbol: string, timeframe = '1m', callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<any> {
         /**
          * @method
          * @name subscribeOHLCV
