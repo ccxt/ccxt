@@ -1569,18 +1569,31 @@ export default class bullish extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.microseconds ().toString ();
             const timestamp = this.milliseconds ().toString ();
-            let suffix = '';
-            if (method !== 'GET') {
-                body = this.json (request);
-                suffix = body;
+            if (method === 'GET') {
+                const payload = timestamp + nonce + method + '/trading-api/' + path;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+                headers = {
+                    'BX-TIMESTAMP': timestamp,
+                    'BX-NONCE': nonce,
+                    'BX-SIGNATURE': signature,
+                };
+            } else if (method === 'POST') {
+                body = this.json (params);
+                const payload = timestamp + nonce + method + '/trading-api/' + path + body;
+                const digest = this.hash (this.encode (payload), sha256, 'hex');
+                const signature = this.hmac (this.encode (digest), this.encode (this.secret), sha256, 'hex');
+                headers = {
+                    'BX-TIMESTAMP': timestamp,
+                    'BX-NONCE': nonce,
+                    'BX-SIGNATURE': signature,
+                    'Content-Type': 'application/json',
+                };
+                headers['Content-Type'] = 'application/json';
+                const rateLimitToken = this.safeString (request, 'rateLimitToken');
+                if (rateLimitToken !== undefined) {
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                }
             }
-            const payload = timestamp + nonce + method + '/trading-api/' + path + suffix;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-            headers = {
-                'BX-TIMESTAMP': timestamp,
-                'BX-NONCE': nonce,
-                'BX-SIGNATURE': signature,
-            };
             if (path === 'v1/users/hmac/login') {
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
@@ -1590,14 +1603,6 @@ export default class bullish extends Exchange {
                 }
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
-            }
-            if (method === 'POST') {
-                body = this.json (request);
-                headers['Content-Type'] = 'application/json';
-                const rateLimitToken = this.safeString (request, 'rateLimitToken');
-                if (rateLimitToken !== undefined) {
-                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
-                }
             }
         }
         if (method === 'GET') {
