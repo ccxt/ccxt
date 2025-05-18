@@ -20,6 +20,21 @@ func NewCoinex(userConfig map[string]interface{}) Coinex {
 
 /**
  * @method
+ * @name coinex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinex#fetchMarkets
  * @description retrieves data on all markets for coinex
  * @see https://docs.coinex.com/api/v2/spot/market/http/list-market

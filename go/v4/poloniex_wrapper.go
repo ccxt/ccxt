@@ -146,6 +146,21 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 }
 /**
  * @method
+ * @name poloniex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Poloniex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name poloniex#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker

@@ -66,6 +66,21 @@ func (this *Hashkey) FetchMarkets(params ...interface{}) ([]MarketInterface, err
 }
 /**
  * @method
+ * @name hashkey#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Hashkey) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name hashkey#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
