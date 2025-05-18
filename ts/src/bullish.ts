@@ -5,7 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, Dict, Int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Bool, Currencies, Currency, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -215,6 +215,7 @@ export default class bullish extends Exchange {
             'options': {
                 'networksById': {
                 },
+                'tradingAccountId': '111309424211255',
             },
             'features': {
                 'spot': {
@@ -601,10 +602,10 @@ export default class bullish extends Exchange {
                 },
             },
             'precision': {
-                'amount': costPrecision,
-                'price': pricePrecision,
-                'base': basePrecision,
-                'quote': quotePrecision,
+                'amount': this.parseNumber (this.parsePrecision (costPrecision)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+                'base': this.parseNumber (this.parsePrecision (basePrecision)),
+                'quote': this.parseNumber (this.parsePrecision (quotePrecision)),
             },
             'active': true,
             'created': undefined,
@@ -957,14 +958,12 @@ export default class bullish extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for, not used by bullish
      * @param {int} [limit] the maximum number of order structures to retrieve, not used by bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.signIn ();
-        const accounts: List = await this.fetchAccounts ();
-        const account = this.safeDict (accounts, 0);
         let market = undefined;
         const request: Dict = {
         };
@@ -972,13 +971,12 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const tradingAccountId = this.safeString (account, 'id');
-        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
-        if (traidingAccountIdByUser !== undefined) {
-            request['tradingAccountId'] = traidingAccountIdByUser;
-            params = this.omit (params, 'tradingAccountId');
-        } else {
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter');
         }
         const response = await this.privateGetV2Orders (this.extend (request, params));
         //
@@ -1019,7 +1017,7 @@ export default class bullish extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
      * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1031,19 +1029,16 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
         }
         await this.signIn ();
-        const accounts: List = await this.fetchAccounts ();
-        const account = this.safeDict (accounts, 0);
-        const tradingAccountId = this.safeString (account, 'id');
-        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
-        if (traidingAccountIdByUser !== undefined) {
-            params['tradingAccountId'] = traidingAccountIdByUser;
-            params = this.omit (params, 'tradingAccountId');
-        } else {
-            params['tradingAccountId'] = tradingAccountId;
-        }
         const request: Dict = {
             'orderId': id,
         };
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            request['tradingAccountId'] = tradingAccountId;
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter');
+        }
         const response = await this.privateGetV2OrdersOrderId (this.extend (request, params));
         //
         //     {
@@ -1081,7 +1076,7 @@ export default class bullish extends Exchange {
      * @description create a trade order
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -1091,7 +1086,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
      * @param {bool} [params.allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
-     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1101,39 +1096,35 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'commandType': 'V3CreateOrder',
             'symbol': market['id'],
-            'side': side,
+            'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
-            'timeInForce': this.safeString (params, 'timeInForce', 'GTC'),
-            'allowBorrow': this.safeValue (params, 'allowBorrow', false),
         };
+        const isMarketOrder = type === 'market';
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
+        if (postOnly) {
+            type = 'POST_ONLY';
+        }
+        let timeInForce = 'GTC';
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
+        timeInForce = timeInForce.toUpperCase ();
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const accounts: List = await this.fetchAccounts ();
-        const account = this.safeDict (accounts, 0);
-        const tradingAccountId = this.safeString (account, 'id');
-        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
-        if (traidingAccountIdByUser !== undefined) {
-            params['tradingAccountId'] = traidingAccountIdByUser;
-            params = this.omit (params, 'tradingAccountId');
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            request['tradingAccountId'] = tradingAccountId;
         } else {
-            params['tradingAccountId'] = tradingAccountId;
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter');
         }
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = stopPrice;
-            request['type'] = 'STOP_LIMIT';
+            type = 'STOP_LIMIT';
+            params = this.omit (params, 'stopPrice');
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            request['type'] = 'POST_ONLY';
-        }
-        request['type'] = this.capitalize (type);
-        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice' ]);
+        request['type'] = type.toLocaleUpperCase ();
         const response = await this.privatePostV2Orders (this.extend (request, params));
         //
         //     {
@@ -1605,9 +1596,11 @@ export default class bullish extends Exchange {
                 }
             }
         }
-        const query = this.customUrlencode (request);
-        if (query.length) {
-            url += '?' + query;
+        if (method === 'GET') {
+            const query = this.customUrlencode (request);
+            if (query.length) {
+                url += '?' + query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
