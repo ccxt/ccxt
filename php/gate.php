@@ -1898,7 +1898,7 @@ class gate extends Exchange {
                     'code' => $code,
                     'type' => $type,
                     'precision' => $precision,
-                    'limits' => $this->limits,
+                    'limits' => null,
                     'networks' => array(),
                     'info' => array(), // will be filled below
                 );
