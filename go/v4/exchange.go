@@ -149,6 +149,8 @@ type Exchange struct {
 	FetchResponse interface{}
 
 	IsSandboxModeEnabled bool
+
+	Stream *Stream
 }
 
 const DECIMAL_PLACES int = 2
@@ -206,6 +208,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 
 func NewExchange() IExchange {
 	exchange := &Exchange{}
+	exchange.Stream = &Stream{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
 }
@@ -1193,5 +1196,55 @@ func (this *Exchange) UpdateProxySettings() {
 		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
 
 		this.httpClient.Transport = proxyTransport
+	}
+}
+
+// StreamToSymbol returns a callback that produces messages to topic::symbol
+func (this *Exchange) StreamToSymbol(topic interface{}) interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		symbol, _ := payload["symbol"].(string)
+		topicStr := ToString(topic)
+		this.Stream.Produce(topicStr+"::"+symbol, payload, nil)
+	}
+}
+
+// StreamReconnectOnError returns a callback that attempts to reconnect on error
+func (this *Exchange) StreamReconnectOnError() interface{} {
+	return func(message map[string]interface{}) {
+		error := message["payload"]
+		msgErr := message["error"]
+		if error != nil && !isExchangeClosedByUser(msgErr) {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Failed to reconnect to stream:", r)
+				}
+			}()
+			// In Go, just call the method (no await)
+			_ = this.StreamReconnect()
+		}
+	}
+}
+
+// isExchangeClosedByUser checks if the error is of type ExchangeClosedByUser (dummy for now)
+func isExchangeClosedByUser(err interface{}) bool {
+	// You can implement a more robust check if you have a custom error type
+	return false // always false for now
+}
+
+// StreamOHLCVS returns a callback that parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
+func (this *Exchange) StreamOHLCVS() interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		err := message["error"]
+		symbol, _ := payload["symbol"].(string)
+		ohlcv := payload["ohlcv"]
+		if symbol != "" {
+			this.StreamProduce("ohlcvs::"+symbol, ohlcv, err)
+			timeframe, _ := payload["timeframe"].(string)
+			if timeframe != "" {
+				this.StreamProduce("ohlcvs::"+symbol+"::"+timeframe, ohlcv, err)
+			}
+		}
 	}
 }
