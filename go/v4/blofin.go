@@ -1587,7 +1587,7 @@ func  (this *blofin) CreateOrder(symbol interface{}, typeVar interface{}, side i
             } else if IsTrue(IsTrue(isTriggerOrder) || IsTrue((IsEqual(method, "privatePostTradeOrderAlgo")))) {
                 var triggerRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
                 
-        response = (<-this.callDynamically("privatePostTradeOrderAlgo", triggerRequest))
+        response = (<-this.PrivatePostTradeOrderAlgo(triggerRequest))
                 PanicOnError(response)
             } else {
                 var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1714,7 +1714,7 @@ func  (this *blofin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 return nil
             } else if IsTrue(isTrigger) {
         
-                triggerResponse:= (<-this.callDynamically("privatePostTradeCancelAlgo", this.Extend(request, query)))
+                triggerResponse:= (<-this.PrivatePostTradeCancelAlgo(this.Extend(request, query)))
                 PanicOnError(triggerResponse)
                 var triggerData interface{} = this.SafeDict(triggerResponse, "data")
         
@@ -1842,7 +1842,7 @@ func  (this *blofin) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             } else if IsTrue(IsTrue(isTrigger) || IsTrue((IsEqual(method, "privateGetTradeOrdersAlgoPending")))) {
                 AddElementToObject(request, "orderType", "trigger")
                 
-        response = (<-this.callDynamically("privateGetTradeOrdersAlgoPending", this.Extend(request, query)))
+        response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
                 PanicOnError(response)
             } else {
                 
