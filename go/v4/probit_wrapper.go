@@ -35,6 +35,21 @@ func (this *Probit) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name probit#fetchCurrencies
+ * @see https://docs-en.probit.com/reference/currency
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Probit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name probit#fetchBalance
  * @see https://docs-en.probit.com/reference/balance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders

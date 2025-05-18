@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -571,6 +571,7 @@ class woo extends woo$1 {
             linear = true;
             inverse = false;
         }
+        const active = this.safeString(market, 'is_trading') === '1';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -586,7 +587,7 @@ class woo extends woo$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': this.safeString(market, 'is_trading') === '1',
+            'active': active,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
@@ -930,6 +931,7 @@ class woo extends woo$1 {
                 'networks': resultingNetworks,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'limits': {
                     'deposit': {
                         'min': undefined,

@@ -20,6 +20,21 @@ func NewBitopro(userConfig map[string]interface{}) Bitopro {
 
 /**
  * @method
+ * @name bitopro#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitopro) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitopro#fetchMarkets
  * @description retrieves data on all markets for bitopro
  * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md

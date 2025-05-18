@@ -365,6 +365,7 @@ public partial class hyperliquid : Exchange
                 { "withdraw", null },
                 { "networks", null },
                 { "fee", null },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -789,6 +790,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -802,6 +804,10 @@ public partial class hyperliquid : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
         object reqType = ((bool) isTrue((isSpot))) ? "spotClearinghouseState" : "clearinghouseState";
         object request = new Dictionary<string, object>() {
@@ -864,12 +870,19 @@ public partial class hyperliquid : Exchange
             return this.safeBalance(spotBalances);
         }
         object data = this.safeDict(response, "marginSummary", new Dictionary<string, object>() {});
+        object usdcBalance = new Dictionary<string, object>() {
+            { "total", this.safeNumber(data, "accountValue") },
+        };
+        if (isTrue(isTrue((!isEqual(marginMode, null))) && isTrue((isEqual(marginMode, "isolated")))))
+        {
+            ((IDictionary<string,object>)usdcBalance)["free"] = this.safeNumber(response, "withdrawable");
+        } else
+        {
+            ((IDictionary<string,object>)usdcBalance)["used"] = this.safeNumber(data, "totalMarginUsed");
+        }
         object result = new Dictionary<string, object>() {
             { "info", response },
-            { "USDC", new Dictionary<string, object>() {
-                { "total", this.safeNumber(data, "accountValue") },
-                { "used", this.safeNumber(data, "totalMarginUsed") },
-            } },
+            { "USDC", usdcBalance },
         };
         object timestamp = this.safeInteger(response, "time");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
@@ -2462,6 +2475,10 @@ public partial class hyperliquid : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2552,6 +2569,14 @@ public partial class hyperliquid : Exchange
         //     "triggerPx": "0.6"
         // }
         //
+        object error = this.safeString(order, "error");
+        if (isTrue(!isEqual(error, null)))
+        {
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "status", "rejected" },
+            });
+        }
         object entry = this.safeDictN(order, new List<object>() {"order", "resting", "filled"});
         if (isTrue(isEqual(entry, null)))
         {
@@ -3947,10 +3972,14 @@ public partial class hyperliquid : Exchange
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         object status = this.safeString(response, "status", "");
+        object error = this.safeString(response, "error");
         object message = null;
         if (isTrue(isEqual(status, "err")))
         {
             message = this.safeString(response, "response");
+        } else if (isTrue(!isEqual(error, null)))
+        {
+            message = error;
         } else
         {
             object responsePayload = this.safeDict(response, "response", new Dictionary<string, object>() {});

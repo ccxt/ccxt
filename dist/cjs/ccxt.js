@@ -12,8 +12,8 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
-var ace = require('./src/ace.js');
 var alpaca = require('./src/alpaca.js');
+var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
@@ -25,7 +25,6 @@ var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
-var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
@@ -33,7 +32,6 @@ var bithumb = require('./src/bithumb.js');
 var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
-var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
@@ -122,6 +120,7 @@ var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
+var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
@@ -129,14 +128,12 @@ var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
-var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
-var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
@@ -187,6 +184,7 @@ var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
+var tradeogre$1 = require('./src/pro/tradeogre.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var vertex$1 = require('./src/pro/vertex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
@@ -196,11 +194,11 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.72';
+const version = '4.4.83';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
-    'ace': ace,
     'alpaca': alpaca,
+    'apex': apex,
     'ascendex': ascendex,
     'bequant': bequant,
     'bigone': bigone,
@@ -212,7 +210,6 @@ const exchanges = {
     'bit2c': bit2c,
     'bitbank': bitbank,
     'bitbns': bitbns,
-    'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
     'bitflyer': bitflyer,
     'bitget': bitget,
@@ -220,7 +217,6 @@ const exchanges = {
     'bitmart': bitmart,
     'bitmex': bitmex,
     'bitopro': bitopro,
-    'bitpanda': bitpanda,
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
@@ -311,6 +307,7 @@ const exchanges = {
 };
 const pro = {
     'alpaca': alpaca$1,
+    'apex': apex$1,
     'ascendex': ascendex$1,
     'bequant': bequant$1,
     'binance': binance$1,
@@ -318,14 +315,12 @@ const pro = {
     'binanceus': binanceus$1,
     'binanceusdm': binanceusdm$1,
     'bingx': bingx$1,
-    'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
     'bitget': bitget$1,
     'bithumb': bithumb$1,
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
-    'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
@@ -376,6 +371,7 @@ const pro = {
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'probit': probit$1,
+    'tradeogre': tradeogre$1,
     'upbit': upbit$1,
     'vertex': vertex$1,
     'whitebit': whitebit$1,
@@ -433,8 +429,8 @@ exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
-exports.ace = ace;
 exports.alpaca = alpaca;
+exports.apex = apex;
 exports.ascendex = ascendex;
 exports.bequant = bequant;
 exports.bigone = bigone;
@@ -446,7 +442,6 @@ exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
 exports.bitbns = bitbns;
-exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
 exports.bitflyer = bitflyer;
 exports.bitget = bitget;
@@ -454,7 +449,6 @@ exports.bithumb = bithumb;
 exports.bitmart = bitmart;
 exports.bitmex = bitmex;
 exports.bitopro = bitopro;
-exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;

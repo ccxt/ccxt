@@ -345,6 +345,8 @@ export default class bitvavo extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': undefined, // this will be required soon for order-related endpoints
+                'fiatCurrencies': [ 'EUR' ], // only fiat atm
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -561,24 +563,24 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
+            const isFiat = this.inArray (code, fiatCurrencies);
             const networks: Dict = {};
-            const networksArray = this.safeValue (currency, 'networks', []);
-            const networksLength = networksArray.length;
-            const isOneNetwork = (networksLength === 1);
-            const deposit = (this.safeValue (currency, 'depositStatus') === 'OK');
-            const withdrawal = (this.safeValue (currency, 'withdrawalStatus') === 'OK');
+            const networksArray = this.safeList (currency, 'networks', []);
+            const deposit = this.safeString (currency, 'depositStatus') === 'OK';
+            const withdrawal = this.safeString (currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber (currency, 'withdrawalFee');
             const precision = this.safeInteger (currency, 'decimals', 8);
             const minWithdraw = this.safeNumber (currency, 'withdrawalMinAmount');
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isOneNetwork) {
-                const networkId = networksArray[0];
+            // btw, absolutely all of them have 1 network atm
+            for (let j = 0; j < networksArray.length; j++) {
+                const networkId = networksArray[j];
                 const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
                     'info': currency,
@@ -597,7 +599,7 @@ export default class bitvavo extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -608,6 +610,7 @@ export default class bitvavo extends Exchange {
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -622,7 +625,7 @@ export default class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         // set currencies here to avoid calling publicGetAssets twice
         this.currencies = this.deepExtend (this.currencies, result);
@@ -1202,6 +1205,11 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'createOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        }
         return this.extend (request, params);
     }
 
@@ -1303,6 +1311,11 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'editOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1340,6 +1353,11 @@ export default class bitvavo extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
+        }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
         }
         return this.extend (request, params);
     }

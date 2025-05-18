@@ -353,6 +353,9 @@ class delta extends Exchange {
             $expiry = $this->safe_string($optionParts, 3);
             $optionType = $this->safe_string($optionParts, 0);
         }
+        if ($expiry !== null) {
+            $expiry = mb_substr($expiry, 4) . mb_substr($expiry, 2, 4 - 2) . mb_substr($expiry, 0, 2 - 0);
+        }
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2);
         $datetime = $this->convert_expire_date($expiry);
@@ -573,6 +576,7 @@ class delta extends Exchange {
                         ),
                     ),
                     'networks' => array(),
+                    'type' => 'crypto',
                 );
             }
             return $result;
@@ -1723,7 +1727,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

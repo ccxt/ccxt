@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -104,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
-                'fetchPositionMode': False,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -126,6 +126,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -224,6 +225,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -231,6 +233,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         # sub-account endpoints
@@ -283,6 +286,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/modify-tp-sl-order': 2.5,
                         'contract/private/submit-trail-order': 2.5,  # weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order': 1.5,  # weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -1205,12 +1209,13 @@ class bitmart(Exchange, ImplicitAPI):
         #     {
         #         "message": "OK",
         #         "code": 1000,
-        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242228",
+        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         #         "data": {
         #             "currencies": [
         #                 {
         #                     "currency": "BTC",
         #                     "name": "Bitcoin",
+        #                     "recharge_minsize": '0.00000001',
         #                     "contract_address": null,
         #                     "network": "BTC",
         #                     "withdraw_enabled": True,
@@ -1232,7 +1237,8 @@ class bitmart(Exchange, ImplicitAPI):
             fullId = self.safe_string(currency, 'currency')
             currencyId = fullId
             networkId = self.safe_string(currency, 'network')
-            if fullId.find('NFT') < 0:
+            isNtf = (fullId.find('NFT') >= 0)
+            if not isNtf:
                 parts = fullId.split('-')
                 currencyId = self.safe_string(parts, 0)
                 second = self.safe_string(parts, 1)
@@ -1251,6 +1257,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'withdraw': None,
                     'active': None,
                     'networks': {},
+                    'type': 'other' if isNtf else 'crypto',
                 }
             networkCode = self.network_id_to_code(networkId)
             withdraw = self.safe_bool(currency, 'withdraw_enabled')
@@ -3847,10 +3854,11 @@ class bitmart(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         networkId: Str = None
-        if currencyId.find('NFT') < 0:
-            parts = currencyId.split('-')
-            currencyId = self.safe_string(parts, 0)
-            networkId = self.safe_string(parts, 1)
+        if currencyId is not None:
+            if currencyId.find('NFT') < 0:
+                parts = currencyId.split('-')
+                currencyId = self.safe_string(parts, 0)
+                networkId = self.safe_string(parts, 1)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number(transaction, 'fee')
@@ -4650,11 +4658,12 @@ class bitmart(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open contract positions
 
         https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4671,7 +4680,7 @@ class bitmart(Exchange, ImplicitAPI):
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
             request['symbol'] = market['id']
-        response = self.privateGetContractPrivatePosition(self.extend(request, params))
+        response = self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -5211,6 +5220,66 @@ class bitmart(Exchange, ImplicitAPI):
             if noteMatch and networkMatch:
                 addresses.append(address)
         return addresses
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        self.load_markets()
+        positionMode = None
+        if hedged:
+            positionMode = 'hedge_mode'
+        else:
+            positionMode = 'one_way_mode'
+        request: dict = {
+            'position_mode': positionMode,
+        }
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        return self.privatePostContractPrivateSetPositionMode(self.extend(request, params))
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+
+        :param str symbol: not used
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.privateGetContractPrivateGetPositionMode(params)
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data')
+        positionMode = self.safe_string(data, 'position_mode')
+        return {
+            'info': response,
+            'hedged': (positionMode == 'hedge_mode'),
+        }
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']

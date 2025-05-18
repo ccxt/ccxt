@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class coincatch
@@ -73,6 +73,7 @@ class coincatch extends coincatch$1 {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -357,56 +358,18 @@ class coincatch extends coincatch$1 {
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB',
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE',
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP',
-                    'FET': 'FET',
                     'C-Chain': 'AVAX',
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20',
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX',
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT',
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain',
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM',
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO', // todo check
                 },
             },
@@ -640,75 +603,127 @@ class coincatch extends coincatch$1 {
             const currencyId = this.safeString(currecy, 'coinName');
             currenciesIds.push(currencyId);
             const code = this.safeCurrencyCode(currencyId);
-            let allowDeposit = false;
-            let allowWithdraw = false;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
             const networks = this.safeList(currecy, 'chains');
-            const networksById = this.safeDict(this.options, 'networksById');
             const parsedNetworks = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString(network, 'chain');
-                const networkName = this.safeString(networksById, networkId, networkId);
-                const networkDepositString = this.safeString(network, 'rechargeable');
-                const networkDeposit = networkDepositString === 'true';
-                const networkWithdrawString = this.safeString(network, 'withdrawable');
-                const networkWithdraw = networkWithdrawString === 'true';
-                const networkMinDeposit = this.safeString(network, 'minDepositAmount');
-                const networkMinWithdraw = this.safeString(network, 'minWithdrawAmount');
+                const networkCode = this.networkCodeToId(networkId);
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': this.parseNumber(networkMinDeposit),
+                            'min': this.safeNumber(network, 'minDepositAmount'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber(networkMinWithdraw),
+                            'min': this.safeNumber(network, 'minWithdrawAmount'),
                             'max': undefined,
                         },
                     },
-                    'active': networkDeposit && networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': undefined,
+                    'deposit': this.safeString(network, 'rechargeable') === 'true',
+                    'withdraw': this.safeString(network, 'withdrawable') === 'true',
                     'fee': this.safeNumber(network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
-                allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
-                allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
-                minDeposit = minDeposit ? Precise["default"].stringMin(networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = minWithdraw ? Precise["default"].stringMin(networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
                 'numericId': this.safeInteger(currecy, 'coinId'),
                 'code': code,
                 'precision': undefined,
                 'type': undefined,
                 'name': undefined,
-                'active': allowWithdraw && allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'limits': {
                     'deposit': {
-                        'min': this.parseNumber(minDeposit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdraw),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            };
+            });
         }
         if (this.safeList(this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        await this.loadMarkets();
+        const response = await this.publicGetApiSpotV1PublicCurrencies(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseDepositWithdrawFees(data, codes, 'coinName');
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        const chains = this.safeList(fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString(chain, 'chain');
+            const currencyCode = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+            };
+            if (chainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
         }
         return result;
     }

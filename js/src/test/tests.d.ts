@@ -63,6 +63,7 @@ declare class testMainClass {
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object, testName?: Str): number;
+    checkIfExchangeIsDisabled(exchangeName: string, exchangeData: object): boolean;
     runStaticRequestTests(targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticTests(type: string, targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticResponseTests(exchangeName?: any, test?: any): Promise<boolean>;

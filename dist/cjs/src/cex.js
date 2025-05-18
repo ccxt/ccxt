@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -302,8 +302,6 @@ class cex extends cex$1 {
         const id = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(id);
         const type = this.safeBool(rawCurrency, 'fiat') ? 'fiat' : 'crypto';
-        const currencyDepositEnabled = this.safeBool(rawCurrency, 'walletDeposit');
-        const currencyWithdrawEnabled = this.safeBool(rawCurrency, 'walletWithdrawal');
         const currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
         const networks = {};
         const rawNetworks = this.safeDict(rawCurrency, 'blockchains', {});
@@ -342,8 +340,8 @@ class cex extends cex$1 {
             'name': undefined,
             'type': type,
             'active': undefined,
-            'deposit': currencyDepositEnabled,
-            'withdraw': currencyWithdrawEnabled,
+            'deposit': this.safeBool(rawCurrency, 'walletDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'walletWithdrawal'),
             'fee': undefined,
             'precision': currencyPrecision,
             'limits': {
@@ -550,7 +548,7 @@ class cex extends cex$1 {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeString(ticker, 'lastTradePrice'),
+            'close': this.safeString(ticker, 'last'),
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'priceChange'),
             'percentage': this.safeNumber(ticker, 'priceChangePercentage'),

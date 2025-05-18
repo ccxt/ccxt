@@ -490,6 +490,7 @@ export default class hollaex extends Exchange {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

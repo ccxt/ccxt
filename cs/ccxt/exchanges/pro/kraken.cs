@@ -105,11 +105,201 @@ public partial class kraken : ccxt.kraken
         });
     }
 
+    public virtual object orderRequestWs(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (isTrue(isLimitOrder))
+        {
+            if (isTrue(isEqual(price, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " limit orders require a price argument")) ;
+            }
+            ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+        }
+        object isMarket = (isEqual(type, "market"));
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(postOnly))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["post_only"] = true;
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["cl_ord_id"] = clientOrderId;
+        }
+        object cost = this.safeString(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["order_qty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+        }
+        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        object presetStopLoss = this.safeString(stopLoss, "triggerPrice");
+        object presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
+        object presetStopLossLimit = this.safeString(stopLoss, "price");
+        object presetTakeProfitLimit = this.safeString(takeProfit, "price");
+        object isPresetStopLoss = !isEqual(presetStopLoss, null);
+        object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
+        object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
+        object trailingAmount = this.safeString(parameters, "trailingAmount");
+        object trailingPercent = this.safeString(parameters, "trailingPercent");
+        object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
+        object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
+        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        object isTrailingLimitAmountOrder = !isEqual(trailingLimitAmount, null);
+        object isTrailingLimitPercentOrder = !isEqual(trailingLimitPercent, null);
+        object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
+        object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add(offset, this.numberToString(trailingAmount)) : null;
+        object trailingPercentString = ((bool) isTrue((!isEqual(trailingPercent, null)))) ? add(offset, this.numberToString(trailingPercent)) : null;
+        object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+        object trailingLimitPercentString = ((bool) isTrue((!isEqual(trailingLimitPercent, null)))) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
+        object priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
+        if (isTrue(isEqual(method, "createOrderWs")))
+        {
+            object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            if (isTrue(reduceOnly))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["reduce_only"] = true;
+            }
+            object timeInForce = this.safeStringLower(parameters, "timeInForce");
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["time_in_force"] = timeInForce;
+            }
+            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "timeInForce"});
+            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)) || isTrue(isTrailingAmountOrder)) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["triggers"] = new Dictionary<string, object>() {};
+            }
+            if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["conditional"] = new Dictionary<string, object>() {};
+                if (isTrue(isPresetStopLoss))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
+                } else if (isTrue(isPresetTakeProfit))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
+                }
+                if (isTrue(!isEqual(presetStopLossLimit, null)))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss-limit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
+                } else if (isTrue(!isEqual(presetTakeProfitLimit, null)))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit-limit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
+            } else if (isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)))
+            {
+                if (isTrue(isStopLossPriceOrder))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    if (isTrue(isLimitOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss-limit";
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss";
+                    }
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    if (isTrue(isLimitOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit-limit";
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit";
+                    }
+                }
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price_type"] = priceType;
+                if (isTrue(!isTrue(isLimitOrder) && isTrue((isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))))
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop";
+                    if (isTrue(isTrailingAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingPercentString);
+                    }
+                } else
+                {
+                    // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
+                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
+                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop-limit";
+                    if (isTrue(isTrailingLimitAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitPercentString);
+                    }
+                }
+            }
+        } else if (isTrue(isEqual(method, "editOrderWs")))
+        {
+            if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+            {
+                throw new NotSupported ((string)add(this.id, " editing the stopLoss and takeProfit on existing orders is currently not supported")) ;
+            }
+            if (isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)))
+            {
+                if (isTrue(isStopLossPriceOrder))
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                }
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["trigger_price_type"] = priceType;
+                if (isTrue(!isTrue(isLimitOrder) && isTrue((isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))))
+                {
+                    if (isTrue(isTrailingAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingPercentString);
+                    }
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
+                    if (isTrue(isTrailingLimitAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitPercentString);
+                    }
+                }
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"});
+        return new List<object>() {request, parameters};
+    }
+
     /**
      * @method
      * @name kraken#createOrderWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/addorder
      * @description create a trade order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -124,19 +314,21 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         object token = await this.authenticate();
         object market = this.market(symbol);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "addOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "ordertype", type },
-            { "type", side },
-            { "pair", getValue(market, "wsId") },
-            { "volume", this.amountToPrecision(symbol, amount) },
+            { "method", "add_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_type", type },
+                { "side", side },
+                { "order_qty", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
+                { "symbol", getValue(market, "symbol") },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
-        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, amount, price, parameters);
+        var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -146,25 +338,33 @@ public partial class kraken : ccxt.kraken
     {
         //
         //  createOrder
-        //    {
-        //        "descr": "sell 0.00010000 XBTUSDT @ market",
-        //        "event": "addOrderStatus",
-        //        "reqid": 1,
-        //        "status": "ok",
-        //        "txid": "OAVXZH-XIE54-JCYYDG"
-        //    }
-        //  editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
+        //     }
         //
-        object order = this.parseOrder(message);
-        object messageHash = this.safeValue(message, "reqid");
+        //  editOrder
+        //     {
+        //         "method": "amend_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-14T13:54:10.840342Z",
+        //         "time_out": "2025-05-14T13:54:10.855046Z"
+        //     }
+        //
+        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        object order = this.parseOrder(result);
+        object messageHash = this.safeValue2(message, "reqid", "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
@@ -172,7 +372,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v1/editorder
+     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -187,22 +387,19 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object token = await this.authenticate();
-        object market = this.market(symbol);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "editOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "orderid", id },
-            { "pair", getValue(market, "wsId") },
+            { "method", "amend_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", id },
+                { "order_qty", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
-        if (isTrue(!isEqual(amount, null)))
-        {
-            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
-        }
-        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, amount, price, parameters);
+        var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -986,6 +1183,20 @@ public partial class kraken : ccxt.kraken
         //         "version": "0.2.0"
         //     }
         //
+        // v2
+        //     {
+        //         channel: 'status',
+        //         type: 'update',
+        //         data: [
+        //             {
+        //                 version: '2.0.10',
+        //                 system: 'online',
+        //                 api_version: 'v2',
+        //                 connection_id: 6447481662169813000
+        //             }
+        //         ]
+        //     }
+        //
         return message;
     }
 
@@ -1687,10 +1898,19 @@ public partial class kraken : ccxt.kraken
         //         "subscription": { name: "ticker" }
         //     }
         //
-        object errorMessage = this.safeString(message, "errorMessage");
+        // v2
+        //     {
+        //         "error": "Unsupported field: 'price' for the given msg type: add order",
+        //         "method": "add_order",
+        //         "success": false,
+        //         "time_in": "2025-05-13T08:59:44.803511Z",
+        //         "time_out": "2025-05-13T08:59:44.803542Z'
+        //     }
+        //
+        object errorMessage = this.safeString2(message, "errorMessage", "error");
         if (isTrue(!isEqual(errorMessage, null)))
         {
-            object requestId = this.safeValue(message, "reqid");
+            object requestId = this.safeValue2(message, "reqid", "req_id");
             if (isTrue(!isEqual(requestId, null)))
             {
                 object broad = getValue(getValue(this.exceptions, "ws"), "broad");
@@ -1750,13 +1970,13 @@ public partial class kraken : ccxt.kraken
             }
             if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
             {
-                object eventVar = this.safeString(message, "event");
+                object eventVar = this.safeString2(message, "event", "method");
                 object methods = new Dictionary<string, object>() {
                     { "heartbeat", this.handleHeartbeat },
                     { "systemStatus", this.handleSystemStatus },
                     { "subscriptionStatus", this.handleSubscriptionStatus },
-                    { "addOrderStatus", this.handleCreateEditOrder },
-                    { "editOrderStatus", this.handleCreateEditOrder },
+                    { "add_order", this.handleCreateEditOrder },
+                    { "amend_order", this.handleCreateEditOrder },
                     { "cancelOrderStatus", this.handleCancelOrder },
                     { "cancelAllStatus", this.handleCancelAllOrders },
                 };

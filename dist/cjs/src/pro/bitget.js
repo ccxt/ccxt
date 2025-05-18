@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
@@ -69,6 +69,9 @@ class bitget extends bitget$1 {
                 },
                 'watchOrderBook': {
                     'checksum': true,
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
                 },
             },
             'streaming': {
@@ -787,7 +790,13 @@ class bitget extends bitget$1 {
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     /**
      * @method

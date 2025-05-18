@@ -35,6 +35,21 @@ func (this *Whitebit) FetchMarkets(params ...interface{}) ([]MarketInterface, er
 }
 /**
  * @method
+ * @name whitebit#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Whitebit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name whitebit#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead

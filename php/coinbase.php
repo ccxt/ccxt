@@ -1515,7 +1515,20 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($perpetualData); $i++) {
             $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
         }
-        return $result;
+        $newMarkets = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $market = $result[$i];
+            $info = $this->safe_value($market, 'info', array());
+            $realMarketIds = $this->safe_list($info, 'alias_to', array());
+            $length = count($realMarketIds);
+            if ($length > 0) {
+                $market['alias'] = $realMarketIds[0];
+            } else {
+                $market['alias'] = null;
+            }
+            $newMarkets[] = $market;
+        }
+        return $newMarkets;
     }
 
     public function parse_spot_market($market, $feeTier): array {
@@ -1864,50 +1877,51 @@ class coinbase extends Exchange {
          * fetches all available $currencies on an exchange
          *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$currencies#get-fiat-$currencies
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-$rates#get-exchange-$rates
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->fetch_currencies_from_cache($params);
-        $currencies = $this->safe_list($response, 'currencies', array());
+        $promises = array(
+            $this->v2PublicGetCurrencies ($params),
+            $this->v2PublicGetCurrenciesCrypto ($params),
+            $this->v2PublicGetExchangeRates ($params),
+        );
+        $promisesResult = $promises;
+        $fiatResponse = $this->safe_dict($promisesResult, 0, array());
         //
-        // fiat
+        //    [
+        //        "data" => [
+        //            array(
+        //                $id => 'IMP',
+        //                $name => 'Isle of Man Pound',
+        //                min_size => '0.01'
+        //            ),
+        //        ...
         //
-        //    array(
-        //        $id => 'IMP',
-        //        $name => 'Isle of Man Pound',
-        //        min_size => '0.01'
-        //    ),
+        $cryptoResponse = $this->safe_dict($promisesResult, 1, array());
         //
-        // crypto
+        //     [
+        //        "data" => [
+        //           array(
+        //              asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              $code => 'AERO',
+        //              $name => 'Aerodrome Finance',
+        //              color => '#0433FF',
+        //              sort_index => '340',
+        //              exponent => '8',
+        //              $type => 'crypto',
+        //              address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           ),
+        //          ...
         //
-        //    {
-        //        asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        $code => 'AERO',
-        //        $name => 'Aerodrome Finance',
-        //        color => '#0433FF',
-        //        sort_index => '340',
-        //        exponent => '8',
-        //        type => 'crypto',
-        //        address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":array(
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             ),
-        //         }
-        //     }
-        //
+        $ratesResponse = $this->safe_dict($promisesResult, 2, array());
+        $fiatData = $this->safe_list($fiatResponse, 'data', array());
+        $cryptoData = $this->safe_list($cryptoResponse, 'data', array());
+        $ratesData = $this->safe_dict($ratesResponse, 'data', array());
+        $rates = $this->safe_dict($ratesData, 'rates', array());
+        $ratesIds = is_array($rates) ? array_keys($rates) : array();
+        $currencies = $this->array_concat($fiatData, $cryptoData);
         $result = array();
         $networks = array();
         $networksById = array();
@@ -1919,17 +1933,19 @@ class coinbase extends Exchange {
             $name = $this->safe_string($currency, 'name');
             $this->options['networks'][$code] = strtolower($name);
             $this->options['networksById'][$code] = strtolower($name);
-            $result[$code] = array(
-                'info' => $currency, // the original payload
+            $type = ($assetId !== null) ? 'crypto' : 'fiat';
+            $result[$code] = $this->safe_currency_structure(array(
+                'info' => $currency,
                 'id' => $id,
                 'code' => $code,
-                'type' => ($assetId !== null) ? 'crypto' : 'fiat',
-                'name' => $this->safe_string($currency, 'name'),
+                'type' => $type,
+                'name' => $name,
                 'active' => true,
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
+                'networks' => array(), // todo
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'min_size'),
@@ -1940,11 +1956,25 @@ class coinbase extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
             if ($assetId !== null) {
                 $lowerCaseName = strtolower($name);
                 $networks[$code] = $lowerCaseName;
                 $networksById[$lowerCaseName] = $code;
+            }
+        }
+        // we have to add other $currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for ($i = 0; $i < count($ratesIds); $i++) {
+            $currencyId = $ratesIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            if (!(is_array($result) && array_key_exists($code, $result))) {
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => array(),
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'type' => 'crypto',
+                    'networks' => array(), // todo
+                ));
             }
         }
         $this->options['networks'] = $this->extend($networks, $this->options['networks']);
@@ -2259,10 +2289,11 @@ class coinbase extends Exchange {
             $askVolume = $this->safe_number($asks[0], 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_number($ticker, 'price');
         $datetime = $this->safe_string($ticker, 'time');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'bid' => $bid,
@@ -4624,7 +4655,7 @@ class coinbase extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

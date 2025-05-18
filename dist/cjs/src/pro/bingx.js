@@ -4,7 +4,7 @@ var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bingx extends bingx$1 {
     describe() {
@@ -76,6 +76,9 @@ class bingx extends bingx$1 {
                 'watchOrderBookForSymbols': {
                     'depth': 100,
                     'interval': 500, // 100, 200, 500, 1000
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
                 },
             },
             'streaming': {
@@ -498,7 +501,13 @@ class bingx extends bingx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     handleTrades(client, message) {
         //

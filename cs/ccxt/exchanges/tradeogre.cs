@@ -13,7 +13,7 @@ public partial class tradeogre : Exchange
             { "countries", new List<object>() {} },
             { "rateLimit", 100 },
             { "version", "v2" },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -540,6 +540,7 @@ public partial class tradeogre : Exchange
             { "asks", rawAsks },
         };
         object orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "s");
         return orderbook;
     }
 

@@ -1567,7 +1567,7 @@ public partial class timex : Exchange
                 { "currency", feeCurrency },
             };
         }
-        return new Dictionary<string, object>() {
+        return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "timestamp", timestamp },
@@ -1581,7 +1581,7 @@ public partial class timex : Exchange
             { "cost", cost },
             { "takerOrMaker", takerOrMaker },
             { "fee", fee },
-        };
+        });
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

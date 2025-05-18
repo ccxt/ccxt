@@ -71,12 +71,12 @@ class binance(ccxt.async_support.binance):
             'urls': {
                 'test': {
                     'ws': {
-                        'spot': 'wss://testnet.binance.vision/ws',
-                        'margin': 'wss://testnet.binance.vision/ws',
+                        'spot': 'wss://stream.testnet.binance.vision/ws',
+                        'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
-                            'spot': 'wss://testnet.binance.vision/ws-api/v3',
+                            'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
                             'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },

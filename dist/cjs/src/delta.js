@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class delta
@@ -348,6 +348,9 @@ class delta extends delta$1 {
             expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
         }
+        if (expiry !== undefined) {
+            expiry = expiry.slice(4) + expiry.slice(2, 4) + expiry.slice(0, 2);
+        }
         const settle = quote;
         const strike = this.safeString(optionParts, 2);
         const datetime = this.convertExpireDate(expiry);
@@ -563,6 +566,7 @@ class delta extends delta$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

@@ -252,7 +252,7 @@ export default class Exchange {
     }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
-    urlencode: (object: object) => string;
+    urlencode: (object: object, sort?: boolean) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
@@ -377,6 +377,8 @@ export default class Exchange {
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
     starknetSign(hash: any, pri: any): string;
+    getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
+    getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
@@ -400,6 +402,7 @@ export default class Exchange {
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
+    urlEncoderForProxyUrl(targetUrl: string): string;
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
     checkWsProxySettings(): any[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
@@ -761,6 +764,7 @@ export default class Exchange {
     currency(code: string): any;
     market(symbol: string): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
+    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;
     handleWithdrawTagAndParams(tag: any, params: any): any;
     createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
     createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
@@ -858,7 +862,8 @@ export default class Exchange {
     fetchPaginatedCallCursor(method: string, symbol?: Str, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
     fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: any, limit?: any, params?: {}, pageKey?: any, maxEntriesPerRequest?: any): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
-    removeRepeatedElementsFromArray(input: any): any;
+    removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
+    removeRepeatedTradesFromArray(input: any): any;
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;

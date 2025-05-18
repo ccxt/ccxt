@@ -53,7 +53,7 @@
             {
                 "description": "fetchTickers",
                 "method": "fetchTickers",
-                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=ALL",
                 "input": [
                     [
                         "BTC/USD:USDC"

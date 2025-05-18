@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -486,6 +486,7 @@ class hollaex extends hollaex$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

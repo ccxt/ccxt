@@ -5,7 +5,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
 /**
  * @class timex
  * @augments Exchange
@@ -1554,7 +1553,7 @@ class timex extends timex$1 {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeTrade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1568,7 +1567,7 @@ class timex extends timex$1 {
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        });
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

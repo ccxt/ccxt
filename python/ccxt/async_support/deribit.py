@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -655,6 +655,7 @@ class deribit(Exchange, ImplicitAPI):
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'fee_precision'))),
                 'limits': {
@@ -1321,13 +1322,32 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         code = self.safe_string_2(params, 'code', 'currency')
+        type = None
         params = self.omit(params, ['code'])
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
+                if code is not None and code != market['base']:
+                    raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
+                if code is None:
+                    code = market['base']
+                    type = market['type']
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request: dict = {
             'currency': currency['id'],
         }
+        if type is not None:
+            requestType = None
+            if type == 'spot':
+                requestType = 'spot'
+            elif type == 'future' or (type == 'contract'):
+                requestType = 'future'
+            elif type == 'option':
+                requestType = 'option'
+            if requestType is not None:
+                request['kind'] = requestType
         response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
         #
         #     {
@@ -2654,7 +2674,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

@@ -10,7 +10,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/addorder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/add_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -37,7 +37,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/editorder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/amend_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

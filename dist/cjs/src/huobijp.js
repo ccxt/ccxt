@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class huobijp
@@ -1140,6 +1140,7 @@ class huobijp extends huobijp$1 {
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': precision,
+                'networks': undefined,
                 'limits': {
                     'amount': {
                         'min': precision,

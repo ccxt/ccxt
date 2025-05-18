@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -721,42 +721,19 @@ class coinex extends coinex$1 {
             const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
             const firstChain = this.safeDict(chains, 0, {});
             const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber(firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'info': coin,
-            };
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
+                if (networkId === undefined) {
+                    continue;
+                }
                 const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
                 const feeString = this.safeString(chain, 'withdrawal_fee');
                 const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
                 const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
                 const canDepositChain = this.safeBool(chain, 'deposit_enabled');
                 const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
-                const network = {
+                ({
                     'id': networkId,
                     'network': networkId,
                     'name': undefined,
@@ -780,11 +757,35 @@ class coinex extends coinex$1 {
                         },
                     },
                     'info': chain,
-                };
-                const networks = this.safeDict(result[code], 'networks', {});
-                networks[networkId] = network;
-                result[code]['networks'] = networks;
+                });
             }
+            result[code] = this.safeCurrencyStructure({
+                'id': currencyId,
+                'code': code,
+                'name': undefined,
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': undefined,
+                'precision': this.parseNumber(firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': {},
+                'type': 'crypto',
+                'info': coin,
+            });
         }
         return result;
     }

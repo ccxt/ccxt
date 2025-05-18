@@ -2926,7 +2926,7 @@ class cryptocom extends Exchange {
         return $this->parse_position($this->safe_dict($data, 0), $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

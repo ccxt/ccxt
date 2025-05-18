@@ -20,4 +20,5 @@ func BaseTestsInit()  {
     TestGroupBy()
     TestFilterBy()
     TestHandleMethods()
+    TestRemoveRepeatedElementsFromArray()
 }

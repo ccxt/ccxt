@@ -71,6 +71,9 @@ class bitmart(ccxt.async_support.bitmart):
                 'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100',
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
+                },
                 'ws': {
                     'inflate': True,
                 },
@@ -299,7 +302,12 @@ class bitmart(ccxt.async_support.bitmart):
             first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     def get_params_for_multiple_sub(self, methodName: str, symbols: List[str], limit: Int = None, params={}):
         symbols = self.market_symbols(symbols, None, False, True)

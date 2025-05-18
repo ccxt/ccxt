@@ -77,6 +77,9 @@ class bitget(ccxt.async_support.bitget):
                 'watchOrderBook': {
                     'checksum': True,
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
+                },
             },
             'streaming': {
                 'ping': self.ping,
@@ -767,7 +770,12 @@ class bitget(ccxt.async_support.bitget):
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
         """

@@ -27,13 +27,11 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
+    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'bidVolume', 'askVolume', 'vwap', 'change', 'percentage', 'average' ];
     // trick csharp-transpiler for string
-    if (!method.toString ().includes ('BidsAsks')) {
+    if (!(method.toString ().includes ('BidsAsks'))) {
         emptyAllowedFor.push ('bid');
         emptyAllowedFor.push ('ask');
-        emptyAllowedFor.push ('bidVolume');
-        emptyAllowedFor.push ('askVolume');
     }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
@@ -63,7 +61,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const quoteVolume = exchange.safeString (entry, 'quoteVolume');
     const high = exchange.safeString (entry, 'high');
     const low = exchange.safeString (entry, 'low');
-    if (!('quoteVolume' in skippedProperties) && !('baseVolume' in skippedProperties)) {
+    if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
@@ -88,6 +86,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         // assert (vwap >= low && vwap <= high)
+        // todo: calc compare
         assert (Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
         if (baseVolume !== undefined) {
             assert (quoteVolume !== undefined, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
@@ -96,17 +95,15 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
         }
     }
-    if (!('spread' in skippedProperties) && !('ask' in skippedProperties) && !('bid' in skippedProperties)) {
-        const askString = exchange.safeString (entry, 'ask');
-        const bidString = exchange.safeString (entry, 'bid');
-        if ((askString !== undefined) && (bidString !== undefined)) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
-        }
-        // todo: rethink about this
-        // else {
-        //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
-        // }
+    const askString = exchange.safeString (entry, 'ask');
+    const bidString = exchange.safeString (entry, 'bid');
+    if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
     }
+    // todo: rethink about this
+    // else {
+    //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+    // }
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
 }
 

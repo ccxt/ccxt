@@ -24,7 +24,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -525,6 +525,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'asks': rawAsks,
         }
         orderbook = self.parse_order_book(rawOrderbook, symbol)
+        orderbook['nonce'] = self.safe_integer(response, 's')
         return orderbook
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):

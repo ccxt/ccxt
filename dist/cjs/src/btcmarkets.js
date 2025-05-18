@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class btcmarkets
@@ -454,7 +454,7 @@ class btcmarkets extends btcmarkets$1 {
         //             "marketId":"COMP-AUD",
         //             "baseAssetName":"COMP",
         //             "quoteAssetName":"AUD",
-        //             "minOrderAmount":"0.00007",
+        //             "minOrderAmount":"0.00006",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
         //             "priceDecimals":"2",

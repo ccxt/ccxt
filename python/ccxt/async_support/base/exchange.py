@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.72'
+__version__ = '4.4.83'
 
 # -----------------------------------------------------------------------------
 
@@ -121,6 +121,10 @@ class Exchange(BaseExchange):
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
             self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            if (self.ssl_context and self.safe_bool(self.options, 'include_OS_certificates', False)):
+                os_default_paths = ssl.get_default_verify_paths()
+                if os_default_paths.cafile and os_default_paths.cafile != self.cafile:
+                    self.ssl_context.load_verify_locations(cafile=os_default_paths.cafile)
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
@@ -161,7 +165,7 @@ class Exchange(BaseExchange):
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
-            url = proxyUrl + url
+            url = proxyUrl + self.url_encoder_for_proxy_url(url)
         # proxy agents
         final_proxy = None  # set default
         proxy_session = None

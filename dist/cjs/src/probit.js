@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class probit
@@ -554,6 +554,7 @@ class probit extends probit$1 {
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'type': 'crypto',
                 'fee': fee,
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(platform, 'precision'))),
                 'limits': {

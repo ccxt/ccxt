@@ -493,6 +493,7 @@ class hollaex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             }
         return result
 

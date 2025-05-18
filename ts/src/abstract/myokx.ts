@@ -176,6 +176,7 @@ interface okx {
     privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
@@ -294,6 +295,9 @@ interface okx {
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountSetLoanAllocation (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountCreateSubaccount (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountSubaccountApikey (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridStopOrderAlgo (params?: {}): Promise<implicitReturnType>;

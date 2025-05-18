@@ -46,7 +46,7 @@ use Exception;
 use ccxt\pro\Stream;
 
 
-$version = '4.4.72';
+$version = '4.4.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -65,7 +65,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.72';
+    const VERSION = '4.4.83';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -342,8 +342,8 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
-        'ace',
         'alpaca',
+        'apex',
         'ascendex',
         'bequant',
         'bigone',
@@ -355,7 +355,6 @@ class Exchange {
         'bit2c',
         'bitbank',
         'bitbns',
-        'bitcoincom',
         'bitfinex',
         'bitflyer',
         'bitget',
@@ -363,7 +362,6 @@ class Exchange {
         'bitmart',
         'bitmex',
         'bitopro',
-        'bitpanda',
         'bitrue',
         'bitso',
         'bitstamp',
@@ -914,7 +912,7 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($array) {
+    public function urlencode($array, $sort = false) {
         foreach ($array as $key => $value) {
             if (is_bool($value)) {
                 $array[$key] = var_export($value, true);
@@ -1444,7 +1442,7 @@ class Exchange {
         $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
         if ($proxyUrl !== null) {
             $headers['Origin'] = $this->origin;
-            $url = $proxyUrl . $url;
+            $url = $proxyUrl . $this->url_encoder_for_proxy_url($url);
         }
         // proxy agents
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
@@ -2270,6 +2268,16 @@ class Exchange {
         return strlen($binary);
     }
 
+    public function get_zk_contract_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support create order in PHP language');
+         return "";
+    }
+
+    public function get_zk_transfer_signature_obj($seed, $params) {
+         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+         return "";
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2801,6 +2809,13 @@ class Exchange {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return $proxyUrl;
+    }
+
+    public function url_encoder_for_proxy_url(string $targetUrl) {
+        // to be overriden
+        $includesQuery = mb_strpos($targetUrl, '?') !== false;
+        $finalUrl = $includesQuery ? $this->encode_uri_component($targetUrl) : $targetUrl;
+        return $finalUrl;
     }
 
     public function check_proxy_settings(?string $url = null, ?string $method = null, $headers = null, $body = null) {
@@ -3820,9 +3835,6 @@ class Exchange {
 
     public function safe_currency_structure(array $currency) {
         // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
-        $currencyDeposit = $this->safe_bool($currency, 'deposit');
-        $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
-        $currencyActive = $this->safe_bool($currency, 'active');
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -3831,24 +3843,28 @@ class Exchange {
                 $key = $keys[$i];
                 $network = $networks[$key];
                 $deposit = $this->safe_bool($network, 'deposit');
+                $currencyDeposit = $this->safe_bool($currency, 'deposit');
                 if ($currencyDeposit === null || $deposit) {
                     $currency['deposit'] = $deposit;
                 }
                 $withdraw = $this->safe_bool($network, 'withdraw');
+                $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
                 }
-                $active = $this->safe_bool($network, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
-                }
                 // set $network 'active' to false if D or W is disabled
-                if ($this->safe_bool($network, 'active') === null) {
+                $active = $this->safe_bool($network, 'active');
+                if ($active === null) {
                     if ($deposit && $withdraw) {
                         $currency['networks'][$key]['active'] = true;
                     } elseif ($deposit !== null && $withdraw !== null) {
                         $currency['networks'][$key]['active'] = false;
                     }
+                }
+                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
+                $currencyActive = $this->safe_bool($currency, 'active');
+                if ($currencyActive === null || $active) {
+                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
@@ -3859,7 +3875,7 @@ class Exchange {
                 // find lowest $precision (which is more desired)
                 $precision = $this->safe_string($network, 'precision');
                 $precisionMain = $this->safe_string($currency, 'precision');
-                if ($precisionMain === null || Precise::string_lt($precision, $precisionMain)) {
+                if ($precisionMain === null || Precise::string_gt($precision, $precisionMain)) {
                     $currency['precision'] = $this->parse_number($precision);
                 }
                 // $limits
@@ -7078,6 +7094,29 @@ class Exchange {
         throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
     }
 
+    public function is_leveraged_currency($currencyCode, Bool $checkBaseCoin = false, ?array $existingCurrencies = null) {
+        $leverageSuffixes = array(
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
+            'BULL', 'BEAR', // similar
+        );
+        for ($i = 0; $i < count($leverageSuffixes); $i++) {
+            $leverageSuffix = $leverageSuffixes[$i];
+            if (str_ends_with($currencyCode, $leverageSuffix)) {
+                if (!$checkBaseCoin) {
+                    return true;
+                } else {
+                    // check if base currency is inside dict
+                    $baseCurrencyCode = str_replace($leverageSuffix, '', $currencyCode);
+                    if (is_array($existingCurrencies) && array_key_exists($baseCurrencyCode, $existingCurrencies)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public function handle_withdraw_tag_and_params($tag, $params) {
         if (($tag !== null) && (gettype($tag) === 'array')) {
             $params = $this->extend($tag, $params);
@@ -8341,20 +8380,42 @@ class Exchange {
     }
 
     public function remove_repeated_elements_from_array($input, bool $fallbackToTimestamp = true) {
+        $uniqueDic = array();
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
             $uniqValue = $fallbackToTimestamp ? $this->safe_string_n($entry, array( 'id', 'timestamp', 0 )) : $this->safe_string($entry, 'id');
-            if ($uniqValue !== null && !(is_array($uniqueResult) && array_key_exists($uniqValue, $uniqueResult))) {
-                $uniqueResult[$uniqValue] = $entry;
+            if ($uniqValue !== null && !(is_array($uniqueDic) && array_key_exists($uniqValue, $uniqueDic))) {
+                $uniqueDic[$uniqValue] = 1;
+                $uniqueResult[] = $entry;
+            }
+        }
+        $valuesLength = count($uniqueResult);
+        if ($valuesLength > 0) {
+            return $uniqueResult;
+        }
+        return $input;
+    }
+
+    public function remove_repeated_trades_from_array($input) {
+        $uniqueResult = array();
+        for ($i = 0; $i < count($input); $i++) {
+            $entry = $input[$i];
+            $id = $this->safe_string($entry, 'id');
+            if ($id === null) {
+                $price = $this->safe_string($entry, 'price');
+                $amount = $this->safe_string($entry, 'amount');
+                $timestamp = $this->safe_string($entry, 'timestamp');
+                $side = $this->safe_string($entry, 'side');
+                // unique trade identifier
+                $id = 't_' . (string) $timestamp . '_' . $side . '_' . $price . '_' . $amount;
+            }
+            if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id, $uniqueResult))) {
+                $uniqueResult[$id] = $entry;
             }
         }
         $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
-        $valuesLength = count($values);
-        if ($valuesLength > 0) {
-            return $values;
-        }
-        return $input;
+        return $values;
     }
 
     public function handle_until_option(string $key, $request, $params, $multiplier = 1) {

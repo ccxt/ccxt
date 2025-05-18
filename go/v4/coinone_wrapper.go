@@ -20,6 +20,21 @@ func NewCoinone(userConfig map[string]interface{}) Coinone {
 
 /**
  * @method
+ * @name coinone#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.coinone.co.kr/reference/currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinone) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinone#fetchMarkets
  * @description retrieves data on all markets for coinone
  * @see https://docs.coinone.co.kr/v1.0/reference/tickers

@@ -1526,7 +1526,7 @@ class timex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1540,7 +1540,7 @@ class timex(Exchange, ImplicitAPI):
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        })
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

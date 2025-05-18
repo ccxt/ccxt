@@ -35,6 +35,21 @@ func (this *Coinlist) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name coinlist#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinlist) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinlist#fetchMarkets
  * @description retrieves data on all markets for coinlist
  * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
@@ -954,4 +969,31 @@ func (this *Coinlist) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
         return nil, CreateReturnError(res)
     }
     return NewLedgerEntryArray(res), nil
+}
+/**
+ * @method
+ * @name coinlist#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Coinlist) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+    opts := FetchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRate(symbol, params)
+    if IsError(res) {
+        return FundingRate{}, CreateReturnError(res)
+    }
+    return NewFundingRate(res), nil
 }
