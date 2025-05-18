@@ -66,7 +66,7 @@ export default class bullish extends Exchange {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -161,7 +161,7 @@ export default class bullish extends Exchange {
                         'v1/markets/{symbol}/tick': 1, // done
                         'v1/markets/{symbol}/candle': 1, // done
                         'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
+                        'v1/history/markets/{symbol}/funding-rate': 1, // done
                         'v1/index-prices': 1,
                         'v1/index-prices/{assetSymbol}': 1,
                     },
@@ -1107,7 +1107,7 @@ export default class bullish extends Exchange {
         }
         let timeInForce = 'GTC';
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
-        timeInForce = timeInForce.toUpperCase ();
+        params['timeInForce'] = timeInForce.toUpperCase ();
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1174,24 +1174,28 @@ export default class bullish extends Exchange {
      * @name bullish#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.commandType] the command type, default is 'V3CancelOrder'
-     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.signIn ();
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter');
+        }
         const request: Dict = {
-            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
+            'tradingAccountId': tradingAccountId,
+            'commandType': 'V1CancelAllOrders',
         };
-        if (market !== undefined) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
             request['commandType'] = 'V1CancelAllOrdersByMarket';
-            params = this.omit (params, 'commandType');
-        } else {
-            request['commandType'] = this.safeString (params, 'commandType', 'V3CancelAllOrders');
         }
         const response = await this.privatePostV2Command (this.extend (request, params));
         //
@@ -1567,7 +1571,7 @@ export default class bullish extends Exchange {
             const timestamp = this.milliseconds ().toString ();
             let suffix = '';
             if (method !== 'GET') {
-                body = this.json (params);
+                body = this.json (request);
                 suffix = body;
             }
             const payload = timestamp + nonce + method + '/trading-api/' + path + suffix;
