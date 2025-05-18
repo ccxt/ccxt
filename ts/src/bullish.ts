@@ -2,10 +2,10 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { AuthenticationError, BadRequest } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Bool, Currencies, Currency, Dict, Int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -551,7 +551,10 @@ export default class bullish extends Exchange {
             linear = true;
             settleId = this.safeString (market, 'settlementAssetSymbol');
             inverse = false;
-            symbol = base + '/' + quote + ':' + settleId;
+            const rawSymbol = this.safeString (market, 'symbol');
+            const parts = rawSymbol.split ('-');
+            const datePart = this.safeString (parts, 2);
+            symbol = base + '/' + quote + '-' + datePart;
         }
         const margin = this.safeValue (market, 'marginTradingEnabled', false);
         return this.safeMarketStructure ({
@@ -886,6 +889,67 @@ export default class bullish extends Exchange {
 
     /**
      * @method
+     * @name bullish#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['updatedAtDatetime[gte]'] = this.iso8601 (since);
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        if (until !== undefined) {
+            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
+        }
+        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fundingRate": "0.00125",
+        //             "updatedAtDatetime": "2025-05-18T09:06:04.074Z"
+        //         },
+        //         {
+        //             "fundingRate": "0.00125",
+        //             "updatedAtDatetime": "2025-05-18T08:59:59.033Z"
+        //         }, ...
+        //     ]
+        //
+        const rates = [];
+        const result = this.toArray (response);
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const datetime = this.safeString (entry, 'updatedAtDatetime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+    }
+
+    /**
+     * @method
      * @name bullish#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
@@ -1032,17 +1096,29 @@ export default class bullish extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.signIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V3CreateOrder',
             'symbol': market['id'],
             'side': side,
-            'price': price,
             'quantity': this.amountToPrecision (symbol, amount),
             'timeInForce': this.safeString (params, 'timeInForce', 'GTC'),
             'allowBorrow': this.safeValue (params, 'allowBorrow', false),
-            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const accounts: List = await this.fetchAccounts ();
+        const account = this.safeDict (accounts, 0);
+        const tradingAccountId = this.safeString (account, 'id');
+        const traidingAccountIdByUser = this.safeString (params, 'tradingAccountId');
+        if (traidingAccountIdByUser !== undefined) {
+            params['tradingAccountId'] = traidingAccountIdByUser;
+            params = this.omit (params, 'tradingAccountId');
+        } else {
+            params['tradingAccountId'] = tradingAccountId;
+        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
@@ -1519,6 +1595,14 @@ export default class bullish extends Exchange {
                 }
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
+            }
+            if (method === 'POST') {
+                body = this.json (request);
+                headers['Content-Type'] = 'application/json';
+                const rateLimitToken = this.safeString (request, 'rateLimitToken');
+                if (rateLimitToken !== undefined) {
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                }
             }
         }
         const query = this.customUrlencode (request);
