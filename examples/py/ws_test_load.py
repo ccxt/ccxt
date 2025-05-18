@@ -13,6 +13,7 @@ import ccxt.pro as ccxt
 class PerformanceMetrics:
     def __init__(self):
         self.message_count = defaultdict(int)
+        self.error_count = defaultdict(int)
         self.start_time = time.time()
         self.process = psutil.Process()
         self.last_print_time = time.time()
@@ -21,12 +22,16 @@ class PerformanceMetrics:
     def increment_message_count(self, symbol):
         self.message_count[symbol] += 1
 
+    def increment_error_count(self, symbol):
+        self.error_count[symbol] += 1
+
     def get_metrics(self):
         current_time = time.time()
         elapsed = current_time - self.start_time
         
         # Calculate messages per second
         total_messages = sum(self.message_count.values())
+        total_errors = sum(self.error_count.values())
         messages_per_second = total_messages / elapsed if elapsed > 0 else 0
         
         # Get system metrics
@@ -36,6 +41,7 @@ class PerformanceMetrics:
         return {
             'elapsed_time': elapsed,
             'total_messages': total_messages,
+            'total_errors': total_errors,
             'messages_per_second': messages_per_second,
             'memory_usage_mb': memory_info.rss / (1024 * 1024),  # Convert to MB
             'cpu_percent': cpu_percent,
@@ -52,7 +58,7 @@ class PerformanceMetrics:
 async def watch_orderbook(binance, symbol, metrics):
     while True:
         try:
-            orderbook = await binance.watch_order_book(symbol)
+            await binance.watch_order_book(symbol)
             metrics.increment_message_count(symbol)
             
             if metrics.should_print_metrics():
@@ -61,12 +67,14 @@ async def watch_orderbook(binance, symbol, metrics):
                 print(f"Symbols subscribed: {current_metrics['symbols_subscribed']}")
                 print(f"Messages per second: {current_metrics['messages_per_second']:.2f}")
                 print(f"Total messages: {current_metrics['total_messages']}")
+                print(f"Total errors: {current_metrics['total_errors']}")
                 print(f"Memory usage: {current_metrics['memory_usage_mb']:.2f} MB")
                 print(f"CPU usage: {current_metrics['cpu_percent']:.1f}%")
                 print(f"Elapsed time: {current_metrics['elapsed_time']:.1f} seconds")
                 print("-" * 50)
         except Exception as e:
             print(f"Error in {symbol}: {str(e)}")
+            metrics.increment_error_count(symbol)
             await asyncio.sleep(1)  # Wait before retrying
 
 async def main():
@@ -78,9 +86,11 @@ async def main():
     print(f"Starting to monitor {len(symbols)} symbols...")
     
     tasks = []
-    for symbol in symbols[:100]:
+    for symbol in symbols[:500]:
+        await asyncio.sleep(0.1)
         task = asyncio.create_task(watch_orderbook(binance, symbol, metrics))
         tasks.append(task)
+    
 
     await asyncio.gather(*tasks)
 
