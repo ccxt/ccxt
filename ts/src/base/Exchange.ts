@@ -4376,7 +4376,7 @@ export default class Exchange {
             stream.subscribe ('ohlcvs::' + symbol + '::' + timeframe, callback, synchronous);
         }
         stream.addWatchFunction ('watchOHLCV', [ symbol, timeframe, undefined, undefined, params ]);
-        await this.watchOHLCV (symbol, timeframe, undefined, undefined, params);
+        return await this.watchOHLCV (symbol, timeframe, undefined, undefined, params);
     }
 
     convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
@@ -5258,7 +5258,7 @@ export default class Exchange {
             stream.subscribe ('positions::' + symbol, callback, synchronous);
         }
         stream.addWatchFunction ('watchPosition', [ symbol, undefined, params ]);
-        await this.watchPosition (symbol, params);
+        return await this.watchPosition (symbol, params);
     }
 
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -5278,7 +5278,7 @@ export default class Exchange {
                 }
             }
         }
-        await this.watchPositions (symbols, undefined, undefined, params);
+        return await this.watchPositions (symbols, undefined, undefined, params);
     }
 
     async watchPositionForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -5286,7 +5286,7 @@ export default class Exchange {
     }
 
     async subscribePositionForSymbols (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<any> {
-        await this.subscribePositions (symbols, callback, synchronous, params);
+        return await this.subscribePositions (symbols, callback, synchronous, params);
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
@@ -5468,7 +5468,7 @@ export default class Exchange {
             stream.subscribe ('balances', callback, synchronous);
         }
         stream.addWatchFunction ('watchBalance', [ params ]);
-        await this.watchBalance (params);
+        return await this.watchBalance (params);
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -5784,7 +5784,7 @@ export default class Exchange {
             stream.subscribe ('tickers::' + symbol, callback, synchronous);
         }
         stream.addWatchFunction ('watchTicker', [ symbol, params ]);
-        await this.watchTicker (symbol, params);
+        return await this.watchTicker (symbol, params);
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -5834,7 +5834,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchTickers', [ symbols, params ]);
-        await this.watchTickers (symbols, params);
+        return await this.watchTickers (symbols, params);
     }
 
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
@@ -6420,7 +6420,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchOrders', [ symbol, undefined, undefined, params ]);
-        await this.watchOrders (symbol, undefined, undefined, params);
+        return await this.watchOrders (symbol, undefined, undefined, params);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -6496,7 +6496,7 @@ export default class Exchange {
             stream.subscribe ('myTrades::' + symbol, callback, synchronous);
         }
         stream.addWatchFunction ('watchMyTrades', [ symbol, undefined, undefined, params ]);
-        await this.watchMyTrades (symbol, undefined, undefined, params);
+        return await this.watchMyTrades (symbol, undefined, undefined, params);
     }
 
     async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
