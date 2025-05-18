@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ascendex
@@ -605,7 +605,7 @@ class ascendex extends ascendex$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': {}, // todo
             };
         }
         return result;

@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1898,7 +1898,7 @@ class gate extends gate$1 {
                     'code': code,
                     'type': type,
                     'precision': precision,
-                    'limits': this.limits,
+                    'limits': undefined,
                     'networks': {},
                     'info': [], // will be filled below
                 };

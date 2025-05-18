@@ -1646,7 +1646,6 @@ class okx extends Exchange {
                 }
             }
         }
-        $tickSize = $this->safe_string($market, 'tickSz');
         $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
@@ -1678,7 +1677,7 @@ class okx extends Exchange {
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
-                'price' => $this->parse_number($tickSize),
+                'price' => $this->safe_number($market, 'tickSz'),
             ),
             'limits' => array(
                 'leverage' => array(

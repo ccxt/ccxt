@@ -191,6 +191,7 @@ class blofin extends Exchange {
                         'account/margin-mode' => 1,
                         'account/batch-leverage-info' => 1,
                         'trade/orders-tpsl-pending' => 1,
+                        'trade/orders-algo-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
                         'user/query-apikey' => 1,
@@ -210,7 +211,9 @@ class blofin extends Exchange {
                     ),
                     'post' => array(
                         'trade/order' => 1,
+                        'trade/order-algo' => 1,
                         'trade/cancel-order' => 1,
+                        'trade/cancel-algo' => 1,
                         'account/set-leverage' => 1,
                         'trade/batch-orders' => 1,
                         'trade/order-tpsl' => 1,
@@ -1163,6 +1166,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
         $request['marginMode'] = $marginMode;
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isMarketOrder = $type === 'market';
         $params = $this->omit($params, array( 'timeInForce' ));
@@ -1171,7 +1175,8 @@ class blofin extends Exchange {
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $key = ($triggerPrice !== null) ? 'orderPrice' : 'price';
+            $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
@@ -1196,6 +1201,9 @@ class blofin extends Exchange {
                 $tpPrice = $this->safe_string($takeProfit, 'price', '-1');
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpPrice);
             }
+        } elseif ($triggerPrice !== null) {
+            $request['orderType'] = 'trigger';
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         return $this->extend($request, $params);
     }
@@ -1248,7 +1256,7 @@ class blofin extends Exchange {
         //     "instType" => "SWAP", // only in WS
         // }
         //
-        $id = $this->safe_string_2($order, 'tpslId', 'orderId');
+        $id = $this->safe_string_n($order, array( 'tpslId', 'orderId', 'algoId' ));
         $timestamp = $this->safe_integer($order, 'createTime');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updateTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
@@ -1347,6 +1355,7 @@ class blofin extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->triggerPrice] the trigger $price for a trigger $order
          * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [$params->postOnly] true to place a post only $order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
@@ -1370,14 +1379,23 @@ class blofin extends Exchange {
         list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostTradeOrder');
         $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
+        $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
         $isType2Order = ($isStopLossPriceDefined || $isTakeProfitPriceDefined);
         $response = null;
         if ($tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order) {
             $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrderTpsl ($tpslRequest);
+        } elseif ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+            $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = $this->privatePostTradeOrderAlgo ($triggerRequest);
         } else {
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrder ($request);
+        }
+        if ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+            $dataDict = $this->safe_dict($response, 'data', array());
+            $triggerOrder = $this->parse_order($dataDict, $market);
+            return $triggerOrder;
         }
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0);
@@ -1435,7 +1453,8 @@ class blofin extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional order/tp sl orders
+         * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional
+         * @param {boolean} [$params->tpsl] True if cancelling a tpsl $order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -1446,22 +1465,29 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ), false);
+        $isTrigger = $this->safe_bool_n($params, array( 'trigger' ), false);
+        $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            if (!$isTrigger) {
+            if (!$isTrigger && !$isTpsl) {
                 $request['orderId'] = (string) $id;
-            } else {
+            } elseif ($isTpsl) {
                 $request['tpslId'] = (string) $id;
+            } elseif ($isTrigger) {
+                $request['algoId'] = (string) $id;
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
-        if ($isTrigger) {
+        if ($isTpsl) {
             $tpslResponse = $this->cancel_orders(array( $id ), $symbol, $params);
             $first = $this->safe_dict($tpslResponse, 0);
             return $first;
+        } elseif ($isTrigger) {
+            $triggerResponse = $this->privatePostTradeCancelAlgo ($this->extend($request, $query));
+            $triggerData = $this->safe_dict($triggerResponse, 'data');
+            return $this->parse_order($triggerData, $market);
         }
         $response = $this->privatePostTradeCancelOrder ($this->extend($request, $query));
         $data = $this->safe_list($response, 'data', array());
@@ -1504,6 +1530,7 @@ class blofin extends Exchange {
          *
          * @see https://blofin.com/docs#get-active-orders
          * @see https://blofin.com/docs#get-active-tpsl-orders
+         * @see https://docs.blofin.com/index.html#get-active-algo-orders
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1529,13 +1556,17 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger' ), false);
+        $isTpSl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         $response = null;
-        if ($isTrigger || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if ($isTpSl || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending ($this->extend($request, $query));
+        } elseif ($isTrigger || ($method === 'privateGetTradeOrdersAlgoPending')) {
+            $request['orderType'] = 'trigger';
+            $response = $this->privateGetTradeOrdersAlgoPending ($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrdersPending ($this->extend($request, $query));
         }

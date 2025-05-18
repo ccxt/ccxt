@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
@@ -1643,7 +1643,6 @@ class okx extends okx$1 {
                 }
             }
         }
-        const tickSize = this.safeString(market, 'tickSz');
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
@@ -1675,7 +1674,7 @@ class okx extends okx$1 {
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
-                'price': this.parseNumber(tickSize),
+                'price': this.safeNumber(market, 'tickSz'),
             },
             'limits': {
                 'leverage': {

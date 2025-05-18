@@ -100,7 +100,20 @@ func (this *Exchange) Iso8601(ts interface{}) interface{} {
 	return Iso8601(ts)
 }
 
-// ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
+// // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
+// func (this *Exchange) Ymdhms(ts interface{}, args ...interface{}) string {
+// 	infix := GetArg(args, 0, nil)
+// 	if infix == nil {
+// 		infix = " "
+// 	}
+// 	if ts == nil {
+// 		return ""
+// 	}
+// 	startdatetime := ts.(int64)
+// 	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+// 	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
+// }
+
 func (this *Exchange) Ymdhms(ts interface{}, args ...interface{}) string {
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
@@ -110,7 +123,7 @@ func (this *Exchange) Ymdhms(ts interface{}, args ...interface{}) string {
 		return ""
 	}
 	startdatetime := ts.(int64)
-	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
 	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
 }
 

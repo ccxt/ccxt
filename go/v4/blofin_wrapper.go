@@ -341,6 +341,7 @@ func (this *Blofin) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.triggerPrice] the trigger price for a trigger order
  * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
  * @param {bool} [params.postOnly] true to place a post only order
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
@@ -388,7 +389,8 @@ func (this *Blofin) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+ * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
+ * @param {boolean} [params.tpsl] True if cancelling a tpsl order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Blofin) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -447,6 +449,7 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @description Fetch orders that are still open
  * @see https://blofin.com/docs#get-active-orders
  * @see https://blofin.com/docs#get-active-tpsl-orders
+ * @see https://docs.blofin.com/index.html#get-active-algo-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve

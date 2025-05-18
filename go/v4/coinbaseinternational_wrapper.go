@@ -477,6 +477,21 @@ func (this *Coinbaseinternational) FetchMarkets(params ...interface{}) ([]Market
 }
 /**
  * @method
+ * @name coinbaseinternational#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.cloud.coinbase.com/intx/reference/getassets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinbaseinternational) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinbaseinternational#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments

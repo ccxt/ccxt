@@ -590,6 +590,21 @@ func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdB
 }
 /**
  * @method
+ * @name htx#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Htx) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name htx#fetchBalance
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003

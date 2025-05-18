@@ -11,14 +11,16 @@
             "address_regex": "^([13][a-km-zA-HJ-NP-Z1-9]{25,34})|^(bc1[pqzry9x8gf2tvdw0s3jn54khce6mua7l]([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{38}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{58}))$"
         },
         "id": "BTC",
+        "numericId": null,
         "code": "BTC",
+        "precision": null,
         "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -43,14 +45,16 @@
             "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
         },
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
+        "precision": null,
         "type": "crypto",
         "name": "Tether",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -70,14 +74,16 @@
             "min_size": "0.01"
         },
         "id": "EUR",
+        "numericId": null,
         "code": "EUR",
+        "precision": null,
         "type": "fiat",
         "name": "Euro",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -97,14 +103,16 @@
             "min_size": "0.01"
         },
         "id": "INR",
+        "numericId": null,
         "code": "INR",
+        "precision": null,
         "type": "fiat",
         "name": "Indian Rupee",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -124,14 +132,16 @@
             "min_size": "0.01"
         },
         "id": "USD",
+        "numericId": null,
         "code": "USD",
+        "precision": null,
         "type": "fiat",
         "name": "United States Dollar",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -151,14 +161,16 @@
             "min_size": "1"
         },
         "id": "KRW",
+        "numericId": null,
         "code": "KRW",
+        "precision": null,
         "type": "fiat",
         "name": "South Korean Won",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -183,14 +195,16 @@
             "address_regex": "^((L|M)[a-km-zA-HJ-NP-Z1-9]{25,34})|^(ltc1([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59}))$"
         },
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
+        "precision": null,
         "type": "crypto",
         "name": "Litecoin",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -215,14 +229,16 @@
             "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
         },
         "id": "ETH",
+        "numericId": null,
         "code": "ETH",
+        "precision": null,
         "type": "crypto",
         "name": "Ethereum",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -247,14 +263,16 @@
             "address_regex": "(^(addr)1[ac-hj-np-z02-9]{6,}$)|(^(DdzFFz|Ae2td)[1-9A-HJ-NP-Za-km-z]+)"
         },
         "id": "ADA",
+        "numericId": null,
         "code": "ADA",
+        "precision": null,
         "type": "crypto",
         "name": "Cardano",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -281,14 +299,16 @@
             "destination_tag_regex": "^\\d{1,10}$"
         },
         "id": "XRP",
+        "numericId": null,
         "code": "XRP",
+        "precision": null,
         "type": "crypto",
         "name": "XRP",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {
@@ -313,14 +333,16 @@
             "address_regex": "^(?:0x)?[0-9a-fA-F]{40}$"
         },
         "id": "USDC",
+        "numericId": null,
         "code": "USDC",
+        "precision": null,
         "type": "crypto",
         "name": "USDC",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": null,
+        "fees": {},
         "networks": {},
         "limits": {
             "amount": {

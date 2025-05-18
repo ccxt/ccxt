@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbase extends coinbase$1 {
     describe() {
@@ -624,7 +624,7 @@ class coinbase extends coinbase$1 {
         //                    {
         //                        "side": "bid",
         //                        "event_time": "1970-01-01T00:00:00Z",
-        //                        "price_level": "21921.73",
+        //                        "price_level": "21921.74",
         //                        "new_quantity": "0.06317902"
         //                    },
         //                    {

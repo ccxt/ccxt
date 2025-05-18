@@ -35,6 +35,21 @@ func (this *Coincatch) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name coincatch#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coincatch) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coincatch#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
  * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list

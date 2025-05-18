@@ -35,6 +35,21 @@ func (this *Hitbtc) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name hitbtc#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://api.hitbtc.com/#currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Hitbtc) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name hitbtc#createDepositAddress
  * @description create a currency deposit address
  * @see https://api.hitbtc.com/#generate-deposit-crypto-address

@@ -8346,7 +8346,7 @@ func  (this *htx) Sign(path interface{}, optionalArgs ...interface{}) interface{
                 request = this.Extend(request, query)
             }
             var sortedRequest interface{} = this.Keysort(request)
-            var auth interface{} = this.Urlencode(sortedRequest)
+            var auth interface{} = this.Urlencode(sortedRequest, true) // true is a go only requirment
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             var payload interface{} = Join([]interface{}{method, this.Hostname, url, auth}, "\n") // eslint-disable-line quotes
             var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
@@ -8425,7 +8425,7 @@ func  (this *htx) Sign(path interface{}, optionalArgs ...interface{}) interface{
                 var sortedQuery interface{} = this.Keysort(query)
                 request = this.Extend(request, sortedQuery)
             }
-            var auth interface{} = Replace(this.Urlencode(request), "%2c", "%2C") // in c# it manually needs to be uppercased
+            var auth interface{} = Replace(this.Urlencode(request, true), "%2c", "%2C") // in c# it manually needs to be uppercased
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             var payload interface{} = Join([]interface{}{method, hostname, url, auth}, "\n") // eslint-disable-line quotes
             var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")

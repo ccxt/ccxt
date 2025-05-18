@@ -323,18 +323,20 @@ class bithumb(ccxt.async_support.bithumb):
         #        "contPrice" : "10579000",
         #        "contQty" : "0.01",
         #        "contAmt" : "105790.00",
-        #        "contDtm" : "2020-01-29 12:24:18.830039",
+        #        "contDtm" : "2020-01-29 12:24:18.830038",
         #        "updn" : "dn"
         #    }
         #
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
+        # that date is not UTC iso8601, but exchange's local time, -9hr difference
+        timestamp = self.parse8601(datetime) - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,
             'info': trade,
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'symbol': self.safe_symbol(marketId, market, '_'),
             'order': None,
             'type': None,

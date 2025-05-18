@@ -2069,9 +2069,7 @@ class bitget extends Exchange {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
                 $network = $this->network_id_to_code($networkId, $code);
-                if ($network !== null) {
-                    $network = strtoupper($network);
-                }
+                $network = strtoupper($network);
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -3468,6 +3466,7 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
+         * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -3476,12 +3475,14 @@ class bitget extends Exchange {
         $defaultLimit = 100; // default 100, max 1000
         $maxLimitForRecentEndpoint = 1000;
         $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
+        $useHistoryEndpointForPagination = $this->safe_bool($params, 'useHistoryEndpointForPagination', true);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForRecentEndpoint);
+            $limitForPagination = $useHistoryEndpointForPagination ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $limitForPagination);
         }
-        $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
         $market = $this->market($symbol);
         $marketType = $market['spot'] ? 'spot' : 'swap';
         $timeframes = $this->options['timeframes'][$marketType];
@@ -4123,6 +4124,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
         $updateTimestamp = $this->safe_integer($order, 'uTime');
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
+        $rawStatus = $this->safe_string($order, 'planStatus', $rawStatus);
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {

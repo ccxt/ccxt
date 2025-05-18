@@ -3,7 +3,69 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch tpsl  orders",
+                "method": "fetchOpenOrders",
+                "url": "https://openapi.blofin.com/api/v1/trade/orders-tpsl-pending",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "tpsl": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://openapi.blofin.com/api/v1/trade/orders-algo-pending?orderType=trigger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
+            {
+                "description": "triger order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    90,
+                    {
+                        "triggerPrice": 91
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
+            },
+            {
+                "description": "--report",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    90,
+                    {
+                        "triggerPrice": 91
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
+            },
             {
                 "description": "open position with tp+sl",
                 "method": "createOrder",
@@ -104,6 +166,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/cancel-algo",
+                "input": [
+                    61322087,
+                    "LTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"algoId\":\"61322087\"}"
+            },
+            {
                 "description": "cancel limit order",
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-order",
@@ -121,7 +196,7 @@
                   "10811191",
                   "LTC/USDT:USDT",
                   {
-                    "trigger": true
+                    "tpsl": true
                   }
                 ],
                 "output": "[{\"tpslId\":\"10811191\",\"instId\":\"LTC-USDT\"}]"
