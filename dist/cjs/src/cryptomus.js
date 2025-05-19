@@ -365,41 +365,9 @@ class cryptomus extends cryptomus$1 {
         const coins = this.safeList(response, 'result');
         const result = {};
         for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const currencyId = this.safeString(currency, 'currency_code');
+            const networkEntry = coins[i];
+            const currencyId = this.safeString(networkEntry, 'currency_code');
             const code = this.safeCurrencyCode(currencyId);
-            const allowWithdraw = this.safeBool(currency, 'can_withdraw');
-            const allowDeposit = this.safeBool(currency, 'can_deposit');
-            const isActive = allowWithdraw && allowDeposit;
-            const networkId = this.safeString(currency, 'network_code');
-            const networksById = this.safeDict(this.options, 'networksById');
-            const networkName = this.safeString(networksById, networkId, networkId);
-            const minWithdraw = this.safeNumber(currency, 'min_withdraw');
-            const maxWithdraw = this.safeNumber(currency, 'max_withdraw');
-            const minDeposit = this.safeNumber(currency, 'min_deposit');
-            const maxDeposit = this.safeNumber(currency, 'max_deposit');
-            const network = {
-                'id': networkId,
-                'network': networkName,
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': maxDeposit,
-                    },
-                },
-                'active': isActive,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
-                'fee': undefined,
-                'precision': undefined,
-                'info': currency,
-            };
-            const networks = {};
-            networks[networkName] = network;
             if (!(code in result)) {
                 result[code] = {
                     'id': currencyId,
@@ -407,70 +375,56 @@ class cryptomus extends cryptomus$1 {
                     'precision': undefined,
                     'type': undefined,
                     'name': undefined,
-                    'active': isActive,
-                    'deposit': allowDeposit,
-                    'withdraw': allowWithdraw,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
                     'fee': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': undefined,
+                            'max': undefined,
                         },
                         'deposit': {
-                            'min': minDeposit,
-                            'max': maxDeposit,
+                            'min': undefined,
+                            'max': undefined,
                         },
                     },
-                    'networks': networks,
-                    'info': currency,
+                    'networks': {},
+                    'info': {},
                 };
             }
-            else {
-                const parsed = result[code];
-                const parsedNetworks = this.safeDict(parsed, 'networks');
-                parsed['networks'] = this.extend(parsedNetworks, networks);
-                if (isActive) {
-                    parsed['active'] = true;
-                    parsed['deposit'] = true;
-                    parsed['withdraw'] = true;
-                }
-                else {
-                    if (allowWithdraw) {
-                        parsed['withdraw'] = true;
-                    }
-                    if (allowDeposit) {
-                        parsed['deposit'] = true;
-                    }
-                }
-                const parsedLimits = this.safeDict(parsed, 'limits');
-                const withdrawLimits = {
-                    'min': undefined,
-                    'max': undefined,
-                };
-                const parsedWithdrawLimits = this.safeDict(parsedLimits, 'withdraw', withdrawLimits);
-                const depositLimits = {
-                    'min': undefined,
-                    'max': undefined,
-                };
-                const parsedDepositLimits = this.safeDict(parsedLimits, 'deposit', depositLimits);
-                if (minWithdraw) {
-                    withdrawLimits['min'] = parsedWithdrawLimits['min'] ? Math.min(parsedWithdrawLimits['min'], minWithdraw) : minWithdraw;
-                }
-                if (maxWithdraw) {
-                    withdrawLimits['max'] = parsedWithdrawLimits['max'] ? Math.max(parsedWithdrawLimits['max'], maxWithdraw) : maxWithdraw;
-                }
-                if (minDeposit) {
-                    depositLimits['min'] = parsedDepositLimits['min'] ? Math.min(parsedDepositLimits['min'], minDeposit) : minDeposit;
-                }
-                if (maxDeposit) {
-                    depositLimits['max'] = parsedDepositLimits['max'] ? Math.max(parsedDepositLimits['max'], maxDeposit) : maxDeposit;
-                }
-                const limits = {
-                    'withdraw': withdrawLimits,
-                    'deposit': depositLimits,
-                };
-                parsed['limits'] = limits;
-            }
+            const networkId = this.safeString(networkEntry, 'network_code');
+            const networkCode = this.networkIdToCode(networkId);
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(networkEntry, 'min_deposit'),
+                        'max': this.safeNumber(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': undefined,
+                'deposit': this.safeBool(networkEntry, 'can_withdraw'),
+                'withdraw': this.safeBool(networkEntry, 'can_deposit'),
+                'fee': undefined,
+                'precision': undefined,
+                'info': networkEntry,
+            };
+            // add entry in info
+            const info = this.safeList(result[code], 'info', []);
+            info.push(networkEntry);
+            result[code]['info'] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        const allKeys = Object.keys(result);
+        for (let i = 0; i < allKeys.length; i++) {
+            const code = allKeys[i];
+            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
         }
         return result;
     }
