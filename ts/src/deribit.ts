@@ -637,7 +637,7 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeDict (response, 'result', {});
+        const data = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
