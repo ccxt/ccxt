@@ -138,6 +138,64 @@ export default class mexc extends mexcRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
+    /**
+     * @method
+     * @name mexc#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name mexc#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name mexc#watchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name mexc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name mexc#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name mexc#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    handleUnsubscriptions(client: Client, messageHashes: string[]): void;
     authenticate(subscriptionHash: any, params?: {}): Promise<string>;
     keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
     handlePong(client: Client, message: any): any;
