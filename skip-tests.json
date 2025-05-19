@@ -344,10 +344,7 @@
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "currencyIdAndCode": "broken currencies",
-                "type": "todo"
+                "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
@@ -385,22 +382,6 @@
                 "spread": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
                 "compareQuoteVolumeBaseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152"
             }
-        }
-    },
-    "bl3p": {
-        "skipMethods": {
-            "loadMarkets": {
-                "precision":"not provided",
-                "active": "not provided",
-                "info": "null"
-            },
-            "fetchTrades": {
-                "side": "side is undefined"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
-            },
-            "fetchCurrencies": "todo, returns only 1 coin"
         }
     },
     "bitteam": {
