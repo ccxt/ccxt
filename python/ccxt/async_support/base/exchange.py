@@ -387,6 +387,8 @@ class Exchange(BaseExchange):
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
+            # we use aiohttp instead of fastClient now because of this
+            # https://github.com/ccxt/ccxt/pull/25995
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
             self.clients[url].proxy = self.get_ws_proxy()
         return self.clients[url]
