@@ -416,7 +416,7 @@
                   0.000121233,
                   61000.4234234322
                 ],
-                "output": "{\"amount\":\"0.00012123\",\"client_id\":\"x-167673045-1471b81d747080a0\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000.42\",\"side\":\"buy\",\"type\":\"limit\"}"
+                "output": "{\"amount\":\"0.0001\",\"client_id\":\"x-167673045-1471b81d747080a0\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000.42\",\"side\":\"buy\",\"type\":\"limit\"}"
             },
             {
                 "description": "Swap limit trigger buy order",
