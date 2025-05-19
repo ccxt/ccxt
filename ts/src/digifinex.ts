@@ -565,7 +565,9 @@ export default class digifinex extends Exchange {
                     },
                 },
             };
-            result[code]['info'].push (networkEntry);
+            const infos = this.safeList (result[code], 'info', []);
+            infos.push (networkEntry);
+            result[code]['info'] = infos;
         }
         // only after all entries are formed in currencies, restructure each entry
         const allKeys = Object.keys (result);
