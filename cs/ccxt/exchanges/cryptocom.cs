@@ -45,7 +45,7 @@ public partial class cryptocom : Exchange
                 { "fetchClosedOrders", "emulated" },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
@@ -475,6 +475,122 @@ public partial class cryptocom : Exchange
                 { "broad", new Dictionary<string, object>() {} },
             } },
         });
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        // this endpoint requires authentication
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(this.checkRequiredCredentials(false)))
+        {
+            return null;
+        }
+        object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        //
+        //    {
+        //        "id": "1747502328559",
+        //        "method": "private/get-currency-networks",
+        //        "code": "0",
+        //        "result": {
+        //            "update_time": "1747502281000",
+        //            "currency_map": {
+        //                "USDT": {
+        //                    "full_name": "Tether USD",
+        //                    "default_network": "ETH",
+        //                    "network_list": [
+        //                        {
+        //                            "network_id": "ETH",
+        //                            "withdrawal_fee": "10.00000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "20.0",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "32"
+        //                        },
+        //                        {
+        //                            "network_id": "CRONOS",
+        //                            "withdrawal_fee": "0.18000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "0.36",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "15"
+        //                        },
+        //                        {
+        //                            "network_id": "SOL",
+        //                            "withdrawal_fee": "5.31000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "10.62",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "1"
+        //                        }
+        //                    ]
+        //                }
+        //            }
+        //        }
+        //    }
+        //
+        object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
+        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object currency = getValue(currencyMap, key);
+            object id = key;
+            object code = this.safeCurrencyCode(id);
+            object networks = new Dictionary<string, object>() {};
+            object chains = this.safeList(currency, "network_list", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object chain = getValue(chains, j);
+                object networkId = this.safeString(chain, "network_id");
+                object network = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", network },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "deposit_enabled", false) },
+                    { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
+                    { "fee", this.safeNumber(chain, "withdrawal_fee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "info", currency },
+                { "id", id },
+                { "code", code },
+                { "name", this.safeString(currency, "full_name") },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "type", "crypto" },
+                { "networks", networks },
+            });
+        }
+        return result;
     }
 
     /**
