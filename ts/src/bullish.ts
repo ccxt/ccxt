@@ -6,6 +6,7 @@ import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/error
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Account, Bool, Currencies, Currency, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1142,28 +1143,41 @@ export default class bullish extends Exchange {
      * @name bullish#cancelOrder
      * @description cancels an open order
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
-     * @param {string} id order id
+     * @param {string} [id] order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.commandType] the command type, default is 'V3CancelOrder'
+     * @param {string} params.commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.signIn ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         const market = this.market (symbol);
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
+        }
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter');
+        }
         const request: Dict = {
-            'commandType': this.safeString (params, 'commandType', 'V3CancelOrder'),
-            'orderId': parseInt (id),
             'symbol': market['id'],
-            'tradingAccountId': this.safeString (params, 'tradingAccountId'),
+            'tradingAccountId': tradingAccountId,
+            'commandType': this.safeString (params, 'commandType', 'V3CancelOrder'),
+            'orderId': id,
         };
         const response = await this.privatePostV2Command (this.extend (request, params));
         //
         //     {
         //         "message": "Command acknowledged - CancelOrder",
-        //         "requestId": "633910976353665024",
-        //         "orderId": "633910775316480001"
+        //         "requestId": "844658480774644736",
+        //         "orderId": "297735387747975680",
+        //         "clientOrderId": null
         //     }
         //
         return this.parseOrder (response, market);
