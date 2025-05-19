@@ -903,9 +903,7 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const isTestnetSpot = client.url.indexOf('testnet') > 0;
-        const isSpotMainNet = client.url.indexOf('/stream.binance.') > 0;
-        const isSpot = isTestnetSpot || isSpotMainNet;
+        const isSpot = (client.url.indexOf('/stream') > 0);
         const marketType = isSpot ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1365,7 +1363,7 @@ export default class binance extends binanceRest {
     handleTrade(client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = ((client.url.indexOf('wss://stream.binance.com') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = (client.url.indexOf('/stream') > -1);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1607,7 +1605,7 @@ export default class binance extends binanceRest {
             this.safeFloat(kline, 'c'),
             this.safeFloat(kline, 'v'),
         ];
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = (client.url.indexOf('/stream') > -1);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
@@ -2252,7 +2250,7 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks(client, message, 'tickers');
     }
     handleTickersAndBidsAsks(client, message, methodType) {
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = (client.url.indexOf('/stream') > -1);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;
