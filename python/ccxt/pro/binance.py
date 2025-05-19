@@ -868,10 +868,8 @@ class binance(ccxt.async_support.binance):
         #         ]
         #     }
         #
-        isTestnetSpot = client.url.find('testnet') > 0
-        isSpotMainNet = client.url.find('/stream.binance.') > 0
-        isSpot = isTestnetSpot or isSpotMainNet
-        marketType = 'spot' if isSpot else 'contract'
+        isSpot = (client.url.find('/stream') > -1)
+        marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -1290,7 +1288,7 @@ class binance(ccxt.async_support.binance):
     def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
-        isSpot = ((client.url.find('wss://stream.binance.com') > -1) or (client.url.find('/testnet.binance') > -1))
+        isSpot = (client.url.find('/stream') > -1)
         marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -1523,7 +1521,7 @@ class binance(ccxt.async_support.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        isSpot = (client.url.find('/stream') > -1)
         marketType = 'spot' if (isSpot) else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
@@ -2123,7 +2121,7 @@ class binance(ccxt.async_support.binance):
         self.handle_tickers_and_bids_asks(client, message, 'tickers')
 
     def handle_tickers_and_bids_asks(self, client: Client, message, methodType):
-        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        isSpot = (client.url.find('/stream') > -1)
         marketType = 'spot' if (isSpot) else 'contract'
         isBidAsk = (methodType == 'bidasks')
         channelName = None
