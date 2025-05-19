@@ -186,7 +186,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.05,
+                "min": 0.01,
                 "max": null
             },
             "price": {
@@ -212,7 +212,7 @@
             "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "LTCUSDT",
-            "min_amount": "0.05",
+            "min_amount": "0.01",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
             "status": "online",
@@ -556,7 +556,7 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1,
+                "min": 0.05,
                 "max": null
             },
             "price": {
@@ -593,8 +593,8 @@
             ],
             "maker_fee_rate": "0.0003",
             "market": "LTCUSDT",
-            "min_amount": "0.1",
-            "open_interest_volume": "44234.05",
+            "min_amount": "0.05",
+            "open_interest_volume": "45147",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
             "status": "online",
@@ -682,7 +682,7 @@
             "maker_fee_rate": "0.0003",
             "market": "BTCUSDT",
             "min_amount": "0.0001",
-            "open_interest_volume": "1096.9145",
+            "open_interest_volume": "1123.4785",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
             "status": "online",
@@ -769,7 +769,7 @@
             "maker_fee_rate": "0.0003",
             "market": "ADAUSDT",
             "min_amount": "10",
-            "open_interest_volume": "9845835",
+            "open_interest_volume": "10662580",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
             "status": "online",
@@ -856,7 +856,7 @@
             "maker_fee_rate": "0.0003",
             "market": "XRPUSDT",
             "min_amount": "5",
-            "open_interest_volume": "9257275",
+            "open_interest_volume": "9528360",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
             "status": "online",
@@ -943,7 +943,7 @@
             "maker_fee_rate": "0.0003",
             "market": "TRXUSDT",
             "min_amount": "50",
-            "open_interest_volume": "7865975",
+            "open_interest_volume": "7491390",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "6",
             "status": "online",
@@ -1031,7 +1031,7 @@
             "maker_fee_rate": "0.0003",
             "market": "ETHUSDT",
             "min_amount": "0.005",
-            "open_interest_volume": "16773.48",
+            "open_interest_volume": "16858.41",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
             "status": "online",
