@@ -341,9 +341,8 @@
         "contract": true,
         "linear": true,
         "inverse": false,
-
         "taker": 0.0003,
-        "maker": -0.00005,
+        "maker": 0.0003,
         "contractSize": 1,
         "expiry": 0,
         "strike": 117000,

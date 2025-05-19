@@ -561,14 +561,15 @@ export default class paradex extends Exchange {
         let expiry = this.safeInteger (market, 'expiry_at');
         const optionType = this.safeString (market, 'option_type');
         const strikePrice = this.safeString (market, 'strike_price');
+        const takerFee = this.parseNumber ('0.0003');
+        let makerFee = this.parseNumber ('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
             symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
+            makerFee = this.parseNumber ('0.0003');
         } else {
             expiry = undefined;
         }
-        const takerFee = this.parseNumber ('0.0003');
-        const makerFee = this.parseNumber ('-0.00005');
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
