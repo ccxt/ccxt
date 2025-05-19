@@ -467,30 +467,31 @@ class coinlist(Exchange, ImplicitAPI):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
             code = self.safe_currency_code(id)
+            isFiat = code == 'USD'
             isTransferable = self.safe_bool(currency, 'is_transferable', False)
-            withdrawEnabled = isTransferable
-            depositEnabled = isTransferable
-            active = isTransferable
-            decimalPlaces = self.safe_string(currency, 'decimal_places')
-            precision = self.parse_number(self.parse_precision(decimalPlaces))
-            minWithdrawal = self.safe_string(currency, 'min_withdrawal')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'name': code,
                 'info': currency,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': None,
+                'deposit': isTransferable,
+                'withdraw': isTransferable,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal_places'))),
                 'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': minWithdrawal, 'max': None},
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'min_withdrawal'),
+                        'max': None,
+                    },
                 },
-                'networks': {},
-                'type': 'crypto',
-            }
+                'networks': {},  # todo
+                'type': 'fiat' if isFiat else 'crypto',
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:

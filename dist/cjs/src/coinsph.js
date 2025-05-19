@@ -57,7 +57,7 @@ class coinsph extends coinsph$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -482,6 +482,131 @@ class coinsph extends coinsph$1 {
                 },
             },
         });
+    }
+    /**
+     * @method
+     * @name coinsph#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies(params = {}) {
+        if (!this.checkRequiredCredentials(false)) {
+            return undefined;
+        }
+        const response = await this.privateGetOpenapiWalletV1ConfigGetall(params);
+        //
+        //    [
+        //        {
+        //            "coin": "PHP",
+        //            "name": "PHP",
+        //            "depositAllEnable": false,
+        //            "withdrawAllEnable": false,
+        //            "free": "0",
+        //            "locked": "0",
+        //            "transferPrecision": "2",
+        //            "transferMinQuantity": "0",
+        //            "networkList": [],
+        //            "legalMoney": true
+        //        },
+        //        {
+        //            "coin": "USDT",
+        //            "name": "USDT",
+        //            "depositAllEnable": true,
+        //            "withdrawAllEnable": true,
+        //            "free": "0",
+        //            "locked": "0",
+        //            "transferPrecision": "8",
+        //            "transferMinQuantity": "0",
+        //            "networkList": [
+        //                {
+        //                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+        //                    "memoRegex": " ",
+        //                    "network": "ETH",
+        //                    "name": "Ethereum (ERC20)",
+        //                    "depositEnable": true,
+        //                    "minConfirm": "12",
+        //                    "unLockConfirm": "-1",
+        //                    "withdrawDesc": "",
+        //                    "withdrawEnable": true,
+        //                    "withdrawFee": "6",
+        //                    "withdrawIntegerMultiple": "0.000001",
+        //                    "withdrawMax": "500000",
+        //                    "withdrawMin": "10",
+        //                    "sameAddress": false
+        //                },
+        //                {
+        //                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+        //                    "memoRegex": "",
+        //                    "network": "TRX",
+        //                    "name": "TRON",
+        //                    "depositEnable": true,
+        //                    "minConfirm": "19",
+        //                    "unLockConfirm": "-1",
+        //                    "withdrawDesc": "",
+        //                    "withdrawEnable": true,
+        //                    "withdrawFee": "3",
+        //                    "withdrawIntegerMultiple": "0.000001",
+        //                    "withdrawMax": "1000000",
+        //                    "withdrawMin": "20",
+        //                    "sameAddress": false
+        //                }
+        //            ],
+        //            "legalMoney": false
+        //        }
+        //    ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const id = this.safeString(entry, 'coin');
+            const code = this.safeCurrencyCode(id);
+            const isFiat = this.safeBool(entry, 'isLegalMoney');
+            const networkList = this.safeList(entry, 'networkList', []);
+            const networks = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkItem = networkList[j];
+                const network = this.safeString(networkItem, 'network');
+                const networkCode = this.networkIdToCode(network);
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool(networkItem, 'depositEnable'),
+                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
+                'id': id,
+                'name': this.safeString(entry, 'name'),
+                'code': code,
+                'type': isFiat ? 'fiat' : 'crypto',
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'transferPrecision'))),
+                'info': entry,
+                'active': undefined,
+                'deposit': this.safeBool(entry, 'depositAllEnable'),
+                'withdraw': this.safeBool(entry, 'withdrawAllEnable'),
+                'networks': networks,
+                'fee': undefined,
+                'fees': undefined,
+                'limits': {},
+            });
+        }
+        return result;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {

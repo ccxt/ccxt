@@ -65,6 +65,21 @@ func (this *Woofipro) FetchMarkets(params ...interface{}) ([]MarketInterface, er
 }
 /**
  * @method
+ * @name woofipro#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Woofipro) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
  * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades

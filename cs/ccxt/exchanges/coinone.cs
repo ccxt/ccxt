@@ -225,18 +225,16 @@ public partial class coinone : Exchange
         {
             object entry = getValue(currencies, i);
             object id = this.safeString(entry, "symbol");
-            object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
-            object withdrawStatus = this.safeString(entry, "withdraw_status", "");
-            object depositStatus = this.safeString(entry, "deposit_status", "");
-            object isWithdrawEnabled = isEqual(withdrawStatus, "normal");
-            object isDepositEnabled = isEqual(depositStatus, "normal");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isWithdrawEnabled = isEqual(this.safeString(entry, "withdraw_status", ""), "normal");
+            object isDepositEnabled = isEqual(this.safeString(entry, "deposit_status", ""), "normal");
+            object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", entry },
-                { "name", name },
-                { "active", isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled) },
+                { "name", this.safeString(entry, "name") },
+                { "active", null },
                 { "deposit", isDepositEnabled },
                 { "withdraw", isWithdrawEnabled },
                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
@@ -252,8 +250,8 @@ public partial class coinone : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-            };
+                { "type", type },
+            });
         }
         return result;
     }

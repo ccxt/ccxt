@@ -9,6 +9,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
+                "input": [],
+                "output": "{\"id\":\"1747503230183\",\"method\":\"private/get-currency-networks\",\"params\":{},\"api_key\":\"XK2S3Zuir2AU3AY1rxc2Nh\",\"sig\":\"a942b33e8387376574c8de4739eaac92730088b0f9451e17f23eb14bfa97a150\",\"nonce\":\"1747503230183\"}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order with postOnly flag",
