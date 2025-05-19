@@ -65,7 +65,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     const quoteVolume = exchange.safeString(entry, 'quoteVolume');
     const high = exchange.safeString(entry, 'high');
     const low = exchange.safeString(entry, 'low');
-    if (!('quoteVolume' in skippedProperties) && !('baseVolume' in skippedProperties)) {
+    if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
             let baseLow = Precise.stringMul(baseVolume, low);
             let baseHigh = Precise.stringMul(baseVolume, high);

@@ -63,7 +63,7 @@ import "github.com/ccxt/ccxt/go/v4"
         var quoteVolume interface{} = exchange.SafeString(entry, "quoteVolume")
         var high interface{} = exchange.SafeString(entry, "high")
         var low interface{} = exchange.SafeString(entry, "low")
-        if IsTrue(!IsTrue((InOp(skippedProperties, "quoteVolume"))) && !IsTrue((InOp(skippedProperties, "baseVolume")))) {
+        if !IsTrue((InOp(skippedProperties, "compareQuoteVolumeBaseVolume"))) {
             if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) {
                 var baseLow interface{} = ccxt.Precise.StringMul(baseVolume, low)
                 var baseHigh interface{} = ccxt.Precise.StringMul(baseVolume, high)

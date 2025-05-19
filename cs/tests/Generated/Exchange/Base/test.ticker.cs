@@ -68,7 +68,7 @@ public partial class testMainClass : BaseTest
         object quoteVolume = exchange.safeString(entry, "quoteVolume");
         object high = exchange.safeString(entry, "high");
         object low = exchange.safeString(entry, "low");
-        if (isTrue(!isTrue((inOp(skippedProperties, "quoteVolume"))) && !isTrue((inOp(skippedProperties, "baseVolume")))))
+        if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
             {

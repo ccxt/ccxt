@@ -67,7 +67,7 @@ class oxfun extends oxfun$1 {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -1100,6 +1100,26 @@ class oxfun extends oxfun$1 {
         //
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
+    }
+    /**
+     * @method
+     * @name oxfun#fetchFundingRate
+     * @description fetch the current funding rates for a symbol
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string} symbol unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'marketCode': this.marketId(symbol),
+        };
+        const response = await this.publicGetV3FundingEstimates(this.extend(request, params));
+        //
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        return this.parseFundingRate(first, this.market(symbol));
     }
     parseFundingRate(fundingRate, market = undefined) {
         //

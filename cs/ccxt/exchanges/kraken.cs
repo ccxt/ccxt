@@ -1728,6 +1728,8 @@ public partial class kraken : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
+        object flags = this.safeString(getValue(orderRequest, 0), "oflags", "");
+        object isUsingCost = isGreaterThan(getIndexOf(flags, "viqc"), -1);
         object response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -1739,6 +1741,10 @@ public partial class kraken : Exchange
         //     }
         //
         object result = this.safeDict(response, "result");
+        ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
 
@@ -1844,22 +1850,15 @@ public partial class kraken : Exchange
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error": [],
@@ -1927,6 +1926,8 @@ public partial class kraken : Exchange
         //         "oflags": "fciq"
         //     }
         //
+        object isUsingCost = this.safeBool(order, "usingCost", false);
+        order = this.omit(order, "usingCost");
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
         object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
@@ -1942,12 +1943,19 @@ public partial class kraken : Exchange
         object marketId = null;
         object price = null;
         object amount = null;
+        object cost = null;
         object triggerPrice = null;
         if (isTrue(!isEqual(orderDescription, null)))
         {
             object parts = ((string)orderDescription).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
-            amount = this.safeString(parts, 1);
+            if (!isTrue(isUsingCost))
+            {
+                amount = this.safeString(parts, 1);
+            } else
+            {
+                cost = this.safeString(parts, 1);
+            }
             marketId = this.safeString(parts, 2);
             object part4 = this.safeString(parts, 4);
             object part5 = this.safeString(parts, 5);
@@ -1987,18 +1995,15 @@ public partial class kraken : Exchange
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
-        // when type = trailling stop returns price = '+50.0000%'
-        if (isTrue(isTrue((!isEqual(price, null))) && isTrue(((string)price).EndsWith(((string)"%")))))
+        // when type = trailing stop returns price = '+50.0000%'
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((isTrue(isTrue(((string)price).EndsWith(((string)"%"))) || isTrue(Precise.stringEquals(price, "0.00000"))) || isTrue(Precise.stringEquals(price, "0"))))))
         {
             price = null; // this is not the price we want
         }
-        if (isTrue(isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"))))
+        if (isTrue(isEqual(price, null)))
         {
             price = this.safeString(description, "price2");
-        }
-        if (isTrue(isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"))))
-        {
-            price = this.safeString(order, "price", price);
+            price = this.safeString2(order, "limitprice", "price", price);
         }
         object flags = this.safeString(order, "oflags", "");
         object isPostOnly = isGreaterThan(getIndexOf(flags, "post"), -1);
@@ -2023,7 +2028,7 @@ public partial class kraken : Exchange
             }
         }
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object id = this.safeStringN(order, new List<object>() {"id", "txid", "amend_id"});
+        object id = this.safeStringN(order, new List<object>() {"id", "txid", "order_id", "amend_id"});
         if (isTrue(isTrue((isEqual(id, null))) || isTrue((((string)id).StartsWith(((string)"["))))))
         {
             object txid = this.safeList(order, "txid");
@@ -2103,7 +2108,7 @@ public partial class kraken : Exchange
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
-            { "cost", null },
+            { "cost", cost },
             { "amount", amount },
             { "filled", filled },
             { "average", average },

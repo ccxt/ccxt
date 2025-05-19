@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -247,12 +248,51 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 	return res
 }
 
-func (e *Exchange) Urlencode(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+// without sorting
+// func (e *Exchange) Urlencode(params ...interface{}) string {
+// 	parameters := params[0].(map[string]interface{})
+// 	sort := GetArg(params, 1, false).(bool)
+// 	var queryString []string
+// 	for key, value := range parameters {
+// 		encodedKey := url.QueryEscape(key)
+// 		finalValue := ""
+// 		if IsNumber(value) {
+// 			finalValue = NumberToString(value)
+// 		} else {
+// 			finalValue = ToString(value)
+// 		}
+// 		if boolVal, ok := value.(bool); ok {
+// 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
+// 		}
+// 		if strings.ToLower(key) == "timestamp" {
+// 			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
+// 		} else {
+// 			finalValue = url.QueryEscape(finalValue)
+// 		}
+// 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
+// 	}
+// 	return strings.Join(queryString, "&")
+// }
+
+func (e *Exchange) Urlencode(params ...interface{}) string {
+	parameters := params[0].(map[string]interface{})
+	shouldSort := GetArg(params, 1, false).(bool)
+
+	var keys []string
+	for key := range parameters {
+		keys = append(keys, key)
+	}
+
+	if shouldSort {
+		sort.Strings(keys)
+	}
+
 	var queryString []string
-	for key, value := range parameters {
+	for _, key := range keys {
+		value := parameters[key]
 		encodedKey := url.QueryEscape(key)
 		finalValue := ""
+
 		if IsNumber(value) {
 			finalValue = NumberToString(value)
 		} else {
@@ -268,6 +308,7 @@ func (e *Exchange) Urlencode(parameters2 interface{}) string {
 		}
 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
 	}
+
 	return strings.Join(queryString, "&")
 }
 

@@ -106,6 +106,18 @@ class btcbox extends btcbox$1 {
                         'wallet',
                     ],
                 },
+                'webApi': {
+                    'get': [
+                        'ajax/coin/coinInfo',
+                    ],
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'webApiEnable': true,
+                    'webApiRetries': 3,
+                },
+                'amountPrecision': '0.0001', // exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {
@@ -191,9 +203,12 @@ class btcbox extends btcbox$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetTickers();
+        const promise1 = this.publicGetTickers();
+        const promise2 = this.fetchWebEndpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
+        const [response1, response2] = await Promise.all([promise1, promise2]);
         //
-        const marketIds = Object.keys(response);
+        const result2Data = this.safeDict(response2, 'data', {});
+        const marketIds = Object.keys(response1);
         const markets = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -202,9 +217,11 @@ class btcbox extends btcbox$1 {
             const quote = this.safeString(symbolParts, 1);
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
-            const res = response[marketId];
+            const res = response1[marketId];
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
+            const details = this.safeDict(result2Data, id, {});
+            const tradeDetails = this.safeDict(details, 'trade', {});
             markets.push(this.safeMarketStructure({
                 'id': id,
                 'uppercaseId': undefined,
@@ -250,10 +267,10 @@ class btcbox extends btcbox$1 {
                     },
                 },
                 'precision': {
-                    'price': undefined,
+                    'price': this.parseNumber(this.parsePrecision(this.safeString(tradeDetails, 'pricedecimal'))),
                     'amount': undefined,
                 },
-                'active': undefined,
+                'active': this.safeString(tradeDetails, 'enable') === '1',
                 'created': undefined,
                 'info': res,
             }));
@@ -726,6 +743,9 @@ class btcbox extends btcbox$1 {
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }
+        }
+        else if (api === 'webApi') {
+            url = this.urls['www'] + '/' + path;
         }
         else {
             this.checkRequiredCredentials();

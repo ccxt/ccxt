@@ -944,6 +944,7 @@ class htx extends htx$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -2207,7 +2208,7 @@ class htx extends htx$1 {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray(ticker['bid'])) {
                 bid = this.safeString(ticker['bid'], 0);
                 bidVolume = this.safeString(ticker['bid'], 1);
             }
@@ -2217,7 +2218,7 @@ class htx extends htx$1 {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray(ticker['ask'])) {
                 ask = this.safeString(ticker['ask'], 0);
                 askVolume = this.safeString(ticker['ask'], 1);
             }
@@ -7497,7 +7498,7 @@ class htx extends htx$1 {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest);
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
@@ -7579,7 +7580,7 @@ class htx extends htx$1 {
                     const sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
+                let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');

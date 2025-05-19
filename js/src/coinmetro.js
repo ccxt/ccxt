@@ -380,24 +380,35 @@ export default class coinmetro extends Exchange {
             const currency = response[i];
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
-            const withdraw = this.safeValue(currency, 'canWithdraw');
-            const deposit = this.safeValue(currency, 'canDeposit');
-            const canTrade = this.safeValue(currency, 'canTrade');
-            const active = canTrade ? withdraw : true;
-            const minAmount = this.safeNumber(currency, 'minQty');
+            const typeRaw = this.safeString(currency, 'type');
+            let type = undefined;
+            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
+                type = 'crypto';
+            }
+            else if (typeRaw === 'fiat') {
+                type = 'fiat';
+            }
+            const precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
             result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'name': code,
+                'type': type,
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeBool(currency, 'canTrade'),
+                'deposit': this.safeBool(currency, 'canDeposit'),
+                'withdraw': this.safeBool(currency, 'canWithdraw'),
                 'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'digits'))),
+                'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
                 'limits': {
-                    'amount': { 'min': minAmount, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': this.safeNumber(currency, 'minQty'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
                 'networks': {},
             });

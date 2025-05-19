@@ -293,8 +293,6 @@ public partial class cex : Exchange
         object id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
         object type = ((bool) isTrue(this.safeBool(rawCurrency, "fiat"))) ? "fiat" : "crypto";
-        object currencyDepositEnabled = this.safeBool(rawCurrency, "walletDeposit");
-        object currencyWithdrawEnabled = this.safeBool(rawCurrency, "walletWithdrawal");
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -334,8 +332,8 @@ public partial class cex : Exchange
             { "name", null },
             { "type", type },
             { "active", null },
-            { "deposit", currencyDepositEnabled },
-            { "withdraw", currencyWithdrawEnabled },
+            { "deposit", this.safeBool(rawCurrency, "walletDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "walletWithdrawal") },
             { "fee", null },
             { "precision", currencyPrecision },
             { "limits", new Dictionary<string, object>() {

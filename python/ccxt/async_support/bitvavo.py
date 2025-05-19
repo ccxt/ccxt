@@ -362,6 +362,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                 },
                 'operatorId': None,  # self will be required soon for order-related endpoints
+                'fiatCurrencies': ['EUR'],  # only fiat atm
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -568,24 +569,24 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
         result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
+            isFiat = self.in_array(code, fiatCurrencies)
             networks: dict = {}
-            networksArray = self.safe_value(currency, 'networks', [])
-            networksLength = len(networksArray)
-            isOneNetwork = (networksLength == 1)
-            deposit = (self.safe_value(currency, 'depositStatus') == 'OK')
-            withdrawal = (self.safe_value(currency, 'withdrawalStatus') == 'OK')
+            networksArray = self.safe_list(currency, 'networks', [])
+            deposit = self.safe_string(currency, 'depositStatus') == 'OK'
+            withdrawal = self.safe_string(currency, 'withdrawalStatus') == 'OK'
             active = deposit and withdrawal
             withdrawFee = self.safe_number(currency, 'withdrawalFee')
             precision = self.safe_integer(currency, 'decimals', 8)
             minWithdraw = self.safe_number(currency, 'withdrawalMinAmount')
-            # absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if isOneNetwork:
-                networkId = networksArray[0]
+            # btw, absolutely all of them have 1 network atm
+            for j in range(0, len(networksArray)):
+                networkId = networksArray[j]
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'info': currency,
@@ -603,7 +604,7 @@ class bitvavo(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -614,7 +615,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
-                'type': 'crypto',
+                'type': 'fiat' if isFiat else 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
@@ -629,7 +630,7 @@ class bitvavo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         # set currencies here to avoid calling publicGetAssets twice
         self.currencies = self.deep_extend(self.currencies, result)
         return result
