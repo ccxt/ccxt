@@ -5,7 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ export default class bullish extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
@@ -163,22 +163,22 @@ export default class bullish extends Exchange {
                         'v1/markets/{symbol}/candle': 1, // done
                         'v1/history/markets/{symbol}/trades': 1,
                         'v1/history/markets/{symbol}/funding-rate': 1, // done
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
+                        'v1/index-prices': 1, // todo ask what method to use
+                        'v1/index-prices/{assetSymbol}': 1, // todo ask what method to use
                     },
                 },
                 'private': {
                     'get': {
                         'v2/orders': 1, // done
                         'v2/orders/{orderId}': 1, // done
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
+                        'v2/amm-instructions': 1, // todo ask what method to use
+                        'v2/amm-instructions/{instructionId}': 1, // todo ask what method to use
+                        'v1/wallets/transactions': 1, // todo complete after withdrawal
+                        'v1/wallets/limits/{symbol}': 1, // todo ask what method to use
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1, // done
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1, // not used
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
                         'v1/trades': 1,
                         'v1/trades/{tradeId}': 1,
                         'v1/accounts/asset': 1,
@@ -193,9 +193,9 @@ export default class bullish extends Exchange {
                         'v1/history/borrow-interest': 1,
                     },
                     'post': {
-                        'v2/orders': 1, // todo complete while get api keys
-                        'v2/command': 1, // todo complete while get api keys
-                        'v2/amm-instructions': 1,
+                        'v2/orders': 1, // done
+                        'v2/command': 1, // done
+                        'v2/amm-instructions': 1, // todo ask what method to use
                         'v1/wallets/withdrawal': 1,
                         'v2/users/login': 1,
                         'v1/command?commandType=V1TransferAsset': 1,
@@ -215,6 +215,8 @@ export default class bullish extends Exchange {
             // exchange-specific options
             'options': {
                 'networksById': {
+                    'ETH': 'ERC20',
+                    'EOS': 'EOS',
                 },
                 'tradingAccountId': '111309424211255',
             },
@@ -307,7 +309,7 @@ export default class bullish extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const id = this.safeString (currency, 'assetId');
+            const id = this.safeString (currency, 'symbol');
             const code = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name');
             const precision = this.safeInteger (currency, 'precision');
@@ -1350,15 +1352,16 @@ export default class bullish extends Exchange {
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchDepositsWithdrawals() requires a since argument');
-        }
+        await this.signIn ();
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
-        const request: Dict = {
-            'createdAtDatetime[gte]': this.iso8601 (since),
-            'createdAtDatetime[lte]': this.iso8601 (until),
-        };
+        const request: Dict = {};
+        if (since !== undefined) {
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        }
+        if (until !== undefined) {
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        }
         const response = await this.privateGetV1WalletsTransactions (this.extend (request, params));
         //
         //     [
@@ -1388,6 +1391,53 @@ export default class bullish extends Exchange {
             currency = this.safeCurrencyCode (currencyId);
         }
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bullish#withdraw
+     * @description make a withdrawal
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
+     * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
+     * @param {string} params.network network for withdraw (mandatory)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'command': {
+                'commandType': 'V1Withdraw',
+                'destinationId': '1560ec0b406c0d909bb9f5f827dd6aa14a1f638884f33a2a3134878102e78038',
+                'symbol': currency['id'],
+                'network': 'ETH',
+                'quantity': this.amountToPrecision (code, amount),
+            },
+        };
+        // let networkCode: Str = undefined;
+        // [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        // if (networkCode !== undefined) {
+        //     request['chain'] = this.networkCodeToId (networkCode);
+        // }
+        const response = await this.privatePostV1WalletsWithdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1573,6 +1623,51 @@ export default class bullish extends Exchange {
             'code': undefined,
             'info': account,
         };
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'symbol': currency['id'],
+        };
+        const response = await this.privateGetV1WalletsDepositInstructionsCryptoSymbol (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "network": "ETH",
+        //             "address": "0xc2fc755082d052bb334763b144851a0031999f33",
+        //             "symbol": "ETH"
+        //         }
+        //     ]
+        //
+        const depositAddress = this.safeDict (response, 0);
+        return this.parseDepositAddress (depositAddress, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+        let parsedCurrency = undefined;
+        if (currency !== undefined) {
+            parsedCurrency = currency['id'];
+        }
+        const network = this.safeString (depositAddress, 'network');
+        return {
+            'info': depositAddress,
+            'currency': parsedCurrency,
+            'network': this.networkIdToCode (network),
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': undefined,
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
