@@ -2177,7 +2177,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "public spot trades",
+                "description": "spot public trades",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -2187,55 +2187,58 @@
                 "httpResponse": {
                     "jsonrpc": "2.0",
                     "result": {
-                        "has_more": true,
                         "trades": [
                             {
-                                "trade_id": "BTC_USDT-1097032",
-                                "contracts": "1.0",
-                                "instrument_name": "BTC_USDT",
-                                "tick_direction": "3",
-                                "trade_seq": "53466",
-                                "mark_price": "73147.6867",
-                                "index_price": "73147.6867",
-                                "direction": "sell",
+                                "timestamp": "1747671492355",
+                                "price": "104727.0",
                                 "amount": "0.0001",
-                                "price": "73260.86",
-                                "timestamp": "1710326420359"
+                                "direction": "buy",
+                                "index_price": "104714.5558",
+                                "instrument_name": "BTC_USDT",
+                                "trade_seq": "627847",
+                                "mark_price": "104714.5558",
+                                "tick_direction": "1",
+                                "contracts": "1.0",
+                                "trade_id": "BTC_USDT-9013382"
                             }
-                        ]
+                        ],
+                        "has_more": true
                     },
-                    "usIn": "1710327659195248",
-                    "usOut": "1710327659195489",
-                    "usDiff": "241",
+                    "usIn": "1747671689381427",
+                    "usOut": "1747671689382337",
+                    "usDiff": "910",
                     "testnet": false
                 },
                 "parsedResponse": [
                     {
-                        "id": "BTC_USDT-1097032",
+                        "id": "BTC_USDT-9013382",
                         "info": {
-                            "trade_id": "BTC_USDT-1097032",
-                            "contracts": "1.0",
-                            "instrument_name": "BTC_USDT",
-                            "tick_direction": "3",
-                            "trade_seq": "53466",
-                            "mark_price": "73147.6867",
-                            "index_price": "73147.6867",
-                            "direction": "sell",
+                            "timestamp": "1747671492355",
+                            "price": "104727.0",
                             "amount": "0.0001",
-                            "price": "73260.86",
-                            "timestamp": "1710326420359"
+                            "direction": "buy",
+                            "index_price": "104714.5558",
+                            "instrument_name": "BTC_USDT",
+                            "trade_seq": "627847",
+                            "mark_price": "104714.5558",
+                            "tick_direction": "1",
+                            "contracts": "1.0",
+                            "trade_id": "BTC_USDT-9013382"
                         },
-                        "timestamp": 1710326420359,
-                        "datetime": "2024-03-13T10:40:20.359Z",
+                        "timestamp": 1747671492355,
+                        "datetime": "2025-05-19T16:18:12.355Z",
                         "symbol": "BTC/USDT",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 73260.86,
+                        "price": 104727,
                         "amount": 0.0001,
-                        "cost": 1.364985341e-9,
-                        "fee": {"cost": null, "currency": null },
+                        "cost": 10.4727,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
