@@ -35,6 +35,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -76,7 +77,15 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
 const timeoutSeconds = wsFlag ? 120 : 250;
 
+const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
 
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
@@ -121,73 +130,85 @@ const exec = (bin, ...args) => {
     let stderr = ''
 
     const generateResultFromOutput = (output, stderr, code) => {
-            // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr), output = removeDebuger(output);
+        // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
+        // const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+        // stderr = removeDebuger(stderr), output = removeDebuger(output);
 
-            output = ansi.strip (output.trim ())
+        output = ansi.strip (output.trim ())
 
-            // detect error
-            const hasFailed = (
-                // exception caught in "test -> testMethod"
-                output.indexOf('[TEST_FAILURE]') > -1 ||
-                // 1) thrown from JS assert module
-                output.indexOf('AssertionError:') > -1 ||
-                // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
-                output.match(/\[\w+Error\]/) ||
-                // 3) thrown from PHP assert hook
-                output.indexOf('[ASSERT_ERROR]') > -1 ||
-                // 4) thrown from PHP async library
-                output.indexOf('Fatal error:') > -1
-            );
+        // detect error
+        const hasFailed = (
+            // exception caught in "test -> testMethod"
+            output.indexOf('[TEST_FAILURE]') > -1 ||
+            // 1) thrown from JS assert module
+            output.indexOf('AssertionError:') > -1 ||
+            // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
+            output.match(/\[\w+Error\]/) ||
+            // 3) thrown from PHP assert hook
+            output.indexOf('[ASSERT_ERROR]') > -1 ||
+            // 4) thrown from PHP async library
+            output.indexOf('Fatal error:') > -1
+        );
 
-            // ### Infos ###
-            const infos = []
-            // check output for pattern like `[INFO:TESTING] xyz message`
-            if (output.length) {
-                const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gm
-                let matchInfo;
-                while ((matchInfo = infoRegex.exec (output))) {
-                    infos.push (matchInfo[0])
-                }
+        // ### Infos ###
+        const infos = []
+        // check output for pattern like `[INFO:TESTING] xyz message`
+        if (output.length) {
+            const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gm
+            let matchInfo;
+            while ((matchInfo = infoRegex.exec (output))) {
+                infos.push (matchInfo[0])
             }
+        }
 
-            // ### Warnings ###
-            const warnings = []
-            // check output for pattern like `[TEST_WARNING] whatever`
-            if (output.length) {
-                const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
-                let matchWarnings; 
-                while (matchWarnings = warningRegex.exec (stderr)) {
-                    warnings.push (matchWarnings[0])
-                }
+        // ### Warnings ###
+        const warnings = []
+        // check output for pattern like `[TEST_WARNING] whatever`
+        if (output.length) {
+            const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
+            let matchWarnings; 
+            while (matchWarnings = warningRegex.exec (stderr)) {
+                warnings.push (matchWarnings[0])
             }
-            // check stderr
-            if (stderr.length > 0) {
-                warnings.push (stderr)
-            }
+        }
+        // check stderr
+        if (stderr.length > 0) {
+            warnings.push (stderr)
+        }
 
-            return {
-                failed: hasFailed || code !== 0,
-                output,
-                warnings,
-                infos,
-            }
+        return {
+            failed: hasFailed || code !== 0,
+            output,
+            warnings,
+            infos,
+        }
     }
 
+    const startTime = Date.now ();
     return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
 
-        psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
+        psSpawn.stdout.on ('data', data => {
+            output += data.toString ()
+        })
+        psSpawn.stderr.on ('data', data => {
+            output += data.toString ();
+            stderr += data.toString ().trim ();
+        })
 
         psSpawn.on ('exit', code => {
+            if (SHOW_TIMER) {
+                output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+            }
             const result = generateResultFromOutput (output, stderr, code)
             return resolver (result) ;
         })
 
     })).catch (e => {
+        if (SHOW_TIMER) {
+            output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+        }
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
