@@ -166,3 +166,19 @@ func (this *btcbox) PrivatePostWallet (args ...interface{}) <-chan interface{} {
    }()
    return ch
 }
+
+func (this *btcbox) WebApiGetAjaxCoinCoinInfo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("webApiGetAjaxCoinCoinInfo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}

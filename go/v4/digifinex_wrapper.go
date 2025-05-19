@@ -20,6 +20,20 @@ func NewDigifinex(userConfig map[string]interface{}) Digifinex {
 
 /**
  * @method
+ * @name digifinex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Digifinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name digifinex#fetchMarkets
  * @description retrieves data on all markets for digifinex
  * @param {object} [params] extra parameters specific to the exchange API endpoint

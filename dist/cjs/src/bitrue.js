@@ -764,70 +764,49 @@ class bitrue extends bitrue$1 {
             const id = this.safeString(currency, 'coin');
             const name = this.safeString(currency, 'coinFulName');
             const code = this.safeCurrencyCode(id);
-            let deposit = undefined;
-            let withdraw = undefined;
-            let minWithdrawString = undefined;
-            let maxWithdrawString = undefined;
-            let minWithdrawFeeString = undefined;
             const networkDetails = this.safeList(currency, 'chainDetail', []);
             const networks = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString(entry, 'chain');
                 const network = this.networkIdToCode(networkId, code);
-                const enableDeposit = this.safeBool(entry, 'enableDeposit');
-                deposit = (enableDeposit) ? enableDeposit : deposit;
-                const enableWithdraw = this.safeBool(entry, 'enableWithdraw');
-                withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
-                const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
-                if (networkWithdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise["default"].stringMin(networkWithdrawFeeString, minWithdrawFeeString);
-                }
-                const networkMinWithdrawString = this.safeString(entry, 'minWithdraw');
-                if (networkMinWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise["default"].stringMin(networkMinWithdrawString, minWithdrawString);
-                }
-                const networkMaxWithdrawString = this.safeString(entry, 'maxWithdraw');
-                if (networkMaxWithdrawString !== undefined) {
-                    maxWithdrawString = (maxWithdrawString === undefined) ? networkMaxWithdrawString : Precise["default"].stringMax(networkMaxWithdrawString, maxWithdrawString);
-                }
                 networks[network] = {
                     'info': entry,
                     'id': networkId,
                     'network': network,
-                    'deposit': enableDeposit,
-                    'withdraw': enableWithdraw,
-                    'active': enableDeposit && enableWithdraw,
-                    'fee': this.parseNumber(networkWithdrawFeeString),
+                    'deposit': this.safeBool(entry, 'enableDeposit'),
+                    'withdraw': this.safeBool(entry, 'enableWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(entry, 'withdrawFee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': this.parseNumber(networkMinWithdrawString),
-                            'max': this.parseNumber(networkMaxWithdrawString),
+                            'min': this.safeNumber(entry, 'minWithdraw'),
+                            'max': this.safeNumber(entry, 'maxWithdraw'),
                         },
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': undefined,
                 'info': currency,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'networks': networks,
-                'fee': this.parseNumber(minWithdrawFeeString),
+                'fee': undefined,
                 'fees': undefined,
                 'type': 'crypto',
                 'limits': {
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
-                        'max': this.parseNumber(maxWithdrawString),
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }

@@ -35,6 +35,21 @@ func (this *Derive) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name derive#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.derive.xyz/reference/post_public-get-all-currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Derive) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name derive#fetchMarkets
  * @description retrieves data on all markets for bybit
  * @see https://docs.derive.xyz/reference/post_public-get-all-instruments

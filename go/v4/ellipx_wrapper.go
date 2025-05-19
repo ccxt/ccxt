@@ -142,6 +142,24 @@ func (this *Ellipx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 }
 /**
  * @method
+ * @name ellipx#fetchCurrencies
+ * @description fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
+ * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.x65f9s9j74jf
+ * @param {object} [params] extra parameters specific to the ellipx API endpoint
+ * @param {string} [params.Can_Deposit] filter currencies by deposit availability, Y for available
+ * @param {number} [params.results_per_page] number of results per page, default 100
+ * @param {string} [params._expand] additional fields to expand in response, default '/Crypto_Token,/Crypto_Chain'
+ * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
+ */
+func (this *Ellipx) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name ellipx#fetchTrades
  * @description fetches all completed trades for a particular market/symbol
  * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')

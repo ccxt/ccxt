@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\Precise;
@@ -117,13 +118,159 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
+    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
+        $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if ($isLimitOrder) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' limit orders require a $price argument');
+            }
+            $request['params']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+        }
+        $isMarket = ($type === 'market');
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
+        if ($postOnly) {
+            $request['params']['post_only'] = true;
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['params']['cl_ord_id'] = $clientOrderId;
+        }
+        $cost = $this->safe_string($params, 'cost');
+        if ($cost !== null) {
+            $request['params']['order_qty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
+        }
+        $stopLoss = $this->safe_dict($params, 'stopLoss', array());
+        $takeProfit = $this->safe_dict($params, 'takeProfit', array());
+        $presetStopLoss = $this->safe_string($stopLoss, 'triggerPrice');
+        $presetTakeProfit = $this->safe_string($takeProfit, 'triggerPrice');
+        $presetStopLossLimit = $this->safe_string($stopLoss, 'price');
+        $presetTakeProfitLimit = $this->safe_string($takeProfit, 'price');
+        $isPresetStopLoss = $presetStopLoss !== null;
+        $isPresetTakeProfit = $presetTakeProfit !== null;
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLossPriceOrder = $stopLossPrice !== null;
+        $isTakeProfitPriceOrder = $takeProfitPrice !== null;
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingPercent = $this->safe_string($params, 'trailingPercent');
+        $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
+        $trailingLimitPercent = $this->safe_string($params, 'trailingLimitPercent');
+        $isTrailingAmountOrder = $trailingAmount !== null;
+        $isTrailingPercentOrder = $trailingPercent !== null;
+        $isTrailingLimitAmountOrder = $trailingLimitAmount !== null;
+        $isTrailingLimitPercentOrder = $trailingLimitPercent !== null;
+        $offset = $this->safe_string($params, 'offset', ''); // can set this to - for minus
+        $trailingAmountString = ($trailingAmount !== null) ? $offset . $this->number_to_string($trailingAmount) : null;
+        $trailingPercentString = ($trailingPercent !== null) ? $offset . $this->number_to_string($trailingPercent) : null;
+        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
+        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . $this->number_to_string($trailingLimitPercent) : null;
+        $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
+        if ($method === 'createOrderWs') {
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+            if ($reduceOnly) {
+                $request['params']['reduce_only'] = true;
+            }
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            if ($timeInForce !== null) {
+                $request['params']['time_in_force'] = $timeInForce;
+            }
+            $params = $this->omit($params, array( 'reduceOnly', 'timeInForce' ));
+            if ($isStopLossPriceOrder || $isTakeProfitPriceOrder || $isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
+                $request['params']['triggers'] = array();
+            }
+            if ($isPresetStopLoss || $isPresetTakeProfit) {
+                $request['params']['conditional'] = array();
+                if ($isPresetStopLoss) {
+                    $request['params']['conditional']['order_type'] = 'stop-loss';
+                    $request['params']['conditional']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLoss));
+                } elseif ($isPresetTakeProfit) {
+                    $request['params']['conditional']['order_type'] = 'take-profit';
+                    $request['params']['conditional']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfit));
+                }
+                if ($presetStopLossLimit !== null) {
+                    $request['params']['conditional']['order_type'] = 'stop-loss-limit';
+                    $request['params']['conditional']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLossLimit));
+                } elseif ($presetTakeProfitLimit !== null) {
+                    $request['params']['conditional']['order_type'] = 'take-profit-limit';
+                    $request['params']['conditional']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfitLimit));
+                }
+                $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
+            } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
+                if ($isStopLossPriceOrder) {
+                    $request['params']['triggers']['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                    if ($isLimitOrder) {
+                        $request['params']['order_type'] = 'stop-loss-limit';
+                    } else {
+                        $request['params']['order_type'] = 'stop-loss';
+                    }
+                } else {
+                    $request['params']['triggers']['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
+                    if ($isLimitOrder) {
+                        $request['params']['order_type'] = 'take-profit-limit';
+                    } else {
+                        $request['params']['order_type'] = 'take-profit';
+                    }
+                }
+            } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
+                $request['params']['triggers']['price_type'] = $priceType;
+                if (!$isLimitOrder && ($isTrailingAmountOrder || $isTrailingPercentOrder)) {
+                    $request['params']['order_type'] = 'trailing-stop';
+                    if ($isTrailingAmountOrder) {
+                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingAmountString);
+                    } else {
+                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingPercentString);
+                    }
+                } else {
+                    // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
+                    $request['params']['limit_price_type'] = $priceType;
+                    $request['params']['order_type'] = 'trailing-stop-limit';
+                    if ($isTrailingLimitAmountOrder) {
+                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingLimitAmountString);
+                    } else {
+                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingLimitPercentString);
+                    }
+                }
+            }
+        } elseif ($method === 'editOrderWs') {
+            if ($isPresetStopLoss || $isPresetTakeProfit) {
+                throw new NotSupported($this->id . ' editing the $stopLoss and $takeProfit on existing orders is currently not supported');
+            }
+            if ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
+                if ($isStopLossPriceOrder) {
+                    $request['params']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                } else {
+                    $request['params']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
+                }
+            } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
+                $request['params']['trigger_price_type'] = $priceType;
+                if (!$isLimitOrder && ($isTrailingAmountOrder || $isTrailingPercentOrder)) {
+                    if ($isTrailingAmountOrder) {
+                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingAmountString);
+                    } else {
+                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingPercentString);
+                    }
+                } else {
+                    $request['params']['limit_price_type'] = $priceType;
+                    if ($isTrailingLimitAmountOrder) {
+                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingLimitAmountString);
+                    } else {
+                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingLimitPercentString);
+                    }
+                }
+            }
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ));
+        return array( $request, $params );
+    }
+
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v1/addorder
-             *
              * create a trade order
+             *
+             * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -135,19 +282,21 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
             $market = $this->market($symbol);
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $requestId;
             $request = array(
-                'event' => 'addOrder',
-                'token' => $token,
-                'reqid' => $requestId,
-                'ordertype' => $type,
-                'type' => $side,
-                'pair' => $market['wsId'],
-                'volume' => $this->amount_to_precision($symbol, $amount),
+                'method' => 'add_order',
+                'params' => array(
+                    'order_type' => $type,
+                    'side' => $side,
+                    'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+                    'symbol' => $market['symbol'],
+                    'token' => $token,
+                ),
+                'req_id' => $requestId,
             );
-            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
+            list($request, $params) = $this->order_request_ws('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
@@ -155,25 +304,33 @@ class kraken extends \ccxt\async\kraken {
     public function handle_create_edit_order($client, $message) {
         //
         //  createOrder
-        //    {
-        //        "descr" => "sell 0.00010000 XBTUSDT @ market",
-        //        "event" => "addOrderStatus",
-        //        "reqid" => 1,
-        //        "status" => "ok",
-        //        "txid" => "OAVXZH-XIE54-JCYYDG"
-        //    }
-        //  editOrder
-        //    {
-        //        "descr" => "order edited price = 9000.00000000",
-        //        "event" => "editOrderStatus",
-        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
-        //        "reqid" => 3,
-        //        "status" => "ok",
-        //        "txid" => "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "method" => "add_order",
+        //         "req_id" => 1,
+        //         "result" => array(
+        //             "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //         ),
+        //         "success" => true,
+        //         "time_in" => "2025-05-13T10:12:13.876173Z",
+        //         "time_out" => "2025-05-13T10:12:13.890137Z"
+        //     }
         //
-        $order = $this->parse_order($message);
-        $messageHash = $this->safe_value($message, 'reqid');
+        //  editOrder
+        //     {
+        //         "method" => "amend_order",
+        //         "req_id" => 1,
+        //         "result" => array(
+        //             "amend_id" => "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id" => "OGL7HR-SWFO4-NRQTHO"
+        //         ),
+        //         "success" => true,
+        //         "time_in" => "2025-05-14T13:54:10.840342Z",
+        //         "time_out" => "2025-05-14T13:54:10.855046Z"
+        //     }
+        //
+        $result = $this->safe_dict($message, 'result', array());
+        $order = $this->parse_order($result);
+        $messageHash = $this->safe_value_2($message, 'reqid', 'req_id');
         $client->resolve ($order, $messageHash);
     }
 
@@ -182,34 +339,32 @@ class kraken extends \ccxt\async\kraken {
             /**
              * edit a trade order
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v1/editorder
+             * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $market = $this->market($symbol);
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $requestId;
             $request = array(
-                'event' => 'editOrder',
-                'token' => $token,
-                'reqid' => $requestId,
-                'orderid' => $id,
-                'pair' => $market['wsId'],
+                'method' => 'amend_order',
+                'params' => array(
+                    'order_id' => $id,
+                    'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+                    'token' => $token,
+                ),
+                'req_id' => $requestId,
             );
-            if ($amount !== null) {
-                $request['volume'] = $this->amount_to_precision($symbol, $amount);
-            }
-            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
+            list($request, $params) = $this->order_request_ws('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
@@ -951,6 +1106,20 @@ class kraken extends \ccxt\async\kraken {
         //         "version" => "0.2.0"
         //     }
         //
+        // v2
+        //     {
+        //         channel => 'status',
+        //         type => 'update',
+        //         data => array(
+        //             {
+        //                 version => '2.0.10',
+        //                 system => 'online',
+        //                 api_version => 'v2',
+        //                 connection_id => 6447481662169813000
+        //             }
+        //         )
+        //     }
+        //
         return $message;
     }
 
@@ -1603,9 +1772,18 @@ class kraken extends \ccxt\async\kraken {
         //         "subscription" => array( name => "ticker" )
         //     }
         //
-        $errorMessage = $this->safe_string($message, 'errorMessage');
+        // v2
+        //     {
+        //         "error" => "Unsupported field => 'price' for the given msg type => add order",
+        //         "method" => "add_order",
+        //         "success" => false,
+        //         "time_in" => "2025-05-13T08:59:44.803511Z",
+        //         "time_out" => "2025-05-13T08:59:44.803542Z'
+        //     }
+        //
+        $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
-            $requestId = $this->safe_value($message, 'reqid');
+            $requestId = $this->safe_value_2($message, 'reqid', 'req_id');
             if ($requestId !== null) {
                 $broad = $this->exceptions['ws']['broad'];
                 $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
@@ -1657,13 +1835,13 @@ class kraken extends \ccxt\async\kraken {
                 }
             }
             if ($this->handle_error_message($client, $message)) {
-                $event = $this->safe_string($message, 'event');
+                $event = $this->safe_string_2($message, 'event', 'method');
                 $methods = array(
                     'heartbeat' => array($this, 'handle_heartbeat'),
                     'systemStatus' => array($this, 'handle_system_status'),
                     'subscriptionStatus' => array($this, 'handle_subscription_status'),
-                    'addOrderStatus' => array($this, 'handle_create_edit_order'),
-                    'editOrderStatus' => array($this, 'handle_create_edit_order'),
+                    'add_order' => array($this, 'handle_create_edit_order'),
+                    'amend_order' => array($this, 'handle_create_edit_order'),
                     'cancelOrderStatus' => array($this, 'handle_cancel_order'),
                     'cancelAllStatus' => array($this, 'handle_cancel_all_orders'),
                 );

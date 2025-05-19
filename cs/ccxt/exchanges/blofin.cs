@@ -1465,7 +1465,7 @@ public partial class blofin : Exchange
         } else if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
         {
             object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            response = await ((Task<object>)callDynamically(this, "privatePostTradeOrderAlgo", new object[] { triggerRequest }));
+            response = await this.privatePostTradeOrderAlgo(triggerRequest);
         } else
         {
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -1585,7 +1585,7 @@ public partial class blofin : Exchange
             return first;
         } else if (isTrue(isTrigger))
         {
-            object triggerResponse = await ((Task<object>)callDynamically(this, "privatePostTradeCancelAlgo", new object[] { this.extend(request, query) }));
+            object triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             object triggerData = this.safeDict(triggerResponse, "data");
             return this.parseOrder(triggerData, market);
         }
@@ -1679,7 +1679,7 @@ public partial class blofin : Exchange
         } else if (isTrue(isTrue(isTrigger) || isTrue((isEqual(method, "privateGetTradeOrdersAlgoPending")))))
         {
             ((IDictionary<string,object>)request)["orderType"] = "trigger";
-            response = await ((Task<object>)callDynamically(this, "privateGetTradeOrdersAlgoPending", new object[] { this.extend(request, query) }));
+            response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         } else
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, query));
