@@ -420,6 +420,11 @@ export default class cryptomus extends Exchange {
                 'precision': undefined,
                 'info': networkEntry,
             };
+            // add entry in info
+            const info = this.safeList (result[code], 'info', []);
+            info.push (networkEntry);
+            result[code]['info'] = info;
+            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
         }
         return result;
     }
