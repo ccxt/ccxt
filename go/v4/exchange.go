@@ -1248,3 +1248,56 @@ func (this *Exchange) StreamOHLCVS() interface{} {
 		}
 	}
 }
+
+// Spawn executes a method asynchronously and returns a channel that will receive the result
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				if r != "break" {
+					ch <- "panic:" + ToString(r)
+				}
+			}
+		}()
+
+		// Convert method to reflect.Value
+		methodValue := reflect.ValueOf(method)
+		if methodValue.Kind() != reflect.Func {
+			ch <- "panic:method is not a function"
+			return
+		}
+
+		// Convert args to reflect.Value slice
+		in := make([]reflect.Value, len(args))
+		for i, arg := range args {
+			in[i] = reflect.ValueOf(arg)
+		}
+
+		// Call the method
+		results := methodValue.Call(in)
+
+		// Handle the results
+		if len(results) > 0 {
+			if results[0].Kind() == reflect.Chan {
+				// If the result is a channel, forward its values
+				resultChan := results[0]
+				for {
+					val, ok := resultChan.Recv()
+					if !ok {
+						break // channel is closed
+					}
+					ch <- val.Interface()
+				}
+			} else {
+				// If the result is not a channel, send it directly
+				ch <- results[0].Interface()
+			}
+		} else {
+			ch <- nil
+		}
+	}()
+	return ch
+}
