@@ -86,6 +86,16 @@ public partial class btcbox : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"} },
                 } },
+                { "webApi", new Dictionary<string, object>() {
+                    { "get", new List<object>() {"ajax/coin/coinInfo"} },
+                } },
+            } },
+            { "options", new Dictionary<string, object>() {
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "webApiEnable", true },
+                    { "webApiRetries", 3 },
+                } },
+                { "amountPrecision", "0.0001" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -174,9 +184,14 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetTickers();
+        object promise1 = this.publicGetTickers();
+        object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
+        var response1response2Variable = await promiseAll(new List<object>() {promise1, promise2});
+        var response1 = ((IList<object>) response1response2Variable)[0];
+        var response2 = ((IList<object>) response1response2Variable)[1];
         //
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
+        object marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -186,9 +201,11 @@ public partial class btcbox : Exchange
             object quote = this.safeString(symbolParts, 1);
             object quoteId = ((string)quote).ToLower();
             object id = ((string)baseCurr).ToLower();
-            object res = getValue(response, marketId);
+            object res = getValue(response1, marketId);
             object symbol = add(add(baseCurr, "/"), quote);
             object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            object details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
+            object tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", null },
@@ -234,10 +251,10 @@ public partial class btcbox : Exchange
                     } },
                 } },
                 { "precision", new Dictionary<string, object>() {
-                    { "price", null },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(tradeDetails, "pricedecimal"))) },
                     { "amount", null },
                 } },
-                { "active", null },
+                { "active", isEqual(this.safeString(tradeDetails, "enable"), "1") },
                 { "created", null },
                 { "info", res },
             }));
@@ -777,6 +794,9 @@ public partial class btcbox : Exchange
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
+        } else if (isTrue(isEqual(api, "webApi")))
+        {
+            url = add(add(getValue(this.urls, "www"), "/"), path);
         } else
         {
             this.checkRequiredCredentials();
