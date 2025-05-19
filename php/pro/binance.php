@@ -938,10 +938,8 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $isTestnetSpot = mb_strpos($client->url, 'testnet') > 0;
-        $isSpotMainNet = mb_strpos($client->url, '/stream.binance.') > 0;
-        $isSpot = $isTestnetSpot || $isSpotMainNet;
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $isSpot = (mb_strpos($client->url, '/stream') > -1);
+        $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -1411,7 +1409,7 @@ class binance extends \ccxt\async\binance {
     public function handle_trade(Client $client, $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
-        $isSpot = ((mb_strpos($client->url, 'wss://stream.binance.com') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
+        $isSpot = (mb_strpos($client->url, '/stream') > -1);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1666,7 +1664,7 @@ class binance extends \ccxt\async\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $isSpot = ((mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
+        $isSpot = (mb_strpos($client->url, '/stream') > -1);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
@@ -2332,7 +2330,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_tickers_and_bids_asks(Client $client, $message, $methodType) {
-        $isSpot = ((mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
+        $isSpot = (mb_strpos($client->url, '/stream') > -1);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $isBidAsk = ($methodType === 'bidasks');
         $channelName = null;
