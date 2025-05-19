@@ -3496,6 +3496,9 @@ Returns
     'theta': -13.4441,                          // measures the dollar amount that an options price will decline per day
     'vega': 142.30124,                          // measures the dollar amount that an options price changes with a 1% change in the implied volatility
     'rho': 131.82621,                           // measures the dollar amount that an options price changes with a 1% change in interest rates
+    'vanna': 0.06671,                           // measures the amount that an options delta changes with a 1% change in implied volatility
+    'volga': 925.95015,                         // measures the amount that an options vega changes with a 1% change in implied volatility
+    'charm': 0.18433,                           // measures the amount that an options delta changes each day until expiration
     'bidSize': 2.2,                             // the options bid amount
     'askSize': 9,                               // the options ask amount
     'bidImpliedVolatility': 60.06,              // the expected percentage price change of the underlying asset, over the remaining life of the option, calculated using the bid price
