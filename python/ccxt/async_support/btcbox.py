@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcbox import ImplicitAPI
+import asyncio
 import hashlib
 import json
 from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
@@ -115,6 +116,18 @@ class btcbox(Exchange, ImplicitAPI):
                         'wallet',
                     ],
                 },
+                'webApi': {
+                    'get': [
+                        'ajax/coin/coinInfo',
+                    ],
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 3,
+                },
+                'amountPrecision': '0.0001',  # exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {
@@ -198,9 +211,12 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetTickers()
+        promise1 = self.publicGetTickers()
+        promise2 = self.fetch_web_endpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', True)
+        response1, response2 = await asyncio.gather(*[promise1, promise2])
         #
-        marketIds = list(response.keys())
+        result2Data = self.safe_dict(response2, 'data', {})
+        marketIds = list(response1.keys())
         markets = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -209,9 +225,11 @@ class btcbox(Exchange, ImplicitAPI):
             quote = self.safe_string(symbolParts, 1)
             quoteId = quote.lower()
             id = baseCurr.lower()
-            res = response[marketId]
+            res = response1[marketId]
             symbol = baseCurr + '/' + quote
             fee = self.parse_number('0.0005') if (id == 'BTC') else self.parse_number('0.0010')
+            details = self.safe_dict(result2Data, id, {})
+            tradeDetails = self.safe_dict(details, 'trade', {})
             markets.append(self.safe_market_structure({
                 'id': id,
                 'uppercaseId': None,
@@ -257,10 +275,10 @@ class btcbox(Exchange, ImplicitAPI):
                     },
                 },
                 'precision': {
-                    'price': None,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(tradeDetails, 'pricedecimal'))),
                     'amount': None,
                 },
-                'active': None,
+                'active': self.safe_string(tradeDetails, 'enable') == '1',
                 'created': None,
                 'info': res,
             }))
@@ -717,6 +735,8 @@ class btcbox(Exchange, ImplicitAPI):
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
+        elif api == 'webApi':
+            url = self.urls['www'] + '/' + path
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
