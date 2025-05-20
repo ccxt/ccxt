@@ -1168,6 +1168,10 @@ class blofin extends Exchange {
         $request['marginMode'] = $marginMode;
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+        $isHedged = $this->safe_bool($params, 'hedged', false);
+        if ($isHedged) {
+            $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
+        }
         $isMarketOrder = $type === 'market';
         $params = $this->omit($params, array( 'timeInForce' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
@@ -1185,7 +1189,7 @@ class blofin extends Exchange {
         }
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
-        $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'stopLoss', 'takeProfit', 'hedged' ));
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
         if ($isStopLoss || $isTakeProfit) {
@@ -1362,6 +1366,7 @@ class blofin extends Exchange {
          * @param {float} [$params->stopLossPrice] stop loss trigger $price (will use privatePostTradeOrderTpsl)
          * @param {float} [$params->takeProfitPrice] take profit trigger $price (will use privatePostTradeOrderTpsl)
          * @param {string} [$params->positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+         * @param {boolean} [$params->hedged] if true, the positionSide will be set to long/short instead of net, default is false
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
