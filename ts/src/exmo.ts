@@ -789,7 +789,16 @@ export default class exmo extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber ('1e-8'),
-                'limits': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': providers,
                 'networks': networks,
             });

@@ -80,13 +80,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 0.0005,
-                "max": 0
-            },
             "withdraw": {
                 "min": 0.00024,
                 "max": 350
+            },
+            "deposit": {
+                "min": 0.0005,
+                "max": 0
             }
         }
     },
@@ -595,13 +595,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 1,
-                "max": 1000000
-            },
             "withdraw": {
                 "min": 5,
                 "max": 200000
+            },
+            "deposit": {
+                "min": 1,
+                "max": 1000000
             }
         }
     },
@@ -619,7 +619,16 @@
         "fee": null,
         "fees": {},
         "networks": {},
-        "limits": null
+        "limits": {
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USD": {
         "info": null,
@@ -635,7 +644,16 @@
         "fee": null,
         "fees": {},
         "networks": {},
-        "limits": null
+        "limits": {
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "LTC": {
         "info": [
@@ -718,13 +736,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 0.01,
-                "max": 0
-            },
             "withdraw": {
                 "min": 0.0024,
                 "max": 1500
+            },
+            "deposit": {
+                "min": 0.01,
+                "max": 0
             }
         }
     },
@@ -1041,13 +1059,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 0.01,
-                "max": 100000
-            },
             "withdraw": {
                 "min": 0.000012,
                 "max": 500
+            },
+            "deposit": {
+                "min": 0.01,
+                "max": 100000
             }
         }
     },
@@ -1132,13 +1150,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 5,
-                "max": 1000000
-            },
             "withdraw": {
                 "min": 2.4,
                 "max": 10000000
+            },
+            "deposit": {
+                "min": 5,
+                "max": 1000000
             }
         }
     },
@@ -1223,13 +1241,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 2,
-                "max": 0
-            },
             "withdraw": {
                 "min": 2.4,
                 "max": 400000
+            },
+            "deposit": {
+                "min": 2,
+                "max": 0
             }
         }
     },
@@ -1420,13 +1438,13 @@
             }
         },
         "limits": {
-            "deposit": {
-                "min": 5,
-                "max": 1000000
-            },
             "withdraw": {
                 "min": 12,
                 "max": 100000
+            },
+            "deposit": {
+                "min": 5,
+                "max": 1000000
             }
         }
     }
