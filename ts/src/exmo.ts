@@ -735,7 +735,8 @@ export default class exmo extends Exchange {
                     // get network-id by removing extra things
                     let networkId = name.replace (currencyId + ' ', '');
                     networkId = networkId.replace ('(', '');
-                    networkId = networkId.replace (')', '');
+                    const replaceChar = ')'; // transpiler trick
+                    networkId = networkId.replace (replaceChar, '');
                     const networkCode = this.networkIdToCode (networkId);
                     if (!(networkCode in networks)) {
                         networks[networkCode] = {
