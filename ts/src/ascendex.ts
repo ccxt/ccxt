@@ -576,7 +576,7 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {}, // todo
+                'networks': networks,
             });
         }
         return result;

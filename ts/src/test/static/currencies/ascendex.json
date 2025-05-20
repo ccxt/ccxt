@@ -23,19 +23,45 @@
         "precision": 1e-8,
         "type": null,
         "name": "Bitcoin",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0005,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "Bitcoin": {
+                "fee": 0.0005,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 1e-8,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 0.001,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
                 "max": null
             }
         },
@@ -137,19 +163,213 @@
         "precision": 0.0001,
         "type": null,
         "name": "Tether",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "Omni": {
+                "fee": 30,
+                "active": false,
+                "withdraw": false,
+                "deposit": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 60,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "fee": 8,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 16,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "TRC20": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "Solana": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "arbitrum": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "BEP20 (BSC)": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "avalanche C chain": {
+                "fee": 1,
+                "active": false,
+                "withdraw": false,
+                "deposit": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "fantom": {
+                "fee": 2,
+                "active": false,
+                "withdraw": false,
+                "deposit": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "Polygon": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 2,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.01,
                 "max": null
             }
         },
@@ -211,19 +431,45 @@
         "precision": 0.000001,
         "type": null,
         "name": "Litecoin",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.05,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "Litecoin": {
+                "fee": 0.05,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.000001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 0.1,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
                 "max": null
             }
         },
@@ -262,19 +508,66 @@
         "precision": 1e-7,
         "type": null,
         "name": "Ethereum",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00086,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "ERC20": {
+                "fee": 0.005,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 1e-7,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            },
+            "arbitrum": {
+                "fee": 0.00086,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 1e-7,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.00172,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 0.00172,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
                 "max": null
             }
         },
@@ -304,19 +597,45 @@
         "precision": 0.01,
         "type": null,
         "name": "Cardano",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 6.5,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "Cardano": {
+                "fee": 6.5,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 13,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 13,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
                 "max": null
             }
         },
@@ -346,19 +665,45 @@
         "precision": 0.001,
         "type": null,
         "name": "XRP",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 2,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "XRP": {
+                "fee": 2,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 30,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
         "limits": {
             "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
-                "min": null,
+                "min": 30,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
                 "max": null
             }
         },
