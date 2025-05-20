@@ -498,6 +498,36 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "setMarginMode",
+                "url": "https://openapi.blofin.com/api/v1/account/set-margin-mode",
+                "input": [
+                    "isolated"
+                ],
+                "output": "{\"marginMode\":\"isolated\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionMode",
+                "url": "https://openapi.blofin.com/api/v1/account/position-mode",
+                "input": []
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "setPositionMode",
+                "url": "https://openapi.blofin.com/api/v1/account/set-position-mode",
+                "input": [
+                    true
+                ],
+                "output": "{\"positionMode\":\"long_short_mode\"}"
+            }
         ]
     }
 }
