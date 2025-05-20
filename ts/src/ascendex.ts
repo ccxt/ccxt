@@ -567,7 +567,6 @@ export default class ascendex extends Exchange {
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString (currency, 'status');
             const statusCode = this.safeString (currency, 'statusCode');
-            const active = (status === 'Normal');
             let depositEnabled: Bool = undefined;
             let withdrawEnabled: Bool = undefined;
             if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
@@ -584,14 +583,14 @@ export default class ascendex extends Exchange {
                 withdrawEnabled = true;
             }
             const marginInside = ('borrowAssetCode' in currency);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
                 'margin': marginInside,
                 'name': this.safeString (currency, 'assetName'),
-                'active': active,
+                'active': status === 'Normal',
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
@@ -607,7 +606,7 @@ export default class ascendex extends Exchange {
                     },
                 },
                 'networks': {}, // todo
-            };
+            });
         }
         return result;
     }
