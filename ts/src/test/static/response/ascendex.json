@@ -650,6 +650,221 @@
                             "assetName": "Tether",
                             "precisionScale": 9,
                             "nativeScale": 4,
+                            "blockChain": [
+                                {
+                                    "chainName": "Omni",
+                                    "withdrawFee": "30.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "60.0",
+                                    "numConfirmations": 3
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawFee": "8.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "16.0",
+                                    "numConfirmations": 64
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "10.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "Solana",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "arbitrum",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 12
+                                },
+                                {
+                                    "chainName": "BEP20 (BSC)",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "avalanche C chain",
+                                    "withdrawFee": "1.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "2.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "fantom",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 30
+                                },
+                                {
+                                    "chainName": "Polygon",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 32
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "assetCode": "USDT",
+                            "assetName": "Tether",
+                            "precisionScale": 9,
+                            "nativeScale": 4,
+                            "blockChain": [
+                                {
+                                    "chainName": "Omni",
+                                    "withdrawFee": "30.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "60.0",
+                                    "numConfirmations": 3
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawFee": "8.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "16.0",
+                                    "numConfirmations": 64
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "10.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "Solana",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "arbitrum",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 12
+                                },
+                                {
+                                    "chainName": "BEP20 (BSC)",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "avalanche C chain",
+                                    "withdrawFee": "1.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "2.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "fantom",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 30
+                                },
+                                {
+                                    "chainName": "Polygon",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 32
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": null,
+                        "name": "Tether",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "margin": null
+                    }
+                }
+            },
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "assetCode": "USDT",
+                            "assetName": "Tether",
+                            "precisionScale": 9,
+                            "nativeScale": 4,
                             "withdrawalFee": "5.0",
                             "minWithdrawalAmt": "10.0",
                             "status": "Normal"

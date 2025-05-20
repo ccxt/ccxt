@@ -4,18 +4,18 @@
             "assetCode": "BTC",
             "assetName": "Bitcoin",
             "precisionScale": 9,
-            "nativeScale": "8",
-            "withdrawalFee": "5.0E-4",
-            "minWithdrawalAmt": "0.001",
-            "status": "Normal",
-            "displayName": "BTC",
-            "borrowAssetCode": "BTC-B",
-            "interestAssetCode": "BTC-I",
-            "numConfirmations": "3",
-            "withdrawFee": "5.0E-4",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 8,
+            "blockChain": [
+                {
+                    "chainName": "Bitcoin",
+                    "withdrawFee": "5.0E-4",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "0.001",
+                    "numConfirmations": 3
+                }
+            ]
         },
         "id": "BTC",
         "numericId": null,
@@ -23,10 +23,10 @@
         "precision": 1e-8,
         "type": null,
         "name": "Bitcoin",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.0005,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -35,29 +35,101 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.001,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "USDT": {
         "info": {
             "assetCode": "USDT",
             "assetName": "Tether",
             "precisionScale": 9,
-            "nativeScale": "4",
-            "withdrawalFee": "5.0",
-            "minWithdrawalAmt": "10.0",
-            "status": "Normal",
-            "displayName": "USDT",
-            "borrowAssetCode": "USDT-B",
-            "interestAssetCode": "USDT-I",
-            "numConfirmations": "3",
-            "withdrawFee": "5.0",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 4,
+            "blockChain": [
+                {
+                    "chainName": "Omni",
+                    "withdrawFee": "30.0",
+                    "allowDeposit": false,
+                    "allowWithdraw": false,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "60.0",
+                    "numConfirmations": 3
+                },
+                {
+                    "chainName": "ERC20",
+                    "withdrawFee": "8.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "16.0",
+                    "numConfirmations": 64
+                },
+                {
+                    "chainName": "TRC20",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "10.0",
+                    "numConfirmations": 1
+                },
+                {
+                    "chainName": "Solana",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "4.0",
+                    "numConfirmations": 1
+                },
+                {
+                    "chainName": "arbitrum",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "4.0",
+                    "numConfirmations": 12
+                },
+                {
+                    "chainName": "BEP20 (BSC)",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "4.0",
+                    "numConfirmations": 20
+                },
+                {
+                    "chainName": "avalanche C chain",
+                    "withdrawFee": "1.0",
+                    "allowDeposit": false,
+                    "allowWithdraw": false,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "2.0",
+                    "numConfirmations": 20
+                },
+                {
+                    "chainName": "fantom",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": false,
+                    "allowWithdraw": false,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "4.0",
+                    "numConfirmations": 30
+                },
+                {
+                    "chainName": "Polygon",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.01",
+                    "minWithdrawal": "4.0",
+                    "numConfirmations": 32
+                }
+            ]
         },
         "id": "USDT",
         "numericId": null,
@@ -65,10 +137,10 @@
         "precision": 0.0001,
         "type": null,
         "name": "Tether",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 5,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -77,29 +149,19 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "USD": {
         "info": {
             "assetCode": "USD",
             "assetName": "USD Token",
             "precisionScale": 8,
-            "nativeScale": "2",
-            "withdrawalFee": "5.0",
-            "minWithdrawalAmt": "10.0",
-            "status": "Normal",
-            "displayName": "USD",
-            "borrowAssetCode": "USD-B",
-            "interestAssetCode": "USD-I",
-            "numConfirmations": "12",
-            "withdrawFee": "5.0",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 2,
+            "blockChain": []
         },
         "id": "USD",
         "numericId": null,
@@ -107,10 +169,10 @@
         "precision": 0.01,
         "type": null,
         "name": "USD Token",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 5,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -119,29 +181,29 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "LTC": {
         "info": {
             "assetCode": "LTC",
             "assetName": "Litecoin",
             "precisionScale": 9,
-            "nativeScale": "6",
-            "withdrawalFee": "0.001",
-            "minWithdrawalAmt": "0.01",
-            "status": "Normal",
-            "displayName": "LTC",
-            "borrowAssetCode": "LTC-B",
-            "interestAssetCode": "LTC-I",
-            "numConfirmations": "12",
-            "withdrawFee": "0.001",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 6,
+            "blockChain": [
+                {
+                    "chainName": "Litecoin",
+                    "withdrawFee": "0.05",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "0.1",
+                    "numConfirmations": 12
+                }
+            ]
         },
         "id": "LTC",
         "numericId": null,
@@ -149,10 +211,10 @@
         "precision": 0.000001,
         "type": null,
         "name": "Litecoin",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.001,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -161,29 +223,38 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.01,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "ETH": {
         "info": {
             "assetCode": "ETH",
             "assetName": "Ethereum",
             "precisionScale": 9,
-            "nativeScale": "7",
-            "withdrawalFee": "0.005",
-            "minWithdrawalAmt": "0.01",
-            "status": "Normal",
-            "displayName": "ETH",
-            "borrowAssetCode": "ETH-B",
-            "interestAssetCode": "ETH-I",
-            "numConfirmations": "12",
-            "withdrawFee": "0.005",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 7,
+            "blockChain": [
+                {
+                    "chainName": "ERC20",
+                    "withdrawFee": "0.005",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "0.01",
+                    "numConfirmations": 64
+                },
+                {
+                    "chainName": "arbitrum",
+                    "withdrawFee": "8.6E-4",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "0.00172",
+                    "numConfirmations": 12
+                }
+            ]
         },
         "id": "ETH",
         "numericId": null,
@@ -191,10 +262,10 @@
         "precision": 1e-7,
         "type": null,
         "name": "Ethereum",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.005,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -203,29 +274,29 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.01,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "ADA": {
         "info": {
             "assetCode": "ADA",
             "assetName": "Cardano",
             "precisionScale": 9,
-            "nativeScale": "2",
-            "withdrawalFee": "1.0",
-            "minWithdrawalAmt": "10.0",
-            "status": "Normal",
-            "displayName": "ADA",
-            "borrowAssetCode": "ADA-B",
-            "interestAssetCode": "ADA-I",
-            "numConfirmations": "300",
-            "withdrawFee": "1.0",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 2,
+            "blockChain": [
+                {
+                    "chainName": "Cardano",
+                    "withdrawFee": "6.5",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "13.0",
+                    "numConfirmations": 60
+                }
+            ]
         },
         "id": "ADA",
         "numericId": null,
@@ -233,10 +304,10 @@
         "precision": 0.01,
         "type": null,
         "name": "Cardano",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 1,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -245,29 +316,29 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "XRP": {
         "info": {
             "assetCode": "XRP",
             "assetName": "XRP",
             "precisionScale": 9,
-            "nativeScale": "3",
-            "withdrawalFee": "0.1",
-            "minWithdrawalAmt": "22.0",
-            "status": "Normal",
-            "displayName": "XRP",
-            "borrowAssetCode": "XRP-B",
-            "interestAssetCode": "XRP-I",
-            "numConfirmations": "1",
-            "withdrawFee": "0.1",
-            "statusCode": "Normal",
-            "statusMessage": "",
-            "interestRate": "0.0015"
+            "nativeScale": 3,
+            "blockChain": [
+                {
+                    "chainName": "XRP",
+                    "withdrawFee": "2.0",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "30.0",
+                    "numConfirmations": 1
+                }
+            ]
         },
         "id": "XRP",
         "numericId": null,
@@ -275,10 +346,10 @@
         "precision": 0.001,
         "type": null,
         "name": "XRP",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.1,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
@@ -287,11 +358,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 22,
+                "min": null,
                 "max": null
             }
         },
-        "margin": true
+        "margin": null
     },
     "USDC": {
         "id": "USDC",
