@@ -106,6 +106,7 @@ export default class blofin extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
+                'fetchPositionMode': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
@@ -194,11 +195,14 @@ export default class blofin extends Exchange {
                         'account/positions': 1,
                         'account/leverage-info': 1,
                         'account/margin-mode': 1,
+                        'account/position-mode': 1, // todo new
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'trade/orders-algo-history': 1, // todo new
+                        'trade/order/price-range': 1, // todo new
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
                         'copytrading/instruments': 1,
@@ -215,6 +219,8 @@ export default class blofin extends Exchange {
                         'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
+                        'account/set-margin-mode': 1, // todo new
+                        'account/set-position-mode': 1, // todo new
                         'trade/order': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-order': 1,
@@ -2413,6 +2419,25 @@ export default class blofin extends Exchange {
             'symbol': market['symbol'],
             'marginMode': this.safeString (marginMode, 'marginMode'),
         } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://docs.blofin.com/index.html#get-position-mode
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.privateGetAccountPositionMode (params);
+        const data = this.safeDict (response, 'data', {});
+        const positionMode = this.safeString (data, 'positionMode');
+        return {
+            'info': data,
+            'hedged': positionMode === 'long_short_mode',
+        };
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
