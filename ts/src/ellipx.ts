@@ -1188,14 +1188,14 @@ export default class ellipx extends Exchange {
         for (let i = 0; i < dataArray.length; i++) {
             const entry = dataArray[i];
             const balance = this.safeDict (entry, 'Balance', {});
-            const currency = this.safeString (balance, 'currency');
-            if (currency !== undefined) {
+            const code = this.safeString (balance, 'currency');
+            if (code !== undefined) {
                 const account = {
                     'free': this.parseAmount (entry['Unencumbered_Balance']['value_xint']),
                     'used': this.parseAmount (entry['Liabilities']['value_xint']),
                     'total': this.parseAmount (balance['value_xint']),
                 };
-                result[currency] = account;
+                result[code] = account;
             }
         }
         return this.safeBalance (result);
@@ -1828,7 +1828,7 @@ export default class ellipx extends Exchange {
      * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
-     * @param {string} code Currency code
+     * @param {string} code unified currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
      * @param {string} [tag] Additional tag/memo for currencies that require it
