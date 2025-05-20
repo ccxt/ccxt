@@ -891,7 +891,7 @@
                 "description": "trigger market order",
                 "method": "createOrder",
                 "input": [
-                    "XRP/USDT:USDT",
+                    "ADA/USDT:USDT",
                     "market",
                     "sell",
                     1,
@@ -902,21 +902,21 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "httpResponse": "{\"code\":\"0\",\"msg\":\"success\",\"data\":{\"algoId\":\"61600621\",\"clientOrderId\":null,\"msg\":null,\"code\":\"0\"}}",
+                "httpResponse": "{\"code\":\"0\",\"msg\":\"success\",\"data\":{\"algoId\":\"61602159\",\"clientOrderId\":null,\"msg\":null,\"code\":\"0\"}}",
                 "parsedResponse": {
                     "info": {
-                        "algoId": "61600621",
+                        "algoId": "61602159",
                         "clientOrderId": null,
                         "msg": null,
                         "code": "0"
                     },
-                    "id": "61600621",
+                    "id": "61602159",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "XRP/USDT:USDT",
+                    "symbol": "ADA/USDT:USDT",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
