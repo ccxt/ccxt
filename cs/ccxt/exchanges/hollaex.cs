@@ -484,6 +484,7 @@ public partial class hollaex : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
+                { "type", "crypto" },
             };
         }
         return result;

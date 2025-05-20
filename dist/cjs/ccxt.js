@@ -12,7 +12,6 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
-var ace = require('./src/ace.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
@@ -38,7 +37,6 @@ var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
 var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
-var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
@@ -195,10 +193,9 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.77';
+const version = '4.4.83';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
-    'ace': ace,
     'alpaca': alpaca,
     'apex': apex,
     'ascendex': ascendex,
@@ -224,7 +221,6 @@ const exchanges = {
     'bitstamp': bitstamp,
     'bitteam': bitteam,
     'bitvavo': bitvavo,
-    'bl3p': bl3p,
     'blockchaincom': blockchaincom,
     'blofin': blofin,
     'btcalpha': btcalpha,
@@ -431,7 +427,6 @@ exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
-exports.ace = ace;
 exports.alpaca = alpaca;
 exports.apex = apex;
 exports.ascendex = ascendex;
@@ -457,7 +452,6 @@ exports.bitso = bitso;
 exports.bitstamp = bitstamp;
 exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
-exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.blofin = blofin;
 exports.btcalpha = btcalpha;

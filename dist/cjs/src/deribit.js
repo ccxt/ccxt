@@ -649,6 +649,7 @@ class deribit extends deribit$1 {
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
                 'limits': {

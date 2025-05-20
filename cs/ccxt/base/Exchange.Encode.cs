@@ -309,7 +309,7 @@ public partial class Exchange
         return queryString.ToString();
     }
 
-    public string urlencode(object parameters2)
+    public string urlencode(object parameters2, bool sort = false)
     {
         var parameters = (dict)parameters2;
 

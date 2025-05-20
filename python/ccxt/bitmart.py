@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -225,6 +225,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -1214,6 +1215,7 @@ class bitmart(Exchange, ImplicitAPI):
         #                 {
         #                     "currency": "BTC",
         #                     "name": "Bitcoin",
+        #                     "recharge_minsize": '0.00000001',
         #                     "contract_address": null,
         #                     "network": "BTC",
         #                     "withdraw_enabled": True,
@@ -1235,7 +1237,8 @@ class bitmart(Exchange, ImplicitAPI):
             fullId = self.safe_string(currency, 'currency')
             currencyId = fullId
             networkId = self.safe_string(currency, 'network')
-            if fullId.find('NFT') < 0:
+            isNtf = (fullId.find('NFT') >= 0)
+            if not isNtf:
                 parts = fullId.split('-')
                 currencyId = self.safe_string(parts, 0)
                 second = self.safe_string(parts, 1)
@@ -1254,6 +1257,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'withdraw': None,
                     'active': None,
                     'networks': {},
+                    'type': 'other' if isNtf else 'crypto',
                 }
             networkCode = self.network_id_to_code(networkId)
             withdraw = self.safe_bool(currency, 'withdraw_enabled')
@@ -4654,11 +4658,12 @@ class bitmart(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open contract positions
 
         https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4675,7 +4680,7 @@ class bitmart(Exchange, ImplicitAPI):
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
             request['symbol'] = market['id']
-        response = self.privateGetContractPrivatePosition(self.extend(request, params))
+        response = self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {
         #         "code": 1000,

@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-pub.bitfinex.com/v2/conf/pub:list:currency,pub:map:currency:sym,pub:map:currency:label,pub:map:currency:unit,pub:map:currency:undl,pub:map:currency:pool,pub:map:currency:explorer,pub:map:currency:tx:fee,pub:map:tx:method,pub:info:tx:status",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "Fetch the API status",

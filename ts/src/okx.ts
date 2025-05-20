@@ -1650,7 +1650,6 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const tickSize = this.safeString (market, 'tickSz');
         const fees = this.safeDict2 (this.fees, type, 'trading', {});
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
@@ -1682,7 +1681,7 @@ export default class okx extends Exchange {
             'created': this.safeInteger (market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': this.parseNumber (tickSize),
+                'price': this.safeNumber (market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
@@ -5055,7 +5054,7 @@ export default class okx extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const rawNetwork = this.safeStringUpper (params, 'network');
+        const rawNetwork = this.safeString (params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code);
         const network = this.networkIdToCode (rawNetwork, code);
@@ -5672,7 +5671,7 @@ export default class okx extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION

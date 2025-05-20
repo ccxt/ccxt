@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import krakenRest from '../kraken.js';
-import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances } from '../base/types.js';
@@ -112,11 +112,157 @@ export default class kraken extends krakenRest {
         });
     }
 
+    orderRequestWs (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params = {}) {
+        const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (isLimitOrder) {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' limit orders require a price argument');
+            }
+            request['params']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
+        }
+        const isMarket = (type === 'market');
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        if (postOnly) {
+            request['params']['post_only'] = true;
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['params']['cl_ord_id'] = clientOrderId;
+        }
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            request['params']['order_qty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
+        }
+        const stopLoss = this.safeDict (params, 'stopLoss', {});
+        const takeProfit = this.safeDict (params, 'takeProfit', {});
+        const presetStopLoss = this.safeString (stopLoss, 'triggerPrice');
+        const presetTakeProfit = this.safeString (takeProfit, 'triggerPrice');
+        const presetStopLossLimit = this.safeString (stopLoss, 'price');
+        const presetTakeProfitLimit = this.safeString (takeProfit, 'price');
+        const isPresetStopLoss = presetStopLoss !== undefined;
+        const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLossPriceOrder = stopLossPrice !== undefined;
+        const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingPercent = this.safeString (params, 'trailingPercent');
+        const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
+        const trailingLimitPercent = this.safeString (params, 'trailingLimitPercent');
+        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
+        const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
+        const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
+        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
+        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
+        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
+        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
+        const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
+        if (method === 'createOrderWs') {
+            const reduceOnly = this.safeBool (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['params']['reduce_only'] = true;
+            }
+            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['params']['time_in_force'] = timeInForce;
+            }
+            params = this.omit (params, [ 'reduceOnly', 'timeInForce' ]);
+            if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
+                request['params']['triggers'] = {};
+            }
+            if (isPresetStopLoss || isPresetTakeProfit) {
+                request['params']['conditional'] = {};
+                if (isPresetStopLoss) {
+                    request['params']['conditional']['order_type'] = 'stop-loss';
+                    request['params']['conditional']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLoss));
+                } else if (isPresetTakeProfit) {
+                    request['params']['conditional']['order_type'] = 'take-profit';
+                    request['params']['conditional']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfit));
+                }
+                if (presetStopLossLimit !== undefined) {
+                    request['params']['conditional']['order_type'] = 'stop-loss-limit';
+                    request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetStopLossLimit));
+                } else if (presetTakeProfitLimit !== undefined) {
+                    request['params']['conditional']['order_type'] = 'take-profit-limit';
+                    request['params']['conditional']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, presetTakeProfitLimit));
+                }
+                params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+            } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
+                if (isStopLossPriceOrder) {
+                    request['params']['triggers']['price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
+                    if (isLimitOrder) {
+                        request['params']['order_type'] = 'stop-loss-limit';
+                    } else {
+                        request['params']['order_type'] = 'stop-loss';
+                    }
+                } else {
+                    request['params']['triggers']['price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
+                    if (isLimitOrder) {
+                        request['params']['order_type'] = 'take-profit-limit';
+                    } else {
+                        request['params']['order_type'] = 'take-profit';
+                    }
+                }
+            } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
+                request['params']['triggers']['price_type'] = priceType;
+                if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
+                    request['params']['order_type'] = 'trailing-stop';
+                    if (isTrailingAmountOrder) {
+                        request['params']['triggers']['price'] = this.parseToNumeric (trailingAmountString);
+                    } else {
+                        request['params']['triggers']['price'] = this.parseToNumeric (trailingPercentString);
+                    }
+                } else {
+                    // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
+                    request['params']['limit_price_type'] = priceType;
+                    request['params']['order_type'] = 'trailing-stop-limit';
+                    if (isTrailingLimitAmountOrder) {
+                        request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitAmountString);
+                    } else {
+                        request['params']['triggers']['price'] = this.parseToNumeric (trailingLimitPercentString);
+                    }
+                }
+            }
+        } else if (method === 'editOrderWs') {
+            if (isPresetStopLoss || isPresetTakeProfit) {
+                throw new NotSupported (this.id + ' editing the stopLoss and takeProfit on existing orders is currently not supported');
+            }
+            if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
+                if (isStopLossPriceOrder) {
+                    request['params']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
+                } else {
+                    request['params']['trigger_price'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
+                }
+            } else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
+                request['params']['trigger_price_type'] = priceType;
+                if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
+                    if (isTrailingAmountOrder) {
+                        request['params']['trigger_price'] = this.parseToNumeric (trailingAmountString);
+                    } else {
+                        request['params']['trigger_price'] = this.parseToNumeric (trailingPercentString);
+                    }
+                } else {
+                    request['params']['limit_price_type'] = priceType;
+                    if (isTrailingLimitAmountOrder) {
+                        request['params']['trigger_price'] = this.parseToNumeric (trailingLimitAmountString);
+                    } else {
+                        request['params']['trigger_price'] = this.parseToNumeric (trailingLimitPercentString);
+                    }
+                }
+            }
+        }
+        params = this.omit (params, [ 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        return [ request, params ];
+    }
+
     /**
      * @method
      * @name kraken#createOrderWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/addorder
      * @description create a trade order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -129,44 +275,54 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const market = this.market (symbol);
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = requestId;
         let request: Dict = {
-            'event': 'addOrder',
-            'token': token,
-            'reqid': requestId,
-            'ordertype': type,
-            'type': side,
-            'pair': market['wsId'],
-            'volume': this.amountToPrecision (symbol, amount),
+            'method': 'add_order',
+            'params': {
+                'order_type': type,
+                'side': side,
+                'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+                'symbol': market['symbol'],
+                'token': token,
+            },
+            'req_id': requestId,
         };
-        [ request, params ] = this.orderRequest ('createOrderWs', symbol, type, request, amount, price, params);
+        [ request, params ] = this.orderRequestWs ('createOrderWs', symbol, type, request, amount, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleCreateEditOrder (client, message) {
         //
         //  createOrder
-        //    {
-        //        "descr": "sell 0.00010000 XBTUSDT @ market",
-        //        "event": "addOrderStatus",
-        //        "reqid": 1,
-        //        "status": "ok",
-        //        "txid": "OAVXZH-XIE54-JCYYDG"
-        //    }
-        //  editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
+        //     }
         //
-        const order = this.parseOrder (message);
-        const messageHash = this.safeValue (message, 'reqid');
+        //  editOrder
+        //     {
+        //         "method": "amend_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-14T13:54:10.840342Z",
+        //         "time_out": "2025-05-14T13:54:10.855046Z"
+        //     }
+        //
+        const result = this.safeDict (message, 'result', {});
+        const order = this.parseOrder (result);
+        const messageHash = this.safeValue2 (message, 'reqid', 'req_id');
         client.resolve (order, messageHash);
     }
 
@@ -174,7 +330,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v1/editorder
+     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -187,21 +343,19 @@ export default class kraken extends krakenRest {
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const market = this.market (symbol);
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId ();
         const messageHash = requestId;
         let request: Dict = {
-            'event': 'editOrder',
-            'token': token,
-            'reqid': requestId,
-            'orderid': id,
-            'pair': market['wsId'],
+            'method': 'amend_order',
+            'params': {
+                'order_id': id,
+                'order_qty': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+                'token': token,
+            },
+            'req_id': requestId,
         };
-        if (amount !== undefined) {
-            request['volume'] = this.amountToPrecision (symbol, amount);
-        }
-        [ request, params ] = this.orderRequest ('editOrderWs', symbol, type, request, amount, price, params);
+        [ request, params ] = this.orderRequestWs ('editOrderWs', symbol, type, request, amount, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -914,6 +1068,20 @@ export default class kraken extends krakenRest {
         //         "version": "0.2.0"
         //     }
         //
+        // v2
+        //     {
+        //         channel: 'status',
+        //         type: 'update',
+        //         data: [
+        //             {
+        //                 version: '2.0.10',
+        //                 system: 'online',
+        //                 api_version: 'v2',
+        //                 connection_id: 6447481662169813000
+        //             }
+        //         ]
+        //     }
+        //
         return message;
     }
 
@@ -1554,9 +1722,18 @@ export default class kraken extends krakenRest {
         //         "subscription": { name: "ticker" }
         //     }
         //
-        const errorMessage = this.safeString (message, 'errorMessage');
+        // v2
+        //     {
+        //         "error": "Unsupported field: 'price' for the given msg type: add order",
+        //         "method": "add_order",
+        //         "success": false,
+        //         "time_in": "2025-05-13T08:59:44.803511Z",
+        //         "time_out": "2025-05-13T08:59:44.803542Z'
+        //     }
+        //
+        const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            const requestId = this.safeValue (message, 'reqid');
+            const requestId = this.safeValue2 (message, 'reqid', 'req_id');
             if (requestId !== undefined) {
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
@@ -1608,13 +1785,13 @@ export default class kraken extends krakenRest {
                 }
             }
             if (this.handleErrorMessage (client, message)) {
-                const event = this.safeString (message, 'event');
+                const event = this.safeString2 (message, 'event', 'method');
                 const methods: Dict = {
                     'heartbeat': this.handleHeartbeat,
                     'systemStatus': this.handleSystemStatus,
                     'subscriptionStatus': this.handleSubscriptionStatus,
-                    'addOrderStatus': this.handleCreateEditOrder,
-                    'editOrderStatus': this.handleCreateEditOrder,
+                    'add_order': this.handleCreateEditOrder,
+                    'amend_order': this.handleCreateEditOrder,
                     'cancelOrderStatus': this.handleCancelOrder,
                     'cancelAllStatus': this.handleCancelAllOrders,
                 };

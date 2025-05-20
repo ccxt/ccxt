@@ -387,24 +387,33 @@ class coinmetro(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            withdraw = self.safe_value(currency, 'canWithdraw')
-            deposit = self.safe_value(currency, 'canDeposit')
-            canTrade = self.safe_value(currency, 'canTrade')
-            active = withdraw if canTrade else True
-            minAmount = self.safe_number(currency, 'minQty')
+            typeRaw = self.safe_string(currency, 'type')
+            type = None
+            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20':
+                type = 'crypto'
+            elif typeRaw == 'fiat':
+                type = 'fiat'
+            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'name': code,
+                'type': type,
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': self.safe_bool(currency, 'canTrade'),
+                'deposit': self.safe_bool(currency, 'canDeposit'),
+                'withdraw': self.safe_bool(currency, 'canWithdraw'),
                 'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'digits'))),
+                'precision': self.parse_number(self.parse_precision(precisionDigits)),
                 'limits': {
-                    'amount': {'min': minAmount, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'amount': {
+                        'min': self.safe_number(currency, 'minQty'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
                 'networks': {},
             })

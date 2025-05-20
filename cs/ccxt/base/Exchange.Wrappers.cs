@@ -1233,7 +1233,6 @@ public class  Bitso: bitso { public Bitso(object args = null) : base(args) { } }
 public class  Bitstamp: bitstamp { public Bitstamp(object args = null) : base(args) { } }
 public class  Bitteam: bitteam { public Bitteam(object args = null) : base(args) { } }
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
-public class  Bl3p: bl3p { public Bl3p(object args = null) : base(args) { } }
 public class  Blockchaincom: blockchaincom { public Blockchaincom(object args = null) : base(args) { } }
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
 public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(args) { } }

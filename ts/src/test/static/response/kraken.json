@@ -3,6 +3,63 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "LTC/USD",
+                    10
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "O3N23H-LHHUD-V2XMEK"
+                        ],
+                        "descr": {
+                            "order": "buy 10.00000000 LTCUSD @ market"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "O3N23H-LHHUD-V2XMEK",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "O3N23H-LHHUD-V2XMEK"
+                        ],
+                        "descr": {
+                            "order": "buy 10.00000000 LTCUSD @ market"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "LTCUSD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 10,
+                    "amount": null,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order",

@@ -209,6 +209,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -1206,6 +1207,7 @@ export default class bitmart extends Exchange {
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1227,7 +1229,8 @@ export default class bitmart extends Exchange {
             const fullId = this.safeString(currency, 'currency');
             let currencyId = fullId;
             let networkId = this.safeString(currency, 'network');
-            if (fullId.indexOf('NFT') < 0) {
+            const isNtf = (fullId.indexOf('NFT') >= 0);
+            if (!isNtf) {
                 const parts = fullId.split('-');
                 currencyId = this.safeString(parts, 0);
                 const second = this.safeString(parts, 1);
@@ -1248,6 +1251,7 @@ export default class bitmart extends Exchange {
                     'withdraw': undefined,
                     'active': undefined,
                     'networks': {},
+                    'type': isNtf ? 'other' : 'crypto',
                 };
             }
             const networkCode = this.networkIdToCode(networkId);
@@ -4899,6 +4903,7 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4917,7 +4922,7 @@ export default class bitmart extends Exchange {
             // only supports symbols as undefined or sending one symbol
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetContractPrivatePosition(this.extend(request, params));
+        const response = await this.privateGetContractPrivatePositionV2(this.extend(request, params));
         //
         //     {
         //         "code": 1000,

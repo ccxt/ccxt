@@ -1227,6 +1227,7 @@ public partial class poloniex : Exchange
                     { "withdraw", withdrawEnabled },
                     { "fee", this.parseNumber(feeString) },
                     { "precision", null },
+                    { "type", "crypto" },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },

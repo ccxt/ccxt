@@ -345,6 +345,8 @@ class bitvavo extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
+                'operatorId' => null, // this will be required soon for order-related endpoints
+                'fiatCurrencies' => array( 'EUR' ), // only fiat atm
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
             'commonCurrencies' => array(
@@ -565,24 +567,24 @@ class bitvavo extends Exchange {
         //         ),
         //     )
         //
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
+            $isFiat = $this->in_array($code, $fiatCurrencies);
             $networks = array();
-            $networksArray = $this->safe_value($currency, 'networks', array());
-            $networksLength = count($networksArray);
-            $isOneNetwork = ($networksLength === 1);
-            $deposit = ($this->safe_value($currency, 'depositStatus') === 'OK');
-            $withdrawal = ($this->safe_value($currency, 'withdrawalStatus') === 'OK');
+            $networksArray = $this->safe_list($currency, 'networks', array());
+            $deposit = $this->safe_string($currency, 'depositStatus') === 'OK';
+            $withdrawal = $this->safe_string($currency, 'withdrawalStatus') === 'OK';
             $active = $deposit && $withdrawal;
             $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
             $precision = $this->safe_integer($currency, 'decimals', 8);
             $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside $networks
-            if ($isOneNetwork) {
-                $networkId = $networksArray[0];
+            // btw, absolutely all of them have 1 network atm
+            for ($j = 0; $j < count($networksArray); $j++) {
+                $networkId = $networksArray[$j];
                 $networkCode = $this->network_id_to_code($networkId);
                 $networks[$networkCode] = array(
                     'info' => $currency,
@@ -601,7 +603,7 @@ class bitvavo extends Exchange {
                     ),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'id' => $id,
                 'code' => $code,
@@ -612,6 +614,7 @@ class bitvavo extends Exchange {
                 'networks' => $networks,
                 'fee' => $withdrawFee,
                 'precision' => $precision,
+                'type' => $isFiat ? 'fiat' : 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -626,7 +629,7 @@ class bitvavo extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         // set $currencies here to avoid calling publicGetAssets twice
         $this->currencies = $this->deep_extend($this->currencies, $result);
@@ -1218,6 +1221,11 @@ class bitvavo extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'createOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         return $this->extend($request, $params);
     }
 
@@ -1321,6 +1329,11 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'editOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         $request['market'] = $market['id'];
         return $request;
     }
@@ -1360,6 +1373,11 @@ class bitvavo extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
+        }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
         }
         return $this->extend($request, $params);
     }

@@ -480,6 +480,7 @@ public partial class bitmex : Exchange
             object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
             object minDepositString = this.safeString(currency, "minDepositAmount");
             object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+            object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
@@ -505,6 +506,7 @@ public partial class bitmex : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
             };
         }
         return result;
@@ -775,6 +777,13 @@ public partial class bitmex : Exchange
         object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         object initMargin = this.safeString(market, "initMargin", "1");
         object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        // subtype should be undefined for spot markets
+        if (isTrue(spot))
+        {
+            isInverse = null;
+            isQuanto = null;
+            linear = null;
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -824,7 +833,7 @@ public partial class bitmex : Exchange
                     { "max", ((bool) isTrue(positionIsQuote)) ? maxOrderQty : null },
                 } },
             } },
-            { "created", this.parse8601(this.safeString(market, "listing")) },
+            { "created", null },
             { "info", market },
         };
     }

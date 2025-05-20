@@ -1865,7 +1865,7 @@ class gate(Exchange, ImplicitAPI):
                     'code': code,
                     'type': type,
                     'precision': precision,
-                    'limits': self.limits,
+                    'limits': None,
                     'networks': {},
                     'info': [],  # will be filled below
                 }
@@ -5723,7 +5723,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

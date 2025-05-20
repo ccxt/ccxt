@@ -63,7 +63,7 @@ class coinsph extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -488,6 +488,134 @@ class coinsph extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             *
+             * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $response = Async\await($this->privateGetOpenapiWalletV1ConfigGetall ($params));
+            //
+            //    [
+            //        array(
+            //            "coin" => "PHP",
+            //            "name" => "PHP",
+            //            "depositAllEnable" => false,
+            //            "withdrawAllEnable" => false,
+            //            "free" => "0",
+            //            "locked" => "0",
+            //            "transferPrecision" => "2",
+            //            "transferMinQuantity" => "0",
+            //            "networkList" => array(),
+            //            "legalMoney" => true
+            //        ),
+            //        {
+            //            "coin" => "USDT",
+            //            "name" => "USDT",
+            //            "depositAllEnable" => true,
+            //            "withdrawAllEnable" => true,
+            //            "free" => "0",
+            //            "locked" => "0",
+            //            "transferPrecision" => "8",
+            //            "transferMinQuantity" => "0",
+            //            "networkList" => [
+            //                array(
+            //                    "addressRegex" => "^0x[0-9a-fA-F]{40}$",
+            //                    "memoRegex" => " ",
+            //                    "network" => "ETH",
+            //                    "name" => "Ethereum (ERC20)",
+            //                    "depositEnable" => true,
+            //                    "minConfirm" => "12",
+            //                    "unLockConfirm" => "-1",
+            //                    "withdrawDesc" => "",
+            //                    "withdrawEnable" => true,
+            //                    "withdrawFee" => "6",
+            //                    "withdrawIntegerMultiple" => "0.000001",
+            //                    "withdrawMax" => "500000",
+            //                    "withdrawMin" => "10",
+            //                    "sameAddress" => false
+            //                ),
+            //                {
+            //                    "addressRegex" => "^T[0-9a-zA-Z]{33}$",
+            //                    "memoRegex" => "",
+            //                    "network" => "TRX",
+            //                    "name" => "TRON",
+            //                    "depositEnable" => true,
+            //                    "minConfirm" => "19",
+            //                    "unLockConfirm" => "-1",
+            //                    "withdrawDesc" => "",
+            //                    "withdrawEnable" => true,
+            //                    "withdrawFee" => "3",
+            //                    "withdrawIntegerMultiple" => "0.000001",
+            //                    "withdrawMax" => "1000000",
+            //                    "withdrawMin" => "20",
+            //                    "sameAddress" => false
+            //                }
+            //            ],
+            //            "legalMoney" => false
+            //        }
+            //    ]
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $id = $this->safe_string($entry, 'coin');
+                $code = $this->safe_currency_code($id);
+                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
+                $networkList = $this->safe_list($entry, 'networkList', array());
+                $networks = array();
+                for ($j = 0; $j < count($networkList); $j++) {
+                    $networkItem = $networkList[$j];
+                    $network = $this->safe_string($networkItem, 'network');
+                    $networkCode = $this->network_id_to_code($network);
+                    $networks[$networkCode] = array(
+                        'info' => $networkItem,
+                        'id' => $network,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
+                        'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
+                        'fee' => $this->safe_number($networkItem, 'withdrawFee'),
+                        'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                                'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $id,
+                    'name' => $this->safe_string($entry, 'name'),
+                    'code' => $code,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'transferPrecision'))),
+                    'info' => $entry,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($entry, 'depositAllEnable'),
+                    'withdraw' => $this->safe_bool($entry, 'withdrawAllEnable'),
+                    'networks' => $networks,
+                    'fee' => null,
+                    'fees' => null,
+                    'limits' => array(),
+                ));
+            }
+            return $result;
+        }) ();
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {

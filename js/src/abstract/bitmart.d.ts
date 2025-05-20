@@ -60,6 +60,7 @@ interface Exchange {
     privateGetContractPrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrderHistory(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePosition(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivatePositionV2(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateCurrentPlanOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades(params?: {}): Promise<implicitReturnType>;

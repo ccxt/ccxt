@@ -12,6 +12,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -127,12 +128,133 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
+    def order_request_ws(self, method: str, symbol: str, type: str, request: dict, amount: Num, price: Num = None, params={}):
+        isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
+        if isLimitOrder:
+            if price is None:
+                raise ArgumentsRequired(self.id + ' limit orders require a price argument')
+            request['params']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+        isMarket = (type == 'market')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, False, params)
+        if postOnly:
+            request['params']['post_only'] = True
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['params']['cl_ord_id'] = clientOrderId
+        cost = self.safe_string(params, 'cost')
+        if cost is not None:
+            request['params']['order_qty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
+        stopLoss = self.safe_dict(params, 'stopLoss', {})
+        takeProfit = self.safe_dict(params, 'takeProfit', {})
+        presetStopLoss = self.safe_string(stopLoss, 'triggerPrice')
+        presetTakeProfit = self.safe_string(takeProfit, 'triggerPrice')
+        presetStopLossLimit = self.safe_string(stopLoss, 'price')
+        presetTakeProfitLimit = self.safe_string(takeProfit, 'price')
+        isPresetStopLoss = presetStopLoss is not None
+        isPresetTakeProfit = presetTakeProfit is not None
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLossPriceOrder = stopLossPrice is not None
+        isTakeProfitPriceOrder = takeProfitPrice is not None
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        trailingPercent = self.safe_string(params, 'trailingPercent')
+        trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
+        trailingLimitPercent = self.safe_string(params, 'trailingLimitPercent')
+        isTrailingAmountOrder = trailingAmount is not None
+        isTrailingPercentOrder = trailingPercent is not None
+        isTrailingLimitAmountOrder = trailingLimitAmount is not None
+        isTrailingLimitPercentOrder = trailingLimitPercent is not None
+        offset = self.safe_string(params, 'offset', '')  # can set self to - for minus
+        trailingAmountString = offset + self.number_to_string(trailingAmount) if (trailingAmount is not None) else None
+        trailingPercentString = offset + self.number_to_string(trailingPercent) if (trailingPercent is not None) else None
+        trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
+        trailingLimitPercentString = offset + self.number_to_string(trailingLimitPercent) if (trailingLimitPercent is not None) else None
+        priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
+        if method == 'createOrderWs':
+            reduceOnly = self.safe_bool(params, 'reduceOnly')
+            if reduceOnly:
+                request['params']['reduce_only'] = True
+            timeInForce = self.safe_string_lower(params, 'timeInForce')
+            if timeInForce is not None:
+                request['params']['time_in_force'] = timeInForce
+            params = self.omit(params, ['reduceOnly', 'timeInForce'])
+            if isStopLossPriceOrder or isTakeProfitPriceOrder or isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
+                request['params']['triggers'] = {}
+            if isPresetStopLoss or isPresetTakeProfit:
+                request['params']['conditional'] = {}
+                if isPresetStopLoss:
+                    request['params']['conditional']['order_type'] = 'stop-loss'
+                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLoss))
+                elif isPresetTakeProfit:
+                    request['params']['conditional']['order_type'] = 'take-profit'
+                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfit))
+                if presetStopLossLimit is not None:
+                    request['params']['conditional']['order_type'] = 'stop-loss-limit'
+                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLossLimit))
+                elif presetTakeProfitLimit is not None:
+                    request['params']['conditional']['order_type'] = 'take-profit-limit'
+                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfitLimit))
+                params = self.omit(params, ['stopLoss', 'takeProfit'])
+            elif isStopLossPriceOrder or isTakeProfitPriceOrder:
+                if isStopLossPriceOrder:
+                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    if isLimitOrder:
+                        request['params']['order_type'] = 'stop-loss-limit'
+                    else:
+                        request['params']['order_type'] = 'stop-loss'
+                else:
+                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    if isLimitOrder:
+                        request['params']['order_type'] = 'take-profit-limit'
+                    else:
+                        request['params']['order_type'] = 'take-profit'
+            elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
+                request['params']['triggers']['price_type'] = priceType
+                if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
+                    request['params']['order_type'] = 'trailing-stop'
+                    if isTrailingAmountOrder:
+                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingAmountString)
+                    else:
+                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingPercentString)
+                else:
+                    # trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
+                    request['params']['limit_price_type'] = priceType
+                    request['params']['order_type'] = 'trailing-stop-limit'
+                    if isTrailingLimitAmountOrder:
+                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitAmountString)
+                    else:
+                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitPercentString)
+        elif method == 'editOrderWs':
+            if isPresetStopLoss or isPresetTakeProfit:
+                raise NotSupported(self.id + ' editing the stopLoss and takeProfit on existing orders is currently not supported')
+            if isStopLossPriceOrder or isTakeProfitPriceOrder:
+                if isStopLossPriceOrder:
+                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                else:
+                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+            elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
+                request['params']['trigger_price_type'] = priceType
+                if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
+                    if isTrailingAmountOrder:
+                        request['params']['trigger_price'] = self.parse_to_numeric(trailingAmountString)
+                    else:
+                        request['params']['trigger_price'] = self.parse_to_numeric(trailingPercentString)
+                else:
+                    request['params']['limit_price_type'] = priceType
+                    if isTrailingLimitAmountOrder:
+                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitAmountString)
+                    else:
+                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitPercentString)
+        params = self.omit(params, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent'])
+        return [request, params]
+
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/addorder
-
         create a trade order
+
+        https://docs.kraken.com/api/docs/websocket-v2/add_order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -144,50 +266,60 @@ class kraken(ccxt.async_support.kraken):
         await self.load_markets()
         token = await self.authenticate()
         market = self.market(symbol)
-        url = self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
         messageHash = requestId
         request: dict = {
-            'event': 'addOrder',
-            'token': token,
-            'reqid': requestId,
-            'ordertype': type,
-            'type': side,
-            'pair': market['wsId'],
-            'volume': self.amount_to_precision(symbol, amount),
+            'method': 'add_order',
+            'params': {
+                'order_type': type,
+                'side': side,
+                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+                'symbol': market['symbol'],
+                'token': token,
+            },
+            'req_id': requestId,
         }
-        request, params = self.orderRequest('createOrderWs', symbol, type, request, amount, price, params)
+        request, params = self.order_request_ws('createOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_create_edit_order(self, client, message):
         #
         #  createOrder
-        #    {
-        #        "descr": "sell 0.00010000 XBTUSDT @ market",
-        #        "event": "addOrderStatus",
-        #        "reqid": 1,
-        #        "status": "ok",
-        #        "txid": "OAVXZH-XIE54-JCYYDG"
-        #    }
-        #  editOrder
-        #    {
-        #        "descr": "order edited price = 9000.00000000",
-        #        "event": "editOrderStatus",
-        #        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        #        "reqid": 3,
-        #        "status": "ok",
-        #        "txid": "OTI672-HJFAO-XOIPPK"
-        #    }
+        #     {
+        #         "method": "add_order",
+        #         "req_id": 1,
+        #         "result": {
+        #             "order_id": "OXM2QD-EALR2-YBAVEU"
+        #         },
+        #         "success": True,
+        #         "time_in": "2025-05-13T10:12:13.876173Z",
+        #         "time_out": "2025-05-13T10:12:13.890137Z"
+        #     }
         #
-        order = self.parse_order(message)
-        messageHash = self.safe_value(message, 'reqid')
+        #  editOrder
+        #     {
+        #         "method": "amend_order",
+        #         "req_id": 1,
+        #         "result": {
+        #             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        #             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        #         },
+        #         "success": True,
+        #         "time_in": "2025-05-14T13:54:10.840342Z",
+        #         "time_out": "2025-05-14T13:54:10.855046Z"
+        #     }
+        #
+        result = self.safe_dict(message, 'result', {})
+        order = self.parse_order(result)
+        messageHash = self.safe_value_2(message, 'reqid', 'req_id')
         client.resolve(order, messageHash)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
 
-        https://docs.kraken.com/api/docs/websocket-v1/editorder
+        https://docs.kraken.com/api/docs/websocket-v2/amend_order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -200,20 +332,19 @@ class kraken(ccxt.async_support.kraken):
         """
         await self.load_markets()
         token = await self.authenticate()
-        market = self.market(symbol)
-        url = self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
         messageHash = requestId
         request: dict = {
-            'event': 'editOrder',
-            'token': token,
-            'reqid': requestId,
-            'orderid': id,
-            'pair': market['wsId'],
+            'method': 'amend_order',
+            'params': {
+                'order_id': id,
+                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+                'token': token,
+            },
+            'req_id': requestId,
         }
-        if amount is not None:
-            request['volume'] = self.amount_to_precision(symbol, amount)
-        request, params = self.orderRequest('editOrderWs', symbol, type, request, amount, price, params)
+        request, params = self.order_request_ws('editOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
@@ -870,6 +1001,20 @@ class kraken(ccxt.async_support.kraken):
         #         "version": "0.2.0"
         #     }
         #
+        # v2
+        #     {
+        #         channel: 'status',
+        #         type: 'update',
+        #         data: [
+        #             {
+        #                 version: '2.0.10',
+        #                 system: 'online',
+        #                 api_version: 'v2',
+        #                 connection_id: 6447481662169813000
+        #             }
+        #         ]
+        #     }
+        #
         return message
 
     async def authenticate(self, params={}):
@@ -1460,9 +1605,18 @@ class kraken(ccxt.async_support.kraken):
         #         "subscription": {name: "ticker"}
         #     }
         #
-        errorMessage = self.safe_string(message, 'errorMessage')
+        # v2
+        #     {
+        #         "error": "Unsupported field: 'price' for the given msg type: add order",
+        #         "method": "add_order",
+        #         "success": False,
+        #         "time_in": "2025-05-13T08:59:44.803511Z",
+        #         "time_out": "2025-05-13T08:59:44.803542Z'
+        #     }
+        #
+        errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            requestId = self.safe_value(message, 'reqid')
+            requestId = self.safe_value_2(message, 'reqid', 'req_id')
             if requestId is not None:
                 broad = self.exceptions['ws']['broad']
                 broadKey = self.find_broadly_matched_key(broad, errorMessage)
@@ -1507,13 +1661,13 @@ class kraken(ccxt.async_support.kraken):
                 if method is not None:
                     method(client, message)
             if self.handle_error_message(client, message):
-                event = self.safe_string(message, 'event')
+                event = self.safe_string_2(message, 'event', 'method')
                 methods: dict = {
                     'heartbeat': self.handle_heartbeat,
                     'systemStatus': self.handle_system_status,
                     'subscriptionStatus': self.handle_subscription_status,
-                    'addOrderStatus': self.handle_create_edit_order,
-                    'editOrderStatus': self.handle_create_edit_order,
+                    'add_order': self.handle_create_edit_order,
+                    'amend_order': self.handle_create_edit_order,
                     'cancelOrderStatus': self.handle_cancel_order,
                     'cancelAllStatus': self.handle_cancel_all_orders,
                 }

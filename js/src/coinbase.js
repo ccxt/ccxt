@@ -1512,7 +1512,21 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push(this.parseContractMarket(perpetualData[i], perpetualFeeTier));
         }
-        return result;
+        const newMarkets = [];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
+            const info = this.safeValue(market, 'info', {});
+            const realMarketIds = this.safeList(info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                market['alias'] = realMarketIds[0];
+            }
+            else {
+                market['alias'] = undefined;
+            }
+            newMarkets.push(market);
+        }
+        return newMarkets;
     }
     parseSpotMarket(market, feeTier) {
         //
@@ -1863,45 +1877,46 @@ export default class coinbase extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.fetchCurrenciesFromCache(params);
-        const currencies = this.safeList(response, 'currencies', []);
+        const promises = [
+            this.v2PublicGetCurrencies(params),
+            this.v2PublicGetCurrenciesCrypto(params),
+            this.v2PublicGetExchangeRates(params),
+        ];
+        const promisesResult = await Promise.all(promises);
+        const fiatResponse = this.safeDict(promisesResult, 0, {});
         //
-        // fiat
+        //    [
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
+        //        ...
         //
-        //    {
-        //        id: 'IMP',
-        //        name: 'Isle of Man Pound',
-        //        min_size: '0.01'
-        //    },
+        const cryptoResponse = this.safeDict(promisesResult, 1, {});
         //
-        // crypto
+        //     [
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
+        //          ...
         //
-        //    {
-        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        code: 'AERO',
-        //        name: 'Aerodrome Finance',
-        //        color: '#0433FF',
-        //        sort_index: '340',
-        //        exponent: '8',
-        //        type: 'crypto',
-        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":{
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             },
-        //         }
-        //     }
-        //
+        const ratesResponse = this.safeDict(promisesResult, 2, {});
+        const fiatData = this.safeList(fiatResponse, 'data', []);
+        const cryptoData = this.safeList(cryptoResponse, 'data', []);
+        const ratesData = this.safeDict(ratesResponse, 'data', {});
+        const rates = this.safeDict(ratesData, 'rates', {});
+        const ratesIds = Object.keys(rates);
+        const currencies = this.arrayConcat(fiatData, cryptoData);
         const result = {};
         const networks = {};
         const networksById = {};
@@ -1913,17 +1928,19 @@ export default class coinbase extends Exchange {
             const name = this.safeString(currency, 'name');
             this.options['networks'][code] = name.toLowerCase();
             this.options['networksById'][code] = name.toLowerCase();
-            result[code] = {
+            const type = (assetId !== undefined) ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'type': (assetId !== undefined) ? 'crypto' : 'fiat',
-                'name': this.safeString(currency, 'name'),
+                'type': type,
+                'name': name,
                 'active': true,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': this.safeNumber(currency, 'min_size'),
@@ -1934,11 +1951,25 @@ export default class coinbase extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
             if (assetId !== undefined) {
                 const lowerCaseName = name.toLowerCase();
                 networks[code] = lowerCaseName;
                 networksById[lowerCaseName] = code;
+            }
+        }
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for (let i = 0; i < ratesIds.length; i++) {
+            const currencyId = ratesIds[i];
+            const code = this.safeCurrencyCode(currencyId);
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': {},
+                    'id': currencyId,
+                    'code': code,
+                    'type': 'crypto',
+                    'networks': {}, // todo
+                });
             }
         }
         this.options['networks'] = this.extend(networks, this.options['networks']);
@@ -2248,10 +2279,11 @@ export default class coinbase extends Exchange {
             askVolume = this.safeNumber(asks[0], 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
+        market = this.safeMarket(marketId, market);
         const last = this.safeNumber(ticker, 'price');
         const datetime = this.safeString(ticker, 'time');
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'bid': bid,

@@ -1041,9 +1041,6 @@ class bybit(Exchange, ImplicitAPI):
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
-                'createOrder': {
-                    'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
-                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -1638,77 +1635,57 @@ class bybit(Exchange, ImplicitAPI):
             name = self.safe_string(currency, 'name')
             chains = self.safe_list(currency, 'chains', [])
             networks: dict = {}
-            minPrecision = None
-            minWithdrawFeeString = None
-            minWithdrawString = None
-            minDepositString = None
-            deposit = False
-            withdraw = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 networkCode = self.network_id_to_code(networkId)
-                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy')))
-                minPrecision = precision if (minPrecision is None) else min(minPrecision, precision)
-                depositAllowed = self.safe_integer(chain, 'chainDeposit') == 1
-                deposit = depositAllowed if (depositAllowed) else deposit
-                withdrawAllowed = self.safe_integer(chain, 'chainWithdraw') == 1
-                withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
-                withdrawFeeString = self.safe_string(chain, 'withdrawFee')
-                if withdrawFeeString is not None:
-                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
-                minNetworkWithdrawString = self.safe_string(chain, 'withdrawMin')
-                if minNetworkWithdrawString is not None:
-                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
-                minNetworkDepositString = self.safe_string(chain, 'depositMin')
-                if minNetworkDepositString is not None:
-                    minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': depositAllowed and withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': self.parse_number(withdrawFeeString),
-                    'precision': precision,
+                    'active': None,
+                    'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
+                    'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
                     'limits': {
                         'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
+                            'min': self.safe_number(chain, 'withdrawMin'),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.parse_number(minNetworkDepositString),
+                            'min': self.safe_number(chain, 'depositMin'),
                             'max': None,
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
                 'name': name,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': self.parse_number(minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.parse_number(minDepositString),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': networks,
-            }
+                'type': 'crypto',  # atm exchange api provides only cryptos
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -2131,6 +2108,7 @@ class bybit(Exchange, ImplicitAPI):
             strike = self.safe_string(splitId, 2)
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
+            isInverse = base == settle
             if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
                 result.append(self.safe_market_structure({
                     'id': id,
@@ -2142,7 +2120,7 @@ class bybit(Exchange, ImplicitAPI):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
-                    'subType': 'linear',
+                    'subType': None,
                     'spot': False,
                     'margin': False,
                     'swap': False,
@@ -2150,8 +2128,8 @@ class bybit(Exchange, ImplicitAPI):
                     'option': True,
                     'active': isActive,
                     'contract': True,
-                    'linear': True,
-                    'inverse': False,
+                    'linear': not isInverse,
+                    'inverse': isInverse,
                     'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
                     'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                     'contractSize': self.parse_number('1'),
@@ -3775,12 +3753,21 @@ class bybit(Exchange, ImplicitAPI):
         parts = await self.is_unified_enabled()
         enableUnifiedAccount = parts[1]
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isTrailingAmountOrder = trailingAmount is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
-        options = self.safe_dict(self.options, 'createOrder', {})
-        defaultMethod = self.safe_string(options, 'method', 'privatePostV5OrderCreate')
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLoss or isTakeProfit:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
         response = None
-        if isTrailingAmountOrder or (defaultMethod == 'privatePostV5PositionTradingStop'):
+        if method == 'privatePostV5PositionTradingStop':
             response = await self.privatePostV5PositionTradingStop(orderRequest)
         else:
             response = await self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
@@ -3805,8 +3792,6 @@ class bybit(Exchange, ImplicitAPI):
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostV5OrderCreate')
         request: dict = {
             'symbol': market['id'],
             # 'side': self.capitalize(side),
@@ -3850,7 +3835,14 @@ class bybit(Exchange, ImplicitAPI):
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         isBuy = side == 'buy'
-        isAlternativeEndpoint = defaultMethod == 'privatePostV5PositionTradingStop'
+        defaultMethod = None
+        if isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            defaultMethod = 'privatePostV5PositionTradingStop'
+        else:
+            defaultMethod = 'privatePostV5OrderCreate'
+        method = None
+        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
+        isAlternativeEndpoint = method == 'privatePostV5PositionTradingStop'
         amountString = self.get_amount(symbol, amount)
         priceString = self.get_price(symbol, self.number_to_string(price)) if (price is not None) else None
         if isTrailingAmountOrder or isAlternativeEndpoint:
@@ -3901,12 +3893,12 @@ class bybit(Exchange, ImplicitAPI):
                 request['price'] = priceString
         if market['spot']:
             request['category'] = 'spot'
+        elif market['option']:
+            request['category'] = 'option'
         elif market['linear']:
             request['category'] = 'linear'
         elif market['inverse']:
             request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -5651,7 +5643,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            if subType == 'inverse':
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 5)  # 3/4 uta 1.0, 5/6 uta 2.0
+            if subType == 'inverse' and (unifiedMarginStatus < 5):
                 response = await self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
             else:
                 response = await self.privateGetV5AccountTransactionLog(self.extend(request, params))

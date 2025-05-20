@@ -1,5 +1,5 @@
 import Exchange from './abstract/vertex.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests, Position } from './base/types.js';
 /**
  * @class vertex
  * @augments Exchange
@@ -307,7 +307,7 @@ export default class vertex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name vertex#fetchPositions
@@ -318,7 +318,7 @@ export default class vertex extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     queryNonces(): Promise<import("./base/types.js").Dictionary<any>>;
     /**
      * @method

@@ -329,6 +329,8 @@ func  (this *bitvavo) Describe() interface{}  {
                 "ERC20": "ETH",
                 "TRC20": "TRX",
             },
+            "operatorId": nil,
+            "fiatCurrencies": []interface{}{"EUR"},
         },
         "precisionMode": SIGNIFICANT_DIGITS,
         "commonCurrencies": map[string]interface{} {
@@ -577,24 +579,24 @@ func  (this *bitvavo) ParseCurrenciesCustom(currencies interface{}) interface{} 
     //         },
     //     ]
     //
+    var fiatCurrencies interface{} = this.SafeList(this.Options, "fiatCurrencies", []interface{}{})
     var result interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
         var currency interface{} = GetValue(currencies, i)
         var id interface{} = this.SafeString(currency, "symbol")
         var code interface{} = this.SafeCurrencyCode(id)
+        var isFiat interface{} = this.InArray(code, fiatCurrencies)
         var networks interface{} = map[string]interface{} {}
-        var networksArray interface{} = this.SafeValue(currency, "networks", []interface{}{})
-        var networksLength interface{} =         GetArrayLength(networksArray)
-        var isOneNetwork interface{} =         (IsEqual(networksLength, 1))
-        var deposit interface{} =         (IsEqual(this.SafeValue(currency, "depositStatus"), "OK"))
-        var withdrawal interface{} =         (IsEqual(this.SafeValue(currency, "withdrawalStatus"), "OK"))
+        var networksArray interface{} = this.SafeList(currency, "networks", []interface{}{})
+        var deposit interface{} = IsEqual(this.SafeString(currency, "depositStatus"), "OK")
+        var withdrawal interface{} = IsEqual(this.SafeString(currency, "withdrawalStatus"), "OK")
         var active interface{} = IsTrue(deposit) && IsTrue(withdrawal)
         var withdrawFee interface{} = this.SafeNumber(currency, "withdrawalFee")
         var precision interface{} = this.SafeInteger(currency, "decimals", 8)
         var minWithdraw interface{} = this.SafeNumber(currency, "withdrawalMinAmount")
-        // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-        if IsTrue(isOneNetwork) {
-            var networkId interface{} = GetValue(networksArray, 0)
+        // btw, absolutely all of them have 1 network atm
+        for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
+            var networkId interface{} = GetValue(networksArray, j)
             var networkCode interface{} = this.NetworkIdToCode(networkId)
             AddElementToObject(networks, networkCode, map[string]interface{} {
     "info": currency,
@@ -613,7 +615,7 @@ func  (this *bitvavo) ParseCurrenciesCustom(currencies interface{}) interface{} 
     },
 })
         }
-        AddElementToObject(result, code, map[string]interface{} {
+        AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
     "info": currency,
     "id": id,
     "code": code,
@@ -624,6 +626,7 @@ func  (this *bitvavo) ParseCurrenciesCustom(currencies interface{}) interface{} 
     "networks": networks,
     "fee": withdrawFee,
     "precision": precision,
+    "type": Ternary(IsTrue(isFiat), "fiat", "crypto"),
     "limits": map[string]interface{} {
         "amount": map[string]interface{} {
             "min": nil,
@@ -638,7 +641,7 @@ func  (this *bitvavo) ParseCurrenciesCustom(currencies interface{}) interface{} 
             "max": nil,
         },
     },
-})
+}))
     }
     // set currencies here to avoid calling publicGetAssets twice
     this.Currencies = this.DeepExtend(this.Currencies, result)
@@ -661,8 +664,8 @@ func  (this *bitvavo) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6418 := (<-this.LoadMarkets())
-            PanicOnError(retRes6418)
+            retRes6448 := (<-this.LoadMarkets())
+            PanicOnError(retRes6448)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -762,8 +765,8 @@ func  (this *bitvavo) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7258 := (<-this.LoadMarkets())
-            PanicOnError(retRes7258)
+            retRes7288 := (<-this.LoadMarkets())
+            PanicOnError(retRes7288)
         
             response:= (<-this.PublicGetTicker24h(params))
             PanicOnError(response)
@@ -817,8 +820,8 @@ func  (this *bitvavo) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes7628 := (<-this.LoadMarkets())
-            PanicOnError(retRes7628)
+            retRes7658 := (<-this.LoadMarkets())
+            PanicOnError(retRes7658)
             var market interface{} = this.Market(symbol)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate");
@@ -826,9 +829,9 @@ func  (this *bitvavo) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes76719 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-                    PanicOnError(retRes76719)
-                    ch <- retRes76719
+                    retRes77019 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+                    PanicOnError(retRes77019)
+                    ch <- retRes77019
                     return nil
             }
             var request interface{} = map[string]interface{} {
@@ -978,8 +981,8 @@ func  (this *bitvavo) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9058 := (<-this.LoadMarkets())
-            PanicOnError(retRes9058)
+            retRes9088 := (<-this.LoadMarkets())
+            PanicOnError(retRes9088)
         
             response:= (<-this.PrivateGetAccount(params))
             PanicOnError(response)
@@ -1048,8 +1051,8 @@ func  (this *bitvavo) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9588 := (<-this.LoadMarkets())
-            PanicOnError(retRes9588)
+            retRes9618 := (<-this.LoadMarkets())
+            PanicOnError(retRes9618)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1161,8 +1164,8 @@ func  (this *bitvavo) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10518 := (<-this.LoadMarkets())
-            PanicOnError(retRes10518)
+            retRes10548 := (<-this.LoadMarkets())
+            PanicOnError(retRes10548)
             var market interface{} = this.Market(symbol)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate");
@@ -1170,9 +1173,9 @@ func  (this *bitvavo) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes105619 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-                    PanicOnError(retRes105619)
-                    ch <- retRes105619
+                    retRes105919 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+                    PanicOnError(retRes105919)
+                    ch <- retRes105919
                     return nil
             }
             var request interface{} = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
@@ -1226,8 +1229,8 @@ func  (this *bitvavo) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10978 := (<-this.LoadMarkets())
-            PanicOnError(retRes10978)
+            retRes11008 := (<-this.LoadMarkets())
+            PanicOnError(retRes11008)
         
             response:= (<-this.PrivateGetBalance(params))
             PanicOnError(response)
@@ -1263,8 +1266,8 @@ func  (this *bitvavo) FetchDepositAddress(code interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes11208 := (<-this.LoadMarkets())
-            PanicOnError(retRes11208)
+            retRes11238 := (<-this.LoadMarkets())
+            PanicOnError(retRes11238)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(currency, "id"),
@@ -1358,6 +1361,13 @@ func  (this *bitvavo) CreateOrderRequest(symbol interface{}, typeVar interface{}
     if IsTrue(postOnly) {
         AddElementToObject(request, "postOnly", true)
     }
+    var operatorId interface{} = nil
+    operatorIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "operatorId");
+    operatorId = GetValue(operatorIdparamsVariable,0);
+    params = GetValue(operatorIdparamsVariable,1)
+    if IsTrue(!IsEqual(operatorId, nil)) {
+        AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
+    }
     return this.Extend(request, params)
 }
 /**
@@ -1394,8 +1404,8 @@ func  (this *bitvavo) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12328 := (<-this.LoadMarkets())
-            PanicOnError(retRes12328)
+            retRes12408 := (<-this.LoadMarkets())
+            PanicOnError(retRes12408)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
         
@@ -1480,6 +1490,13 @@ func  (this *bitvavo) EditOrderRequest(id interface{}, symbol interface{}, typeV
     if IsTrue(IsEqual(clientOrderId, nil)) {
         AddElementToObject(request, "orderId", id)
     }
+    var operatorId interface{} = nil
+    operatorIdparamsVariable := this.HandleOptionAndParams(params, "editOrder", "operatorId");
+    operatorId = GetValue(operatorIdparamsVariable,0);
+    params = GetValue(operatorIdparamsVariable,1)
+    if IsTrue(!IsEqual(operatorId, nil)) {
+        AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
+    }
     AddElementToObject(request, "market", GetValue(market, "id"))
     return request
 }
@@ -1509,8 +1526,8 @@ func  (this *bitvavo) EditOrder(id interface{}, symbol interface{}, typeVar inte
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes13248 := (<-this.LoadMarkets())
-            PanicOnError(retRes13248)
+            retRes13378 := (<-this.LoadMarkets())
+            PanicOnError(retRes13378)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
         
@@ -1539,6 +1556,13 @@ func  (this *bitvavo) CancelOrderRequest(id interface{}, optionalArgs ...interfa
     if IsTrue(IsEqual(clientOrderId, nil)) {
         AddElementToObject(request, "orderId", id)
     }
+    var operatorId interface{} = nil
+    operatorIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "operatorId");
+    operatorId = GetValue(operatorIdparamsVariable,0);
+    params = GetValue(operatorIdparamsVariable,1)
+    if IsTrue(!IsEqual(operatorId, nil)) {
+        AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
+    }
     return this.Extend(request, params)
 }
 /**
@@ -1562,8 +1586,8 @@ func  (this *bitvavo) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13588 := (<-this.LoadMarkets())
-            PanicOnError(retRes13588)
+            retRes13768 := (<-this.LoadMarkets())
+            PanicOnError(retRes13768)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.CancelOrderRequest(id, symbol, params)
         
@@ -1600,8 +1624,8 @@ func  (this *bitvavo) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13808 := (<-this.LoadMarkets())
-            PanicOnError(retRes13808)
+            retRes13988 := (<-this.LoadMarkets())
+            PanicOnError(retRes13988)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1648,8 +1672,8 @@ func  (this *bitvavo) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes14128 := (<-this.LoadMarkets())
-            PanicOnError(retRes14128)
+            retRes14308 := (<-this.LoadMarkets())
+            PanicOnError(retRes14308)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1756,17 +1780,17 @@ func  (this *bitvavo) FetchOrders(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
         
-            retRes14968 := (<-this.LoadMarkets())
-            PanicOnError(retRes14968)
+            retRes15148 := (<-this.LoadMarkets())
+            PanicOnError(retRes15148)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes150019 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-                    PanicOnError(retRes150019)
-                    ch <- retRes150019
+                    retRes151819 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+                    PanicOnError(retRes151819)
+                    ch <- retRes151819
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -1842,8 +1866,8 @@ func  (this *bitvavo) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes15568 := (<-this.LoadMarkets())
-            PanicOnError(retRes15568)
+            retRes15748 := (<-this.LoadMarkets())
+            PanicOnError(retRes15748)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -2072,17 +2096,17 @@ func  (this *bitvavo) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes17648 := (<-this.LoadMarkets())
-            PanicOnError(retRes17648)
+            retRes17828 := (<-this.LoadMarkets())
+            PanicOnError(retRes17828)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes176819 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-                    PanicOnError(retRes176819)
-                    ch <- retRes176819
+                    retRes178619 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                    PanicOnError(retRes178619)
+                    ch <- retRes178619
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -2155,8 +2179,8 @@ func  (this *bitvavo) Withdraw(code interface{}, amount interface{}, address int
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes18228 := (<-this.LoadMarkets())
-            PanicOnError(retRes18228)
+            retRes18408 := (<-this.LoadMarkets())
+            PanicOnError(retRes18408)
             var currency interface{} = this.Currency(code)
             var request interface{} = this.WithdrawRequest(code, amount, address, tag, params)
         
@@ -2224,8 +2248,8 @@ func  (this *bitvavo) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes18698 := (<-this.LoadMarkets())
-            PanicOnError(retRes18698)
+            retRes18878 := (<-this.LoadMarkets())
+            PanicOnError(retRes18878)
             var request interface{} = this.FetchWithdrawalsRequest(code, since, limit, params)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2305,8 +2329,8 @@ func  (this *bitvavo) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes19268 := (<-this.LoadMarkets())
-            PanicOnError(retRes19268)
+            retRes19448 := (<-this.LoadMarkets())
+            PanicOnError(retRes19448)
             var request interface{} = this.FetchDepositsRequest(code, since, limit, params)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2496,8 +2520,8 @@ func  (this *bitvavo) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes20988 := (<-this.LoadMarkets())
-            PanicOnError(retRes20988)
+            retRes21168 := (<-this.LoadMarkets())
+            PanicOnError(retRes21168)
         
             response:= (<-this.PublicGetAssets(params))
             PanicOnError(response)

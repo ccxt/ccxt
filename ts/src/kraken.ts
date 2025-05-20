@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -865,12 +865,14 @@ export default class kraken extends Exchange {
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = this.safeString (currency, 'status') === 'enabled';
+            const isFiat = code.indexOf ('.HOLD') >= 0;
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': this.safeString (currency, 'altname'),
                 'active': active,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -1668,6 +1670,8 @@ export default class kraken extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const orderRequest = this.orderRequest ('createOrder', symbol, type, request, amount, price, params);
+        const flags = this.safeString (orderRequest[0], 'oflags', '');
+        const isUsingCost = flags.indexOf ('viqc') > -1;
         const response = await this.privatePostAddOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1679,6 +1683,10 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result');
+        result['usingCost'] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder (result);
     }
 
@@ -1774,22 +1782,15 @@ export default class kraken extends Exchange {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error": [],
@@ -1857,6 +1858,8 @@ export default class kraken extends Exchange {
         //         "oflags": "fciq"
         //     }
         //
+        const isUsingCost = this.safeBool (order, 'usingCost', false);
+        order = this.omit (order, 'usingCost');
         const description = this.safeDict (order, 'descr', {});
         const orderDescriptionObj = this.safeDict (order, 'descr'); // can be null
         let orderDescription = undefined;
@@ -1870,11 +1873,16 @@ export default class kraken extends Exchange {
         let marketId = undefined;
         let price = undefined;
         let amount = undefined;
+        let cost = undefined;
         let triggerPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
-            amount = this.safeString (parts, 1);
+            if (!isUsingCost) {
+                amount = this.safeString (parts, 1);
+            } else {
+                cost = this.safeString (parts, 1);
+            }
             marketId = this.safeString (parts, 2);
             const part4 = this.safeString (parts, 4);
             const part5 = this.safeString (parts, 5);
@@ -1908,15 +1916,13 @@ export default class kraken extends Exchange {
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString (description, 'price', price);
-        // when type = trailling stop returns price = '+50.0000%'
-        if ((price !== undefined) && price.endsWith ('%')) {
+        // when type = trailing stop returns price = '+50.0000%'
+        if ((price !== undefined) && (price.endsWith ('%') || Precise.stringEquals (price, '0.00000') || Precise.stringEquals (price, '0'))) {
             price = undefined; // this is not the price we want
         }
-        if ((price === undefined) || Precise.stringEquals (price, '0')) {
+        if (price === undefined) {
             price = this.safeString (description, 'price2');
-        }
-        if ((price === undefined) || Precise.stringEquals (price, '0')) {
-            price = this.safeString (order, 'price', price);
+            price = this.safeString2 (order, 'limitprice', 'price', price);
         }
         const flags = this.safeString (order, 'oflags', '');
         let isPostOnly = flags.indexOf ('post') > -1;
@@ -1937,7 +1943,7 @@ export default class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let id = this.safeStringN (order, [ 'id', 'txid', 'amend_id' ]);
+        let id = this.safeStringN (order, [ 'id', 'txid', 'order_id', 'amend_id' ]);
         if ((id === undefined) || (id.startsWith ('['))) {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
@@ -2001,7 +2007,7 @@ export default class kraken extends Exchange {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,
@@ -3261,7 +3267,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'txid': 'comma delimited list of transaction ids to restrict output to',

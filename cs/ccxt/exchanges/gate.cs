@@ -1897,7 +1897,7 @@ public partial class gate : Exchange
                     { "code", code },
                     { "type", type },
                     { "precision", precision },
-                    { "limits", this.limits },
+                    { "limits", null },
                     { "networks", new Dictionary<string, object>() {} },
                     { "info", new List<object>() {} },
                 };

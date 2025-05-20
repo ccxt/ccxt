@@ -1023,9 +1023,6 @@ class bybit extends bybit$1 {
                 'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
-                'createOrder': {
-                    'method': 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
-                },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
@@ -1643,81 +1640,58 @@ class bybit extends bybit$1 {
             const name = this.safeString(currency, 'name');
             const chains = this.safeList(currency, 'chains', []);
             const networks = {};
-            let minPrecision = undefined;
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let minDepositString = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 const networkCode = this.networkIdToCode(networkId);
-                const precision = this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy')));
-                minPrecision = (minPrecision === undefined) ? precision : Math.min(minPrecision, precision);
-                const depositAllowed = this.safeInteger(chain, 'chainDeposit') === 1;
-                deposit = (depositAllowed) ? depositAllowed : deposit;
-                const withdrawAllowed = this.safeInteger(chain, 'chainWithdraw') === 1;
-                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                const withdrawFeeString = this.safeString(chain, 'withdrawFee');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString(chain, 'withdrawMin');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                const minNetworkDepositString = this.safeString(chain, 'depositMin');
-                if (minNetworkDepositString !== undefined) {
-                    minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
-                }
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': depositAllowed && withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': this.parseNumber(withdrawFeeString),
-                    'precision': precision,
+                    'active': undefined,
+                    'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
+                    'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
                     'limits': {
                         'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'min': this.safeNumber(chain, 'withdrawMin'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.parseNumber(minNetworkDepositString),
+                            'min': this.safeNumber(chain, 'depositMin'),
                             'max': undefined,
                         },
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
                 'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.parseNumber(minDepositString),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': networks,
-            };
+                'type': 'crypto', // atm exchange api provides only cryptos
+            });
         }
         return result;
     }
@@ -2175,6 +2149,7 @@ class bybit extends bybit$1 {
             const strike = this.safeString(splitId, 2);
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
+            const isInverse = base === settle;
             if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
                 result.push(this.safeMarketStructure({
                     'id': id,
@@ -2186,7 +2161,7 @@ class bybit extends bybit$1 {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
-                    'subType': 'linear',
+                    'subType': undefined,
                     'spot': false,
                     'margin': false,
                     'swap': false,
@@ -2194,8 +2169,8 @@ class bybit extends bybit$1 {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': true,
-                    'inverse': false,
+                    'linear': !isInverse,
+                    'inverse': isInverse,
                     'taker': this.safeNumber(market, 'takerFee', this.parseNumber('0.0006')),
                     'maker': this.safeNumber(market, 'makerFee', this.parseNumber('0.0001')),
                     'contractSize': this.parseNumber('1'),
@@ -3944,12 +3919,23 @@ class bybit extends bybit$1 {
         const parts = await this.isUnifiedEnabled();
         const enableUnifiedAccount = parts[1];
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
-        const options = this.safeDict(this.options, 'createOrder', {});
-        const defaultMethod = this.safeString(options, 'method', 'privatePostV5OrderCreate');
+        let defaultMethod = undefined;
+        if (isTrailingAmountOrder || isStopLoss || isTakeProfit) {
+            defaultMethod = 'privatePostV5PositionTradingStop';
+        }
+        else {
+            defaultMethod = 'privatePostV5OrderCreate';
+        }
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
         let response = undefined;
-        if (isTrailingAmountOrder || (defaultMethod === 'privatePostV5PositionTradingStop')) {
+        if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         }
         else {
@@ -3977,8 +3963,6 @@ class bybit extends bybit$1 {
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires a price argument for limit orders');
         }
-        let defaultMethod = undefined;
-        [defaultMethod, params] = this.handleOptionAndParams(params, 'createOrder', 'method', 'privatePostV5OrderCreate');
         const request = {
             'symbol': market['id'],
             // 'side': this.capitalize (side),
@@ -4022,7 +4006,16 @@ class bybit extends bybit$1 {
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
-        const isAlternativeEndpoint = defaultMethod === 'privatePostV5PositionTradingStop';
+        let defaultMethod = undefined;
+        if (isTrailingAmountOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            defaultMethod = 'privatePostV5PositionTradingStop';
+        }
+        else {
+            defaultMethod = 'privatePostV5OrderCreate';
+        }
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
+        const isAlternativeEndpoint = method === 'privatePostV5PositionTradingStop';
         const amountString = this.getAmount(symbol, amount);
         const priceString = (price !== undefined) ? this.getPrice(symbol, this.numberToString(price)) : undefined;
         if (isTrailingAmountOrder || isAlternativeEndpoint) {
@@ -4092,14 +4085,14 @@ class bybit extends bybit$1 {
         if (market['spot']) {
             request['category'] = 'spot';
         }
+        else if (market['option']) {
+            request['category'] = 'option';
+        }
         else if (market['linear']) {
             request['category'] = 'linear';
         }
         else if (market['inverse']) {
             request['category'] = 'inverse';
-        }
-        else if (market['option']) {
-            request['category'] = 'option';
         }
         const cost = this.safeString(params, 'cost');
         params = this.omit(params, 'cost');
@@ -5978,7 +5971,8 @@ class bybit extends bybit$1 {
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (enableUnified[1]) {
-            if (subType === 'inverse') {
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+            if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
             }
             else {

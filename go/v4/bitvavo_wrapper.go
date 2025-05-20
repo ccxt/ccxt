@@ -49,6 +49,21 @@ func (this *Bitvavo) FetchMarkets(params ...interface{}) ([]MarketInterface, err
 }
 /**
  * @method
+ * @name bitvavo#fetchCurrencies
+ * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitvavo) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitvavo#fetchTicker
  * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

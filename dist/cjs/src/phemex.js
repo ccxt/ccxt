@@ -1162,7 +1162,8 @@ class phemex extends phemex$1 {
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
+                'networks': undefined,
+                'type': 'crypto',
             };
         }
         return result;

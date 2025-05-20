@@ -570,6 +570,7 @@ public partial class woo : Exchange
             linear = true;
             inverse = false;
         }
+        object active = isEqual(this.safeString(market, "is_trading"), "1");
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -585,7 +586,7 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
+            { "active", active },
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
@@ -950,6 +951,7 @@ public partial class woo : Exchange
                 { "networks", resultingNetworks },
                 { "deposit", null },
                 { "withdraw", null },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "min", null },

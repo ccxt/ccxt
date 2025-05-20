@@ -950,6 +950,14 @@ class xt extends xt$1 {
                     },
                 };
             }
+            const typeRaw = this.safeString(entry, 'type');
+            let type = undefined;
+            if (typeRaw === 'FT') {
+                type = 'crypto';
+            }
+            else {
+                type = 'other';
+            }
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -961,6 +969,7 @@ class xt extends xt$1 {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,

@@ -1131,6 +1131,7 @@ class huobijp extends Exchange {
                 'withdraw' => $withdrawEnabled,
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
+                'networks' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => $precision,

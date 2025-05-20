@@ -650,6 +650,7 @@ class bitteam(Exchange, ImplicitAPI):
             networkIds = list(feesByNetworkId.keys())
             networks: dict = {}
             networkPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
+            typeRaw = self.safe_string(currency, 'type')
             for j in range(0, len(networkIds)):
                 networkId = networkIds[j]
                 networkCode = self.network_id_to_code(networkId, code)
@@ -703,6 +704,7 @@ class bitteam(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'type': typeRaw,  # 'crypto' or 'fiat'
                 'networks': networks,
             }
         return result

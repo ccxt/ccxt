@@ -48,6 +48,21 @@ func (this *Delta) FetchStatus(params ...interface{}) (map[string]interface{}, e
 }
 /**
  * @method
+ * @name delta#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.delta.exchange/#get-list-of-all-assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Delta) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name delta#fetchMarkets
  * @description retrieves data on all markets for delta
  * @see https://docs.delta.exchange/#get-list-of-products

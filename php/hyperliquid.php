@@ -367,6 +367,7 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
+                'type' => 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -2280,6 +2281,10 @@ class hyperliquid extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
+        // createOrdersWs $error
+        //
+        //  array($error => 'Insufficient margin to place $order-> asset=159')
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2370,6 +2375,13 @@ class hyperliquid extends Exchange {
         //     "triggerPx" => "0.6"
         // }
         //
+        $error = $this->safe_string($order, 'error');
+        if ($error !== null) {
+            return $this->safe_order(array(
+                'info' => $order,
+                'status' => 'rejected',
+            ));
+        }
         $entry = $this->safe_dict_n($order, array( 'order', 'resting', 'filled' ));
         if ($entry === null) {
             $entry = $order;
@@ -2576,7 +2588,7 @@ class hyperliquid extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *
@@ -3617,20 +3629,23 @@ class hyperliquid extends Exchange {
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return null; // fallback to default error handler
+            return null; // fallback to default $error handler
         }
         // array("status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist.")
         //
         //     {
         //         $status => 'ok',
-        //         $response => array( type => 'order', $data => array( $statuses => array( array( error => 'Insufficient margin to place order. asset=4' ) ) ) )
+        //         $response => array( type => 'order', $data => array( $statuses => array( array( $error => 'Insufficient margin to place order. asset=4' ) ) ) )
         //     }
         // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
         $status = $this->safe_string($response, 'status', '');
+        $error = $this->safe_string($response, 'error');
         $message = null;
         if ($status === 'err') {
             $message = $this->safe_string($response, 'response');
+        } elseif ($error !== null) {
+            $message = $error;
         } else {
             $responsePayload = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responsePayload, 'data', array());

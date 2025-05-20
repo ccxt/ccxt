@@ -673,8 +673,8 @@
                         "margin": false,
                         "name": "5X Short STX Token",
                         "active": false,
-                        "deposit": null,
-                        "withdraw": null,
+                        "deposit": true,
+                        "withdraw": false,
                         "fee": 2,
                         "precision": 1e-8,
                         "limits": {

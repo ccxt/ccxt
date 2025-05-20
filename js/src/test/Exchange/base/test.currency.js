@@ -46,8 +46,17 @@ function testCurrency(exchange, skippedProperties, method, entry) {
             emptyAllowedFor.push('precision');
         }
     }
-    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    //
     testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, entry['code']);
+    // check if empty networks should be skipped
+    const networks = exchange.safeDict(entry, 'networks', {});
+    const networkKeys = Object.keys(networks);
+    const networkKeysLength = networkKeys.length;
+    if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
+        return;
+    }
+    //
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     //
     testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'fee', '0');

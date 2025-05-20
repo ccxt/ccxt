@@ -486,6 +486,7 @@ class hollaex extends hollaex$1 {
                     },
                 },
                 'networks': {},
+                'type': 'crypto',
             };
         }
         return result;

@@ -60,7 +60,7 @@ public partial class oxfun : Exchange
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
-                { "fetchFundingRate", "emulated" },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -1122,6 +1122,29 @@ public partial class oxfun : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRates(data, symbols);
+    }
+
+    /**
+     * @method
+     * @name oxfun#fetchFundingRate
+     * @description fetch the current funding rates for a symbol
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string} symbol unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "marketCode", this.marketId(symbol) },
+        };
+        object response = await this.publicGetV3FundingEstimates(this.extend(request, parameters));
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(first, this.market(symbol));
     }
 
     public override object parseFundingRate(object fundingRate, object market = null)
