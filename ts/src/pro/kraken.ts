@@ -401,7 +401,7 @@ export default class kraken extends krakenRest {
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
-            throw new NotSupported (this.id + ' cancelOrdersWs () does not support cancelling orders for a specific symbol.');
+            throw new NotSupported (this.id + ' cancelOrderWs () does not support cancelling orders for a specific symbol.');
         }
         await this.loadMarkets ();
         const token = await this.authenticate ();
