@@ -533,10 +533,10 @@ export default class ascendex extends Exchange {
                 const networkId = this.safeString (networkEtnry, 'chainName');
                 const networkCode = this.networkCodeToId (networkId);
                 networks[networkCode] = {
-                    'withdraw': this.safeNumber (networkEtnry, 'withdrawFee'),
-                    'deposit': this.safeNumber (networkEtnry, 'minDepositAmt'),
-                    'withdrawFee': this.safeNumber (networkEtnry, 'withdrawFee'),
+                    'fee': this.safeNumber (networkEtnry, 'withdrawFee'),
                     'active': undefined,
+                    'withdraw': this.safeBool (networkEtnry, 'allowWithdraw'),
+                    'deposit': this.safeBool (networkEtnry, 'allowDeposit'),
                     'precision': precision,
                     'limits': {
                         'amount': {
