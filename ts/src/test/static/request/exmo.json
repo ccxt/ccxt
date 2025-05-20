@@ -7,6 +7,15 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.exmo.com/v1.1/payments/providers/crypto/list",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "Fetch deposits",
