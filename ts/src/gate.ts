@@ -717,6 +717,7 @@ export default class gate extends Exchange {
                 },
                 'networksById': {
                     'OPETH': 'OP',
+                    'ETH': 'ERC20', // for GOlang
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
