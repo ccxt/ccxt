@@ -132,7 +132,7 @@ export default class blofin extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
                 'withdraw': false,
@@ -195,7 +195,7 @@ export default class blofin extends Exchange {
                         'account/positions': 1,
                         'account/leverage-info': 1,
                         'account/margin-mode': 1,
-                        'account/position-mode': 1, // todo new
+                        'account/position-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-algo-pending': 1,
@@ -219,7 +219,7 @@ export default class blofin extends Exchange {
                         'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
-                        'account/set-margin-mode': 1, // todo new
+                        'account/set-margin-mode': 1,
                         'account/set-position-mode': 1, // todo new
                         'trade/order': 1,
                         'trade/order-algo': 1,
@@ -2434,10 +2434,45 @@ export default class blofin extends Exchange {
         const response = await this.privateGetAccountPositionMode (params);
         const data = this.safeDict (response, 'data', {});
         const positionMode = this.safeString (data, 'positionMode');
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "long_short_mode"
+        //         }
+        //     }
+        //
         return {
             'info': data,
             'hedged': positionMode === 'long_short_mode',
         };
+    }
+
+    /**
+     * @method
+     * @name blofin#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://docs.blofin.com/index.html#set-position-mode
+     * @param {bool} hedged set to true to use hedged mode, false for one-way mode
+     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        const request: Dict = {
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
+        };
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "net_mode"
+        //         }
+        //     }
+        //
+        return await this.privatePostAccountSetPositionMode (this.extend (request, params));
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
