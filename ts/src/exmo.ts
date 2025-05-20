@@ -683,7 +683,7 @@ export default class exmo extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         //
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        const currencyListPromise = this.publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -692,7 +692,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const cryptoListPromise = this.publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -717,81 +717,81 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
+        const [ currencyList, cryptoList ] = await Promise.all ([ currencyListPromise, cryptoListPromise ]);
         const result: Dict = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
-            const name = this.safeString (currency, 'description');
-            const providers = this.safeValue (cryptoList, currencyId);
-            let active = false;
+            const code = this.safeCurrencyCode (currencyId);
             let type = 'crypto';
-            const limits: Dict = {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            const networks = {};
+            const providers = this.safeDict (cryptoList, currencyId);
             if (providers === undefined) {
-                active = true;
                 type = 'fiat';
             } else {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
+                    const name = this.safeString (provider, 'name');
+                    // get network-id by removing extra things
+                    let networkId = name.replace (currencyId + ' ', '');
+                    networkId = networkId.replace ('(', '');
+                    networkId = networkId.replace (')', '');
+                    const networkCode = this.networkIdToCode (networkId);
+                    if (!(networkCode in networks)) {
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': undefined,
+                            'withdraw': undefined,
+                            'fee': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                            },
+                            'info': [],
+                        };
+                    }
                     const typeInner = this.safeString (provider, 'type');
                     const minValue = this.safeString (provider, 'min');
-                    let maxValue = this.safeString (provider, 'max');
-                    if (Precise.stringEq (maxValue, '0.0')) {
-                        maxValue = undefined;
-                    }
-                    const activeProvider = this.safeValue (provider, 'enabled');
+                    const maxValue = this.safeString (provider, 'max');
+                    const activeProvider = this.safeBool (provider, 'enabled');
                     if (typeInner === 'deposit') {
-                        if (activeProvider && !depositEnabled) {
-                            depositEnabled = true;
-                        } else if (!activeProvider) {
-                            depositEnabled = false;
-                        }
+                        const networkEntry = networks[networkCode];
+                        networkEntry['deposit'] = activeProvider;
+                        networkEntry['limits']['deposit']['min'] = minValue;
+                        networkEntry['limits']['deposit']['max'] = maxValue;
+                        networkEntry['info'].push (provider);
+                        networks[networkCode] = networkEntry;
                     } else if (typeInner === 'withdraw') {
-                        if (activeProvider && !withdrawEnabled) {
-                            withdrawEnabled = true;
-                        } else if (!activeProvider) {
-                            withdrawEnabled = false;
-                        }
-                    }
-                    if (activeProvider) {
-                        active = true;
-                        const limitMin = this.numberToString (limits[typeInner]['min']);
-                        if ((limits[typeInner]['min'] === undefined) || (Precise.stringLt (minValue, limitMin))) {
-                            limits[typeInner]['min'] = minValue;
-                            limits[typeInner]['max'] = maxValue;
-                            if (typeInner === 'withdraw') {
-                                const commissionDesc = this.safeString (provider, 'commission_desc');
-                                fee = this.parseFixedFloatValue (commissionDesc);
-                            }
-                        }
+                        const networkEntry = networks[networkCode];
+                        networkEntry['withdraw'] = activeProvider;
+                        networkEntry['limits']['withdraw']['min'] = minValue;
+                        networkEntry['limits']['withdraw']['max'] = maxValue;
+                        networkEntry['info'].push (provider);
+                        networks[networkCode] = networkEntry;
                     }
                 }
             }
-            const code = this.safeCurrencyCode (currencyId);
             result[code] = {
                 'id': currencyId,
                 'code': code,
-                'name': name,
+                'name': this.safeString (currency, 'description'),
                 'type': type,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': this.parseNumber ('1e-8'),
-                'limits': limits,
+                'limits': undefined,
                 'info': providers,
-                'networks': {},
+                'networks': networks,
             };
         }
         return result;
