@@ -61,6 +61,7 @@ public partial class paradex : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -554,16 +555,17 @@ public partial class paradex : Exchange
         object expiry = this.safeInteger(market, "expiry_at");
         object optionType = this.safeString(market, "option_type");
         object strikePrice = this.safeString(market, "strike_price");
+        object takerFee = this.parseNumber("0.0003");
+        object makerFee = this.parseNumber("-0.00005");
         if (isTrue(isOption))
         {
             object optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
             symbol = add(add(add(add(symbol, "-"), strikePrice), "-"), optionTypeSuffix);
+            makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        object takerFee = this.parseNumber("0.0003");
-        object makerFee = this.parseNumber("-0.00005");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1350,7 +1352,7 @@ public partial class paradex : Exchange
             { "status", this.parseOrderStatus(status) },
             { "symbol", symbol },
             { "type", this.parseOrderType(orderType) },
-            { "timeInForce", this.parseTimeInForce(this.safeString(order, "instrunction")) },
+            { "timeInForce", this.parseTimeInForce(this.safeString(order, "instruction")) },
             { "postOnly", null },
             { "reduceOnly", reduceOnly },
             { "side", side },
@@ -2567,6 +2569,125 @@ public partial class paradex : Exchange
             { "margin_type", this.encodeMarginMode(marginMode) },
         };
         return await this.privatePostAccountMarginMarket(this.extend(request, parameters));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchGreeks
+     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    public async override Task<object> fetchGreeks(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        object response = await this.publicGetMarketsSummary(this.extend(request, parameters));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-114000-P",
+        //                 "mark_price": "10835.66892602",
+        //                 "mark_iv": "0.71781855",
+        //                 "delta": "-0.98726024",
+        //                 "greeks": {
+        //                     "delta": "-0.9872602390817709",
+        //                     "gamma": "0.000004560958862297231",
+        //                     "vega": "227.11344863639806",
+        //                     "rho": "-302.0617972461581",
+        //                     "vanna": "0.06609830491614832",
+        //                     "volga": "925.9501532805552"
+        //                 },
+        //                 "last_traded_price": "10551.5",
+        //                 "bid": "10794.9",
+        //                 "bid_iv": "0.05",
+        //                 "ask": "10887.3",
+        //                 "ask_iv": "0.8783283",
+        //                 "last_iv": "0.05",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "195240.72672261014",
+        //                 "created_at": 1747644009995,
+        //                 "underlying_price": "103164.79162649",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "0.000004464241170536191",
+        //                 "price_change_rate_24h": "0.074915",
+        //                 "future_funding_rate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "results", new List<object>() {});
+        object greeks = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseGreeks(greeks, market);
+    }
+
+    public override object parseGreeks(object greeks, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-USD-114000-P",
+        //         "mark_price": "10835.66892602",
+        //         "mark_iv": "0.71781855",
+        //         "delta": "-0.98726024",
+        //         "greeks": {
+        //             "delta": "-0.9872602390817709",
+        //             "gamma": "0.000004560958862297231",
+        //             "vega": "227.11344863639806",
+        //             "rho": "-302.0617972461581",
+        //             "vanna": "0.06609830491614832",
+        //             "volga": "925.9501532805552"
+        //         },
+        //         "last_traded_price": "10551.5",
+        //         "bid": "10794.9",
+        //         "bid_iv": "0.05",
+        //         "ask": "10887.3",
+        //         "ask_iv": "0.8783283",
+        //         "last_iv": "0.05",
+        //         "volume_24h": "0",
+        //         "total_volume": "195240.72672261014",
+        //         "created_at": 1747644009995,
+        //         "underlying_price": "103164.79162649",
+        //         "open_interest": "0",
+        //         "funding_rate": "0.000004464241170536191",
+        //         "price_change_rate_24h": "0.074915",
+        //         "future_funding_rate": "0.0001"
+        //     }
+        //
+        object marketId = this.safeString(greeks, "symbol");
+        market = this.safeMarket(marketId, market, null, "option");
+        object symbol = getValue(market, "symbol");
+        object timestamp = this.safeInteger(greeks, "created_at");
+        object greeksData = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
+        return new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "delta", this.safeNumber(greeksData, "delta") },
+            { "gamma", this.safeNumber(greeksData, "gamma") },
+            { "theta", null },
+            { "vega", this.safeNumber(greeksData, "vega") },
+            { "rho", this.safeNumber(greeksData, "rho") },
+            { "vanna", this.safeNumber(greeksData, "vanna") },
+            { "volga", this.safeNumber(greeksData, "volga") },
+            { "bidSize", null },
+            { "askSize", null },
+            { "bidImpliedVolatility", this.safeNumber(greeks, "bid_iv") },
+            { "askImpliedVolatility", this.safeNumber(greeks, "ask_iv") },
+            { "markImpliedVolatility", this.safeNumber(greeks, "mark_iv") },
+            { "bidPrice", this.safeNumber(greeks, "bid") },
+            { "askPrice", this.safeNumber(greeks, "ask") },
+            { "markPrice", this.safeNumber(greeks, "mark_price") },
+            { "lastPrice", this.safeNumber(greeks, "last_traded_price") },
+            { "underlyingPrice", this.safeNumber(greeks, "underlying_price") },
+            { "info", greeks },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
