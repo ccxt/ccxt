@@ -239,9 +239,9 @@
                                     }
                                 }
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "id": "BEP20",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "active": true,
                                 "deposit": true,
                                 "withdraw": true,
