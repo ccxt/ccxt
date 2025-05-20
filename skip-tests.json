@@ -981,8 +981,7 @@
                 "strike": "incorrect number type"
             },
             "fetchCurrencies": {
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559",
-                "precision": "not provided"
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
             },
             "ticker": {
                 "spread":"messed bid-ask",

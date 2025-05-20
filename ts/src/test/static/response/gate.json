@@ -348,7 +348,7 @@
                         "id": "USDT",
                         "numericId": null,
                         "code": "USDT",
-                        "precision": null,
+                        "precision": 0.0001,
                         "type": "crypto",
                         "name": "Tether",
                         "active": true,
@@ -371,7 +371,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -397,7 +397,7 @@
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -423,7 +423,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -449,7 +449,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -475,7 +475,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -501,7 +501,7 @@
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -527,7 +527,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -553,7 +553,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -579,7 +579,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -605,7 +605,7 @@
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -631,7 +631,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -657,7 +657,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -683,7 +683,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -709,7 +709,7 @@
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -735,7 +735,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -761,7 +761,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -787,7 +787,7 @@
                                 "deposit": true,
                                 "withdraw": false,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -813,7 +813,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -839,7 +839,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -865,7 +865,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -891,7 +891,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,
@@ -917,7 +917,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
-                                "precision": null,
+                                "precision": 0.0001,
                                 "limits": {
                                     "deposit": {
                                         "min": null,

@@ -1901,7 +1901,7 @@ export default class gate extends Exchange {
                     'deposit': !this.safeBool (chain, 'deposit_disabled'),
                     'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
                     'fee': undefined,
-                    'precision': undefined,
+                    'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
                     'limits': {
                         'deposit': {
                             'min': undefined,
