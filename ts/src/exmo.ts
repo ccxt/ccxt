@@ -725,7 +725,7 @@ export default class exmo extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             let type = 'crypto';
             const networks = {};
-            const providers = this.safeDict (cryptoList, currencyId);
+            const providers = this.safeList (cryptoList, currencyId);
             if (providers === undefined) {
                 type = 'fiat';
             } else {
@@ -779,7 +779,7 @@ export default class exmo extends Exchange {
                     }
                 }
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'code': code,
                 'name': this.safeString (currency, 'description'),
@@ -792,7 +792,7 @@ export default class exmo extends Exchange {
                 'limits': undefined,
                 'info': providers,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
