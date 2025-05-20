@@ -562,7 +562,7 @@ export default class ascendex extends Exchange {
             const id = this.safeString (ids, i);
             const currency = dataById[id];
             const code = this.safeCurrencyCode (id);
-            const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
+            const scale = this.safeString (currency, 'nativeScale'); // scale used in deposit/withdraw transaction from/to chain.
             const precision = this.parseNumber (this.parsePrecision (scale));
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString (currency, 'status');
@@ -597,7 +597,7 @@ export default class ascendex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {

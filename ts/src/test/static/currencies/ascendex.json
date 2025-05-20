@@ -20,7 +20,7 @@
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
-        "precision": 1e-9,
+        "precision": 1e-8,
         "type": null,
         "name": "Bitcoin",
         "active": true,
@@ -31,7 +31,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -62,7 +62,7 @@
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
-        "precision": 1e-9,
+        "precision": 0.0001,
         "type": null,
         "name": "Tether",
         "active": true,
@@ -73,7 +73,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -104,7 +104,7 @@
         "id": "USD",
         "numericId": null,
         "code": "USD",
-        "precision": 1e-8,
+        "precision": 0.01,
         "type": null,
         "name": "USD Token",
         "active": true,
@@ -115,7 +115,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -146,7 +146,7 @@
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
-        "precision": 1e-9,
+        "precision": 0.000001,
         "type": null,
         "name": "Litecoin",
         "active": true,
@@ -157,7 +157,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -188,7 +188,7 @@
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
-        "precision": 1e-9,
+        "precision": 1e-7,
         "type": null,
         "name": "Ethereum",
         "active": true,
@@ -199,7 +199,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -230,7 +230,7 @@
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
-        "precision": 1e-9,
+        "precision": 0.01,
         "type": null,
         "name": "Cardano",
         "active": true,
@@ -241,7 +241,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -272,7 +272,7 @@
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
-        "precision": 1e-9,
+        "precision": 0.001,
         "type": null,
         "name": "XRP",
         "active": true,
@@ -283,7 +283,7 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9,
+                "min": null,
                 "max": null
             },
             "withdraw": {
