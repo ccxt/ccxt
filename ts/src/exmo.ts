@@ -756,28 +756,27 @@ export default class exmo extends Exchange {
                                     'max': undefined,
                                 },
                             },
-                            'info': [],
+                            'info': [], // set as array, because of multiple network sub-entries
                         };
                     }
                     const typeInner = this.safeString (provider, 'type');
                     const minValue = this.safeString (provider, 'min');
                     const maxValue = this.safeString (provider, 'max');
                     const activeProvider = this.safeBool (provider, 'enabled');
+                    const networkEntry = networks[networkCode];
                     if (typeInner === 'deposit') {
-                        const networkEntry = networks[networkCode];
                         networkEntry['deposit'] = activeProvider;
                         networkEntry['limits']['deposit']['min'] = minValue;
                         networkEntry['limits']['deposit']['max'] = maxValue;
-                        networkEntry['info'].push (provider);
-                        networks[networkCode] = networkEntry;
                     } else if (typeInner === 'withdraw') {
-                        const networkEntry = networks[networkCode];
                         networkEntry['withdraw'] = activeProvider;
                         networkEntry['limits']['withdraw']['min'] = minValue;
                         networkEntry['limits']['withdraw']['max'] = maxValue;
-                        networkEntry['info'].push (provider);
-                        networks[networkCode] = networkEntry;
                     }
+                    const info = this.safeList (networkEntry, 'info');
+                    info.push (provider);
+                    networkEntry['info'] = info;
+                    networks[networkCode] = networkEntry;
                 }
             }
             result[code] = this.safeCurrencyStructure ({
