@@ -883,7 +883,7 @@ export default class lbank extends Exchange {
         if (market['swap']) {
             return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
