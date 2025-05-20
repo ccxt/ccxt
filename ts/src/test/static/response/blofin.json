@@ -902,7 +902,16 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "httpResponse": "{\"code\":\"0\",\"msg\":\"success\",\"data\":{\"algoId\":\"61602159\",\"clientOrderId\":null,\"msg\":null,\"code\":\"0\"}}",
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "61602159",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
                 "parsedResponse": {
                     "info": {
                         "algoId": "61602159",
