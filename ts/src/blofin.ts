@@ -103,10 +103,10 @@ export default class blofin extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
-                'fetchPositionMode': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
@@ -202,7 +202,7 @@ export default class blofin extends Exchange {
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
                         'trade/orders-algo-history': 1, // todo new
-                        'trade/order/price-range': 1, // todo new
+                        'trade/order/price-range': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
                         'copytrading/instruments': 1,
@@ -2423,9 +2423,9 @@ export default class blofin extends Exchange {
 
     /**
      * @method
-     * @name kucoinfutures#setMarginMode
+     * @name blofin#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+     * @see https://docs.blofin.com/index.html#set-margin-mode
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
