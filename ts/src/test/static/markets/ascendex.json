@@ -132,8 +132,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -143,17 +143,8 @@
         "created": 1688432400000,
         "info": {
             "symbol": "BTC-PERP",
-            "displayName": "BTCUSDT",
-            "baseAsset": "BTCUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.1",
-            "lotSize": "0.0001",
+            "displayName": "BTCUSDT",
             "settlementAsset": "USDT",
             "underlying": "BTC/USDT",
             "tradingStartTime": "1688432400000",
@@ -167,6 +158,8 @@
                 "maxQty": "100000000000",
                 "lotSize": "0.0001"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.002",
             "marginRequirements": [
                 {
@@ -546,8 +539,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -557,17 +550,8 @@
         "created": 1688437800000,
         "info": {
             "symbol": "LTC-PERP",
-            "displayName": "LTCUSDT",
-            "baseAsset": "LTCUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.01",
-            "lotSize": "0.1",
+            "displayName": "LTCUSDT",
             "settlementAsset": "USDT",
             "underlying": "LTC/USDT",
             "tradingStartTime": "1688437800000",
@@ -581,6 +565,8 @@
                 "maxQty": "100000000000000",
                 "lotSize": "0.1"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
@@ -684,8 +670,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -695,17 +681,8 @@
         "created": 1688437800000,
         "info": {
             "symbol": "ADA-PERP",
-            "displayName": "ADAUSDT",
-            "baseAsset": "ADAUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.0001",
-            "lotSize": "1",
+            "displayName": "ADAUSDT",
             "settlementAsset": "USDT",
             "underlying": "ADA/USDT",
             "tradingStartTime": "1688437800000",
@@ -719,6 +696,8 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
@@ -822,8 +801,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -833,17 +812,8 @@
         "created": 1688437800000,
         "info": {
             "symbol": "XRP-PERP",
-            "displayName": "XRPUSDT",
-            "baseAsset": "XRPUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.0001",
-            "lotSize": "1",
+            "displayName": "XRPUSDT",
             "settlementAsset": "USDT",
             "underlying": "XRP/USDT",
             "tradingStartTime": "1688437800000",
@@ -857,6 +827,8 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
@@ -1046,8 +1018,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -1057,17 +1029,8 @@
         "created": 1688437800000,
         "info": {
             "symbol": "TRX-PERP",
-            "displayName": "TRXUSDT",
-            "baseAsset": "TRXUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.00001",
-            "lotSize": "1",
+            "displayName": "TRXUSDT",
             "settlementAsset": "USDT",
             "underlying": "TRX/USDT",
             "tradingStartTime": "1688437800000",
@@ -1081,6 +1044,8 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
@@ -1252,8 +1217,8 @@
                 "max": 1000000
             },
             "cost": {
-                "min": 0,
-                "max": 1000000
+                "min": null,
+                "max": null
             }
         },
         "marginModes": {
@@ -1263,17 +1228,8 @@
         "created": 1688432400000,
         "info": {
             "symbol": "ETH-PERP",
-            "displayName": "ETHUSDT",
-            "baseAsset": "ETHUSDT",
-            "quoteAsset": "USDT",
             "status": "Normal",
-            "minNotional": "0",
-            "maxNotional": "1000000",
-            "marginTradable": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "tickSize": "0.01",
-            "lotSize": "0.01",
+            "displayName": "ETHUSDT",
             "settlementAsset": "USDT",
             "underlying": "ETH/USDT",
             "tradingStartTime": "1688432400000",
@@ -1287,6 +1243,8 @@
                 "maxQty": "10000000000000",
                 "lotSize": "0.01"
             },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.002",
             "marginRequirements": [
                 {
