@@ -1140,6 +1140,9 @@ class blofin(Exchange, ImplicitAPI):
         request['marginMode'] = marginMode
         triggerPrice = self.safe_string(params, 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        isHedged = self.safe_bool(params, 'hedged', False)
+        if isHedged:
+            request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
         params = self.omit(params, ['timeInForce'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
@@ -1155,7 +1158,7 @@ class blofin(Exchange, ImplicitAPI):
             request['type'] = 'post_only'
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
-        params = self.omit(params, ['stopLoss', 'takeProfit'])
+        params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         if isStopLoss or isTakeProfit:
@@ -1322,6 +1325,7 @@ class blofin(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: stop loss trigger price(will use privatePostTradeOrderTpsl)
         :param float [params.takeProfitPrice]: take profit trigger price(will use privatePostTradeOrderTpsl)
         :param str [params.positionSide]: *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+        :param boolean [params.hedged]: if True, the positionSide will be set to long/short instead of net, default is False
         :param str [params.clientOrderId]: a unique id for the order
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
