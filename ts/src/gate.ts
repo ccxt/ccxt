@@ -1869,14 +1869,7 @@ export default class gate extends Exchange {
             const precision = this.parseNumber ('0.0001'); // temporary safe default, because no value provided from API
             const code = this.safeCurrencyCode (currencyName);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
-            let isLeveragedToken = false;
-            if (currencyId.endsWith ('3S') || currencyId.endsWith ('3L') || currencyId.endsWith ('5S') || currencyId.endsWith ('5L')) {
-                const realCurrencyId = currencyId.slice (0, -2);
-                if (realCurrencyId in indexedCurrencies) {
-                    isLeveragedToken = true;
-                }
-            }
-            const type = isLeveragedToken ? 'leveraged' : 'crypto';
+            const type = this.isLeveragedCurrency (currencyId, true, indexedCurrencies) ? 'leveraged' : 'crypto';
             // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
             const networkId = this.safeString (entry, 'chain', currencyId);
             const networkCode = this.networkIdToCode (networkId, code);
