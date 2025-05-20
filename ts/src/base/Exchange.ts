@@ -3007,6 +3007,22 @@ export default class Exchange {
         };
     }
 
+    safeCurrencyStructures (currencies: any): Currencies {
+        /**
+         * @method safeCurrencyStructures
+         * @description this is a helper method for "fetchCurrencies". for the exchanges where there are multiple entries per each currency, only after currency parsing loop is ended and all currencies have their networks filled(before returning from method), only by that moment currency entries need to go through safeCurrencyStructure
+         * @param {object} currencies the currency dictionary
+         * @returns {object} the restructured currency dictionary
+         */
+        // only after all entries are added in "currencies", restructure each entry
+        const keys = Object.keys (currencies);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
+            currencies[code] = this.safeCurrencyStructure (currencies[code]);
+        }
+        return currencies;
+    }
+
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});

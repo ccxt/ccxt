@@ -425,13 +425,7 @@ export default class cryptomus extends Exchange {
             info.push (networkEntry);
             result[code]['info'] = info;
         }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys (result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
-        }
-        return result;
+        return this.safeCurrencyStructures (result);
     }
 
     /**
