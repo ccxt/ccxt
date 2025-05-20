@@ -1,17 +1,17 @@
 {
     "BTC/USDT": {
-        "id": "XBT/USDT",
+        "id": "BTC/USDT",
         "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
         "settle": null,
-        "baseId": "XBT",
+        "baseId": "BTC",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
         "spot": true,
-        "margin": false,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
@@ -21,16 +21,16 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.004,
-        "maker": 0.004,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
-            "price": 0.000001
+            "amount": 0.00001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -42,43 +42,43 @@
                 "max": 1000000000
             },
             "price": {
-                "min": 0.000001,
+                "min": 0.01,
                 "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 500000
+                "max": 1000000
             }
         },
         "marginModes": {
             "cross": null,
             "isolated": null
         },
-        "created": 1747476000000,
+        "created": 1546329600000,
         "info": {
-            "symbol": "XBT/USDT",
-            "displayName": "XBT/USDT",
-            "baseAsset": "XBT",
+            "symbol": "BTC/USDT",
+            "displayName": "BTC/USDT",
+            "baseAsset": "BTC",
             "quoteAsset": "USDT",
             "status": "Normal",
             "minNotional": "5",
-            "maxNotional": "500000",
-            "marginTradable": false,
+            "maxNotional": "1000000",
+            "marginTradable": true,
             "commissionType": "Quote",
-            "commissionReserveRate": "0.004",
-            "tickSize": "0.000001",
-            "lotSize": "1",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.01",
+            "lotSize": "0.00001",
             "domain": "USDS",
-            "tradingStartTime": "1747476000000",
-            "collapseDecimals": "0.01,0.0001,0.000001",
+            "tradingStartTime": "1546329600000",
+            "collapseDecimals": "1,0.1,0.01",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
             "statusCode": "Normal",
             "statusMessage": "",
             "useTick": false,
             "useLot": false,
-            "qtyScale": "0",
-            "priceScale": "6",
+            "qtyScale": "5",
+            "priceScale": "2",
             "notionalScale": "4"
         },
         "tierBased": true,

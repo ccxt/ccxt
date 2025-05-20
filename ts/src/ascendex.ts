@@ -468,6 +468,7 @@ export default class ascendex extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'XBT': 'XBT', // this is not BTC ! just another token
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
