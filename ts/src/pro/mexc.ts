@@ -1536,7 +1536,7 @@ export default class mexc extends mexcRest {
 
     /**
      * @method
-     * @name mexc#watchBidsAsks
+     * @name mexc#unWatchBidsAsks
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
