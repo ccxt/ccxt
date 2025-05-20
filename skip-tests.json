@@ -30,7 +30,9 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
-                "type": "todo"
+                "type": "todo",
+                "withdraw": "not provided for empty chains",
+                "deposit": "not provided for empty chains"
             },
             "watchOrderBook": {
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
