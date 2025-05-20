@@ -1924,6 +1924,7 @@ export default class gate extends Exchange {
                 'withdraw': !this.safeBool (entry, 'withdraw_disabled'),
                 'fee': undefined,
                 'networks': networks,
+                'precision': undefined,
                 'info': entry,
             });
         }
