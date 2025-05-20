@@ -190,9 +190,9 @@
                     }
                 }
             },
-            "TRX": {
+            "TRC20": {
                 "id": "TRC20",
-                "network": "TRX",
+                "network": "TRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -683,9 +683,9 @@
         "fee": 1,
         "fees": {},
         "networks": {
-            "TRX": {
+            "TRC20": {
                 "id": "TRC20",
-                "network": "TRX",
+                "network": "TRC20",
                 "active": false,
                 "deposit": false,
                 "withdraw": false,

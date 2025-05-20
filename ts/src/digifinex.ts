@@ -451,6 +451,7 @@ export default class digifinex extends Exchange {
                 },
                 'networksById': {
                     'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
                 },
             },
             'commonCurrencies': {
