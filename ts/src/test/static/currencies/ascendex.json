@@ -1,7 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
-        "code": "BTC",
         "info": {
             "assetCode": "BTC",
             "assetName": "Bitcoin",
@@ -17,26 +15,33 @@
             "withdrawFee": "5.0E-4",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.0006975"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-9,
+        "type": null,
         "name": "Bitcoin",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 0.0005,
-        "precision": 1e-9,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 0.001
+                "min": 0.001,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "USDT": {
-        "id": "USDT",
-        "code": "USDT",
         "info": {
             "assetCode": "USDT",
             "assetName": "Tether",
@@ -52,26 +57,33 @@
             "withdrawFee": "5.0",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.0006975"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 1e-9,
+        "type": null,
         "name": "Tether",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 5,
-        "precision": 1e-9,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 10
+                "min": 10,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "USD": {
-        "id": "USD",
-        "code": "USD",
         "info": {
             "assetCode": "USD",
             "assetName": "USD Token",
@@ -87,26 +99,33 @@
             "withdrawFee": "5.0",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.0009"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "USD",
+        "numericId": null,
+        "code": "USD",
+        "precision": 1e-8,
+        "type": null,
         "name": "USD Token",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 5,
-        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": 1e-8,
+                "max": null
             },
             "withdraw": {
-                "min": 10
+                "min": 10,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "LTC": {
-        "id": "LTC",
-        "code": "LTC",
         "info": {
             "assetCode": "LTC",
             "assetName": "Litecoin",
@@ -122,26 +141,33 @@
             "withdrawFee": "0.001",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.0008925"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-9,
+        "type": null,
         "name": "Litecoin",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 0.001,
-        "precision": 1e-9,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "ETH": {
-        "id": "ETH",
-        "code": "ETH",
         "info": {
             "assetCode": "ETH",
             "assetName": "Ethereum",
@@ -157,26 +183,33 @@
             "withdrawFee": "0.005",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.0006975"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-9,
+        "type": null,
         "name": "Ethereum",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 0.005,
-        "precision": 1e-9,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "ADA": {
-        "id": "ADA",
-        "code": "ADA",
         "info": {
             "assetCode": "ADA",
             "assetName": "Cardano",
@@ -192,29 +225,36 @@
             "withdrawFee": "1.0",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.00078"
+            "interestRate": "0.0015"
         },
-        "margin": true,
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 1e-9,
+        "type": null,
         "name": "Cardano",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 1,
-        "precision": 1e-9,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 10
+                "min": 10,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "XRP": {
-        "id": "XRP",
-        "code": "XRP",
         "info": {
             "assetCode": "XRP",
-            "assetName": "Ripple",
+            "assetName": "XRP",
             "precisionScale": 9,
             "nativeScale": "3",
             "withdrawalFee": "0.1",
@@ -227,22 +267,31 @@
             "withdrawFee": "0.1",
             "statusCode": "Normal",
             "statusMessage": "",
-            "interestRate": "0.001305"
+            "interestRate": "0.0015"
         },
-        "margin": true,
-        "name": "Ripple",
-        "active": true,
-        "fee": 0.1,
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
         "precision": 1e-9,
+        "type": null,
+        "name": "XRP",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-9
+                "min": 1e-9,
+                "max": null
             },
             "withdraw": {
-                "min": 22
+                "min": 22,
+                "max": null
             }
         },
-        "networks": {}
+        "margin": true
     },
     "USDC": {
         "id": "USDC",

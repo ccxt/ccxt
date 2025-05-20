@@ -643,6 +643,70 @@
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "assetCode": "USDT",
+                            "displayName": "USDT",
+                            "nativeScale": "4",
+                            "numConfirmations": "3",
+                            "withdrawFee": "5.0",
+                            "minWithdrawalAmt": "10.0",
+                            "statusCode": "Normal",
+                            "statusMessage": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "assetCode": "USDT",
+                            "assetName": "Tether",
+                            "precisionScale": 9,
+                            "nativeScale": "4",
+                            "withdrawalFee": "5.0",
+                            "minWithdrawalAmt": "10.0",
+                            "status": "Normal",
+                            "displayName": "USDT",
+                            "borrowAssetCode": "USDT-B",
+                            "interestAssetCode": "USDT-I",
+                            "numConfirmations": "3",
+                            "withdrawFee": "5.0",
+                            "statusCode": "Normal",
+                            "statusMessage": "",
+                            "interestRate": "0.0015"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-9,
+                        "type": null,
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 5,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": 1e-9,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "margin": true
+                    }
+                }
+            },
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
                     "code": 0,
                     "data": [
                         {

@@ -1,64 +1,93 @@
 {
     "BTC/USDT": {
-        "id": "BTC/USDT",
+        "id": "XBT/USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
-        "baseId": "BTC",
+        "settle": null,
+        "baseId": "XBT",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
-        "margin": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "taker": 0.001,
-        "maker": 0.001,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.00001,
-            "price": 0.01
+            "amount": 1,
+            "price": 0.000001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.01
+                "min": 0.000001,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 500000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1747476000000,
         "info": {
-            "symbol": "BTC/USDT",
-            "displayName": "BTC/USDT",
+            "symbol": "XBT/USDT",
+            "displayName": "XBT/USDT",
+            "baseAsset": "XBT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "500000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.004",
+            "tickSize": "0.000001",
+            "lotSize": "1",
             "domain": "USDS",
-            "tradingStartTime": 1546329600000,
-            "collapseDecimals": "1,0.1,0.01",
+            "tradingStartTime": "1747476000000",
+            "collapseDecimals": "0.01,0.0001,0.000001",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
-            "minNotional": "5",
-            "maxNotional": "400000",
             "statusCode": "Normal",
             "statusMessage": "",
-            "tickSize": "0.01",
             "useTick": false,
-            "lotSize": "0.00001",
             "useLot": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "qtyScale": 5,
-            "priceScale": 2,
-            "notionalScale": 4
-        }
+            "qtyScale": "0",
+            "priceScale": "6",
+            "notionalScale": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "BTC/USDT:USDT": {
         "id": "BTC-PERP",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -68,22 +97,32 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
+        "subType": "linear",
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.0001,
                 "max": 100000000000
@@ -92,15 +131,32 @@
                 "min": 0.1,
                 "max": 1000000
             },
-            "cost": {}
+            "cost": {
+                "min": 0,
+                "max": 1000000
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688432400000,
         "info": {
             "symbol": "BTC-PERP",
-            "status": "Normal",
             "displayName": "BTCUSDT",
+            "baseAsset": "BTCUSDT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "0",
+            "maxNotional": "1000000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.1",
+            "lotSize": "0.0001",
             "settlementAsset": "USDT",
             "underlying": "BTC/USDT",
-            "tradingStartTime": 1688432400000,
+            "tradingStartTime": "1688432400000",
             "priceFilter": {
                 "minPrice": "0.1",
                 "maxPrice": "1000000",
@@ -111,243 +167,341 @@
                 "maxQty": "100000000000",
                 "lotSize": "0.0001"
             },
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "marketOrderPriceMarkup": "0.005",
+            "marketOrderPriceMarkup": "0.002",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalUpperBound": "300000",
                     "initialMarginRate": "0.005",
                     "maintenanceMarginRate": "0.004"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "300000",
-                    "initialMarginRate": "0.006666",
-                    "maintenanceMarginRate": "0.005"
-                },
-                {
                     "positionNotionalLowerBound": "300000",
-                    "positionNotionalUpperBound": "600000",
+                    "positionNotionalUpperBound": "1000000",
+                    "initialMarginRate": "0.008",
+                    "maintenanceMarginRate": "0.0055"
+                },
+                {
+                    "positionNotionalLowerBound": "1000000",
+                    "positionNotionalUpperBound": "2000000",
                     "initialMarginRate": "0.01",
-                    "maintenanceMarginRate": "0.007"
+                    "maintenanceMarginRate": "0.0065"
                 },
                 {
-                    "positionNotionalLowerBound": "600000",
-                    "positionNotionalUpperBound": "1200000",
+                    "positionNotionalLowerBound": "2000000",
+                    "positionNotionalUpperBound": "2500000",
                     "initialMarginRate": "0.013333",
-                    "maintenanceMarginRate": "0.009"
+                    "maintenanceMarginRate": "0.008"
                 },
                 {
-                    "positionNotionalLowerBound": "1200000",
-                    "positionNotionalUpperBound": "1500000",
+                    "positionNotionalLowerBound": "2500000",
+                    "positionNotionalUpperBound": "3000000",
                     "initialMarginRate": "0.02",
                     "maintenanceMarginRate": "0.014"
                 },
                 {
-                    "positionNotionalLowerBound": "1500000",
-                    "positionNotionalUpperBound": "2000000",
-                    "initialMarginRate": "0.04",
-                    "maintenanceMarginRate": "0.024"
+                    "positionNotionalLowerBound": "3000000",
+                    "positionNotionalUpperBound": "3500000",
+                    "initialMarginRate": "0.028571",
+                    "maintenanceMarginRate": "0.0195"
                 },
                 {
-                    "positionNotionalLowerBound": "2000000",
+                    "positionNotionalLowerBound": "3500000",
+                    "positionNotionalUpperBound": "4000000",
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
+                },
+                {
+                    "positionNotionalLowerBound": "4000000",
+                    "positionNotionalUpperBound": "4500000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "4500000",
                     "positionNotionalUpperBound": "5000000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.07"
                 },
                 {
                     "positionNotionalLowerBound": "5000000",
                     "positionNotionalUpperBound": "10000000",
                     "initialMarginRate": "0.2",
-                    "maintenanceMarginRate": "0.18"
+                    "maintenanceMarginRate": "0.14"
                 },
                 {
                     "positionNotionalLowerBound": "10000000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "0.333333",
-                    "maintenanceMarginRate": "0.3"
+                    "maintenanceMarginRate": "0.2"
                 }
             ]
-        }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "LTC/USDT": {
         "id": "LTC/USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 1000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1546329600000,
         "info": {
             "symbol": "LTC/USDT",
             "displayName": "LTC/USDT",
+            "baseAsset": "LTC",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "1000000",
+            "marginTradable": true,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.01",
+            "lotSize": "0.001",
             "domain": "USDS",
-            "tradingStartTime": 1546329600000,
+            "tradingStartTime": "1546329600000",
             "collapseDecimals": "1,0.1,0.01",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
-            "minNotional": "5",
-            "maxNotional": "400000",
             "statusCode": "Normal",
             "statusMessage": "",
-            "tickSize": "0.01",
             "useTick": false,
-            "lotSize": "0.001",
             "useLot": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "qtyScale": 3,
-            "priceScale": 2,
-            "notionalScale": 4
-        }
+            "qtyScale": "3",
+            "priceScale": "2",
+            "notionalScale": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "ADA/USDT": {
         "id": "ADA/USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 1000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1559685600000,
         "info": {
             "symbol": "ADA/USDT",
             "displayName": "ADA/USDT",
+            "baseAsset": "ADA",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "1000000",
+            "marginTradable": true,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.00001",
+            "lotSize": "1",
             "domain": "USDS",
-            "tradingStartTime": 1559685600000,
+            "tradingStartTime": "1559685600000",
             "collapseDecimals": "0.01,0.0001,0.00001",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
-            "minNotional": "5",
-            "maxNotional": "400000",
             "statusCode": "Normal",
             "statusMessage": "",
-            "tickSize": "0.00001",
             "useTick": false,
-            "lotSize": "1",
             "useLot": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "qtyScale": 0,
-            "priceScale": 5,
-            "notionalScale": 4
-        }
+            "qtyScale": "0",
+            "priceScale": "5",
+            "notionalScale": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "XRP/USDT": {
         "id": "XRP/USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 1000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1546329600000,
         "info": {
             "symbol": "XRP/USDT",
             "displayName": "XRP/USDT",
+            "baseAsset": "XRP",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "1000000",
+            "marginTradable": true,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.00001",
+            "lotSize": "1",
             "domain": "USDS",
-            "tradingStartTime": 1546329600000,
+            "tradingStartTime": "1546329600000",
             "collapseDecimals": "0.01,0.0001,0.00001",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
-            "minNotional": "5",
-            "maxNotional": "400000",
             "statusCode": "Normal",
             "statusMessage": "",
-            "tickSize": "0.00001",
             "useTick": false,
-            "lotSize": "1",
             "useLot": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "qtyScale": 0,
-            "priceScale": 5,
-            "notionalScale": 4
-        }
+            "qtyScale": "0",
+            "priceScale": "5",
+            "notionalScale": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "LTC/USDT:USDT": {
         "id": "LTC-PERP",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
@@ -357,22 +511,32 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
+        "subType": "linear",
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.1,
                 "max": 100000000000000
@@ -381,15 +545,32 @@
                 "min": 0.01,
                 "max": 1000000
             },
-            "cost": {}
+            "cost": {
+                "min": 0,
+                "max": 1000000
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688437800000,
         "info": {
             "symbol": "LTC-PERP",
-            "status": "Normal",
             "displayName": "LTCUSDT",
+            "baseAsset": "LTCUSDT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "0",
+            "maxNotional": "1000000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.01",
+            "lotSize": "0.1",
             "settlementAsset": "USDT",
             "underlying": "LTC/USDT",
-            "tradingStartTime": 1688437800000,
+            "tradingStartTime": "1688437800000",
             "priceFilter": {
                 "minPrice": "0.01",
                 "maxPrice": "1000000",
@@ -400,51 +581,65 @@
                 "maxQty": "100000000000000",
                 "lotSize": "0.1"
             },
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "5000",
-                    "initialMarginRate": "0.02",
-                    "maintenanceMarginRate": "0.018"
+                    "positionNotionalUpperBound": "8000",
+                    "initialMarginRate": "0.01",
+                    "maintenanceMarginRate": "0.0065"
                 },
                 {
-                    "positionNotionalLowerBound": "5000",
+                    "positionNotionalLowerBound": "8000",
+                    "positionNotionalUpperBound": "15000",
+                    "initialMarginRate": "0.013333",
+                    "maintenanceMarginRate": "0.008"
+                },
+                {
+                    "positionNotionalLowerBound": "15000",
                     "positionNotionalUpperBound": "30000",
-                    "initialMarginRate": "0.033333",
-                    "maintenanceMarginRate": "0.03"
+                    "initialMarginRate": "0.02",
+                    "maintenanceMarginRate": "0.014"
                 },
                 {
                     "positionNotionalLowerBound": "30000",
                     "positionNotionalUpperBound": "80000",
-                    "initialMarginRate": "0.05",
-                    "maintenanceMarginRate": "0.049"
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
                 },
                 {
                     "positionNotionalLowerBound": "80000",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalUpperBound": "150000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "150000",
+                    "positionNotionalUpperBound": "250000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.07"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "200000",
+                    "positionNotionalLowerBound": "250000",
+                    "positionNotionalUpperBound": "500000",
                     "initialMarginRate": "0.2",
-                    "maintenanceMarginRate": "0.12"
+                    "maintenanceMarginRate": "0.11"
                 },
                 {
-                    "positionNotionalLowerBound": "200000",
+                    "positionNotionalLowerBound": "500000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "1",
-                    "maintenanceMarginRate": "0.6"
+                    "maintenanceMarginRate": "0.55"
                 }
             ]
-        }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "ADA/USDT:USDT": {
         "id": "ADA-PERP",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
@@ -454,42 +649,69 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
+        "subType": "linear",
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000000000000
             },
             "price": {
                 "min": 0.0001,
-                "max": 400000
+                "max": 1000000
             },
-            "cost": {}
+            "cost": {
+                "min": 0,
+                "max": 1000000
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688437800000,
         "info": {
             "symbol": "ADA-PERP",
-            "status": "Normal",
             "displayName": "ADAUSDT",
+            "baseAsset": "ADAUSDT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "0",
+            "maxNotional": "1000000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.0001",
+            "lotSize": "1",
             "settlementAsset": "USDT",
             "underlying": "ADA/USDT",
-            "tradingStartTime": 1688437800000,
+            "tradingStartTime": "1688437800000",
             "priceFilter": {
                 "minPrice": "0.0001",
-                "maxPrice": "400000",
+                "maxPrice": "1000000",
                 "tickSize": "0.0001"
             },
             "lotSizeFilter": {
@@ -497,51 +719,65 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "5000",
-                    "initialMarginRate": "0.02",
-                    "maintenanceMarginRate": "0.018"
+                    "positionNotionalUpperBound": "8000",
+                    "initialMarginRate": "0.01",
+                    "maintenanceMarginRate": "0.0065"
                 },
                 {
-                    "positionNotionalLowerBound": "5000",
+                    "positionNotionalLowerBound": "8000",
+                    "positionNotionalUpperBound": "15000",
+                    "initialMarginRate": "0.013333",
+                    "maintenanceMarginRate": "0.008"
+                },
+                {
+                    "positionNotionalLowerBound": "15000",
                     "positionNotionalUpperBound": "30000",
-                    "initialMarginRate": "0.033333",
-                    "maintenanceMarginRate": "0.03"
+                    "initialMarginRate": "0.02",
+                    "maintenanceMarginRate": "0.014"
                 },
                 {
                     "positionNotionalLowerBound": "30000",
                     "positionNotionalUpperBound": "80000",
-                    "initialMarginRate": "0.05",
-                    "maintenanceMarginRate": "0.049"
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
                 },
                 {
                     "positionNotionalLowerBound": "80000",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalUpperBound": "150000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "150000",
+                    "positionNotionalUpperBound": "250000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.07"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "200000",
+                    "positionNotionalLowerBound": "250000",
+                    "positionNotionalUpperBound": "500000",
                     "initialMarginRate": "0.2",
-                    "maintenanceMarginRate": "0.12"
+                    "maintenanceMarginRate": "0.11"
                 },
                 {
-                    "positionNotionalLowerBound": "200000",
+                    "positionNotionalLowerBound": "500000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "1",
-                    "maintenanceMarginRate": "0.6"
+                    "maintenanceMarginRate": "0.55"
                 }
             ]
-        }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "XRP/USDT:USDT": {
         "id": "XRP-PERP",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
@@ -551,42 +787,69 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
+        "subType": "linear",
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000000000000
             },
             "price": {
                 "min": 0.0001,
-                "max": 400000
+                "max": 1000000
             },
-            "cost": {}
+            "cost": {
+                "min": 0,
+                "max": 1000000
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688437800000,
         "info": {
             "symbol": "XRP-PERP",
-            "status": "Normal",
             "displayName": "XRPUSDT",
+            "baseAsset": "XRPUSDT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "0",
+            "maxNotional": "1000000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.0001",
+            "lotSize": "1",
             "settlementAsset": "USDT",
             "underlying": "XRP/USDT",
-            "tradingStartTime": 1688437800000,
+            "tradingStartTime": "1688437800000",
             "priceFilter": {
                 "minPrice": "0.0001",
-                "maxPrice": "400000",
+                "maxPrice": "1000000",
                 "tickSize": "0.0001"
             },
             "lotSizeFilter": {
@@ -594,109 +857,151 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "5000",
-                    "initialMarginRate": "0.02",
-                    "maintenanceMarginRate": "0.018"
+                    "positionNotionalUpperBound": "8000",
+                    "initialMarginRate": "0.01",
+                    "maintenanceMarginRate": "0.0065"
                 },
                 {
-                    "positionNotionalLowerBound": "5000",
+                    "positionNotionalLowerBound": "8000",
+                    "positionNotionalUpperBound": "15000",
+                    "initialMarginRate": "0.013333",
+                    "maintenanceMarginRate": "0.008"
+                },
+                {
+                    "positionNotionalLowerBound": "15000",
                     "positionNotionalUpperBound": "30000",
-                    "initialMarginRate": "0.033333",
-                    "maintenanceMarginRate": "0.03"
+                    "initialMarginRate": "0.02",
+                    "maintenanceMarginRate": "0.014"
                 },
                 {
                     "positionNotionalLowerBound": "30000",
                     "positionNotionalUpperBound": "80000",
-                    "initialMarginRate": "0.05",
-                    "maintenanceMarginRate": "0.049"
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
                 },
                 {
                     "positionNotionalLowerBound": "80000",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalUpperBound": "150000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "150000",
+                    "positionNotionalUpperBound": "250000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.07"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "200000",
+                    "positionNotionalLowerBound": "250000",
+                    "positionNotionalUpperBound": "500000",
                     "initialMarginRate": "0.2",
-                    "maintenanceMarginRate": "0.12"
+                    "maintenanceMarginRate": "0.11"
                 },
                 {
-                    "positionNotionalLowerBound": "200000",
+                    "positionNotionalLowerBound": "500000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "1",
-                    "maintenanceMarginRate": "0.6"
+                    "maintenanceMarginRate": "0.55"
                 }
             ]
-        }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "TRX/USDT": {
         "id": "TRX/USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 1000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1546329600000,
         "info": {
             "symbol": "TRX/USDT",
             "displayName": "TRX/USDT",
+            "baseAsset": "TRX",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "1000000",
+            "marginTradable": true,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.00001",
+            "lotSize": "1",
             "domain": "USDS",
-            "tradingStartTime": 1546329600000,
+            "tradingStartTime": "1546329600000",
             "collapseDecimals": "0.01,0.0001,0.00001",
             "minQty": "0.000000001",
             "maxQty": "1000000000",
-            "minNotional": "5",
-            "maxNotional": "400000",
             "statusCode": "Normal",
             "statusMessage": "",
-            "tickSize": "0.00001",
             "useTick": false,
-            "lotSize": "1",
             "useLot": false,
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
-            "qtyScale": 0,
-            "priceScale": 5,
-            "notionalScale": 4
-        }
+            "qtyScale": "0",
+            "priceScale": "5",
+            "notionalScale": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "TRX/USDT:USDT": {
         "id": "TRX-PERP",
+        "lowercaseId": null,
         "symbol": "TRX/USDT:USDT",
         "base": "TRX",
         "quote": "USDT",
@@ -706,42 +1011,69 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
+        "subType": "linear",
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000000000000
             },
             "price": {
                 "min": 0.00001,
-                "max": 400000
+                "max": 1000000
             },
-            "cost": {}
+            "cost": {
+                "min": 0,
+                "max": 1000000
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688437800000,
         "info": {
             "symbol": "TRX-PERP",
-            "status": "Normal",
             "displayName": "TRXUSDT",
+            "baseAsset": "TRXUSDT",
+            "quoteAsset": "USDT",
+            "status": "Normal",
+            "minNotional": "0",
+            "maxNotional": "1000000",
+            "marginTradable": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "0.00001",
+            "lotSize": "1",
             "settlementAsset": "USDT",
             "underlying": "TRX/USDT",
-            "tradingStartTime": 1688437800000,
+            "tradingStartTime": "1688437800000",
             "priceFilter": {
                 "minPrice": "0.00001",
-                "maxPrice": "400000",
+                "maxPrice": "1000000",
                 "tickSize": "0.00001"
             },
             "lotSizeFilter": {
@@ -749,83 +1081,98 @@
                 "maxQty": "1000000000000000",
                 "lotSize": "1"
             },
-            "commissionType": "Quote",
-            "commissionReserveRate": "0.001",
             "marketOrderPriceMarkup": "0.1",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "5000",
-                    "initialMarginRate": "0.02",
-                    "maintenanceMarginRate": "0.018"
-                },
-                {
-                    "positionNotionalLowerBound": "5000",
-                    "positionNotionalUpperBound": "30000",
-                    "initialMarginRate": "0.033333",
+                    "positionNotionalUpperBound": "10000",
+                    "initialMarginRate": "0.05",
                     "maintenanceMarginRate": "0.03"
                 },
                 {
-                    "positionNotionalLowerBound": "30000",
-                    "positionNotionalUpperBound": "80000",
-                    "initialMarginRate": "0.05",
-                    "maintenanceMarginRate": "0.049"
-                },
-                {
-                    "positionNotionalLowerBound": "80000",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalLowerBound": "10000",
+                    "positionNotionalUpperBound": "30000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.06"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "200000",
+                    "positionNotionalLowerBound": "30000",
+                    "positionNotionalUpperBound": "50000",
                     "initialMarginRate": "0.2",
                     "maintenanceMarginRate": "0.12"
                 },
                 {
-                    "positionNotionalLowerBound": "200000",
+                    "positionNotionalLowerBound": "50000",
+                    "positionNotionalUpperBound": "100000",
+                    "initialMarginRate": "0.5",
+                    "maintenanceMarginRate": "0.325"
+                },
+                {
+                    "positionNotionalLowerBound": "100000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "1",
-                    "maintenanceMarginRate": "0.6"
+                    "maintenanceMarginRate": "0.55"
                 }
             ]
-        }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     },
     "ETH/USDT": {
         "id": "ETH/USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-9,
                 "max": 1000000000
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "cost": {
                 "min": 5,
-                "max": 400000
+                "max": 1000000
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1546329600000,
         "info": {
@@ -835,7 +1182,7 @@
             "quoteAsset": "USDT",
             "status": "Normal",
             "minNotional": "5",
-            "maxNotional": "400000",
+            "maxNotional": "1000000",
             "marginTradable": true,
             "commissionType": "Quote",
             "commissionReserveRate": "0.001",
@@ -860,6 +1207,7 @@
     },
     "ETH/USDT:USDT": {
         "id": "ETH-PERP",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -869,9 +1217,11 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -880,12 +1230,19 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.01,
                 "max": 10000000000000
@@ -898,6 +1255,10 @@
                 "min": 0,
                 "max": 1000000
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1688432400000,
         "info": {
@@ -926,61 +1287,73 @@
                 "maxQty": "10000000000000",
                 "lotSize": "0.01"
             },
-            "marketOrderPriceMarkup": "0.005",
+            "marketOrderPriceMarkup": "0.002",
             "marginRequirements": [
                 {
                     "positionNotionalLowerBound": "0",
-                    "positionNotionalUpperBound": "100000",
+                    "positionNotionalUpperBound": "300000",
                     "initialMarginRate": "0.005",
                     "maintenanceMarginRate": "0.004"
                 },
                 {
-                    "positionNotionalLowerBound": "100000",
-                    "positionNotionalUpperBound": "300000",
-                    "initialMarginRate": "0.006666",
-                    "maintenanceMarginRate": "0.005"
-                },
-                {
                     "positionNotionalLowerBound": "300000",
-                    "positionNotionalUpperBound": "600000",
+                    "positionNotionalUpperBound": "1000000",
+                    "initialMarginRate": "0.008",
+                    "maintenanceMarginRate": "0.0055"
+                },
+                {
+                    "positionNotionalLowerBound": "1000000",
+                    "positionNotionalUpperBound": "2000000",
                     "initialMarginRate": "0.01",
-                    "maintenanceMarginRate": "0.007"
+                    "maintenanceMarginRate": "0.0065"
                 },
                 {
-                    "positionNotionalLowerBound": "600000",
-                    "positionNotionalUpperBound": "1200000",
+                    "positionNotionalLowerBound": "2000000",
+                    "positionNotionalUpperBound": "2500000",
                     "initialMarginRate": "0.013333",
-                    "maintenanceMarginRate": "0.009"
+                    "maintenanceMarginRate": "0.008"
                 },
                 {
-                    "positionNotionalLowerBound": "1200000",
-                    "positionNotionalUpperBound": "1500000",
+                    "positionNotionalLowerBound": "2500000",
+                    "positionNotionalUpperBound": "3000000",
                     "initialMarginRate": "0.02",
                     "maintenanceMarginRate": "0.014"
                 },
                 {
-                    "positionNotionalLowerBound": "1500000",
-                    "positionNotionalUpperBound": "2000000",
-                    "initialMarginRate": "0.04",
-                    "maintenanceMarginRate": "0.024"
+                    "positionNotionalLowerBound": "3000000",
+                    "positionNotionalUpperBound": "3500000",
+                    "initialMarginRate": "0.028571",
+                    "maintenanceMarginRate": "0.0195"
                 },
                 {
-                    "positionNotionalLowerBound": "2000000",
+                    "positionNotionalLowerBound": "3500000",
+                    "positionNotionalUpperBound": "4000000",
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
+                },
+                {
+                    "positionNotionalLowerBound": "4000000",
+                    "positionNotionalUpperBound": "4500000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "4500000",
                     "positionNotionalUpperBound": "5000000",
                     "initialMarginRate": "0.1",
-                    "maintenanceMarginRate": "0.09"
+                    "maintenanceMarginRate": "0.07"
                 },
                 {
                     "positionNotionalLowerBound": "5000000",
                     "positionNotionalUpperBound": "10000000",
                     "initialMarginRate": "0.2",
-                    "maintenanceMarginRate": "0.18"
+                    "maintenanceMarginRate": "0.14"
                 },
                 {
                     "positionNotionalLowerBound": "10000000",
                     "positionNotionalUpperBound": "1000000000",
                     "initialMarginRate": "0.333333",
-                    "maintenanceMarginRate": "0.3"
+                    "maintenanceMarginRate": "0.2"
                 }
             ]
         },
@@ -1017,40 +1390,58 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 0.0001, "price": 1 },
-        "limits": {
-          "leverage": { "min": null, "max": null },
-          "amount": { "min": 1e-9, "max": 1000000000 },
-          "price": { "min": 1, "max": null },
-          "cost": { "min": 5, "max": 1000000 }
+        "precision": {
+            "amount": 0.0001,
+            "price": 1
         },
-        "marginModes": { "cross": null, "isolated": null },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-9,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 1,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1653663600000,
         "info": {
-          "symbol": "BTC/USD",
-          "displayName": "BTC/USD",
-          "baseAsset": "BTC",
-          "quoteAsset": "USD",
-          "status": "Normal",
-          "minNotional": "5",
-          "maxNotional": "1000000",
-          "marginTradable": true,
-          "commissionType": "Quote",
-          "commissionReserveRate": "0.001",
-          "tickSize": "1",
-          "lotSize": "0.0001",
-          "domain": "USD",
-          "tradingStartTime": "1653663600000",
-          "collapseDecimals": "1",
-          "minQty": "0.000000001",
-          "maxQty": "1000000000",
-          "statusCode": "Normal",
-          "statusMessage": "",
-          "useTick": false,
-          "useLot": false,
-          "qtyScale": "4",
-          "priceScale": "0",
-          "notionalScale": "2"
+            "symbol": "BTC/USD",
+            "displayName": "BTC/USD",
+            "baseAsset": "BTC",
+            "quoteAsset": "USD",
+            "status": "Normal",
+            "minNotional": "5",
+            "maxNotional": "1000000",
+            "marginTradable": true,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "tickSize": "1",
+            "lotSize": "0.0001",
+            "domain": "USD",
+            "tradingStartTime": "1653663600000",
+            "collapseDecimals": "1",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "useTick": false,
+            "useLot": false,
+            "qtyScale": "4",
+            "priceScale": "0",
+            "notionalScale": "2"
         },
         "tierBased": true,
         "percentage": true,
