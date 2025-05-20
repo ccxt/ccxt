@@ -78,7 +78,7 @@ export default class bullish extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -178,7 +178,7 @@ export default class bullish extends Exchange {
                         'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1, // not used
                         'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
                         'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
-                        'v1/trades': 1,
+                        'v1/trades': 1, // done
                         'v1/trades/{tradeId}': 1,
                         'v1/accounts/asset': 1,
                         'v1/accounts/asset/{symbol}': 1,
@@ -731,9 +731,79 @@ export default class bullish extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bullish#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderId] the order id to fetch trades for
+     * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            request['tradingAccountId'] = tradingAccountId;
+        } else {
+            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter');
+        }
+        const orderId = this.safeString (params, 'orderId');
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
+            params = this.omit (params, 'orderId');
+        }
+        const response = await this.privateGetV1Trades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "baseFee": "0.00000000",
+        //             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
+        //             "createdAtTimestamp": "1747583848132",
+        //             "handle": null,
+        //             "isTaker": true,
+        //             "orderId": "844242293909618689",
+        //             "price": "103942.7048",
+        //             "publishedAtTimestamp": "1747769786131",
+        //             "quantity": "1.00000000",
+        //             "quoteAmount": "103942.7048",
+        //             "quoteFee": "0.0000",
+        //             "side": "BUY",
+        //             "symbol": "BTCUSDC",
+        //             "tradeId": "100178000000288892"
+        //         }, ...
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
+        //     [
+        //         {
+        //             "tradeId": "100178000000367159",
+        //             "symbol": "BTCUSDC",
+        //             "price": "103891.8977",
+        //             "quantity": "0.00029411",
+        //             "quoteAmount": "30.5556",
+        //             "side": "BUY",
+        //             "isTaker": true,
+        //             "createdAtTimestamp": "1747768055826",
+        //             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
+        //         }, ...
+        //     ]
+        //
         //     [
         //         {
         //             "tradeId": "100020000000000060",
@@ -747,6 +817,26 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
+        // fetchMyTrades
+        //     [
+        //         {
+        //             "baseFee": "0.00000000",
+        //             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
+        //             "createdAtTimestamp": "1747583848132",
+        //             "handle": null,
+        //             "isTaker": true,
+        //             "orderId": "844242293909618689",
+        //             "price": "103942.7048",
+        //             "publishedAtTimestamp": "1747769786131",
+        //             "quantity": "1.00000000",
+        //             "quoteAmount": "103942.7048",
+        //             "quoteFee": "0.0000",
+        //             "side": "BUY",
+        //             "symbol": "BTCUSDC",
+        //             "tradeId": "100178000000288892"
+        //         }, ...
+        //     ]
+        //
         const id = this.safeString (trade, 'symbol');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -756,6 +846,13 @@ export default class bullish extends Exchange {
         const amount = this.safeString (trade, 'quantity');
         const side = this.safeString (trade, 'side');
         const isTaker = this.safeBool (trade, 'isTaker');
+        const currency = market['quote'];
+        const code = this.safeCurrencyCode (currency);
+        const feeCost = this.safeNumber (trade, 'quoteFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
         let takerOrMaker = undefined;
         if (isTaker) {
             takerOrMaker = 'taker';
@@ -776,7 +873,7 @@ export default class bullish extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
