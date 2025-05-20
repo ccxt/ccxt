@@ -3007,15 +3007,6 @@ export default class Exchange {
         };
     }
 
-    safeCurrencyStructureForDict (currencies: any): Currencies {
-        const keys = Object.keys (currencies);
-        for (let i = 0; i < keys.length; i++) {
-            const code = keys[i];
-            currencies[code] = this.safeCurrencyStructure (currencies[code]);
-        }
-        return currencies;
-    }
-
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
