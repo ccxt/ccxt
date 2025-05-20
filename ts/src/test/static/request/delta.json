@@ -3,6 +3,15 @@
     "skipKeys": ["end", "start"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.delta.exchange/v2/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch Open Orders",
