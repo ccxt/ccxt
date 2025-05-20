@@ -955,7 +955,8 @@
             "fetchCurrencies": {
                 "type": "todo",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo"
             }
         }
     },
