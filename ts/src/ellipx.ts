@@ -5,8 +5,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// import type { Account, Balances, Bool, Currencies, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -987,7 +986,7 @@ export default class ellipx extends Exchange {
         const allKeys = Object.keys (result);
         for (let i = 0; i < allKeys.length; i++) {
             const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
+            result[code] = this.safeCurrencyStructure (result[code]) as Currency; // this is needed after adding network entry
         }
         return result;
     }
