@@ -55,7 +55,7 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
-                    "XRP/USDT:USDT",
+                    "ADA/USDT:USDT",
                     "market",
                     "sell",
                     1,
@@ -66,7 +66,7 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "output": "{\"instId\":\"XRP-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"isolated\",\"triggerPrice\":\"4\",\"orderPrice\":\"-1\",\"positionSide\":\"short\"}"
+                "output": "{\"instId\":\"ADA-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"isolated\",\"triggerPrice\":\"4\",\"orderPrice\":\"-1\",\"positionSide\":\"short\"}"
             },
             {
                 "description": "--report",
@@ -519,7 +519,7 @@
         ],
         "setMarginMode": [
             {
-                "description": "setMarginMode",
+                "description": "set marginMode",
                 "method": "setMarginMode",
                 "url": "https://openapi.blofin.com/api/v1/account/set-margin-mode",
                 "input": [
@@ -530,7 +530,7 @@
         ],
         "fetchPositionMode": [
             {
-                "description": "fetchPositionMode",
+                "description": "fetch positionMode",
                 "method": "fetchPositionMode",
                 "url": "https://openapi.blofin.com/api/v1/account/position-mode",
                 "input": []
@@ -538,7 +538,7 @@
         ],
         "setPositionMode": [
             {
-                "description": "setPositionMode",
+                "description": "set positionMode",
                 "method": "setPositionMode",
                 "url": "https://openapi.blofin.com/api/v1/account/set-position-mode",
                 "input": [
