@@ -1911,9 +1911,8 @@ export default class gate extends Exchange {
             const info = this.safeList (result[code], 'info', []);
             info.push (entry);
             result[code]['info'] = info;
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
         }
-        return result;
+        return this.safeCurrencyStructureForDict (result);
     }
 
     /**
