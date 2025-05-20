@@ -658,6 +658,9 @@ export default class ascendex extends Exchange {
         const result = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            if (id.indexOf ('-PERP') >= 0) {
+                continue; // skip perpetuals, as separate endpoint returns them
+            }
             const market = dataById[id];
             const status = this.safeString (market, 'status');
             const domain = this.safeString (market, 'domain');
