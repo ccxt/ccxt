@@ -817,7 +817,7 @@ export default class ellipx extends Exchange {
         const result = {};
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const networkEntry = this.parseCurrency (data[i]);
+            const networkEntry = data[i];
             //
             //    {
             //        "Crypto_Token_Info__": "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
@@ -970,7 +970,7 @@ export default class ellipx extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseAmount (currency['Minimum_Withdraw']),
+                        'min': this.parseAmount (networkEntry['Minimum_Withdraw']),
                         'max': undefined,
                     },
                     'deposit': {
