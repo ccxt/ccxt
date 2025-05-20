@@ -554,6 +554,7 @@ export default class ascendex extends Exchange {
                     },
                 };
             }
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
