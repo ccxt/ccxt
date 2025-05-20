@@ -131,7 +131,7 @@ export default class blofin extends Exchange {
                 'repayCrossMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
@@ -220,7 +220,7 @@ export default class blofin extends Exchange {
                     },
                     'post': {
                         'account/set-margin-mode': 1,
-                        'account/set-position-mode': 1, // todo new
+                        'account/set-position-mode': 1,
                         'trade/order': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-order': 1,
@@ -2413,12 +2413,46 @@ export default class blofin extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': this.safeString (marginMode, 'marginMode'),
         } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {
+            'marginMode': marginMode,
+        };
+        const response = await this.privatePostAccountSetMarginMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "isolated"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
     }
 
     /**
@@ -2426,7 +2460,7 @@ export default class blofin extends Exchange {
      * @name blofin#fetchPositionMode
      * @description fetchs the position mode, hedged or one way
      * @see https://docs.blofin.com/index.html#get-position-mode
-     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin)
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
