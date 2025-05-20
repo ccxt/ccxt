@@ -454,6 +454,8 @@ export default class digifinex extends Exchange {
                     'TRX': 'TRC20',
                     'BEP20': 'BEP20',
                     'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
                 },
             },
             'commonCurrencies': {
