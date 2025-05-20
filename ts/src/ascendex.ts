@@ -492,108 +492,78 @@ export default class ascendex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const assetsPromise = this.v1PublicGetAssets (params);
+        const response = await this.v2PublicGetAssets (params);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        const marginPromise = this.v1PublicGetMarginAssets (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "displayName": "BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        const cashPromise = this.v1PublicGetCashAssets (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "displayName": "LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""  // hideFromWalletTx
-        //             }
-        //         ]
-        //     }
-        //
-        const [ assets, margin, cash ] = await Promise.all ([ assetsPromise, marginPromise, cashPromise ]);
-        const assetsData = this.safeList (assets, 'data', []);
-        const marginData = this.safeList (margin, 'data', []);
-        const cashData = this.safeList (cash, 'data', []);
-        const assetsById = this.indexBy (assetsData, 'assetCode');
-        const marginById = this.indexBy (marginData, 'assetCode');
-        const cashById = this.indexBy (cashData, 'assetCode');
-        const dataById = this.deepExtend (assetsById, marginById, cashById);
-        const ids = Object.keys (dataById);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = this.safeString (ids, i);
-            const currency = dataById[id];
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'assetCode');
             const code = this.safeCurrencyCode (id);
-            const scale = this.safeString (currency, 'nativeScale'); // scale used in deposit/withdraw transaction from/to chain.
-            const precision = this.parseNumber (this.parsePrecision (scale));
-            const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString (currency, 'status');
-            const statusCode = this.safeString (currency, 'statusCode');
-            let depositEnabled: Bool = undefined;
-            let withdrawEnabled: Bool = undefined;
-            if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
-                depositEnabled = false;
-                withdrawEnabled = false;
-            } else if (status === 'Normal') {
-                depositEnabled = true;
-                withdrawEnabled = true;
-            } else if (status === 'NoTransaction' || statusCode === 'NoTransaction') {
-                depositEnabled = true;
-                withdrawEnabled = false;
-            } else if (status === 'NoDeposit') {
-                depositEnabled = false;
-                withdrawEnabled = true;
+            const chains = this.safeList (currency, 'blockChain', []);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'nativeScale')));
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const networkEtnry = chains[j];
+                const networkId = this.safeString (networkEtnry, 'chainName');
+                const networkCode = this.networkCodeToId (networkId);
+                networks[networkCode] = {
+                    'withdraw': this.safeNumber (networkEtnry, 'withdrawFee'),
+                    'deposit': this.safeNumber (networkEtnry, 'minDepositAmt'),
+                    'withdrawFee': this.safeNumber (networkEtnry, 'withdrawFee'),
+                    'active': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (networkEtnry, 'minWithdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkEtnry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                    },
+                };
             }
-            const marginInside = ('borrowAssetCode' in currency);
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': marginInside,
+                'margin': undefined,
                 'name': this.safeString (currency, 'assetName'),
-                'active': status === 'Normal',
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
