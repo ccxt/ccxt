@@ -25,6 +25,7 @@ interface Exchange {
     publicGetLoansInfo (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetStatus (params?: {}): Promise<implicitReturnType>;
+    publicGetRisklimitPair (params?: {}): Promise<implicitReturnType>;
     privateGetAccountApiKeysCurrent (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccounts (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances (params?: {}): Promise<implicitReturnType>;
@@ -73,6 +74,7 @@ interface Exchange {
     privateGetStakingHistory (params?: {}): Promise<implicitReturnType>;
     privateGetMarginStatus (params?: {}): Promise<implicitReturnType>;
     privateGetMarginAccountStatus (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginLeveragePair (params?: {}): Promise<implicitReturnType>;
     privateGetPositionsOpen (params?: {}): Promise<implicitReturnType>;
     privateGetPositionsClosedSummary (params?: {}): Promise<implicitReturnType>;
     privateGetPositionsClosed (params?: {}): Promise<implicitReturnType>;
@@ -81,12 +83,14 @@ interface Exchange {
     privateGetBorrowsCurrencyHistory (params?: {}): Promise<implicitReturnType>;
     privateGetLoansInfo (params?: {}): Promise<implicitReturnType>;
     privateGetLoansRates (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansRatesHistory (params?: {}): Promise<implicitReturnType>;
     privateGetLoansOpen (params?: {}): Promise<implicitReturnType>;
     privateGetLoansCreditHistory (params?: {}): Promise<implicitReturnType>;
     privateGetLoansUpdateHistory (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountsTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostWalletCryptoCurrencyWithdraw (params?: {}): Promise<implicitReturnType>;
+    privatePostWalletCryptoServiceProviders (params?: {}): Promise<implicitReturnType>;
     privatePostWalletFiatCurrencyAccounts (params?: {}): Promise<implicitReturnType>;
     privatePostWalletFiatCurrencyWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostSimplePairQuote (params?: {}): Promise<implicitReturnType>;
@@ -104,9 +108,11 @@ interface Exchange {
     privatePostLoans (params?: {}): Promise<implicitReturnType>;
     privatePutAccountSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePutPayTransactionidIdReverse (params?: {}): Promise<implicitReturnType>;
+    privatePutPayTransactionidIdPartialReverse (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersModify (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersConditionalsModify (params?: {}): Promise<implicitReturnType>;
     privatePutMarginAccountStatus (params?: {}): Promise<implicitReturnType>;
+    privatePutMarginLeveragePair (params?: {}): Promise<implicitReturnType>;
     privatePutLoansIncrease (params?: {}): Promise<implicitReturnType>;
     privatePutLoansRate (params?: {}): Promise<implicitReturnType>;
     privatePutLoansUnlock (params?: {}): Promise<implicitReturnType>;

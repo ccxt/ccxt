@@ -251,6 +251,7 @@ export default class valr extends Exchange {
                         'loans/info',
                         'time', // fetchTime
                         'status', // fetchStatus
+                        'risklimit/{pair}',
                     ],
                 },
                 'private': {
@@ -303,6 +304,7 @@ export default class valr extends Exchange {
                         'staking/history',
                         'margin/status', // TODO fetchLeverages
                         'margin/account/status',
+                        'margin/leverage/{pair}',
                         'positions/open', // fetchPositions & fetchPositionsForSymbol
                         'positions/closed/summary',
                         'positions/closed',
@@ -311,6 +313,7 @@ export default class valr extends Exchange {
                         'borrows/{currency}/history', // fetchBorrowInterest
                         'loans/info',
                         'loans/rates', // fetchCrossBorrowRates
+                        'loans/rates/history',
                         'loans/open',
                         'loans/credit-history',
                         'loans/update-history',
@@ -319,6 +322,7 @@ export default class valr extends Exchange {
                         'account/subaccount',
                         'account/subaccounts/transfer', // transfer
                         'wallet/crypto/{currency}/withdraw', // withdraw
+                        'wallet/crypto/service-providers',
                         'wallet/fiat/{currency}/accounts',
                         'wallet/fiat/{currency}/withdraw', // withdraw
                         'simple/{pair}/quote', // TODO fetchConvertQuote
@@ -338,9 +342,11 @@ export default class valr extends Exchange {
                     'put': [
                         'account/subaccount',
                         'pay/transactionid/{id}/reverse',
+                        'pay/transactionid/{id}/partial-reverse',
                         'orders/modify', // editOrder
                         'orders/conditionals/modify',
                         'margin/account/status',
+                        'margin/leverage/{pair}',
                         'loans/increase',
                         'loans/rate',
                         'loans/unlock',
