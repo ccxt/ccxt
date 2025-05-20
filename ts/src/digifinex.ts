@@ -449,6 +449,9 @@ export default class digifinex extends Exchange {
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
+                'networksById': {
+                    'TRC20': 'TRC20',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
