@@ -953,7 +953,9 @@
                 "spread":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
             },
             "fetchCurrencies": {
-                "type": "todo"
+                "type": "todo",
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },
