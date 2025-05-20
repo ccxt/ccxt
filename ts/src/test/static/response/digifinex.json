@@ -85,7 +85,7 @@
                             "currency": "USDT",
                             "withdraw_status": "1",
                             "min_deposit_amount": "10"
-                        }
+                        },
                     ],
                     "code": "200"
                 },
