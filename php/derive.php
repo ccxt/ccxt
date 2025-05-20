@@ -452,14 +452,50 @@ class derive extends Exchange {
         $result = array();
         $tokenResponse = $this->publicGetGetAllCurrencies ($params);
         //
-        // {
-        //     "result" => array(
-        //         {
-        //             "currency" => "USDC",
-        //             "spot_price" => "1.000066413299999872",
-        //             "spot_price_24h" => "1.000327785299999872"
-        //         }
-        //     ),
+        //    {
+        //        "result" => array(
+        //            {
+        //                "currency" => "SEI",
+        //                "instrument_types" => [
+        //                    "perp"
+        //                ),
+        //                "protocol_asset_addresses" => array(
+        //                    "perp" => "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+        //                    "option" => null,
+        //                    "spot" => null,
+        //                    "underlying_erc20" => null
+        //                ),
+        //                "managers" => array(
+        //                    {
+        //                        "address" => "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+        //                        "margin_type" => "SM",
+        //                        "currency" => null
+        //                    }
+        //                ),
+        //                "srm_im_discount" => "0",
+        //                "srm_mm_discount" => "0",
+        //                "pm2_collateral_discounts" => array(),
+        //                "borrow_apy" => "0",
+        //                "supply_apy" => "0",
+        //                "total_borrow" => "0",
+        //                "total_supply" => "0",
+        //                "asset_cap_and_supply_per_manager" => array(
+        //                    "perp" => array(
+        //                        "SM" => array(
+        //                            array(
+        //                                "current_open_interest" => "0",
+        //                                "interest_cap" => "2000000",
+        //                                "manager_currency" => null
+        //                            }
+        //                        )
+        //                    ),
+        //                    "option" => array(),
+        //                    "erc20" => array()
+        //                ),
+        //                "market_type" => "SRM_PERP_ONLY",
+        //                "spot_price" => "0.2193542905042081",
+        //                "spot_price_24h" => "0.238381655533635830"
+        //            ),
         //     "id" => "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
@@ -468,7 +504,7 @@ class derive extends Exchange {
             $currency = $currencies[$i];
             $currencyId = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $currencyId,
                 'name' => null,
                 'code' => $code,
@@ -489,7 +525,7 @@ class derive extends Exchange {
                     ),
                 ),
                 'info' => $currency,
-            );
+            ));
         }
         return $result;
     }
