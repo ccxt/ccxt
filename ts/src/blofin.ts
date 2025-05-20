@@ -1215,6 +1215,9 @@ export default class blofin extends Exchange {
         } else if (triggerPrice !== undefined) {
             request['orderType'] = 'trigger';
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            if (isMarketOrder) {
+                request['orderPrice'] = '-1';
+            }
         }
         return this.extend (request, params);
     }
