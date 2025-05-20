@@ -1223,6 +1223,11 @@ public partial class blofin : Exchange
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
+        object isHedged = this.safeBool(parameters, "hedged", false);
+        if (isTrue(isHedged))
+        {
+            ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
+        }
         object isMarketOrder = isEqual(type, "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
@@ -1245,7 +1250,7 @@ public partial class blofin : Exchange
         }
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
+        parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "hedged"});
         object isStopLoss = !isEqual(stopLoss, null);
         object isTakeProfit = !isEqual(takeProfit, null);
         if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
@@ -1433,6 +1438,7 @@ public partial class blofin : Exchange
      * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
      * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
      * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+     * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price

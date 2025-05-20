@@ -360,6 +360,12 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// boolean : if true, the positionSide will be set to long/short instead of net, default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.clientOrderId</term>
     /// <description>
     /// string : a unique id for the order
