@@ -782,66 +782,48 @@ class bitrue(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'coin')
             name = self.safe_string(currency, 'coinFulName')
             code = self.safe_currency_code(id)
-            deposit = None
-            withdraw = None
-            minWithdrawString = None
-            maxWithdrawString = None
-            minWithdrawFeeString = None
             networkDetails = self.safe_list(currency, 'chainDetail', [])
             networks: dict = {}
             for j in range(0, len(networkDetails)):
                 entry = networkDetails[j]
                 networkId = self.safe_string(entry, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                enableDeposit = self.safe_bool(entry, 'enableDeposit')
-                deposit = enableDeposit if (enableDeposit) else deposit
-                enableWithdraw = self.safe_bool(entry, 'enableWithdraw')
-                withdraw = enableWithdraw if (enableWithdraw) else withdraw
-                networkWithdrawFeeString = self.safe_string(entry, 'withdrawFee')
-                if networkWithdrawFeeString is not None:
-                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
-                networkMinWithdrawString = self.safe_string(entry, 'minWithdraw')
-                if networkMinWithdrawString is not None:
-                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
-                networkMaxWithdrawString = self.safe_string(entry, 'maxWithdraw')
-                if networkMaxWithdrawString is not None:
-                    maxWithdrawString = networkMaxWithdrawString if (maxWithdrawString is None) else Precise.string_max(networkMaxWithdrawString, maxWithdrawString)
                 networks[network] = {
                     'info': entry,
                     'id': networkId,
                     'network': network,
-                    'deposit': enableDeposit,
-                    'withdraw': enableWithdraw,
-                    'active': enableDeposit and enableWithdraw,
-                    'fee': self.parse_number(networkWithdrawFeeString),
+                    'deposit': self.safe_bool(entry, 'enableDeposit'),
+                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(entry, 'withdrawFee'),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdrawString),
-                            'max': self.parse_number(networkMaxWithdrawString),
+                            'min': self.safe_number(entry, 'minWithdraw'),
+                            'max': self.safe_number(entry, 'maxWithdraw'),
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': None,
                 'info': currency,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'networks': networks,
-                'fee': self.parse_number(minWithdrawFeeString),
+                'fee': None,
                 'fees': None,
                 'type': 'crypto',
                 'limits': {
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
-                        'max': self.parse_number(maxWithdrawString),
+                        'min': None,
+                        'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

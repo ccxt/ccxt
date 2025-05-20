@@ -65,6 +65,7 @@ class paradex extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -552,14 +553,15 @@ class paradex extends Exchange {
         $expiry = $this->safe_integer($market, 'expiry_at');
         $optionType = $this->safe_string($market, 'option_type');
         $strikePrice = $this->safe_string($market, 'strike_price');
+        $takerFee = $this->parse_number('0.0003');
+        $makerFee = $this->parse_number('-0.00005');
         if ($isOption) {
             $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
             $symbol = $symbol . '-' . $strikePrice . '-' . $optionTypeSuffix;
+            $makerFee = $this->parse_number('0.0003');
         } else {
             $expiry = null;
         }
-        $takerFee = $this->parse_number('0.0003');
-        $makerFee = $this->parse_number('-0.00005');
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1292,7 +1294,7 @@ class paradex extends Exchange {
             'status' => $this->parse_order_status($status),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($orderType),
-            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'instrunction')),
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'instruction')),
             'postOnly' => null,
             'reduceOnly' => $reduceOnly,
             'side' => $side,
@@ -2381,6 +2383,122 @@ class paradex extends Exchange {
             'margin_type' => $this->encode_margin_mode($marginMode),
         );
         return $this->privatePostAccountMarginMarket ($this->extend($request, $params));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): array {
+        /**
+         * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
+         *
+         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $greeks for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$greeks-structure $greeks structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        //
+        //     {
+        //         "results" => array(
+        //             {
+        //                 "symbol" => "BTC-USD-114000-P",
+        //                 "mark_price" => "10835.66892602",
+        //                 "mark_iv" => "0.71781855",
+        //                 "delta" => "-0.98726024",
+        //                 "greeks" => array(
+        //                     "delta" => "-0.9872602390817709",
+        //                     "gamma" => "0.000004560958862297231",
+        //                     "vega" => "227.11344863639806",
+        //                     "rho" => "-302.0617972461581",
+        //                     "vanna" => "0.06609830491614832",
+        //                     "volga" => "925.9501532805552"
+        //                 ),
+        //                 "last_traded_price" => "10551.5",
+        //                 "bid" => "10794.9",
+        //                 "bid_iv" => "0.05",
+        //                 "ask" => "10887.3",
+        //                 "ask_iv" => "0.8783283",
+        //                 "last_iv" => "0.05",
+        //                 "volume_24h" => "0",
+        //                 "total_volume" => "195240.72672261014",
+        //                 "created_at" => 1747644009995,
+        //                 "underlying_price" => "103164.79162649",
+        //                 "open_interest" => "0",
+        //                 "funding_rate" => "0.000004464241170536191",
+        //                 "price_change_rate_24h" => "0.074915",
+        //                 "future_funding_rate" => "0.0001"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'results', array());
+        $greeks = $this->safe_dict($data, 0, array());
+        return $this->parse_greeks($greeks, $market);
+    }
+
+    public function parse_greeks(array $greeks, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "BTC-USD-114000-P",
+        //         "mark_price" => "10835.66892602",
+        //         "mark_iv" => "0.71781855",
+        //         "delta" => "-0.98726024",
+        //         "greeks" => array(
+        //             "delta" => "-0.9872602390817709",
+        //             "gamma" => "0.000004560958862297231",
+        //             "vega" => "227.11344863639806",
+        //             "rho" => "-302.0617972461581",
+        //             "vanna" => "0.06609830491614832",
+        //             "volga" => "925.9501532805552"
+        //         ),
+        //         "last_traded_price" => "10551.5",
+        //         "bid" => "10794.9",
+        //         "bid_iv" => "0.05",
+        //         "ask" => "10887.3",
+        //         "ask_iv" => "0.8783283",
+        //         "last_iv" => "0.05",
+        //         "volume_24h" => "0",
+        //         "total_volume" => "195240.72672261014",
+        //         "created_at" => 1747644009995,
+        //         "underlying_price" => "103164.79162649",
+        //         "open_interest" => "0",
+        //         "funding_rate" => "0.000004464241170536191",
+        //         "price_change_rate_24h" => "0.074915",
+        //         "future_funding_rate" => "0.0001"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'option');
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($greeks, 'created_at');
+        $greeksData = $this->safe_dict($greeks, 'greeks', array());
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($greeksData, 'delta'),
+            'gamma' => $this->safe_number($greeksData, 'gamma'),
+            'theta' => null,
+            'vega' => $this->safe_number($greeksData, 'vega'),
+            'rho' => $this->safe_number($greeksData, 'rho'),
+            'vanna' => $this->safe_number($greeksData, 'vanna'),
+            'volga' => $this->safe_number($greeksData, 'volga'),
+            'bidSize' => null,
+            'askSize' => null,
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
+            'bidPrice' => $this->safe_number($greeks, 'bid'),
+            'askPrice' => $this->safe_number($greeks, 'ask'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => $this->safe_number($greeks, 'last_traded_price'),
+            'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
+            'info' => $greeks,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

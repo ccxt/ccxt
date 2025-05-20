@@ -362,7 +362,6 @@ class Exchange {
         'bitstamp',
         'bitteam',
         'bitvavo',
-        'bl3p',
         'blockchaincom',
         'blofin',
         'btcalpha',

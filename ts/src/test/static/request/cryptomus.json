@@ -65,10 +65,11 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "Fetch currencies",
+                "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.cryptomus.com/v1/exchange/market/assets",
-                "input": []
+                "input": [],
+                "output": null
             }
         ],
         "fetchTickers": [

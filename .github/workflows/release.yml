@@ -116,6 +116,7 @@ jobs:
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
                git push origin HEAD:master
+               git fetch --tags --depth=1
                PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
                echo "Previous tag: ${PREVIOUS_TAG}"
 

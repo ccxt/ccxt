@@ -2,6 +2,61 @@
     "exchange": "coinlist",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "index_code": ".USDTUSD",
+                            "decimal_places": "6",
+                            "min_withdrawal": "1.0000",
+                            "is_collateral": true,
+                            "is_transferable": true,
+                            "is_visible": true
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "asset": "USDT",
+                            "index_code": ".USDTUSD",
+                            "decimal_places": "6",
+                            "min_withdrawal": "1.0000",
+                            "is_collateral": true,
+                            "is_transferable": true,
+                            "is_visible": true
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
