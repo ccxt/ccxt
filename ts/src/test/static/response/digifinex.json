@@ -201,9 +201,9 @@
                                     }
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ERC20",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": true,
                                 "deposit": true,
                                 "withdraw": true,
