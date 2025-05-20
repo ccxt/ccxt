@@ -50,6 +50,7 @@ export default class blofin extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
