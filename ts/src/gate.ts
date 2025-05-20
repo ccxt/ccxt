@@ -1219,6 +1219,9 @@ export default class gate extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
+        if (this.checkRequiredCredentials (false)) {
+            await this.loadUnifiedStatus ();
+        }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let rawPromises = [
             this.fetchContractMarkets (params),
@@ -1836,9 +1839,6 @@ export default class gate extends Exchange {
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
-        }
-        if (this.checkRequiredCredentials (false)) {
-            await this.loadUnifiedStatus ();
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
