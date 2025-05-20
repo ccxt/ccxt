@@ -51,6 +51,24 @@
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":91}"
             },
             {
+                "description": "trigger market order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
+                "input": [
+                    "XRP/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": "4",
+                        "positionSide": "short",
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"instId\":\"XRP-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"isolated\",\"triggerPrice\":\"4\",\"orderPrice\":\"-1\",\"positionSide\":\"short\"}"
+            },
+            {
                 "description": "--report",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
@@ -501,7 +519,7 @@
         ],
         "setMarginMode": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "setMarginMode",
                 "method": "setMarginMode",
                 "url": "https://openapi.blofin.com/api/v1/account/set-margin-mode",
                 "input": [
@@ -512,7 +530,7 @@
         ],
         "fetchPositionMode": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetchPositionMode",
                 "method": "fetchPositionMode",
                 "url": "https://openapi.blofin.com/api/v1/account/position-mode",
                 "input": []
@@ -520,7 +538,7 @@
         ],
         "setPositionMode": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "setPositionMode",
                 "method": "setPositionMode",
                 "url": "https://openapi.blofin.com/api/v1/account/set-position-mode",
                 "input": [
