@@ -5,8 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
+import { Account, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -118,7 +117,7 @@ export default class bullish extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'signIn': false,
+                'signIn': true,
                 'transfer': false,
                 'withdraw': false,
                 'ws': true,
@@ -161,7 +160,7 @@ export default class bullish extends Exchange {
                         'v1/markets/{symbol}/trades': 1, // done
                         'v1/markets/{symbol}/tick': 1, // done
                         'v1/markets/{symbol}/candle': 1, // done
-                        'v1/history/markets/{symbol}/trades': 1,
+                        'v1/history/markets/{symbol}/trades': 1, // done
                         'v1/history/markets/{symbol}/funding-rate': 1, // done
                         'v1/index-prices': 1, // todo ask what method to use
                         'v1/index-prices/{assetSymbol}': 1, // todo ask what method to use
@@ -670,9 +669,11 @@ export default class bullish extends Exchange {
      * @name bullish#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/trades
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -682,21 +683,51 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV1MarketsSymbolTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "tradeId": "100020000000000060",
-        //             "symbol": "BTCUSDC",
-        //             "price": "1.00000000",
-        //             "quantity": "1.00000000",
-        //             "side": "BUY",
-        //             "isTaker": true,
-        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-        //             "createdAtTimestamp": "1621490985000"
-        //         }
-        //     ]
-        //
+        if (since !== undefined) {
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['createdAtDatetime[lte]'] = until;
+            params = this.omit (params, 'until');
+        } else if (since !== undefined) {
+            request['createdAtDatetime[lte]'] = this.iso8601 (this.sum (since, 7 * 24 * 60 * 60 * 1000)); // for the exchange not to throw an exception if since is younger than 7 days
+        }
+        let response = undefined;
+        if (since !== undefined) {
+            response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "tradeId": "100178000000367159",
+            //             "symbol": "BTCUSDC",
+            //             "price": "103891.8977",
+            //             "quantity": "0.00029411",
+            //             "quoteAmount": "30.5556",
+            //             "side": "BUY",
+            //             "isTaker": true,
+            //             "createdAtTimestamp": "1747768055826",
+            //             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
+            //         }, ...
+            //     ]
+            //
+        } else {
+            response = await this.publicGetV1MarketsSymbolTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "tradeId": "100020000000000060",
+            //             "symbol": "BTCUSDC",
+            //             "price": "1.00000000",
+            //             "quantity": "1.00000000",
+            //             "side": "BUY",
+            //             "isTaker": true,
+            //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+            //             "createdAtTimestamp": "1621490985000"
+            //         }
+            //     ]
+            //
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
