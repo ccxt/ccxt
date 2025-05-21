@@ -147,7 +147,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":true}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":\"true\"}"
             },
             {
                 "description": "create take profit (type2) order",
