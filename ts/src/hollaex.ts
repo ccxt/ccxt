@@ -518,7 +518,7 @@ export default class hollaex extends Exchange {
                     'info': networkEntry,
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'numericId': this.safeInteger (currency, 'id'),
                 'code': code,
@@ -541,7 +541,7 @@ export default class hollaex extends Exchange {
                 },
                 'networks': networks,
                 'type': type,
-            };
+            });
         }
         return result;
     }

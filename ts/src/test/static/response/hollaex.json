@@ -68,14 +68,10 @@
                             "created_by": "168",
                             "owner_id": "1"
                         }
-                    },
-                    "network": "https://api.hollaex.network"
+                    }
                 },
                 "parsedResponse": {
                     "USDT": {
-                        "id": "usdt",
-                        "numericId": 6,
-                        "code": "USDT",
                         "info": {
                             "id": "6",
                             "fullname": "USD Tether",
@@ -135,22 +131,17 @@
                             "created_by": "168",
                             "owner_id": "1"
                         },
+                        "id": "usdt",
+                        "numericId": 6,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
                         "name": "USD Tether",
                         "active": true,
                         "deposit": true,
                         "withdraw": true,
-                        "fee": 20,
-                        "precision": 0.0001,
-                        "limits": {
-                            "amount": {
-                                "min": 1,
-                                "max": 10000000
-                            },
-                            "withdraw": {
-                                "min": null,
-                                "max": null
-                            }
-                        },
+                        "fee": 0.3,
+                        "fees": {},
                         "networks": {
                             "BNB": {
                                 "id": "bnb",
@@ -233,7 +224,20 @@
                                 }
                             }
                         },
-                        "type": "crypto"
+                        "limits": {
+                            "amount": {
+                                "min": 1,
+                                "max": 10000000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
                     }
                 }
             }
