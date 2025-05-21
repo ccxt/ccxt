@@ -311,7 +311,7 @@ class Exchange(object):
     base_currencies = None
     quote_currencies = None
     currencies = None
-    temp_datas = {}
+    tempdatas = {}
 
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
@@ -394,7 +394,7 @@ class Exchange(object):
         self.liquidations = dict() if self.liquidations is None else self.liquidations
         self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
-        self.temp_datas = dict() if self.temp_datas is None else self.temp_datas
+        self.tempdatas = dict() if self.tempdatas is None else self.tempdatas
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
@@ -1517,9 +1517,9 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
-            self.temp_datas['fetched_currencies'] = currencies
+            self.tempdatas['fetched_currencies'] = currencies
         markets = self.fetch_markets(params)
-        del self.temp_datas['fetched_currencies']
+        del self.tempdatas['fetched_currencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
