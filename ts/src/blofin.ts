@@ -1397,6 +1397,10 @@ export default class blofin extends Exchange {
         const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        if (reduceOnly !== undefined) {
+            params['reduceOnly'] = reduceOnly ? 'true' : 'false';
+        }
         if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
             const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl (tpslRequest);
