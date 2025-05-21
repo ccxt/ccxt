@@ -1397,7 +1397,7 @@ export default class blofin extends Exchange {
         const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
