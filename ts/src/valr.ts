@@ -1841,6 +1841,7 @@ export default class valr extends Exchange {
             'SIMPLE_SWAP_BUY': [ 'trade', 'in' ],
             'SIMPLE_SWAP_SELL': [ 'trade', 'out' ],
             'SIMPLE_SWAP_FAILURE_REVERSAL': [ 'transaction', undefined ],
+            'SPOT_LEND_INTEREST_PAYMENT': [ 'interest', 'in' ],
             'SPOT_BORROW_INTEREST_CHARGE': [ 'interest', 'out' ],
             'FUTURES_FUNDING_PAID': [ 'interest', 'out' ],
             'FUTURES_PNL_LOSS': [ 'trade', 'out' ],
