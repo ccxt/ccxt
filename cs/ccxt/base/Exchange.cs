@@ -460,8 +460,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.temp_datas.TryAdd("fetched_currencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.temp_datas.TryRemove("fetched_currencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
