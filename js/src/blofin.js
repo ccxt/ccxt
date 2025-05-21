@@ -1156,6 +1156,10 @@ export default class blofin extends Exchange {
         request['marginMode'] = marginMode;
         const triggerPrice = this.safeString(params, 'triggerPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
+        const isHedged = this.safeBool(params, 'hedged', false);
+        if (isHedged) {
+            request['positionSide'] = (side === 'buy') ? 'long' : 'short';
+        }
         const isMarketOrder = type === 'market';
         params = this.omit(params, ['timeInForce']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
@@ -1174,7 +1178,7 @@ export default class blofin extends Exchange {
         }
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
-        params = this.omit(params, ['stopLoss', 'takeProfit']);
+        params = this.omit(params, ['stopLoss', 'takeProfit', 'hedged']);
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         if (isStopLoss || isTakeProfit) {
@@ -1350,6 +1354,7 @@ export default class blofin extends Exchange {
      * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
      * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
      * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+     * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price

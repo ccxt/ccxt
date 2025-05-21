@@ -1719,22 +1719,15 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #
         #  ws - createOrder
-        #    {
-        #        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        #        "event": 'addOrderStatus',
-        #        "reqid": 1,
-        #        "status": 'ok',
-        #        "txid": 'OAVXZH-XIE54-JCYYDG'
-        #    }
+        #     {
+        #         "order_id": "OXM2QD-EALR2-YBAVEU"
+        #     }
+        #
         #  ws - editOrder
-        #    {
-        #        "descr": "order edited price = 9000.00000000",
-        #        "event": "editOrderStatus",
-        #        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        #        "reqid": 3,
-        #        "status": "ok",
-        #        "txid": "OTI672-HJFAO-XOIPPK"
-        #    }
+        #     {
+        #         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        #         "order_id": "OXM2QD-EALR2-YBAVEU"
+        #     }
         #
         #  {
         #      "error": [],
@@ -1854,13 +1847,12 @@ class kraken(Exchange, ImplicitAPI):
         # kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         # cost = self.safe_string(order, 'cost')
         price = self.safe_string(description, 'price', price)
-        # when type = trailling stop returns price = '+50.0000%'
-        if (price is not None) and price.endswith('%'):
+        # when type = trailing stop returns price = '+50.0000%'
+        if (price is not None) and (price.endswith('%') or Precise.string_equals(price, '0.00000') or Precise.string_equals(price, '0')):
             price = None  # self is not the price we want
-        if (price is None) or Precise.string_equals(price, '0'):
+        if price is None:
             price = self.safe_string(description, 'price2')
-        if (price is None) or Precise.string_equals(price, '0'):
-            price = self.safe_string(order, 'price', price)
+            price = self.safe_string_2(order, 'limitprice', 'price', price)
         flags = self.safe_string(order, 'oflags', '')
         isPostOnly = flags.find('post') > -1
         average = self.safe_number(order, 'price')
@@ -1877,7 +1869,7 @@ class kraken(Exchange, ImplicitAPI):
                 elif flags.find('fcib') >= 0:
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_n(order, ['id', 'txid', 'amend_id'])
+        id = self.safe_string_n(order, ['id', 'txid', 'order_id', 'amend_id'])
         if (id is None) or (id.startswith('[')):
             txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)

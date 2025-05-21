@@ -528,8 +528,8 @@ func  (this *ellipx) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5338 := (<-this.LoadMarkets())
-            PanicOnError(retRes5338)
+            retRes5328 := (<-this.LoadMarkets())
+            PanicOnError(retRes5328)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {
@@ -656,8 +656,8 @@ func  (this *ellipx) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6448 := (<-this.LoadMarkets())
-            PanicOnError(retRes6448)
+            retRes6438 := (<-this.LoadMarkets())
+            PanicOnError(retRes6438)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {
@@ -772,8 +772,8 @@ func  (this *ellipx) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7408 := (<-this.LoadMarkets())
-            PanicOnError(retRes7408)
+            retRes7398 := (<-this.LoadMarkets())
+            PanicOnError(retRes7398)
             var methodName interface{} = "fetchOHLCV"
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, methodName, "paginate");
@@ -781,9 +781,9 @@ func  (this *ellipx) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes74519 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-                    PanicOnError(retRes74519)
-                    ch <- retRes74519
+                    retRes74419 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+                    PanicOnError(retRes74419)
+                    ch <- retRes74419
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -865,92 +865,188 @@ func  (this *ellipx) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
             "_expand": "/Crypto_Token,/Crypto_Chain",
         }, params)))
             PanicOnError(response)
-            var currencies interface{} = map[string]interface{} {}
-            var data interface{} = this.SafeValue(response, "data", []interface{}{})
+            var result interface{} = map[string]interface{} {}
+            var data interface{} = this.SafeList(response, "data", []interface{}{})
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-                var currency interface{} = this.ParseCurrency(GetValue(data, i))
-                var code interface{} = this.SafeString(currency, "code")
-                if IsTrue(!IsEqual(code, nil)) {
-                    AddElementToObject(currencies, code, currency)
+                var networkEntry interface{} = GetValue(data, i)
+                //
+                //    {
+                //        "Crypto_Token_Info__": "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
+                //        "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //        "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+                //        "Type": "native",
+                //        "Symbol": null,
+                //        "Name": null,
+                //        "Contract_Address": null,
+                //        "Minimum_Deposit": {
+                //            "v": "6",
+                //            "e": "6",
+                //            "f": "6.0e-6"
+                //        },
+                //        "Minimum_Withdraw": {
+                //            "v": "15",
+                //            "e": "5",
+                //            "f": "0.00015"
+                //        },
+                //        "Withdraw_Fee": {
+                //            "v": "1",
+                //            "e": "4",
+                //            "f": "0.0001"
+                //        },
+                //        "Minimum_Collect": null,
+                //        "Status": "valid",
+                //        "Can_Deposit": "Y",
+                //        "Decimals": null,
+                //        "Priority": "100",
+                //        "Created": {
+                //            "unix": "1727552199",
+                //            "us": "0",
+                //            "iso": "2024-09-28 19:36:39.000000",
+                //            "tz": "UTC",
+                //            "full": "1727552199000000",
+                //            "unixms": "1727552199000"
+                //        },
+                //        "Crypto_Token": {
+                //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //            "Name": "Bitcoin",
+                //            "Symbol": "BTC",
+                //            "Decimals": "8",
+                //            "CMC_Id": "1",
+                //            "Priority": "100",
+                //            "Can_Deposit": "Y",
+                //            "Category": "token",
+                //            "Testnet": "N",
+                //            "Created": {
+                //                "unix": "1727552113",
+                //                "us": "0",
+                //                "iso": "2024-09-28 19:35:13.000000",
+                //                "tz": "UTC",
+                //                "full": "1727552113000000",
+                //                "unixms": "1727552113000"
+                //            },
+                //            "Logo": [
+                //                {
+                //                    "Crypto_Token_Logo__": "ctklg-aoozyr-rzm5-fphf-dhm7-5wbtetha",
+                //                    "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //                    "Blob__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+                //                    "Default": "Y",
+                //                    "Format": "png",
+                //                    "Priority": "0",
+                //                    "Created": {
+                //                        "unix": "1730196627",
+                //                        "us": "929660",
+                //                        "iso": "2024-10-29 10:10:27.929660",
+                //                        "tz": "UTC",
+                //                        "full": "1730196627929660",
+                //                        "unixms": "1730196627929"
+                //                    },
+                //                    "Source": {
+                //                        "Media_Image__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+                //                        "Url": "https://static.atonline.net/image/m_X7_tnmIYFCwn6EUVQuMKqrCuPB3CMl4ONTegeYpC0wIg68YZM0CuBpbjspnYwz/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                //                    }
+                //                }
+                //            ]
+                //        },
+                //        "Crypto_Chain": {
+                //            "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+                //            "EVM_Chain__": null,
+                //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //            "Name": "Bitcoin",
+                //            "Key": "bitcoin",
+                //            "Type": "Bitcoin",
+                //            "Curve": "secp256k1",
+                //            "Backend_Url": null,
+                //            "Wallet_Verification_Methods": {
+                //                "signature": true
+                //            },
+                //            "Block_Margin": "3",
+                //            "Created": {
+                //                "unix": "1725340084",
+                //                "us": "0",
+                //                "iso": "2024-09-03 05:08:04.000000",
+                //                "tz": "UTC",
+                //                "full": "1725340084000000",
+                //                "unixms": "1725340084000"
+                //            }
+                //        }
+                //    }
+                //
+                var id interface{} = this.SafeString(networkEntry, "Crypto_Token__")
+                var token interface{} = this.SafeDict(networkEntry, "Crypto_Token", map[string]interface{} {})
+                var code interface{} = this.SafeCurrencyCode(this.SafeString(token, "Symbol"))
+                if !IsTrue((InOp(result, code))) {
+                    AddElementToObject(result, code, map[string]interface{} {
+            "id": id,
+            "code": code,
+            "info": []interface{}{},
+            "type": nil,
+            "name": this.SafeString(token, "Name"),
+            "active": nil,
+            "deposit": nil,
+            "withdraw": nil,
+            "fee": nil,
+            "precision": nil,
+            "limits": map[string]interface{} {
+                "amount": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "withdraw": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "deposit": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+            },
+            "networks": map[string]interface{} {},
+        })
                 }
+                var networkId interface{} = this.SafeString(networkEntry, "Crypto_Chain__")
+                var cryptoChainDict interface{} = this.SafeString(networkEntry, "Crypto_Chain")
+                var networkName interface{} = this.SafeString(cryptoChainDict, "Type", "default")
+                var networkCode interface{} = this.NetworkIdToCode(networkName)
+                AddElementToObject(GetValue(GetValue(result, code), "networks"), networkCode, map[string]interface{} {
+            "id": networkId,
+            "network": networkCode,
+            "active": IsEqual(this.SafeString(networkEntry, "Status"), "valid"),
+            "deposit": IsEqual(this.SafeString(networkEntry, "Can_Deposit"), "Y"),
+            "withdraw": nil,
+            "fee": this.ParseNumber(this.ParseAmount(GetValue(networkEntry, "Withdraw_Fee"))),
+            "precision": this.ParseNumber(this.ParsePrecision(this.SafeString(token, "Decimals"))),
+            "limits": map[string]interface{} {
+                "amount": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "withdraw": map[string]interface{} {
+                    "min": this.ParseAmount(GetValue(networkEntry, "Minimum_Withdraw")),
+                    "max": nil,
+                },
+                "deposit": map[string]interface{} {
+                    "min": this.ParseAmount(GetValue(networkEntry, "Minimum_Deposit")),
+                    "max": nil,
+                },
+            },
+        })
+                var infos interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
+                AppendToArray(&infos,networkEntry)
+                AddElementToObject(GetValue(result, code), "info", infos)
+            }
+            // only after all entries are formed in currencies, restructure each entry
+            var allKeys interface{} = ObjectKeys(result)
+            for i := 0; IsLessThan(i, GetArrayLength(allKeys)); i++ {
+                var code interface{} = GetValue(allKeys, i)
+                AddElementToObject(result, code, this.SafeCurrencyStructure(GetValue(result, code))) // this is needed after adding network entry
             }
         
-            ch <- currencies
+            ch <- result
             return nil
         
             }()
             return ch
         }
-func  (this *ellipx) ParseCurrency(currency interface{}) interface{}  {
-    var id interface{} = this.SafeString(currency, "Crypto_Token__")
-    var token interface{} = this.SafeValue(currency, "Crypto_Token", map[string]interface{} {})
-    var code interface{} = this.SafeCurrencyCode(this.SafeString(token, "Symbol"))
-    var name interface{} = this.SafeString(token, "Name")
-    var active interface{} = IsEqual(this.SafeString(currency, "Status"), "valid")
-    var deposit interface{} = IsEqual(this.SafeString(currency, "Can_Deposit"), "Y")
-    var withdraw interface{} = IsEqual(this.SafeString(currency, "Status"), "valid")
-    var fee interface{} = nil
-    if IsTrue(!IsEqual(GetValue(currency, "Withdraw_Fee"), nil)) {
-        fee = this.ParseNumber(this.ParseAmount(GetValue(currency, "Withdraw_Fee")))
-    }
-    var precision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(token, "Decimals")))
-    var minDeposit interface{} = nil
-    if IsTrue(!IsEqual(GetValue(currency, "Minimum_Deposit"), nil)) {
-        minDeposit = this.ParseAmount(GetValue(currency, "Minimum_Deposit"))
-    }
-    var minWithdraw interface{} = nil
-    if IsTrue(!IsEqual(GetValue(currency, "Minimum_Withdraw"), nil)) {
-        minWithdraw = this.ParseAmount(GetValue(currency, "Minimum_Withdraw"))
-    }
-    var networkId interface{} = this.SafeString(currency, "Crypto_Chain__")
-    var networkData interface{} = this.SafeValue(currency, "Crypto_Chain", map[string]interface{} {})
-    var networkCode interface{} = this.SafeString(networkData, "Type", "default")
-    var networks interface{} = map[string]interface{} {
-        "string": nil,
-        "info": Ternary(IsTrue(IsEqual(networkCode, "default")), map[string]interface{} {}, networkData),
-        "id": IsTrue(IsTrue(networkId) || IsTrue(id)) || IsTrue(""),
-        "network": networkCode,
-        "active": active,
-        "deposit": deposit,
-        "withdraw": withdraw,
-        "fee": fee,
-        "precision": precision,
-        "limits": map[string]interface{} {
-            "deposit": map[string]interface{} {
-                "min": minDeposit,
-                "max": nil,
-            },
-            "withdraw": map[string]interface{} {
-                "min": minWithdraw,
-                "max": nil,
-            },
-        },
-    }
-    var result interface{} = map[string]interface{} {
-        "info": currency,
-        "id": id,
-        "code": code,
-        "name": name,
-        "active": active,
-        "deposit": deposit,
-        "withdraw": withdraw,
-        "fee": fee,
-        "precision": precision,
-        "type": nil,
-        "limits": map[string]interface{} {
-            "amount": map[string]interface{} {
-                "min": nil,
-                "max": nil,
-            },
-            "withdraw": map[string]interface{} {
-                "min": minWithdraw,
-                "max": nil,
-            },
-        },
-        "networks": networks,
-    }
-    return result
-}
 /**
  * @method
  * @name ellipx#fetchTrades
@@ -974,8 +1070,8 @@ func  (this *ellipx) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes9118 := (<-this.LoadMarkets())
-            PanicOnError(retRes9118)
+            retRes10058 := (<-this.LoadMarkets())
+            PanicOnError(retRes10058)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {
@@ -1091,8 +1187,8 @@ func  (this *ellipx) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10118 := (<-this.LoadMarkets())
-            PanicOnError(retRes10118)
+            retRes11058 := (<-this.LoadMarkets())
+            PanicOnError(retRes11058)
         
             response:= (<-this.PrivateGetUserWallet(params))
             PanicOnError(response)
@@ -1179,14 +1275,14 @@ func  (this *ellipx) FetchBalance(optionalArgs ...interface{}) <- chan interface
             for i := 0; IsLessThan(i, GetArrayLength(dataArray)); i++ {
                 var entry interface{} = GetValue(dataArray, i)
                 var balance interface{} = this.SafeDict(entry, "Balance", map[string]interface{} {})
-                var currency interface{} = this.SafeString(balance, "currency")
-                if IsTrue(!IsEqual(currency, nil)) {
+                var code interface{} = this.SafeString(balance, "currency")
+                if IsTrue(!IsEqual(code, nil)) {
                     var account interface{} = map[string]interface{} {
                         "free": this.ParseAmount(GetValue(GetValue(entry, "Unencumbered_Balance"), "value_xint")),
                         "used": this.ParseAmount(GetValue(GetValue(entry, "Liabilities"), "value_xint")),
                         "total": this.ParseAmount(GetValue(balance, "value_xint")),
                     }
-                    AddElementToObject(result, currency, account)
+                    AddElementToObject(result, code, account)
                 }
             }
         
@@ -1220,8 +1316,8 @@ func  (this *ellipx) CreateOrder(symbol interface{}, typeVar interface{}, side i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11248 := (<-this.LoadMarkets())
-            PanicOnError(retRes11248)
+            retRes12188 := (<-this.LoadMarkets())
+            PanicOnError(retRes12188)
             var market interface{} = this.Market(symbol)
             // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
             var marketId interface{} = GetValue(market, "id")
@@ -1326,8 +1422,8 @@ func  (this *ellipx) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12148 := (<-this.LoadMarkets())
-            PanicOnError(retRes12148)
+            retRes13088 := (<-this.LoadMarkets())
+            PanicOnError(retRes13088)
             var request interface{} = map[string]interface{} {
                 "orderUuid": id,
             }
@@ -1368,8 +1464,8 @@ func  (this *ellipx) FetchOrdersByStatus(status interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12368 := (<-this.LoadMarkets())
-            PanicOnError(retRes12368)
+            retRes13308 := (<-this.LoadMarkets())
+            PanicOnError(retRes13308)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1473,9 +1569,9 @@ func  (this *ellipx) FetchOrders(optionalArgs ...interface{}) <- chan interface{
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders requires a symbol parameter")))
             }
         
-                retRes132115 :=  (<-this.FetchOrdersByStatus(nil, symbol, since, limit, params))
-                PanicOnError(retRes132115)
-                ch <- retRes132115
+                retRes141515 :=  (<-this.FetchOrdersByStatus(nil, symbol, since, limit, params))
+                PanicOnError(retRes141515)
+                ch <- retRes141515
                 return nil
         
             }()
@@ -1509,9 +1605,9 @@ func  (this *ellipx) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders requires a symbol parameter")))
             }
         
-                retRes133915 :=  (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-                PanicOnError(retRes133915)
-                ch <- retRes133915
+                retRes143315 :=  (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+                PanicOnError(retRes143315)
+                ch <- retRes143315
                 return nil
         
             }()
@@ -1585,8 +1681,8 @@ func  (this *ellipx) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes14008 := (<-this.LoadMarkets())
-            PanicOnError(retRes14008)
+            retRes14948 := (<-this.LoadMarkets())
+            PanicOnError(retRes14948)
             var request interface{} = map[string]interface{} {
                 "orderUuid": id,
             }
@@ -1669,8 +1765,8 @@ func  (this *ellipx) FetchOrderTrades(id interface{}, optionalArgs ...interface{
                 panic(ArgumentsRequired("fetchMyTrades requires a symbol parameter"))
             }
         
-            retRes14648 := (<-this.LoadMarkets())
-            PanicOnError(retRes14648)
+            retRes15588 := (<-this.LoadMarkets())
+            PanicOnError(retRes15588)
             var market interface{} = this.Market(symbol)
             var currencyPair interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {
@@ -1880,8 +1976,8 @@ func  (this *ellipx) FetchDepositAddress(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes16618 := (<-this.LoadMarkets())
-            PanicOnError(retRes16618)
+            retRes17558 := (<-this.LoadMarkets())
+            PanicOnError(retRes17558)
             var currency interface{} = this.Currency(code)
             var network interface{} = this.SafeValue(GetValue(currency, "info"), "Crypto_Chain", nil)
             var request interface{} = map[string]interface{} {
@@ -1933,8 +2029,8 @@ func  (this *ellipx) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes17008 := (<-this.LoadMarkets())
-            PanicOnError(retRes17008)
+            retRes17948 := (<-this.LoadMarkets())
+            PanicOnError(retRes17948)
         
             response:= (<-this.PrivateGetMarketTradeFeeQuery(params))
             PanicOnError(response)
@@ -1976,7 +2072,7 @@ func  (this *ellipx) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
  * @name ellipx#withdraw
  * @description Make a withdrawal request
  * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
- * @param {string} code Currency code
+ * @param {string} code unified currency code
  * @param {number} amount Amount to withdraw
  * @param {string} address Destination wallet address
  * @param {string} [tag] Additional tag/memo for currencies that require it
@@ -1994,8 +2090,8 @@ func  (this *ellipx) Withdraw(code interface{}, amount interface{}, address inte
             _ = params
             this.CheckAddress(address)
         
-            retRes17458 := (<-this.LoadMarkets())
-            PanicOnError(retRes17458)
+            retRes18398 := (<-this.LoadMarkets())
+            PanicOnError(retRes18398)
             var currency interface{} = this.Currency(code)
             var networks interface{} = this.SafeValue(currency, "networks")
             if IsTrue(IsEqual(networks, nil)) {

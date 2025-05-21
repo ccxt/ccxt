@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ellipx import ImplicitAPI
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -799,80 +799,178 @@ class ellipx(Exchange, ImplicitAPI):
             'results_per_page': 100,
             '_expand': '/Crypto_Token,/Crypto_Chain',
         }, params))
-        currencies = {}
-        data = self.safe_value(response, 'data', [])
+        result = {}
+        data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
-            currency = self.parse_currency(data[i])
-            code = self.safe_string(currency, 'code')
-            if code is not None:
-                currencies[code] = currency
-        return currencies
-
-    def parse_currency(self, currency) -> Currency:
-        id = self.safe_string(currency, 'Crypto_Token__')
-        token = self.safe_value(currency, 'Crypto_Token', {})
-        code = self.safe_currency_code(self.safe_string(token, 'Symbol'))
-        name = self.safe_string(token, 'Name')
-        active = self.safe_string(currency, 'Status') == 'valid'
-        deposit = self.safe_string(currency, 'Can_Deposit') == 'Y'
-        withdraw = self.safe_string(currency, 'Status') == 'valid'
-        fee = None
-        if currency['Withdraw_Fee'] is not None:
-            fee = self.parse_number(self.parse_amount(currency['Withdraw_Fee']))
-        precision = self.parse_number(self.parse_precision(self.safe_string(token, 'Decimals')))
-        minDeposit = None
-        if currency['Minimum_Deposit'] is not None:
-            minDeposit = self.parse_amount(currency['Minimum_Deposit'])
-        minWithdraw = None
-        if currency['Minimum_Withdraw'] is not None:
-            minWithdraw = self.parse_amount(currency['Minimum_Withdraw'])
-        networkId = self.safe_string(currency, 'Crypto_Chain__')
-        networkData = self.safe_value(currency, 'Crypto_Chain', {})
-        networkCode = self.safe_string(networkData, 'Type', 'default')
-        networks = {
-            'string': None,
-            'info': networkCode == {} if 'default' else networkData,
-            'id': networkId or id or '',
-            'network': networkCode,
-            'active': active,
-            'deposit': deposit,
-            'withdraw': withdraw,
-            'fee': fee,
-            'precision': precision,
-            'limits': {
-                'deposit': {
-                    'min': minDeposit,
-                    'max': None,
+            networkEntry = data[i]
+            #
+            #    {
+            #        "Crypto_Token_Info__": "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
+            #        "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            #        "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            #        "Type": "native",
+            #        "Symbol": null,
+            #        "Name": null,
+            #        "Contract_Address": null,
+            #        "Minimum_Deposit": {
+            #            "v": "6",
+            #            "e": "6",
+            #            "f": "6.0e-6"
+            #        },
+            #        "Minimum_Withdraw": {
+            #            "v": "15",
+            #            "e": "5",
+            #            "f": "0.00015"
+            #        },
+            #        "Withdraw_Fee": {
+            #            "v": "1",
+            #            "e": "4",
+            #            "f": "0.0001"
+            #        },
+            #        "Minimum_Collect": null,
+            #        "Status": "valid",
+            #        "Can_Deposit": "Y",
+            #        "Decimals": null,
+            #        "Priority": "100",
+            #        "Created": {
+            #            "unix": "1727552199",
+            #            "us": "0",
+            #            "iso": "2024-09-28 19:36:39.000000",
+            #            "tz": "UTC",
+            #            "full": "1727552199000000",
+            #            "unixms": "1727552199000"
+            #        },
+            #        "Crypto_Token": {
+            #            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            #            "Name": "Bitcoin",
+            #            "Symbol": "BTC",
+            #            "Decimals": "8",
+            #            "CMC_Id": "1",
+            #            "Priority": "100",
+            #            "Can_Deposit": "Y",
+            #            "Category": "token",
+            #            "Testnet": "N",
+            #            "Created": {
+            #                "unix": "1727552113",
+            #                "us": "0",
+            #                "iso": "2024-09-28 19:35:13.000000",
+            #                "tz": "UTC",
+            #                "full": "1727552113000000",
+            #                "unixms": "1727552113000"
+            #            },
+            #            "Logo": [
+            #                {
+            #                    "Crypto_Token_Logo__": "ctklg-aoozyr-rzm5-fphf-dhm7-5wbtetha",
+            #                    "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            #                    "Blob__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            #                    "Default": "Y",
+            #                    "Format": "png",
+            #                    "Priority": "0",
+            #                    "Created": {
+            #                        "unix": "1730196627",
+            #                        "us": "929660",
+            #                        "iso": "2024-10-29 10:10:27.929660",
+            #                        "tz": "UTC",
+            #                        "full": "1730196627929660",
+            #                        "unixms": "1730196627929"
+            #                    },
+            #                    "Source": {
+            #                        "Media_Image__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            #                        "Url": "https://static.atonline.net/image/m_X7_tnmIYFCwn6EUVQuMKqrCuPB3CMl4ONTegeYpC0wIg68YZM0CuBpbjspnYwz/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+            #                    }
+            #                }
+            #            ]
+            #        },
+            #        "Crypto_Chain": {
+            #            "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            #            "EVM_Chain__": null,
+            #            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            #            "Name": "Bitcoin",
+            #            "Key": "bitcoin",
+            #            "Type": "Bitcoin",
+            #            "Curve": "secp256k1",
+            #            "Backend_Url": null,
+            #            "Wallet_Verification_Methods": {
+            #                "signature": True
+            #            },
+            #            "Block_Margin": "3",
+            #            "Created": {
+            #                "unix": "1725340084",
+            #                "us": "0",
+            #                "iso": "2024-09-03 05:08:04.000000",
+            #                "tz": "UTC",
+            #                "full": "1725340084000000",
+            #                "unixms": "1725340084000"
+            #            }
+            #        }
+            #    }
+            #
+            id = self.safe_string(networkEntry, 'Crypto_Token__')
+            token = self.safe_dict(networkEntry, 'Crypto_Token', {})
+            code = self.safe_currency_code(self.safe_string(token, 'Symbol'))
+            if not (code in result):
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': [],
+                    'type': None,
+                    'name': self.safe_string(token, 'Name'),
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                }
+            networkId = self.safe_string(networkEntry, 'Crypto_Chain__')
+            cryptoChainDict = self.safe_string(networkEntry, 'Crypto_Chain')
+            networkName = self.safe_string(cryptoChainDict, 'Type', 'default')
+            networkCode = self.network_id_to_code(networkName)
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': self.safe_string(networkEntry, 'Status') == 'valid',
+                'deposit': self.safe_string(networkEntry, 'Can_Deposit') == 'Y',
+                'withdraw': None,
+                'fee': self.parse_number(self.parse_amount(networkEntry['Withdraw_Fee'])),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'Decimals'))),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_amount(networkEntry['Minimum_Withdraw']),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.parse_amount(networkEntry['Minimum_Deposit']),
+                        'max': None,
+                    },
                 },
-                'withdraw': {
-                    'min': minWithdraw,
-                    'max': None,
-                },
-            },
-        }
-        result: Currency = {
-            'info': currency,
-            'id': id,
-            'code': code,
-            'name': name,
-            'active': active,
-            'deposit': deposit,
-            'withdraw': withdraw,
-            'fee': fee,
-            'precision': precision,
-            'type': None,
-            'limits': {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'withdraw': {
-                    'min': minWithdraw,
-                    'max': None,
-                },
-            },
-            'networks': networks,
-        }
+            }
+            infos = self.safe_list(result[code], 'info', [])
+            infos.append(networkEntry)
+            result[code]['info'] = infos
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -1065,14 +1163,14 @@ class ellipx(Exchange, ImplicitAPI):
         for i in range(0, len(dataArray)):
             entry = dataArray[i]
             balance = self.safe_dict(entry, 'Balance', {})
-            currency = self.safe_string(balance, 'currency')
-            if currency is not None:
+            code = self.safe_string(balance, 'currency')
+            if code is not None:
                 account = {
                     'free': self.parse_amount(entry['Unencumbered_Balance']['value_xint']),
                     'used': self.parse_amount(entry['Liabilities']['value_xint']),
                     'total': self.parse_amount(balance['value_xint']),
                 }
-                result[currency] = account
+                result[code] = account
         return self.safe_balance(result)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1678,7 +1776,7 @@ class ellipx(Exchange, ImplicitAPI):
 
         https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
 
-        :param str code: Currency code
+        :param str code: unified currency code
         :param number amount: Amount to withdraw
         :param str address: Destination wallet address
         :param str [tag]: Additional tag/memo for currencies that require it

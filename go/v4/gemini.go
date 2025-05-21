@@ -245,7 +245,7 @@ func  (this *gemini) Describe() interface{}  {
             "fetchMarketFromWebRetries": 10,
             "fetchMarketsFromAPI": map[string]interface{} {
                 "fetchDetailsForAllSymbols": false,
-                "quoteCurrencies": []interface{}{"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH"},
+                "quoteCurrencies": []interface{}{"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL"},
             },
             "fetchMarkets": map[string]interface{} {
                 "webApiEnable": true,

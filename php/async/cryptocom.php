@@ -58,7 +58,7 @@ class cryptocom extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -514,6 +514,119 @@ class cryptocom extends Exchange {
                 'broad' => array(),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             *
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$currency-$networks
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            // this endpoint requires authentication
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
+            //
+            //    {
+            //        "id" => "1747502328559",
+            //        "method" => "private/get-$currency-$networks",
+            //        "code" => "0",
+            //        "result" => {
+            //            "update_time" => "1747502281000",
+            //            "currency_map" => {
+            //                "USDT" => {
+            //                    "full_name" => "Tether USD",
+            //                    "default_network" => "ETH",
+            //                    "network_list" => array(
+            //                        array(
+            //                            "network_id" => "ETH",
+            //                            "withdrawal_fee" => "10.00000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "20.0",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "32"
+            //                        ),
+            //                        array(
+            //                            "network_id" => "CRONOS",
+            //                            "withdrawal_fee" => "0.18000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "0.36",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "15"
+            //                        ),
+            //                        {
+            //                            "network_id" => "SOL",
+            //                            "withdrawal_fee" => "5.31000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "10.62",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "1"
+            //                        }
+            //                    )
+            //                }
+            //            }
+            //        }
+            //    }
+            //
+            $resultData = $this->safe_dict($response, 'result', array());
+            $currencyMap = $this->safe_dict($resultData, 'currency_map', array());
+            $keys = is_array($currencyMap) ? array_keys($currencyMap) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                $currency = $currencyMap[$key];
+                $id = $key;
+                $code = $this->safe_currency_code($id);
+                $networks = array();
+                $chains = $this->safe_list($currency, 'network_list', array());
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'network_id');
+                    $network = $this->network_id_to_code($networkId);
+                    $networks[$network] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $network,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                        'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                        'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => $currency,
+                    'id' => $id,
+                    'code' => $code,
+                    'name' => $this->safe_string($currency, 'full_name'),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'type' => 'crypto', // only crypto now
+                    'networks' => $networks,
+                ));
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {

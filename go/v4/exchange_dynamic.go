@@ -110,10 +110,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bitvavoItf := &bitvavo{}
         bitvavoItf.Init(exchangeArgs)
         return bitvavoItf, true
-    case "bl3p":
-        bl3pItf := &bl3p{}
-        bl3pItf.Init(exchangeArgs)
-        return bl3pItf, true
     case "blockchaincom":
         blockchaincomItf := &blockchaincom{}
         blockchaincomItf.Init(exchangeArgs)

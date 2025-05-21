@@ -733,33 +733,7 @@ class coinex(Exchange, ImplicitAPI):
             canWithdraw = self.safe_bool(asset, 'withdraw_enabled')
             firstChain = self.safe_dict(chains, 0, {})
             firstPrecisionString = self.parse_precision(self.safe_string(firstChain, 'withdrawal_precision'))
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': None,
-                'active': canDeposit and canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': None,
-                'precision': self.parse_number(firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': coin,
-            }
+            networks: dict = {}
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -796,9 +770,34 @@ class coinex(Exchange, ImplicitAPI):
                     },
                     'info': chain,
                 }
-                networks = self.safe_dict(result[code], 'networks', {})
                 networks[networkId] = network
-                result[code]['networks'] = networks
+            result[code] = self.safe_currency_structure({
+                'id': currencyId,
+                'code': code,
+                'name': None,
+                'active': canDeposit and canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': None,
+                'precision': self.parse_number(firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': {},
+                'type': 'crypto',
+                'info': coin,
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

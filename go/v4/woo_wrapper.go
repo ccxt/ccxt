@@ -119,6 +119,21 @@ func (this *Woo) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 }
 /**
  * @method
+ * @name woo#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.woox.io/#available-token-public
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Woo) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name woo#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
  * @see https://docs.woox.io/#send-order

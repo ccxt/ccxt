@@ -226,6 +226,21 @@ func (this *Idex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 }
 /**
  * @method
+ * @name idex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://api-docs-v3.idex.io/#get-assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Idex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name idex#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api-docs-v3.idex.io/#get-balances

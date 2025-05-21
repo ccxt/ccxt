@@ -37,7 +37,6 @@ var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
 var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
-var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
@@ -194,7 +193,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.82';
+const version = '4.4.83';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -222,7 +221,6 @@ const exchanges = {
     'bitstamp': bitstamp,
     'bitteam': bitteam,
     'bitvavo': bitvavo,
-    'bl3p': bl3p,
     'blockchaincom': blockchaincom,
     'blofin': blofin,
     'btcalpha': btcalpha,
@@ -454,7 +452,6 @@ exports.bitso = bitso;
 exports.bitstamp = bitstamp;
 exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
-exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.blofin = blofin;
 exports.btcalpha = btcalpha;

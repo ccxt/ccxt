@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.82'
+__version__ = '4.4.83'
 
 # -----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.fast_client import FastClient
+from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
@@ -387,7 +387,9 @@ class Exchange(BaseExchange):
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
+            # we use aiohttp instead of fastClient now because of this
+            # https://github.com/ccxt/ccxt/pull/25995
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
             self.clients[url].proxy = self.get_ws_proxy()
         return self.clients[url]
 
