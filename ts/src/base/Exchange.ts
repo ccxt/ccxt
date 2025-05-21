@@ -843,7 +843,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + this.urlEncoderForProxyUrl (url); 
+            url = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -1018,6 +1018,22 @@ export default class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
+    /**
+     * Loads and prepares the markets for trading.
+     *
+     * @param reload - If true, the markets will be reloaded from the exchange.
+     * @param params - Additional parameters for the request.
+     *
+     * @returns A promise that resolves to a dictionary of markets.
+     *
+     * @throws An error if the markets cannot be loaded or prepared.
+     *
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
     async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
