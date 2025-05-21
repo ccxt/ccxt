@@ -141,6 +141,7 @@ export default class idex extends idexRest {
             'quoteVolume': this.safeString (data, 'q'),
             'info': message,
         });
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -186,6 +187,7 @@ export default class idex extends idexRest {
         }
         const trades = this.trades as any;
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 
@@ -312,6 +314,8 @@ export default class idex extends idexRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
     }
 
@@ -390,6 +394,7 @@ export default class idex extends idexRest {
                     }
                 }
                 subscription['fetchingOrderBookSnapshot'] = false;
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             } else {
                 // 4. If the sequence in the order book snapshot is less than the sequence of the
@@ -410,6 +415,7 @@ export default class idex extends idexRest {
             }
         } catch (e) {
             subscription['fetchingOrderBookSnapshot'] = false;
+            this.streamProduce ('orderbooks::' + symbol, undefined, e);
             client.reject (e, messageHash);
         }
     }
@@ -491,6 +497,7 @@ export default class idex extends idexRest {
         orderbook['nonce'] = nonce;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -651,6 +658,7 @@ export default class idex extends idexRest {
         }
         const orders = this.orders;
         orders.append (parsedOrder);
+        this.streamProduce ('orders', parsedOrder);
         const symbolSpecificMessageHash = type + ':' + marketId;
         client.resolve (orders, symbolSpecificMessageHash);
         client.resolve (orders, type);
@@ -719,6 +727,7 @@ export default class idex extends idexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'tickers': this.handleTicker,

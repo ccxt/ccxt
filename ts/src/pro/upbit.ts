@@ -268,6 +268,7 @@ export default class upbit extends upbitRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -323,6 +324,7 @@ export default class upbit extends upbitRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = datetime;
         const messageHash = 'orderbook:' + marketId;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -350,8 +352,10 @@ export default class upbit extends upbitRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         const marketId = this.safeString (message, 'code');
         const messageHash = 'trade:' + marketId;
+        this.streamProduce ('trades', trade);
         client.resolve (stored, messageHash);
     }
 
@@ -605,6 +609,7 @@ export default class upbit extends upbitRest {
         }
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
+        this.streamProduce ('myTrades', trade);
         let messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades:' + trade['symbol'];
@@ -636,6 +641,7 @@ export default class upbit extends upbitRest {
             parsed['datetime'] = this.safeString (order, 'datetime');
         }
         cachedOrders.append (parsed);
+        this.streamProduce ('orders', parsed);
         let messageHash = 'myOrder';
         client.resolve (this.orders, messageHash);
         messageHash = messageHash + ':' + symbol;
@@ -691,10 +697,12 @@ export default class upbit extends upbitRest {
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = this.safeString (message, 'type');
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
