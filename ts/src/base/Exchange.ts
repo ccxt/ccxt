@@ -1019,15 +1019,13 @@ export default class Exchange {
     }
 
     /**
-     * Loads and prepares the markets for trading.
-     *
-     * @param reload - If true, the markets will be reloaded from the exchange.
-     * @param params - Additional parameters for the request.
-     *
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
      * @returns A promise that resolves to a dictionary of markets.
-     *
      * @throws An error if the markets cannot be loaded or prepared.
-     *
      * @remarks This method is asynchronous and returns a promise.
      *          It ensures that the markets are only loaded once, even if the method is called multiple times.
      *          If the markets are already loaded and not reloading, the method returns the existing markets.
