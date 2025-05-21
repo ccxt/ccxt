@@ -3,15 +3,6 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
-        "fetchCurrencies": [
-            {
-                "description": "fetchCurrencies",
-                "method": "fetchCurrencies",
-                "url": "https://exchange.gemini.com/",
-                "input": [],
-                "output": null
-            }
-        ],
         "fetchTrades": [
             {
                 "description": "spot fetchTrades",
