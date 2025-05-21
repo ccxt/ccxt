@@ -503,18 +503,19 @@ export default class hollaex extends Exchange {
                 const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'active': this.safeBool (networkEntry, 'active'),
                     'deposit': undefined,
                     'withdraw': undefined,
-                    'fee': undefined,
+                    'fee': this.safeNumber (networkEntry, 'value'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
                             'min': undefined,
-                            'max': this.safeValue (withdrawalLimits, 0),
+                            'max': undefined,
                         },
                     },
+                    'info': networkEntry,
                 };
             }
             result[code] = {
