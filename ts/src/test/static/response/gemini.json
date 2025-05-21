@@ -7,22 +7,7 @@
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "input": [],
-                "httpResponse": {
-                  "currencies": [
-                      [
-                          "USDT",
-                          "Tether",
-                          50,
-                          6,
-                          0,
-                          6,
-                          8,
-                          false,
-                          null,
-                          "ethereum"
-                      ]
-                   ]
-                },
+                "httpResponse": "id=\"currencyData\">{\"currencies\": [[\"USDT\",\"Tether\",50, 6,0,6,8,false,null,\"ethereum\"]]}</script>",
                 "parsedResponse": {
                     "USDT": {
                         "info": [
