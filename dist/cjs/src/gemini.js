@@ -261,7 +261,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
