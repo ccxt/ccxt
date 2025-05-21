@@ -1013,8 +1013,10 @@ export default class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
+            this.options['fetch_markets_temp_currencies'] = currencies;
         }
         const markets = await this.fetchMarkets (params)
+        delete this.options['fetch_markets_temp_currencies'];
         return this.setMarkets (markets, currencies)
     }
 
