@@ -1006,6 +1006,8 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
         baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll(/args\.\.\.\)/g, '(args).([]interface{})...)');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
