@@ -338,7 +338,7 @@ export default class latoken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const currencies = this.safeDict (this.options, 'raw_fetched_currencies');
+        const currencies = this.safeList (this.options, 'raw_fetched_currencies');
         //
         //     [
         //         {
