@@ -200,25 +200,25 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-order
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-$order
              *
-             * create a trade order
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->amount] quote units for the order
-             * @param {boolean} [$params->allowBorrow] allow order to be placed by borrowing funds (Default => false)
-             * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker order will be canceled when self-trade happens
+             * @param {string} [$params->amount] quote units for the $order
+             * @param {boolean} [$params->allowBorrow] allow $order to be placed by borrowing funds (Default => false)
+             * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker $order will be canceled when self-trade happens
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -244,7 +244,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy $orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -261,7 +261,9 @@ class poloniex extends \ccxt\async\poloniex {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            return Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+            $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+            $order = $this->safe_dict($orders, 0);
+            return $order;
         }) ();
     }
 
@@ -269,21 +271,23 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-$orders
              *
-             * cancel multiple orders
-             * @param {string} $id order $id
+             * cancel multiple $orders
+             * @param {string} $id $order $id
              * @param {string} [$symbol] unified market $symbol
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @param {string} [$params->clientOrderId] client order $id
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {string} [$params->clientOrderId] client $order $id
+             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
              */
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $clientOrderIds = $this->safe_value($params, 'clientOrderId', array());
                 $params['clientOrderIds'] = $this->array_concat($clientOrderIds, array( $clientOrderId ));
             }
-            return Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+            $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+            $order = $this->safe_dict($orders, 0);
+            return $order;
         }) ();
     }
 
