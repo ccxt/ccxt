@@ -279,7 +279,28 @@ class Exchange(BaseExchange):
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
+
     async def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            This method is asynchronous.
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if (reload and not self.reloading_markets) or not self.markets_loading:
             self.reloading_markets = True
             coroutine = self.load_markets_helper(reload, params)
