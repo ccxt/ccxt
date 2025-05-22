@@ -6,7 +6,6 @@ import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/error
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
-import { timeStamp } from 'console';
 
 //  ---------------------------------------------------------------------------
 
@@ -182,11 +181,11 @@ export default class bullish extends Exchange {
                         'v1/trades': 1, // done
                         'v1/trades/{tradeId}': 1, // not used
                         'v1/accounts/asset': 1, // done
-                        'v1/accounts/asset/{symbol}': 1,
+                        'v1/accounts/asset/{symbol}': 1, // done
                         'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
+                        'v1/users/hmac/login': 1, // done
                         'v1/accounts/trading-accounts': 1, // done
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
+                        'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
                         'v1/derivatives-positions': 1,
                         'v1/history/derivatives-settlement': 1,
                         'v1/history/transfer': 1,
@@ -197,7 +196,7 @@ export default class bullish extends Exchange {
                         'v2/command': 1, // done
                         'v2/amm-instructions': 1, // todo ask what method to use
                         'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
+                        'v2/users/login': 1, // done
                         'v1/command?commandType=V1TransferAsset': 1,
                         'v1/simulate-portfolio-margin': 1,
                     },
@@ -1804,8 +1803,10 @@ export default class bullish extends Exchange {
      * @name bullish#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @param {string} [params.code] unified currency code, default is undefined
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -1819,24 +1820,41 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
-        const response = await this.privateGetV1AccountsAsset (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "assetId": "10",
-        //             "assetSymbol": "AAVE",
-        //             "availableQuantity": "10000000.00000000",
-        //             "borrowedQuantity": "0.00000000",
-        //             "loanedQuantity": "0.00000000",
-        //             "lockedQuantity": "0.00000000",
-        //             "publishedAtTimestamp": "1747942728870",
-        //             "tradingAccountId": "111309424211255",
-        //             "updatedAtDatetime": "2025-05-13T11:33:08.801Z",
-        //             "updatedAtTimestamp": "1747135988801"
-        //         }, ...
-        //     ]
-        //
-        return this.parseBalance (response);
+        let response = undefined;
+        const code = this.safeString (params, 'code');
+        if (code !== undefined) {
+            request['symbol'] = this.currency (code)['id'];
+            response = await this.privateGetV1AccountsAssetSymbol (this.extend (request, params));
+            return this.parseBalanceForSingleCurrency (response, code);
+        } else {
+            response = await this.privateGetV1AccountsAsset (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "assetId": "10",
+            //             "assetSymbol": "AAVE",
+            //             "availableQuantity": "10000000.00000000",
+            //             "borrowedQuantity": "0.00000000",
+            //             "loanedQuantity": "0.00000000",
+            //             "lockedQuantity": "0.00000000",
+            //             "publishedAtTimestamp": "1747942728870",
+            //             "tradingAccountId": "111309424211255",
+            //             "updatedAtDatetime": "2025-05-13T11:33:08.801Z",
+            //             "updatedAtTimestamp": "1747135988801"
+            //         }, ...
+            //     ]
+            //
+            return this.parseBalance (response);
+        }
+    }
+
+    parseBalanceForSingleCurrency (response, code: Str): Balances {
+        const result: Dict = { 'info': response };
+        const account = this.account ();
+        account['free'] = this.safeString (response, 'availableQuantity');
+        account['used'] = this.safeString (response, 'lockedQuantity');
+        result[code] = account;
+        return this.safeBalance (result);
     }
 
     parseBalance (response): Balances {
