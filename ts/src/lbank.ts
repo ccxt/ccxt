@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,6 +51,7 @@ export default class lbank extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -125,6 +126,7 @@ export default class lbank extends Exchange {
                             'currencyPairs': 2.5,
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
+                            'assetConfigs': 2.5,
                             'withdrawConfigs': 2.5,
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
@@ -416,6 +418,99 @@ export default class lbank extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
+    /**
+     * @method
+     * @name bigone#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.spotPublicGetWithdrawConfigs (params);
+        const currenciesData = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < currenciesData.length; i++) {
+            const currency = currenciesData[i];
+            const id = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const networks: Dict = {};
+            const chains = this.safeList (currency, 'binding_gateways', []);
+            const currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'gateway_name');
+                const networkCode = this.networkIdToCode (networkId);
+                const deposit = this.safeBool (chain, 'is_deposit_enabled');
+                const withdraw = this.safeBool (chain, 'is_withdrawal_enabled');
+                const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
+                const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
+                const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
+                const precision = this.parsePrecision (this.safeString2 (chain, 'withdrawal_scale', 'scale'));
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber (withdrawalFee),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+            }
+            const chainLength = chains.length;
+            let type: Str = undefined;
+            if (this.safeBool (currency, 'is_fiat')) {
+                type = 'fiat';
+            } else if (chainLength === 0) {
+                if (this.isLeveragedCurrency (id)) {
+                    type = 'leveraged';
+                } else {
+                    type = 'other';
+                }
+            } else {
+                type = 'crypto';
+            }
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'type': type,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber (currencyMaxPrecision),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
+        }
+        return result;
+    }
+
+
+    
     /**
      * @method
      * @name lbank#fetchMarkets
