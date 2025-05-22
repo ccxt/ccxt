@@ -1120,7 +1120,7 @@
             }
         }
     },
-    "huobijp": {
+    "bittrade": {
         "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
