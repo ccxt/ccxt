@@ -12,6 +12,9 @@ from ccxt.async_support.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
+# DO_NOT_REMOVE__ERROR_IMPORTS_START
+# DO_NOT_REMOVE__ERROR_IMPORTS_END
+
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
