@@ -1395,6 +1395,7 @@ export default class kucoin extends Exchange {
         //
         const currenciesData = this.safeList (response, 'data', []);
         const brokenCurrencies = [ '00', 'OPEN_ERROR', 'HUF', 'BDT' ];
+        const abnormalFiats = [ 'KWD' ];
         const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
@@ -1435,7 +1436,7 @@ export default class kucoin extends Exchange {
             // kucoin has determined 'fiat' currencies with below logic
             const rawPrecision = this.safeString (entry, 'precision');
             const precision = this.parseNumber (this.parsePrecision (rawPrecision));
-            const isFiat = (rawPrecision === '2') && (chainsLength === 0);
+            const isFiat = this.inArray (id, abnormalFiats) || ((rawPrecision === '2') && (chainsLength === 0));
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': this.safeString (entry, 'fullName'),
