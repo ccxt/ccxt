@@ -522,7 +522,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseCurrencies (data);
     }
 
@@ -550,6 +550,7 @@ export default class kuna extends Exchange {
         const currencyId = this.safeString (currency, 'code');
         const precision = this.safeString (currency, 'precision');
         const tradePrecision = this.safeString (currency, 'tradePrecision');
+        const minPrecision = Precise.stringMin (precision, tradePrecision);
         return this.safeCurrencyStructure ({
             'info': currency,
             'id': currencyId,
@@ -561,7 +562,7 @@ export default class kuna extends Exchange {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': undefined,
-            'precision': this.parseNumber (Precise.stringMin (precision, tradePrecision)),
+            'precision': this.parseNumber (this.parsePrecision (minPrecision)),
             'limits': {
                 'amount': {
                     'min': undefined,
