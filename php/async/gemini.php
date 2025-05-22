@@ -427,8 +427,6 @@ class gemini extends Exchange {
                 $networkCode = null;
                 if ($networkId !== null) {
                     $networkCode = $this->network_id_to_code($networkId);
-                }
-                if ($networkCode !== null) {
                     $networks[$networkCode] = array(
                         'info' => $currency,
                         'id' => $networkId,
@@ -450,7 +448,7 @@ class gemini extends Exchange {
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'id' => $id,
                     'code' => $code,
@@ -472,7 +470,7 @@ class gemini extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
