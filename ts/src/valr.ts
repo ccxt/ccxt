@@ -386,6 +386,9 @@ export default class valr extends Exchange {
             'fees': {
                 'trading': {
                     'percentage': true,
+                    'tierBased': true,
+                    'maker': this.parseNumber ('0.0018'),
+                    'taker': this.parseNumber ('0.0035'),
                     // 'spot': {
                     //     'maker': '0.0',
                     //     'taker': '0.005',
