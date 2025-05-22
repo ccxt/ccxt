@@ -653,6 +653,7 @@ export default class valr extends Exchange {
                 'precision': precision,
                 'withdraw': ('supportedNetworks' in currency) ? true : false,
                 'deposit': ('supportedNetworks' in currency) ? true : false,
+                'type': this.isFiat (code) ? 'fiat' : 'crypto',
             });
         }
         return result;
@@ -714,7 +715,8 @@ export default class valr extends Exchange {
         let contractSize = undefined;
         let settle = undefined;
         let settleId = undefined;
-        const fees = { 'taker': undefined, 'maker': undefined };
+        let inverse = undefined;
+        const fees = this.safeDict (this.fees, 'trading');
         if (currencyPairType === 'SPOT') {
             marketType = 'spot';
             spot = true;
@@ -731,6 +733,7 @@ export default class valr extends Exchange {
             settle = base;
             settleId = this.safeString (market, 'baseCurrency');
             symbol = base + '/' + quote + ':' + settle;
+            inverse = false;
         }
         return this.safeMarketStructure ({
             'id': this.safeString (market, 'symbol'),
@@ -748,15 +751,16 @@ export default class valr extends Exchange {
             'option': false,
             'contract': contract,
             'percentage': true,
-            'tierBased': false,
+            'tierBased': true,
             'linear': linear,
             'contractSize': contractSize,
             'settle': settle,
             'settleId': settleId,
+            'inverse': inverse,
             // Setting defaults based on exchange not on response
             // These values are actually from private API call and can be overwritten with loadTradingFees
-            'taker': this.parseNumber (fees['taker']),
-            'maker': this.parseNumber (fees['maker']),
+            'taker': this.safeValue (fees, 'taker'),
+            'maker': this.safeValue (fees, 'maker'),
             'precision': {
                 'price': this.precisionFromString (this.safeString (market, 'tickSize')),
                 'amount': this.safeInteger (market, 'baseDecimalPlaces'),
@@ -767,7 +771,6 @@ export default class valr extends Exchange {
                     'max': this.safeFloat (market, 'maxBaseAmount'),
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'minQuoteAmount'),
                     'max': this.safeFloat (market, 'maxQuoteAmount'),
                 },
             },
@@ -1600,17 +1603,18 @@ export default class valr extends Exchange {
         };
         return this.safeTrade ({
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.safeString (trade, 'tradedAt'),
-            'id': this.safeString (trade, 'id'),
-            'clientOrderId': this.safeString (trade, 'customerOrderId'),
-            'order': this.safeString (trade, 'orderId'),
-            'symbol': symbol,
-            'side': this.safeString2 (trade, 'side', 'takerSide'),
             'amount': this.safeNumber (trade, 'quantity'),
-            'price': this.safeNumber (trade, 'price'),
+            'clientOrderId': this.safeString (trade, 'customerOrderId'),
             'cost': this.safeNumber (trade, 'quoteVolume'),
+            'datetime': this.safeString (trade, 'tradedAt'),
             'fee': fee,
+            'id': this.safeString (trade, 'id'),
+            'order': this.safeString (trade, 'orderId'),
+            'price': this.safeNumber (trade, 'price'),
+            'side': this.safeString2 (trade, 'side', 'takerSide'),
+            'symbol': symbol,
+            'takerOrMaker': undefined,
+            'timestamp': timestamp,
         });
     }
 
@@ -1643,7 +1647,7 @@ export default class valr extends Exchange {
                     'info': tradeFee,
                     'symbol': symbol,
                     'percentage': true,
-                    'tierBased': false,
+                    'tierBased': true,
                 };
             } else {
                 // Trading pair only avialble on VALR simple buy/sell platform and not trading platform.
