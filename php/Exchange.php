@@ -403,7 +403,6 @@ class Exchange {
         'huobi',
         'huobijp',
         'hyperliquid',
-        'idex',
         'independentreserve',
         'indodax',
         'kraken',
