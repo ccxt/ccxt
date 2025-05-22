@@ -5,7 +5,8 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { timeStamp } from 'console';
 
 //  ---------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ export default class bullish extends Exchange {
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -179,8 +180,8 @@ export default class bullish extends Exchange {
                         'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
                         'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
                         'v1/trades': 1, // done
-                        'v1/trades/{tradeId}': 1,
-                        'v1/accounts/asset': 1,
+                        'v1/trades/{tradeId}': 1, // not used
+                        'v1/accounts/asset': 1, // done
                         'v1/accounts/asset/{symbol}': 1,
                         'v1/users/logout': 1,
                         'v1/users/hmac/login': 1,
@@ -673,8 +674,8 @@ export default class bullish extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1796,6 +1797,62 @@ export default class bullish extends Exchange {
             'address': this.safeString (depositAddress, 'address'),
             'tag': undefined,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter');
+        }
+        const request: Dict = {
+            'tradingAccountId': tradingAccountId,
+        };
+        const response = await this.privateGetV1AccountsAsset (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "assetId": "10",
+        //             "assetSymbol": "AAVE",
+        //             "availableQuantity": "10000000.00000000",
+        //             "borrowedQuantity": "0.00000000",
+        //             "loanedQuantity": "0.00000000",
+        //             "lockedQuantity": "0.00000000",
+        //             "publishedAtTimestamp": "1747942728870",
+        //             "tradingAccountId": "111309424211255",
+        //             "updatedAtDatetime": "2025-05-13T11:33:08.801Z",
+        //             "updatedAtTimestamp": "1747135988801"
+        //         }, ...
+        //     ]
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const symbol = this.safeString (balance, 'assetSymbol');
+            const code = this.safeCurrencyCode (symbol);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'availableQuantity');
+            account['used'] = this.safeString (balance, 'lockedQuantity');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
