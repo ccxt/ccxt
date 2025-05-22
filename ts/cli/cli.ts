@@ -21,6 +21,24 @@ const { ExchangeError, NetworkError } = ccxt;
 function jsonStringify (obj: any, indent = undefined) {
     return JSON.stringify (obj, (k, v) => (v === undefined ? null : v), indent);
 }
+
+/**
+ *
+ * @param fn
+ */
+function countAllParams (fn) {
+    const fnStr = fn.toString ()
+        .replace (/\/\/.*$/mg, '')
+        .replace (/\/\*[\s\S]*?\*\//mg, '')
+        .replace (/\s+/g, '');
+
+    const match = fnStr.match (/^[^(]*\(([^)]*)\)/);
+    if (!match) return 0;
+
+    const params = match[1].split (',').filter ((p) => p);
+    return params.length;
+}
+
 //-----------------------------------------------------------------------------
 let [ processPath, , exchangeId, methodName, ...params ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose');
@@ -49,17 +67,60 @@ const raw = process.argv.includes ('--raw');
 const noKeys = process.argv.includes ('--no-keys');
 const interactive = process.argv.includes ('--i');
 let foundDescription = undefined;
+const nameIndex = process.argv.indexOf ('--name');
+if (nameIndex >= 0) {
+    foundDescription = process.argv[nameIndex + 1];
+    // search that string in `params` and remove it
+    const index = params.indexOf (foundDescription);
+    if (index >= 0) {
+        params.splice (index, 1);
+    }
+}
+
+let lastParamObject;
+let symbol;
 for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i] === '--name') {
-        foundDescription = process.argv[i + 1];
-        // search that string in `params` and remove it
-        for (let j = 0; j < params.length; j++) {
-            if (params[j] === foundDescription) {
-                params.splice (j, 1);
-                break;
+    if (process.argv[i] === '--param') {
+        const nextParam = process.argv[i + 1];
+        if (nextParam) {
+            const paramIndex = params.indexOf (nextParam);
+            if (paramIndex >= 0) {
+                if (nextParam.indexOf ('=') >= 0) {
+                    const parsed = nextParam.split ('=');
+                    if (parsed.length === 2) {
+                        if (!lastParamObject) {
+                            lastParamObject = {};
+                        }
+                        const key = parsed[0];
+                        const value = parsed[1];
+                        if (key === 'symbol') {
+                            symbol = value;
+                        }
+                        lastParamObject[key] = value;
+                        params.splice (paramIndex, 1);
+                    } else {
+                        throw new Error ('Invalid usage of --param. Please provide a key=value pair after --param.');
+                    }
+                } else {
+                    if (!lastParamObject) {
+                        lastParamObject = {};
+                    }
+                    lastParamObject[nextParam] = true;
+                }
+            } else {
+                throw new Error (`Unexpected error by parsing parameters: ${nextParam} is not found in params array.`);
             }
+        } else {
+            throw new Error ('Invalid usage of --param. Please provide a value after --param.');
         }
-        break;
+    }
+}
+
+let lastParam = params[params.length - 1];
+// exclude parasitic single quotes. Can happen on some shell processors
+if (lastParam?.includes ('{') && lastParam?.includes ('}')) {
+    if (lastParam.startsWith ('\'{') && lastParam.endsWith ('}\'')) {
+        lastParam = params[params.length - 1] = lastParam.substring (1, lastParam.length - 1);
     }
 }
 //-----------------------------------------------------------------------------
@@ -241,6 +302,7 @@ function printUsage () {
     log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m');
     log (commandToShow, 'bitfinex fetchBalance');
     log (commandToShow, 'kraken fetchOrderBook ETH/BTC');
+    log ('node', process.argv[1], 'binance fetchTrades BTC/USDC undefined undefined --param until=1746988377067');
     printSupportedExchanges ();
     log ('Supported options:');
     log ('--verbose         Print verbose output');
@@ -253,6 +315,8 @@ function printUsage () {
     log ('--no-table        Do not print the fetch response as a table');
     log ('--table           Print the fetch response as a table');
     log ('--iso8601         Print timestamps as ISO8601 datetimes');
+    log ('--param key=value Set a custom key=value pair for the last method\'s argument. Can be repeated multiple times');
+    log ('                  NOTE: don\'t forget to fill up missed arguments with "undefined" before last options parameter');
     log ('--cors            use CORS proxy for debugging');
     log ('--sign-in         Call signIn() if any');
     log ('--sandbox         Use the exchange sandbox if available, same as --testnet');
@@ -438,11 +502,7 @@ async function handleMarketsLoading (exchange: ccxt.Exchange) {
  */
 function parseMethodArgs (exchange, params) {
     const args = params
-        .map ((s) => (s.match (
-            /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g
-        )
-            ? exchange.parse8601 (s)
-            : s))
+        .map ((s) => (s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s))
         .map ((s) => (() => {
             if (s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
             try {
@@ -465,7 +525,7 @@ async function run () {
         printUsage ();
         process.exit ();
     }
-    const args = parseMethodArgs (exchange, params);
+    let args = parseMethodArgs (exchange, params);
 
     if (cors) {
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
@@ -481,6 +541,35 @@ async function run () {
         await handleMarketsLoading (exchange);
     }
 
+    if (symbol && lastParamObject) {
+        let marketId;
+        try {
+            marketId = exchange.marketId (symbol);
+        } catch (e) {
+            // noop possible loaded from cache
+        }
+        if (!marketId) {
+            try {
+                await exchange.loadMarkets ();
+                marketId = exchange.marketId (symbol);
+            } catch (e) {
+                // noop
+            }
+        }
+        if (marketId) {
+            lastParamObject.symbol = marketId;
+        }
+    }
+
+    if (typeof lastParamObject === 'object') {
+        const lastArgument = args[args.length - 1];
+        if (lastParam && typeof lastArgument === 'object') {
+            args[args.length - 1] = Object.assign (lastArgument, lastParamObject);
+        } else {
+            args.push (lastParamObject);
+        }
+    }
+
     if (signIn && exchange.has.signIn) {
         await exchange.signIn ();
     }
@@ -493,7 +582,10 @@ async function run () {
 
     if (methodName) {
         if (typeof exchange[methodName] === 'function') {
-            if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')');
+            if (!raw || details) {
+                const methodArgsPrint = JSON.stringify (args);
+                log (exchange.id + '.' + methodName, '(' + methodArgsPrint.substring (1, methodArgsPrint.length - 1) + ')');
+            }
             let start = exchange.milliseconds ();
             let end = exchange.milliseconds ();
             let i = 0;
@@ -504,6 +596,21 @@ async function run () {
             }
             while (true) {
                 try {
+                    const fn = exchange[methodName];
+                    const fnParams = countAllParams (fn);
+                    const argsContainsParams = args.find ((arg) => arg && typeof arg === 'object' && !Array.isArray (arg) && Object.keys (arg).length > 0);
+                    if (argsContainsParams && fnParams !== args.length) {
+                        // populate the missing params with undefined
+                        const missingParams = fnParams - args.length;
+                        const paramsObj = args[args.length - 1];
+                        args.pop ();
+                        const newArgsArray = args;
+                        for (let i = 0; i < missingParams; i++) {
+                            newArgsArray.push (undefined);
+                        }
+                        newArgsArray.push (paramsObj);
+                        args = newArgsArray;
+                    }
                     const result = await exchange[methodName] (...args);
                     end = exchange.milliseconds ();
                     if (!isWsMethod && !raw) {
