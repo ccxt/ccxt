@@ -431,7 +431,6 @@ class gemini(Exchange, ImplicitAPI):
             networkCode = None
             if networkId is not None:
                 networkCode = self.network_id_to_code(networkId)
-            if networkCode is not None:
                 networks[networkCode] = {
                     'info': currency,
                     'id': networkId,
@@ -452,7 +451,7 @@ class gemini(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -474,7 +473,7 @@ class gemini(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
