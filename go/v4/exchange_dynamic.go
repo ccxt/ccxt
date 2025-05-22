@@ -274,10 +274,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         hyperliquidItf := &hyperliquid{}
         hyperliquidItf.Init(exchangeArgs)
         return hyperliquidItf, true
-    case "idex":
-        idexItf := &idex{}
-        idexItf.Init(exchangeArgs)
-        return idexItf, true
     case "independentreserve":
         independentreserveItf := &independentreserve{}
         independentreserveItf.Init(exchangeArgs)
