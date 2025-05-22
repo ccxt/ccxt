@@ -1399,7 +1399,7 @@ export default class kucoin extends Exchange {
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const id = this.safeString (entry, 'currency');
-            if (brokenCurrencies.includes (id)) {
+            if (this.inArray (id, brokenCurrencies)) {
                 continue; // skip buggy entries: https://t.me/KuCoin_API/217798
             }
             const code = this.safeCurrencyCode (id);
