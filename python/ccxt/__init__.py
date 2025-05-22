@@ -149,7 +149,6 @@ from ccxt.htx import htx                                              # noqa: F4
 from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.huobijp import huobijp                                      # noqa: F401
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
-from ccxt.idex import idex                                            # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
@@ -257,7 +256,6 @@ exchanges = [
     'huobi',
     'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'indodax',
     'kraken',

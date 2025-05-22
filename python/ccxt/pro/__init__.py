@@ -62,6 +62,8 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 
 
+
+
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
@@ -107,7 +109,6 @@ from ccxt.pro.htx import htx                                              # noqa
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
-from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
@@ -181,7 +182,6 @@ exchanges = [
     'huobi',
     'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'kraken',
     'krakenfutures',
