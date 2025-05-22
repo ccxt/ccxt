@@ -354,20 +354,24 @@ class kraken(ccxt.async_support.kraken):
 
         cancel multiple orders
         :param str[] ids: order ids
-        :param str symbol: unified market symbol, default is None
+        :param str [symbol]: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if symbol is not None:
+            raise NotSupported(self.id + ' cancelOrdersWs() does not support cancelling orders for a specific symbol.')
         await self.load_markets()
         token = await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
         messageHash = requestId
         request: dict = {
-            'event': 'cancelOrder',
-            'token': token,
-            'reqid': requestId,
-            'txid': ids,
+            'method': 'cancel_order',
+            'params': {
+                'order_id': ids,
+                'token': token,
+            },
+            'req_id': requestId,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
@@ -378,35 +382,41 @@ class kraken(ccxt.async_support.kraken):
 
         cancels an open order
         :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if symbol is not None:
+            raise NotSupported(self.id + ' cancelOrderWs() does not support cancelling orders for a specific symbol.')
         await self.load_markets()
         token = await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
         messageHash = requestId
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
-        params = self.omit(params, ['userref', 'clientOrderId'])
         request: dict = {
-            'event': 'cancelOrder',
-            'token': token,
-            'reqid': requestId,
-            'txid': [clientOrderId],
+            'method': 'cancel_order',
+            'params': {
+                'order_id': [id],
+                'token': token,
+            },
+            'req_id': requestId,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_cancel_order(self, client, message):
         #
-        #  success
-        #    {
-        #        "event": "cancelOrderStatus",
-        #        "status": "ok"
-        #        "reqid": 1,
-        #    }
+        #     {
+        #         "method": "cancel_order",
+        #         "req_id": 123456789,
+        #         "result": {
+        #             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        #         },
+        #         "success": True,
+        #         "time_in": "2023-09-21T14:36:57.428972Z",
+        #         "time_out": "2023-09-21T14:36:57.437952Z"
+        #     }
         #
-        reqId = self.safe_value(message, 'reqid')
+        reqId = self.safe_value(message, 'req_id')
         client.resolve(message, reqId)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
@@ -415,7 +425,7 @@ class kraken(ccxt.async_support.kraken):
         https://docs.kraken.com/api/docs/websocket-v1/cancelall
 
         cancel all open orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -423,26 +433,32 @@ class kraken(ccxt.async_support.kraken):
             raise NotSupported(self.id + ' cancelAllOrdersWs() does not support cancelling orders in a specific market.')
         await self.load_markets()
         token = await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
         messageHash = requestId
         request: dict = {
-            'event': 'cancelAll',
-            'token': token,
-            'reqid': requestId,
+            'method': 'cancel_all',
+            'params': {
+                'token': token,
+            },
+            'req_id': requestId,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_cancel_all_orders(self, client, message):
         #
-        #    {
-        #        "count": 2,
-        #        "event": "cancelAllStatus",
-        #        "status": "ok",
-        #        "reqId": 1
-        #    }
+        #     {
+        #         "method": "cancel_all",
+        #         "req_id": 123456789,
+        #         "result": {
+        #             "count": 1
+        #         },
+        #         "success": True,
+        #         "time_in": "2023-09-21T14:36:57.428972Z",
+        #         "time_out": "2023-09-21T14:36:57.437952Z"
+        #     }
         #
-        reqId = self.safe_value(message, 'reqid')
+        reqId = self.safe_value(message, 'req_id')
         client.resolve(message, reqId)
 
     def handle_ticker(self, client, message, subscription):
@@ -1668,8 +1684,8 @@ class kraken(ccxt.async_support.kraken):
                     'subscriptionStatus': self.handle_subscription_status,
                     'add_order': self.handle_create_edit_order,
                     'amend_order': self.handle_create_edit_order,
-                    'cancelOrderStatus': self.handle_cancel_order,
-                    'cancelAllStatus': self.handle_cancel_all_orders,
+                    'cancel_order': self.handle_cancel_order,
+                    'cancel_all': self.handle_cancel_all_orders,
                 }
                 method = self.safe_value(methods, event)
                 if method is not None:
