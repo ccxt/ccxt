@@ -338,7 +338,7 @@ export default class latoken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const currencies = await this.fetchCurrenciesFromCache (params);
+        const currencies = this.safeDict (this.options, 'raw_fetched_currencies');
         //
         //     [
         //         {
@@ -465,23 +465,6 @@ export default class latoken extends Exchange {
         return result;
     }
 
-    async fetchCurrenciesFromCache (params = {}) {
-        // this method is now redundant
-        // currencies are now fetched before markets
-        const options = this.safeValue (this.options, 'fetchCurrencies', {});
-        const timestamp = this.safeInteger (options, 'timestamp');
-        const expires = this.safeInteger (options, 'expires', 1000);
-        const now = this.milliseconds ();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetCurrency (params);
-            this.options['fetchCurrencies'] = this.extend (options, {
-                'response': response,
-                'timestamp': now,
-            });
-        }
-        return this.safeValue (this.options['fetchCurrencies'], 'response');
-    }
-
     /**
      * @method
      * @name latoken#fetchCurrencies
@@ -490,7 +473,7 @@ export default class latoken extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.fetchCurrenciesFromCache (params);
+        const response = await this.publicGetCurrency (params);
         //
         //     [
         //         {
@@ -523,34 +506,25 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
+        this.options['raw_fetched_currencies'] = response;
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'id');
             const tag = this.safeString (currency, 'tag');
             const code = this.safeCurrencyCode (tag);
-            const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
-            let type = undefined;
-            if (currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
-                type = 'other';
-            } else {
-                // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
-                type = 'crypto';
-            }
-            const status = this.safeString (currency, 'status');
-            const active = (status === 'CURRENCY_STATUS_ACTIVE');
-            const name = this.safeString (currency, 'name');
-            result[code] = {
+            const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': name,
-                'type': type,
-                'active': active,
+                'name': this.safeString (currency, 'name'),
+                'type': isCrypto ? 'crypto' : 'other',
+                'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
                 'deposit': undefined,
                 'withdraw': undefined,
-                'fee': fee,
+                'fee': this.safeNumber (currency, 'fee'),
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
                 'limits': {
                     'amount': {
@@ -563,7 +537,7 @@ export default class latoken extends Exchange {
                     },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }
