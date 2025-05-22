@@ -20,7 +20,7 @@
                             "status": "enabled",
                             "margin_rate": "0.02"
                         },
-                        "USD": {
+                        "ZUSD": {
                             "aclass": "currency",
                             "altname": "USD",
                             "decimals": "4",
