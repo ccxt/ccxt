@@ -425,8 +425,6 @@ export default class gemini extends Exchange {
             let networkCode = undefined;
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode (networkId);
-            }
-            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
                     'id': networkId,
@@ -448,7 +446,7 @@ export default class gemini extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -470,7 +468,7 @@ export default class gemini extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
