@@ -1138,26 +1138,6 @@
             }
         }
     },
-    "idex": {
-        "skip": "seems down",
-        "skipWs": "timeouts",
-        "skipCSharp": "for some reasons, frequent rate limits only in C#",
-        "skipMethods": {
-            "fetchCurrencies": {
-                "withdraw":"not provided",
-                "deposit":"not provided",
-                "networks": "missing"
-            },
-            "ticker": {
-                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
-                "spread":"messed bid-ask"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5797",
-                "compareToZero": "bid/ask might be 0 - https://app.travis-ci.com/github/ccxt/ccxt/builds/263552512#L2214"
-            }
-        }
-    },
     "indodax": {
         "skipMethods": {
             "fetchCurrencies": {
