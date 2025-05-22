@@ -419,10 +419,15 @@
     "blockchaincom": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "inexistent ones",
                 "taker":"not provided",
                 "maker":"not provided"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "inexistent ones",
+                "deposit":"not provided",
+                "withdraw":"not provided",
+                "precision":"not provided"
                 "activeMajorCurrencies": "todo"
             },
             "orderBook": {
