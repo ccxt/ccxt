@@ -639,6 +639,12 @@ export default class valr extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const code = this.safeCurrencyCode (this.safeString (currency, 'shortName'));
+            let fiatType = undefined;
+            if (this.isFiat (code)) {
+                fiatType = 'fiat';
+            } else {
+                fiatType = 'crypto';
+            }
             let precision = this.safeInteger (currency, 'decimalPlaces');
             // Siacoin reports precision of 24 which does not pass build test
             if ((precision !== undefined) && (precision > 18)) {
@@ -653,7 +659,7 @@ export default class valr extends Exchange {
                 'precision': precision,
                 'withdraw': ('supportedNetworks' in currency) ? true : false,
                 'deposit': ('supportedNetworks' in currency) ? true : false,
-                'type': this.isFiat (code) ? 'fiat' : 'crypto',
+                'type': fiatType,
             });
         }
         return result;
