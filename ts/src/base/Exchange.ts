@@ -1032,7 +1032,7 @@ export default class Exchange {
      *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
      *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
      */
-    async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
+    async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
