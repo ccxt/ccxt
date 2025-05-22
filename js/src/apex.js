@@ -1085,9 +1085,10 @@ export default class apex extends Exchange {
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingTimestamp');
+            const marketId = this.safeString(entry, 'symbol');
             rates.push({
                 'info': entry,
-                'symbol': this.safeString(entry, 'symbol'),
+                'symbol': this.safeSymbol(marketId, market),
                 'fundingRate': this.safeNumber(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),

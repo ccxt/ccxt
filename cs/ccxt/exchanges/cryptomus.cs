@@ -364,41 +364,9 @@ public partial class cryptomus : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
-            object currency = getValue(coins, i);
-            object currencyId = this.safeString(currency, "currency_code");
+            object networkEntry = getValue(coins, i);
+            object currencyId = this.safeString(networkEntry, "currency_code");
             object code = this.safeCurrencyCode(currencyId);
-            object allowWithdraw = this.safeBool(currency, "can_withdraw");
-            object allowDeposit = this.safeBool(currency, "can_deposit");
-            object isActive = isTrue(allowWithdraw) && isTrue(allowDeposit);
-            object networkId = this.safeString(currency, "network_code");
-            object networksById = this.safeDict(this.options, "networksById");
-            object networkName = this.safeString(networksById, networkId, networkId);
-            object minWithdraw = this.safeNumber(currency, "min_withdraw");
-            object maxWithdraw = this.safeNumber(currency, "max_withdraw");
-            object minDeposit = this.safeNumber(currency, "min_deposit");
-            object maxDeposit = this.safeNumber(currency, "max_deposit");
-            object network = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkName },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", maxWithdraw },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", maxDeposit },
-                    } },
-                } },
-                { "active", isActive },
-                { "deposit", allowDeposit },
-                { "withdraw", allowWithdraw },
-                { "fee", null },
-                { "precision", null },
-                { "info", currency },
-            };
-            object networks = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)networks)[(string)networkName] = network;
             if (!isTrue((inOp(result, code))))
             {
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
@@ -407,77 +375,57 @@ public partial class cryptomus : Exchange
                     { "precision", null },
                     { "type", null },
                     { "name", null },
-                    { "active", isActive },
-                    { "deposit", allowDeposit },
-                    { "withdraw", allowWithdraw },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
                     { "fee", null },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdraw },
-                            { "max", maxWithdraw },
+                            { "min", null },
+                            { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
-                            { "max", maxDeposit },
+                            { "min", null },
+                            { "max", null },
                         } },
                     } },
-                    { "networks", networks },
-                    { "info", currency },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", new Dictionary<string, object>() {} },
                 };
-            } else
-            {
-                object parsed = getValue(result, code);
-                object parsedNetworks = this.safeDict(parsed, "networks");
-                ((IDictionary<string,object>)parsed)["networks"] = this.extend(parsedNetworks, networks);
-                if (isTrue(isActive))
-                {
-                    ((IDictionary<string,object>)parsed)["active"] = true;
-                    ((IDictionary<string,object>)parsed)["deposit"] = true;
-                    ((IDictionary<string,object>)parsed)["withdraw"] = true;
-                } else
-                {
-                    if (isTrue(allowWithdraw))
-                    {
-                        ((IDictionary<string,object>)parsed)["withdraw"] = true;
-                    }
-                    if (isTrue(allowDeposit))
-                    {
-                        ((IDictionary<string,object>)parsed)["deposit"] = true;
-                    }
-                }
-                object parsedLimits = this.safeDict(parsed, "limits");
-                object withdrawLimits = new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                };
-                object parsedWithdrawLimits = this.safeDict(parsedLimits, "withdraw", withdrawLimits);
-                object depositLimits = new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                };
-                object parsedDepositLimits = this.safeDict(parsedLimits, "deposit", depositLimits);
-                if (isTrue(minWithdraw))
-                {
-                    ((IDictionary<string,object>)withdrawLimits)["min"] = ((bool) isTrue(getValue(parsedWithdrawLimits, "min"))) ? mathMin(getValue(parsedWithdrawLimits, "min"), minWithdraw) : minWithdraw;
-                }
-                if (isTrue(maxWithdraw))
-                {
-                    ((IDictionary<string,object>)withdrawLimits)["max"] = ((bool) isTrue(getValue(parsedWithdrawLimits, "max"))) ? mathMax(getValue(parsedWithdrawLimits, "max"), maxWithdraw) : maxWithdraw;
-                }
-                if (isTrue(minDeposit))
-                {
-                    ((IDictionary<string,object>)depositLimits)["min"] = ((bool) isTrue(getValue(parsedDepositLimits, "min"))) ? mathMin(getValue(parsedDepositLimits, "min"), minDeposit) : minDeposit;
-                }
-                if (isTrue(maxDeposit))
-                {
-                    ((IDictionary<string,object>)depositLimits)["max"] = ((bool) isTrue(getValue(parsedDepositLimits, "max"))) ? mathMax(getValue(parsedDepositLimits, "max"), maxDeposit) : maxDeposit;
-                }
-                object limits = new Dictionary<string, object>() {
-                    { "withdraw", withdrawLimits },
-                    { "deposit", depositLimits },
-                };
-                ((IDictionary<string,object>)parsed)["limits"] = limits;
             }
+            object networkId = this.safeString(networkEntry, "network_code");
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_withdraw") },
+                        { "max", this.safeNumber(networkEntry, "max_withdraw") },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_deposit") },
+                        { "max", this.safeNumber(networkEntry, "max_deposit") },
+                    } },
+                } },
+                { "active", null },
+                { "deposit", this.safeBool(networkEntry, "can_withdraw") },
+                { "withdraw", this.safeBool(networkEntry, "can_deposit") },
+                { "fee", null },
+                { "precision", null },
+                { "info", networkEntry },
+            };
+            // add entry in info
+            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)info).Add(networkEntry);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
         return result;
     }

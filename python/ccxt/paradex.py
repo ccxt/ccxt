@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Greeks, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -75,6 +75,7 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -558,13 +559,14 @@ class paradex(Exchange, ImplicitAPI):
         expiry = self.safe_integer(market, 'expiry_at')
         optionType = self.safe_string(market, 'option_type')
         strikePrice = self.safe_string(market, 'strike_price')
+        takerFee = self.parse_number('0.0003')
+        makerFee = self.parse_number('-0.00005')
         if isOption:
             optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
             symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix
+            makerFee = self.parse_number('0.0003')
         else:
             expiry = None
-        takerFee = self.parse_number('0.0003')
-        makerFee = self.parse_number('-0.00005')
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -1262,7 +1264,7 @@ class paradex(Exchange, ImplicitAPI):
             'status': self.parse_order_status(status),
             'symbol': symbol,
             'type': self.parse_order_type(orderType),
-            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'instrunction')),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'instruction')),
             'postOnly': None,
             'reduceOnly': reduceOnly,
             'side': side,
@@ -2283,6 +2285,120 @@ class paradex(Exchange, ImplicitAPI):
             'margin_type': self.encode_margin_mode(marginMode),
         }
         return self.privatePostAccountMarginMarket(self.extend(request, params))
+
+    def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        response = self.publicGetMarketsSummary(self.extend(request, params))
+        #
+        #     {
+        #         "results": [
+        #             {
+        #                 "symbol": "BTC-USD-114000-P",
+        #                 "mark_price": "10835.66892602",
+        #                 "mark_iv": "0.71781855",
+        #                 "delta": "-0.98726024",
+        #                 "greeks": {
+        #                     "delta": "-0.9872602390817709",
+        #                     "gamma": "0.000004560958862297231",
+        #                     "vega": "227.11344863639806",
+        #                     "rho": "-302.0617972461581",
+        #                     "vanna": "0.06609830491614832",
+        #                     "volga": "925.9501532805552"
+        #                 },
+        #                 "last_traded_price": "10551.5",
+        #                 "bid": "10794.9",
+        #                 "bid_iv": "0.05",
+        #                 "ask": "10887.3",
+        #                 "ask_iv": "0.8783283",
+        #                 "last_iv": "0.05",
+        #                 "volume_24h": "0",
+        #                 "total_volume": "195240.72672261014",
+        #                 "created_at": 1747644009995,
+        #                 "underlying_price": "103164.79162649",
+        #                 "open_interest": "0",
+        #                 "funding_rate": "0.000004464241170536191",
+        #                 "price_change_rate_24h": "0.074915",
+        #                 "future_funding_rate": "0.0001"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'results', [])
+        greeks = self.safe_dict(data, 0, {})
+        return self.parse_greeks(greeks, market)
+
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
+        #
+        #     {
+        #         "symbol": "BTC-USD-114000-P",
+        #         "mark_price": "10835.66892602",
+        #         "mark_iv": "0.71781855",
+        #         "delta": "-0.98726024",
+        #         "greeks": {
+        #             "delta": "-0.9872602390817709",
+        #             "gamma": "0.000004560958862297231",
+        #             "vega": "227.11344863639806",
+        #             "rho": "-302.0617972461581",
+        #             "vanna": "0.06609830491614832",
+        #             "volga": "925.9501532805552"
+        #         },
+        #         "last_traded_price": "10551.5",
+        #         "bid": "10794.9",
+        #         "bid_iv": "0.05",
+        #         "ask": "10887.3",
+        #         "ask_iv": "0.8783283",
+        #         "last_iv": "0.05",
+        #         "volume_24h": "0",
+        #         "total_volume": "195240.72672261014",
+        #         "created_at": 1747644009995,
+        #         "underlying_price": "103164.79162649",
+        #         "open_interest": "0",
+        #         "funding_rate": "0.000004464241170536191",
+        #         "price_change_rate_24h": "0.074915",
+        #         "future_funding_rate": "0.0001"
+        #     }
+        #
+        marketId = self.safe_string(greeks, 'symbol')
+        market = self.safe_market(marketId, market, None, 'option')
+        symbol = market['symbol']
+        timestamp = self.safe_integer(greeks, 'created_at')
+        greeksData = self.safe_dict(greeks, 'greeks', {})
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(greeksData, 'delta'),
+            'gamma': self.safe_number(greeksData, 'gamma'),
+            'theta': None,
+            'vega': self.safe_number(greeksData, 'vega'),
+            'rho': self.safe_number(greeksData, 'rho'),
+            'vanna': self.safe_number(greeksData, 'vanna'),
+            'volga': self.safe_number(greeksData, 'volga'),
+            'bidSize': None,
+            'askSize': None,
+            'bidImpliedVolatility': self.safe_number(greeks, 'bid_iv'),
+            'askImpliedVolatility': self.safe_number(greeks, 'ask_iv'),
+            'markImpliedVolatility': self.safe_number(greeks, 'mark_iv'),
+            'bidPrice': self.safe_number(greeks, 'bid'),
+            'askPrice': self.safe_number(greeks, 'ask'),
+            'markPrice': self.safe_number(greeks, 'mark_price'),
+            'lastPrice': self.safe_number(greeks, 'last_traded_price'),
+            'underlyingPrice': self.safe_number(greeks, 'underlying_price'),
+            'info': greeks,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][self.version]) + '/' + self.implode_params(path, params)

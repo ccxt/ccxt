@@ -1908,7 +1908,7 @@ export default class gate extends Exchange {
                     'code': code,
                     'type': type,
                     'precision': precision,
-                    'limits': this.limits,
+                    'limits': undefined,
                     'networks': {},
                     'info': [], // will be filled below
                 };

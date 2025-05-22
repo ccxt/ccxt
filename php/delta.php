@@ -504,31 +504,49 @@ class delta extends Exchange {
          */
         $response = $this->publicGetAssets ($params);
         //
-        //     {
-        //         "result":array(
-        //             array(
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":array(
-        //                     array("limit":"0.1","rate":"0"),
-        //                     array("limit":"1","rate":"0.05"),
-        //                     array("limit":"5","rate":"0.075"),
-        //                     array("limit":"10","rate":"0.1"),
-        //                     array("limit":"9999999999999999","rate":"0")
-        //                 ),
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             ),
+        //    {
+        //        "result" => array(
+        //            {
+        //                "base_withdrawal_fee" => "0.005000000000000000",
+        //                "id" => "1",
+        //                "interest_credit" => false,
+        //                "interest_slabs" => null,
+        //                "kyc_deposit_limit" => "0.000000000000000000",
+        //                "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                "min_withdrawal_amount" => "0.010000000000000000",
+        //                "minimum_precision" => "4",
+        //                "name" => "Ethereum",
+        //                "networks" => array(
+        //                    array(
+        //                        "allowed_deposit_groups" => null,
+        //                        "base_withdrawal_fee" => "0.0025",
+        //                        "deposit_status" => "enabled",
+        //                        "memo_required" => false,
+        //                        "min_deposit_amount" => "0.000050000000000000",
+        //                        "min_withdrawal_amount" => "0.010000000000000000",
+        //                        "minimum_deposit_confirmations" => "12",
+        //                        "network" => "ERC20",
+        //                        "variable_withdrawal_fee" => "0",
+        //                        "withdrawal_status" => "enabled"
+        //                    ),
+        //                    array(
+        //                        "allowed_deposit_groups" => null,
+        //                        "base_withdrawal_fee" => "0.0001",
+        //                        "deposit_status" => "enabled",
+        //                        "memo_required" => false,
+        //                        "min_deposit_amount" => "0.000050000000000000",
+        //                        "min_withdrawal_amount" => "0.000300000000000000",
+        //                        "minimum_deposit_confirmations" => "15",
+        //                        "network" => "BEP20(BSC)",
+        //                        "variable_withdrawal_fee" => "0",
+        //                        "withdrawal_status" => "enabled"
+        //                    }
+        //                ),
+        //                "precision" => "18",
+        //                "sort_priority" => "3",
+        //                "symbol" => "ETH",
+        //                "variable_withdrawal_fee" => "0.000000000000000000"
+        //            ),
         //         ),
         //         "success":true
         //     }
@@ -540,20 +558,42 @@ class delta extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_string($currency, 'deposit_status');
-            $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
-            $depositsEnabled = ($depositStatus === 'enabled');
-            $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
-            $active = $depositsEnabled && $withdrawalsEnabled;
-            $result[$code] = array(
+            $chains = $this->safe_list($currency, 'networks', array());
+            $networks = array();
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $networkId = $this->safe_string($chain, 'network');
+                $networkCode = $this->network_id_to_code($networkId);
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($chain, 'name'),
+                    'info' => $chain,
+                    'active' => $this->safe_string($chain, 'status') === 'enabled',
+                    'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                    'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'code' => $code,
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
-                'active' => $active,
-                'deposit' => $depositsEnabled,
-                'withdraw' => $withdrawalsEnabled,
+                'active' => null,
+                'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
+                'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
@@ -563,9 +603,9 @@ class delta extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => array(),
+                'networks' => $networks,
                 'type' => 'crypto',
-            );
+            ));
         }
         return $result;
     }

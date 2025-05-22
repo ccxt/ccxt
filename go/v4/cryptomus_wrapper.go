@@ -35,6 +35,21 @@ func (this *Cryptomus) FetchMarkets(params ...interface{}) ([]MarketInterface, e
 }
 /**
  * @method
+ * @name cryptomus#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://doc.cryptomus.com/personal/market-cap/assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Cryptomus) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name cryptomus#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://doc.cryptomus.com/personal/market-cap/tickers

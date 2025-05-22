@@ -365,7 +365,7 @@ class hyperliquid extends Exchange {
                 $id = $i;
                 $name = $this->safe_string($data, 'name');
                 $code = $this->safe_currency_code($name);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
@@ -387,7 +387,7 @@ class hyperliquid extends Exchange {
                             'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();

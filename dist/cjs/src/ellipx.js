@@ -805,85 +805,181 @@ class ellipx extends ellipx$1 {
             'results_per_page': 100,
             '_expand': '/Crypto_Token,/Crypto_Chain',
         }, params));
-        const currencies = {};
-        const data = this.safeValue(response, 'data', []);
+        const result = {};
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const currency = this.parseCurrency(data[i]);
-            const code = this.safeString(currency, 'code');
-            if (code !== undefined) {
-                currencies[code] = currency;
+            const networkEntry = data[i];
+            //
+            //    {
+            //        "Crypto_Token_Info__": "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
+            //        "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //        "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            //        "Type": "native",
+            //        "Symbol": null,
+            //        "Name": null,
+            //        "Contract_Address": null,
+            //        "Minimum_Deposit": {
+            //            "v": "6",
+            //            "e": "6",
+            //            "f": "6.0e-6"
+            //        },
+            //        "Minimum_Withdraw": {
+            //            "v": "15",
+            //            "e": "5",
+            //            "f": "0.00015"
+            //        },
+            //        "Withdraw_Fee": {
+            //            "v": "1",
+            //            "e": "4",
+            //            "f": "0.0001"
+            //        },
+            //        "Minimum_Collect": null,
+            //        "Status": "valid",
+            //        "Can_Deposit": "Y",
+            //        "Decimals": null,
+            //        "Priority": "100",
+            //        "Created": {
+            //            "unix": "1727552199",
+            //            "us": "0",
+            //            "iso": "2024-09-28 19:36:39.000000",
+            //            "tz": "UTC",
+            //            "full": "1727552199000000",
+            //            "unixms": "1727552199000"
+            //        },
+            //        "Crypto_Token": {
+            //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //            "Name": "Bitcoin",
+            //            "Symbol": "BTC",
+            //            "Decimals": "8",
+            //            "CMC_Id": "1",
+            //            "Priority": "100",
+            //            "Can_Deposit": "Y",
+            //            "Category": "token",
+            //            "Testnet": "N",
+            //            "Created": {
+            //                "unix": "1727552113",
+            //                "us": "0",
+            //                "iso": "2024-09-28 19:35:13.000000",
+            //                "tz": "UTC",
+            //                "full": "1727552113000000",
+            //                "unixms": "1727552113000"
+            //            },
+            //            "Logo": [
+            //                {
+            //                    "Crypto_Token_Logo__": "ctklg-aoozyr-rzm5-fphf-dhm7-5wbtetha",
+            //                    "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //                    "Blob__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            //                    "Default": "Y",
+            //                    "Format": "png",
+            //                    "Priority": "0",
+            //                    "Created": {
+            //                        "unix": "1730196627",
+            //                        "us": "929660",
+            //                        "iso": "2024-10-29 10:10:27.929660",
+            //                        "tz": "UTC",
+            //                        "full": "1730196627929660",
+            //                        "unixms": "1730196627929"
+            //                    },
+            //                    "Source": {
+            //                        "Media_Image__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            //                        "Url": "https://static.atonline.net/image/m_X7_tnmIYFCwn6EUVQuMKqrCuPB3CMl4ONTegeYpC0wIg68YZM0CuBpbjspnYwz/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+            //                    }
+            //                }
+            //            ]
+            //        },
+            //        "Crypto_Chain": {
+            //            "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            //            "EVM_Chain__": null,
+            //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //            "Name": "Bitcoin",
+            //            "Key": "bitcoin",
+            //            "Type": "Bitcoin",
+            //            "Curve": "secp256k1",
+            //            "Backend_Url": null,
+            //            "Wallet_Verification_Methods": {
+            //                "signature": true
+            //            },
+            //            "Block_Margin": "3",
+            //            "Created": {
+            //                "unix": "1725340084",
+            //                "us": "0",
+            //                "iso": "2024-09-03 05:08:04.000000",
+            //                "tz": "UTC",
+            //                "full": "1725340084000000",
+            //                "unixms": "1725340084000"
+            //            }
+            //        }
+            //    }
+            //
+            const id = this.safeString(networkEntry, 'Crypto_Token__');
+            const token = this.safeDict(networkEntry, 'Crypto_Token', {});
+            const code = this.safeCurrencyCode(this.safeString(token, 'Symbol'));
+            if (!(code in result)) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': [],
+                    'type': undefined,
+                    'name': this.safeString(token, 'Name'),
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                };
             }
-        }
-        return currencies;
-    }
-    parseCurrency(currency) {
-        const id = this.safeString(currency, 'Crypto_Token__');
-        const token = this.safeValue(currency, 'Crypto_Token', {});
-        const code = this.safeCurrencyCode(this.safeString(token, 'Symbol'));
-        const name = this.safeString(token, 'Name');
-        const active = this.safeString(currency, 'Status') === 'valid';
-        const deposit = this.safeString(currency, 'Can_Deposit') === 'Y';
-        const withdraw = this.safeString(currency, 'Status') === 'valid';
-        let fee = undefined;
-        if (currency['Withdraw_Fee'] !== undefined) {
-            fee = this.parseNumber(this.parseAmount(currency['Withdraw_Fee']));
-        }
-        const precision = this.parseNumber(this.parsePrecision(this.safeString(token, 'Decimals')));
-        let minDeposit = undefined;
-        if (currency['Minimum_Deposit'] !== undefined) {
-            minDeposit = this.parseAmount(currency['Minimum_Deposit']);
-        }
-        let minWithdraw = undefined;
-        if (currency['Minimum_Withdraw'] !== undefined) {
-            minWithdraw = this.parseAmount(currency['Minimum_Withdraw']);
-        }
-        const networkId = this.safeString(currency, 'Crypto_Chain__');
-        const networkData = this.safeValue(currency, 'Crypto_Chain', {});
-        const networkCode = this.safeString(networkData, 'Type', 'default');
-        const networks = {
-            'string': undefined,
-            'info': networkCode === 'default' ? {} : networkData,
-            'id': networkId || id || '',
-            'network': networkCode,
-            'active': active,
-            'deposit': deposit,
-            'withdraw': withdraw,
-            'fee': fee,
-            'precision': precision,
-            'limits': {
-                'deposit': {
-                    'min': minDeposit,
-                    'max': undefined,
+            const networkId = this.safeString(networkEntry, 'Crypto_Chain__');
+            const cryptoChainDict = this.safeString(networkEntry, 'Crypto_Chain');
+            const networkName = this.safeString(cryptoChainDict, 'Type', 'default');
+            const networkCode = this.networkIdToCode(networkName);
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': this.safeString(networkEntry, 'Status') === 'valid',
+                'deposit': this.safeString(networkEntry, 'Can_Deposit') === 'Y',
+                'withdraw': undefined,
+                'fee': this.parseNumber(this.parseAmount(networkEntry['Withdraw_Fee'])),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'Decimals'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseAmount(networkEntry['Minimum_Withdraw']),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseAmount(networkEntry['Minimum_Deposit']),
+                        'max': undefined,
+                    },
                 },
-                'withdraw': {
-                    'min': minWithdraw,
-                    'max': undefined,
-                },
-            },
-        };
-        const result = {
-            'info': currency,
-            'id': id,
-            'code': code,
-            'name': name,
-            'active': active,
-            'deposit': deposit,
-            'withdraw': withdraw,
-            'fee': fee,
-            'precision': precision,
-            'type': undefined,
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'withdraw': {
-                    'min': minWithdraw,
-                    'max': undefined,
-                },
-            },
-            'networks': networks,
-        };
+            };
+            const infos = this.safeList(result[code], 'info', []);
+            infos.push(networkEntry);
+            result[code]['info'] = infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        const allKeys = Object.keys(result);
+        for (let i = 0; i < allKeys.length; i++) {
+            const code = allKeys[i];
+            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
+        }
         return result;
     }
     /**
@@ -1083,14 +1179,14 @@ class ellipx extends ellipx$1 {
         for (let i = 0; i < dataArray.length; i++) {
             const entry = dataArray[i];
             const balance = this.safeDict(entry, 'Balance', {});
-            const currency = this.safeString(balance, 'currency');
-            if (currency !== undefined) {
+            const code = this.safeString(balance, 'currency');
+            if (code !== undefined) {
                 const account = {
                     'free': this.parseAmount(entry['Unencumbered_Balance']['value_xint']),
                     'used': this.parseAmount(entry['Liabilities']['value_xint']),
                     'total': this.parseAmount(balance['value_xint']),
                 };
-                result[currency] = account;
+                result[code] = account;
             }
         }
         return this.safeBalance(result);
@@ -1713,7 +1809,7 @@ class ellipx extends ellipx$1 {
      * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
-     * @param {string} code Currency code
+     * @param {string} code unified currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
      * @param {string} [tag] Additional tag/memo for currencies that require it

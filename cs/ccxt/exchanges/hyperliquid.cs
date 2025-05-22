@@ -354,7 +354,7 @@ public partial class hyperliquid : Exchange
             object id = i;
             object name = this.safeString(data, "name");
             object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
@@ -376,7 +376,7 @@ public partial class hyperliquid : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }

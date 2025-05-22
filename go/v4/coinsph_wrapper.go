@@ -20,6 +20,21 @@ func NewCoinsph(userConfig map[string]interface{}) Coinsph {
 
 /**
  * @method
+ * @name coinsph#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinsph) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinsph#fetchStatus
  * @description the latest known information on the availability of the exchange API
  * @see https://coins-docs.github.io/rest-api/#test-connectivity

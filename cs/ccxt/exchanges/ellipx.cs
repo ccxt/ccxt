@@ -805,92 +805,184 @@ public partial class ellipx : Exchange
             { "results_per_page", 100 },
             { "_expand", "/Crypto_Token,/Crypto_Chain" },
         }, parameters));
-        object currencies = new Dictionary<string, object>() {};
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        object data = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object currency = this.parseCurrency(getValue(data, i));
-            object code = this.safeString(currency, "code");
-            if (isTrue(!isEqual(code, null)))
+            object networkEntry = getValue(data, i);
+            //
+            //    {
+            //        "Crypto_Token_Info__": "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
+            //        "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //        "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            //        "Type": "native",
+            //        "Symbol": null,
+            //        "Name": null,
+            //        "Contract_Address": null,
+            //        "Minimum_Deposit": {
+            //            "v": "6",
+            //            "e": "6",
+            //            "f": "6.0e-6"
+            //        },
+            //        "Minimum_Withdraw": {
+            //            "v": "15",
+            //            "e": "5",
+            //            "f": "0.00015"
+            //        },
+            //        "Withdraw_Fee": {
+            //            "v": "1",
+            //            "e": "4",
+            //            "f": "0.0001"
+            //        },
+            //        "Minimum_Collect": null,
+            //        "Status": "valid",
+            //        "Can_Deposit": "Y",
+            //        "Decimals": null,
+            //        "Priority": "100",
+            //        "Created": {
+            //            "unix": "1727552199",
+            //            "us": "0",
+            //            "iso": "2024-09-28 19:36:39.000000",
+            //            "tz": "UTC",
+            //            "full": "1727552199000000",
+            //            "unixms": "1727552199000"
+            //        },
+            //        "Crypto_Token": {
+            //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //            "Name": "Bitcoin",
+            //            "Symbol": "BTC",
+            //            "Decimals": "8",
+            //            "CMC_Id": "1",
+            //            "Priority": "100",
+            //            "Can_Deposit": "Y",
+            //            "Category": "token",
+            //            "Testnet": "N",
+            //            "Created": {
+            //                "unix": "1727552113",
+            //                "us": "0",
+            //                "iso": "2024-09-28 19:35:13.000000",
+            //                "tz": "UTC",
+            //                "full": "1727552113000000",
+            //                "unixms": "1727552113000"
+            //            },
+            //            "Logo": [
+            //                {
+            //                    "Crypto_Token_Logo__": "ctklg-aoozyr-rzm5-fphf-dhm7-5wbtetha",
+            //                    "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //                    "Blob__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            //                    "Default": "Y",
+            //                    "Format": "png",
+            //                    "Priority": "0",
+            //                    "Created": {
+            //                        "unix": "1730196627",
+            //                        "us": "929660",
+            //                        "iso": "2024-10-29 10:10:27.929660",
+            //                        "tz": "UTC",
+            //                        "full": "1730196627929660",
+            //                        "unixms": "1730196627929"
+            //                    },
+            //                    "Source": {
+            //                        "Media_Image__": "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+            //                        "Url": "https://static.atonline.net/image/m_X7_tnmIYFCwn6EUVQuMKqrCuPB3CMl4ONTegeYpC0wIg68YZM0CuBpbjspnYwz/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+            //                    }
+            //                }
+            //            ]
+            //        },
+            //        "Crypto_Chain": {
+            //            "Crypto_Chain__": "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+            //            "EVM_Chain__": null,
+            //            "Crypto_Token__": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+            //            "Name": "Bitcoin",
+            //            "Key": "bitcoin",
+            //            "Type": "Bitcoin",
+            //            "Curve": "secp256k1",
+            //            "Backend_Url": null,
+            //            "Wallet_Verification_Methods": {
+            //                "signature": true
+            //            },
+            //            "Block_Margin": "3",
+            //            "Created": {
+            //                "unix": "1725340084",
+            //                "us": "0",
+            //                "iso": "2024-09-03 05:08:04.000000",
+            //                "tz": "UTC",
+            //                "full": "1725340084000000",
+            //                "unixms": "1725340084000"
+            //            }
+            //        }
+            //    }
+            //
+            object id = this.safeString(networkEntry, "Crypto_Token__");
+            object token = this.safeDict(networkEntry, "Crypto_Token", new Dictionary<string, object>() {});
+            object code = this.safeCurrencyCode(this.safeString(token, "Symbol"));
+            if (!isTrue((inOp(result, code))))
             {
-                ((IDictionary<string,object>)currencies)[(string)code] = currency;
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "code", code },
+                    { "info", new List<object>() {} },
+                    { "type", null },
+                    { "name", this.safeString(token, "Name") },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                    { "networks", new Dictionary<string, object>() {} },
+                };
             }
+            object networkId = this.safeString(networkEntry, "Crypto_Chain__");
+            object cryptoChainDict = this.safeString(networkEntry, "Crypto_Chain");
+            object networkName = this.safeString(cryptoChainDict, "Type", "default");
+            object networkCode = this.networkIdToCode(networkName);
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", isEqual(this.safeString(networkEntry, "Status"), "valid") },
+                { "deposit", isEqual(this.safeString(networkEntry, "Can_Deposit"), "Y") },
+                { "withdraw", null },
+                { "fee", this.parseNumber(this.parseAmount(getValue(networkEntry, "Withdraw_Fee"))) },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "Decimals"))) },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.parseAmount(getValue(networkEntry, "Minimum_Withdraw")) },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.parseAmount(getValue(networkEntry, "Minimum_Deposit")) },
+                        { "max", null },
+                    } },
+                } },
+            };
+            object infos = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)infos).Add(networkEntry);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = infos;
         }
-        return currencies;
-    }
-
-    public override object parseCurrency(object currency)
-    {
-        object id = this.safeString(currency, "Crypto_Token__");
-        object token = this.safeValue(currency, "Crypto_Token", new Dictionary<string, object>() {});
-        object code = this.safeCurrencyCode(this.safeString(token, "Symbol"));
-        object name = this.safeString(token, "Name");
-        object active = isEqual(this.safeString(currency, "Status"), "valid");
-        object deposit = isEqual(this.safeString(currency, "Can_Deposit"), "Y");
-        object withdraw = isEqual(this.safeString(currency, "Status"), "valid");
-        object fee = null;
-        if (isTrue(!isEqual(getValue(currency, "Withdraw_Fee"), null)))
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
         {
-            fee = this.parseNumber(this.parseAmount(getValue(currency, "Withdraw_Fee")));
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
-        object precision = this.parseNumber(this.parsePrecision(this.safeString(token, "Decimals")));
-        object minDeposit = null;
-        if (isTrue(!isEqual(getValue(currency, "Minimum_Deposit"), null)))
-        {
-            minDeposit = this.parseAmount(getValue(currency, "Minimum_Deposit"));
-        }
-        object minWithdraw = null;
-        if (isTrue(!isEqual(getValue(currency, "Minimum_Withdraw"), null)))
-        {
-            minWithdraw = this.parseAmount(getValue(currency, "Minimum_Withdraw"));
-        }
-        object networkId = this.safeString(currency, "Crypto_Chain__");
-        object networkData = this.safeValue(currency, "Crypto_Chain", new Dictionary<string, object>() {});
-        object networkCode = this.safeString(networkData, "Type", "default");
-        object networks = new Dictionary<string, object>() {
-            { "string", null },
-            { "info", ((bool) isTrue(isEqual(networkCode, "default"))) ? new Dictionary<string, object>() {} : networkData },
-            { "id", isTrue(isTrue(networkId) || isTrue(id)) || isTrue("") },
-            { "network", networkCode },
-            { "active", active },
-            { "deposit", deposit },
-            { "withdraw", withdraw },
-            { "fee", fee },
-            { "precision", precision },
-            { "limits", new Dictionary<string, object>() {
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", minDeposit },
-                    { "max", null },
-                } },
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", minWithdraw },
-                    { "max", null },
-                } },
-            } },
-        };
-        object result = new Dictionary<string, object>() {
-            { "info", currency },
-            { "id", id },
-            { "code", code },
-            { "name", name },
-            { "active", active },
-            { "deposit", deposit },
-            { "withdraw", withdraw },
-            { "fee", fee },
-            { "precision", precision },
-            { "type", null },
-            { "limits", new Dictionary<string, object>() {
-                { "amount", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", minWithdraw },
-                    { "max", null },
-                } },
-            } },
-            { "networks", networks },
-        };
         return result;
     }
 
@@ -1104,15 +1196,15 @@ public partial class ellipx : Exchange
         {
             object entry = getValue(dataArray, i);
             object balance = this.safeDict(entry, "Balance", new Dictionary<string, object>() {});
-            object currency = this.safeString(balance, "currency");
-            if (isTrue(!isEqual(currency, null)))
+            object code = this.safeString(balance, "currency");
+            if (isTrue(!isEqual(code, null)))
             {
                 object account = new Dictionary<string, object>() {
                     { "free", this.parseAmount(getValue(getValue(entry, "Unencumbered_Balance"), "value_xint")) },
                     { "used", this.parseAmount(getValue(getValue(entry, "Liabilities"), "value_xint")) },
                     { "total", this.parseAmount(getValue(balance, "value_xint")) },
                 };
-                ((IDictionary<string,object>)result)[(string)currency] = account;
+                ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }
         return this.safeBalance(result);
@@ -1776,7 +1868,7 @@ public partial class ellipx : Exchange
      * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
-     * @param {string} code Currency code
+     * @param {string} code unified currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
      * @param {string} [tag] Additional tag/memo for currencies that require it

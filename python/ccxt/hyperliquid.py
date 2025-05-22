@@ -368,7 +368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             id = i
             name = self.safe_string(data, 'name')
             code = self.safe_currency_code(name)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -390,7 +390,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

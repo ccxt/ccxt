@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.82';
+$version = '4.4.83';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.82';
+    const VERSION = '4.4.83';
 
     public $browser;
     public $marketsLoading = null;
@@ -1721,7 +1721,7 @@ class Exchange extends \ccxt\Exchange {
                         $currency['networks'][$key]['active'] = false;
                     }
                 }
-                $active = $this->safe_bool($network, 'active');
+                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
                 $currencyActive = $this->safe_bool($currency, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;

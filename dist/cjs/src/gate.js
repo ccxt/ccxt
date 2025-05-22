@@ -1898,7 +1898,7 @@ class gate extends gate$1 {
                     'code': code,
                     'type': type,
                     'precision': precision,
-                    'limits': this.limits,
+                    'limits': undefined,
                     'networks': {},
                     'info': [], // will be filled below
                 };

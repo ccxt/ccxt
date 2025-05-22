@@ -1940,45 +1940,42 @@ public partial class coinbase : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fetchCurrenciesFromCache(parameters);
-        object currencies = this.safeList(response, "currencies", new List<object>() {});
+        object promises = new List<object> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)};
+        object promisesResult = await promiseAll(promises);
+        object fiatResponse = this.safeDict(promisesResult, 0, new Dictionary<string, object>() {});
         //
-        // fiat
+        //    [
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
+        //        ...
         //
-        //    {
-        //        id: 'IMP',
-        //        name: 'Isle of Man Pound',
-        //        min_size: '0.01'
-        //    },
+        object cryptoResponse = this.safeDict(promisesResult, 1, new Dictionary<string, object>() {});
         //
-        // crypto
+        //     [
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
+        //          ...
         //
-        //    {
-        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        code: 'AERO',
-        //        name: 'Aerodrome Finance',
-        //        color: '#0433FF',
-        //        sort_index: '340',
-        //        exponent: '8',
-        //        type: 'crypto',
-        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":{
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             },
-        //         }
-        //     }
-        //
+        object ratesResponse = this.safeDict(promisesResult, 2, new Dictionary<string, object>() {});
+        object fiatData = this.safeList(fiatResponse, "data", new List<object>() {});
+        object cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
+        object ratesData = this.safeDict(ratesResponse, "data", new Dictionary<string, object>() {});
+        object rates = this.safeDict(ratesData, "rates", new Dictionary<string, object>() {});
+        object ratesIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        object currencies = this.arrayConcat(fiatData, cryptoData);
         object result = new Dictionary<string, object>() {};
         object networks = new Dictionary<string, object>() {};
         object networksById = new Dictionary<string, object>() {};
@@ -1991,12 +1988,13 @@ public partial class coinbase : Exchange
             object name = this.safeString(currency, "name");
             ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)name).ToLower();
             ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)name).ToLower();
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "type", ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat" },
-                { "name", this.safeString(currency, "name") },
+                { "type", type },
+                { "name", name },
                 { "active", true },
                 { "deposit", null },
                 { "withdraw", null },
@@ -2013,12 +2011,28 @@ public partial class coinbase : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
             if (isTrue(!isEqual(assetId, null)))
             {
                 object lowerCaseName = ((string)name).ToLower();
                 ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
                 ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
+            }
+        }
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for (object i = 0; isLessThan(i, getArrayLength(ratesIds)); postFixIncrement(ref i))
+        {
+            object currencyId = getValue(ratesIds, i);
+            object code = this.safeCurrencyCode(currencyId);
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", new Dictionary<string, object>() {} },
+                    { "id", currencyId },
+                    { "code", code },
+                    { "type", "crypto" },
+                    { "networks", new Dictionary<string, object>() {} },
+                });
             }
         }
         ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));

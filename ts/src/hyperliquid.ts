@@ -363,7 +363,7 @@ export default class hyperliquid extends Exchange {
             const id = i;
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -385,7 +385,7 @@ export default class hyperliquid extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
