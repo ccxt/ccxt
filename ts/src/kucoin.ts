@@ -1395,7 +1395,7 @@ export default class kucoin extends Exchange {
         //
         const currenciesData = this.safeList (response, 'data', []);
         const brokenCurrencies = [ '00', 'OPEN_ERROR', 'HUF', 'BDT' ];
-        const abnormalFiats = [ 'KWD' ];
+        const abnormalFiats = [ 'KWD', 'IRR' ];
         const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
