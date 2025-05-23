@@ -1,10 +1,5 @@
 {
     "BTC": {
-        "id": "1",
-        "name": "Bitcoin",
-        "code": "BTC",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "1",
@@ -20,19 +15,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "1",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "USDT": {
-        "id": "16",
-        "name": "Tether",
-        "code": "USDT",
-        "type": "crypto",
-        "precision": 0.01,
         "info": {
             "OMSId": "1",
             "ProductId": "16",
@@ -48,19 +55,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "16",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "Tether",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "EUR": {
-        "id": "44",
-        "name": "EUR",
-        "code": "EUR",
-        "type": "fiat",
-        "precision": 0.01,
         "info": {
             "OMSId": "1",
             "ProductId": "44",
@@ -76,19 +95,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "44",
+        "numericId": null,
+        "code": "EUR",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "EUR",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "USD": {
-        "id": "6",
-        "name": "United States Dollar",
-        "code": "USD",
-        "type": "fiat",
-        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "6",
@@ -104,19 +135,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "6",
+        "numericId": null,
+        "code": "USD",
+        "precision": 1e-8,
+        "type": "fiat",
+        "name": "United States Dollar",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "LTC": {
-        "id": "2",
-        "name": "Litecoin",
-        "code": "LTC",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "2",
@@ -132,19 +175,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "2",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Litecoin",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "ETH": {
-        "id": "3",
-        "name": "Ether",
-        "code": "ETH",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "3",
@@ -160,19 +215,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "3",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ether",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "ADA": {
-        "id": "14",
-        "name": "Cardano",
-        "code": "ADA",
-        "type": "crypto",
-        "precision": 0.00001,
         "info": {
             "OMSId": "1",
             "ProductId": "14",
@@ -188,19 +255,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "14",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 0.00001,
+        "type": "crypto",
+        "name": "Cardano",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "XRP": {
-        "id": "4",
-        "name": "XRP",
-        "code": "XRP",
-        "type": "crypto",
-        "precision": 0.0001,
         "info": {
             "OMSId": "1",
             "ProductId": "4",
@@ -216,19 +295,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "4",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "XRP",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "USDC": {
-        "id": "24",
-        "name": "USDC",
-        "code": "USDC",
-        "type": "crypto",
-        "precision": 0.01,
         "info": {
             "OMSId": "1",
             "ProductId": "24",
@@ -244,19 +335,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "24",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "USDC",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "SOL": {
-        "id": "34",
-        "name": "Solana",
-        "code": "SOL",
-        "type": "crypto",
-        "precision": 0.0001,
         "info": {
             "OMSId": "1",
             "ProductId": "34",
@@ -272,19 +375,31 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "34",
+        "numericId": null,
+        "code": "SOL",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Solana",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     },
     "CAD": {
-        "id": "7",
-        "name": "Canadian Dollar",
-        "code": "CAD",
-        "type": "fiat",
-        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "7",
@@ -300,11 +415,28 @@
             "IsDisabled": false,
             "MarginEnabled": false
         },
+        "id": "7",
+        "numericId": null,
+        "code": "CAD",
+        "precision": 1e-8,
+        "type": "fiat",
+        "name": "Canadian Dollar",
         "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "networks": {}
+        "margin": false
     }
 }
