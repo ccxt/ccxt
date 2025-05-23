@@ -182,7 +182,7 @@ if (fs.existsSync (keysGlobal)) {
 } else if (fs.existsSync (keysLocal)) {
     allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
 } else {
-    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
+    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 }
 
 const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
@@ -508,7 +508,7 @@ async function handleMarketsLoading (exchange: ccxt.Exchange) {
             await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
         }
     } catch (e) {
-        log.red (e);
+        log.red ('loadMarkets:', e);
         // error loading/cacheing markets
     }
 }
