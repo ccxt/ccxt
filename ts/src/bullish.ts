@@ -182,7 +182,7 @@ export default class bullish extends Exchange {
                         'v1/trades/{tradeId}': 1, // not used
                         'v1/accounts/asset': 1, // done
                         'v1/accounts/asset/{symbol}': 1, // done
-                        'v1/users/logout': 1,
+                        'v1/users/logout': 1, // not used
                         'v1/users/hmac/login': 1, // done
                         'v1/accounts/trading-accounts': 1, // done
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
@@ -197,8 +197,8 @@ export default class bullish extends Exchange {
                         'v2/amm-instructions': 1, // todo ask what method to use
                         'v1/wallets/withdrawal': 1,
                         'v2/users/login': 1, // done
-                        'v1/command?commandType=V1TransferAsset': 1,
-                        'v1/simulate-portfolio-margin': 1,
+                        'v1/command?commandType=V1TransferAsset': 1, // todo ask how to make this method
+                        'v1/simulate-portfolio-margin': 1, // todo ask what method to use
                     },
                 },
             },
