@@ -49,7 +49,7 @@ export default class bullish extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistory': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -189,7 +189,7 @@ export default class bullish extends Exchange {
                         'v1/derivatives-positions': 1, // done
                         'v1/history/derivatives-settlement': 1, // done
                         'v1/history/transfer': 1, // done
-                        'v1/history/borrow-interest': 1,
+                        'v1/history/borrow-interest': 1, // done
                     },
                     'post': {
                         'v2/orders': 1, // done
@@ -1928,7 +1928,7 @@ export default class bullish extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
      * @param {object} [params] extra parameters specific to the exchange api endpoint
-     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @param {int} params.until the latest time in ms to fetch positions for
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
@@ -2050,7 +2050,7 @@ export default class bullish extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @param {int} params.until the latest time in ms to fetch transfers for (default time now)
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -2134,6 +2134,79 @@ export default class bullish extends Exchange {
             'REJECTED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchBorrowRateHistory
+     * @description retrieves a history of a currencies borrow interest rate at specific time slots
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp for the earliest borrow rate
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} params.until the latest time in ms to fetch entries for
+     * @param {string} params.tradingAccountId the trading account id
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'assetSymbol': currency['id'],
+        };
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter');
+        }
+        request['tradingAccountId'] = tradingAccountId;
+        if (since !== undefined) {
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'until');
+        if (until !== undefined) {
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        }
+        const response = await this.privateGetV1HistoryBorrowInterest (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "assetId": "1",
+        //             "assetSymbol": "BTC",
+        //             "borrowedQuantity": "1.00000000",
+        //             "totalBorrowedQuantity": "1.00000000",
+        //             "createdAtDatetime": "2020-08-21T08:00:00.000Z",
+        //             "createdAtTimestamp": "1621490985000"
+        //         }
+        //     ]
+        //
+        return this.parseBorrowRateHistory (response, code, since, limit);
+    }
+
+    parseBorrowRate (info, currency: Currency = undefined) {
+        //
+        //     {
+        //         "assetId": "1",
+        //         "assetSymbol": "BTC",
+        //         "borrowedQuantity": "1.00000000",
+        //         "totalBorrowedQuantity": "1.00000000",
+        //         "createdAtDatetime": "2020-08-21T08:00:00.000Z",
+        //         "createdAtTimestamp": "1621490985000"
+        //     }
+        //
+        const timestamp = this.safeInteger (info, 'createdAtTimestamp');
+        const currencyId = this.safeString (info, 'assetSymbol');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': this.safeNumber (info, 'borrowedQuantity'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
