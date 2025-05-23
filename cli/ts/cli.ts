@@ -2,11 +2,31 @@ import fs from 'fs';
 import path from 'path';
 import ansi from 'ansicolor';
 import asTable from 'as-table';
-import ololog from 'ololog'; // to do add as static_dep
+import ololog from 'ololog';
 import { Agent } from 'https';
 import os from 'os';
-import ccxt from '../ccxt.js';
-import { add_static_result } from '../../utils/update-static-tests-data.js';
+// import { pathToFileURL } from 'url';
+// import ccxt from '../ccxt.js';
+
+let add_static_result;
+
+try {
+    add_static_result = (await import ('../../js/static-tests.js')).add_static_result;
+} catch (e) {
+    // noop
+}
+
+// import { add_static_result } from '../../utils/update-static-tests-data.js';
+
+let ccxt;
+
+try {
+    ccxt = await import ('ccxt');
+    console.log ('CCXT version:', ccxt.version);
+} catch (e) {
+    ccxt = await import ('../../js/ccxt.js');
+    console.log ('[local] CCXT version:', ccxt.version);
+}
 
 const fsPromises = fs.promises;
 ansi.nice;

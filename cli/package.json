@@ -1,0 +1,17 @@
+{
+  "name": "ccxt-cli",
+  "version": "1.0.0",
+  "description": "CLI for the CCXT package",
+  "main": "cli.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ansicolor": "^2.0.3",
+    "as-table": "^1.0.55",
+    "ololog": "^1.1.175"
+  }
+}
