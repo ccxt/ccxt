@@ -4,19 +4,10 @@ import ansi from 'ansicolor';
 import asTable from 'as-table';
 import ololog from 'ololog';
 import { Agent } from 'https';
-import os from 'os';
 // import { pathToFileURL } from 'url';
 // import ccxt from '../ccxt.js';
-
-let add_static_result;
-
-try {
-    add_static_result = (await import ('../../js/static-tests.js')).add_static_result;
-} catch (e) {
-    // noop
-}
-
-// import { add_static_result } from '../../utils/update-static-tests-data.js';
+import { createRequestTemplate, createResponseTemplate, countAllParams, jsonStringify } from './helpers.js';
+import { getCacheDirectory, checkCache, saveCommand } from './cache.js';
 
 let ccxt;
 
@@ -33,31 +24,14 @@ ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
 const { ExchangeError, NetworkError } = ccxt;
 
-/**
- *
- * @param obj
- * @param indent
- */
-function jsonStringify (obj: any, indent = undefined) {
-    return JSON.stringify (obj, (k, v) => (v === undefined ? null : v), indent);
-}
+//-----------------------------------------------------------------------------
 
-/**
- *
- * @param fn
- */
-function countAllParams (fn) {
-    const fnStr = fn.toString ()
-        .replace (/\/\/.*$/mg, '')
-        .replace (/\/\*[\s\S]*?\*\//mg, '')
-        .replace (/\s+/g, '');
-
-    const match = fnStr.match (/^[^(]*\(([^)]*)\)/);
-    if (!match) return 0;
-
-    const params = match[1].split (',').filter ((p) => p);
-    return params.length;
-}
+process.on ('uncaughtException', (e) => {
+    log.bright.red.error (e); log.red.error (e.message); process.exit (1);
+});
+process.on ('unhandledRejection', (e) => {
+    log.bright.red.error (e); log.red.error ((e as any).message); process.exit (1);
+});
 
 //-----------------------------------------------------------------------------
 let [ processPath, , exchangeId, methodName, ...params ] = process.argv.filter ((x) => !x.startsWith ('--'));
@@ -86,6 +60,7 @@ const shouldCreateBoth = process.argv.includes ('--static');
 const raw = process.argv.includes ('--raw');
 const noKeys = process.argv.includes ('--no-keys');
 const interactive = process.argv.includes ('--i');
+const showHistory = process.argv.includes ('--history');
 let foundDescription = undefined;
 const nameIndex = process.argv.indexOf ('--name');
 if (nameIndex >= 0) {
@@ -150,154 +125,96 @@ if (!raw) {
     log ('CCXT v' + ccxt.version);
 }
 
-//-----------------------------------------------------------------------------
-
-process.on ('uncaughtException', (e) => {
-    log.bright.red.error (e); log.red.error (e.message); process.exit (1);
-});
-process.on ('unhandledRejection', (e) => {
-    log.bright.red.error (e); log.red.error ((e as any).message); process.exit (1);
-});
-
-//-----------------------------------------------------------------------------
 const currentFilePath = process.argv[1];
 // if it's global installation, then show `ccxt` command, otherwise `node ./cli.js`
 
 const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt-cli' : 'node ' + currentFilePath;
 
-if (!exchangeId) {
+if (!exchangeId && !showHistory) {
     log (('Error, No exchange id specified!' as any).red);
     printUsage ();
     process.exit ();
 }
 //-----------------------------------------------------------------------------
 
-// set up keys and settings, if any
-const keysGlobal = path.resolve ('keys.json');
-const keysLocal = path.resolve ('keys.local.json');
-
 let allSettings = {};
-if (fs.existsSync (keysGlobal)) {
-    allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
-} else if (fs.existsSync (keysLocal)) {
-    allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
-} else {
-    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
-}
-
-const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
-
-//-----------------------------------------------------------------------------
-const timeout = 30000;
 let exchange = undefined as any;
-const httpsAgent = new Agent ({
-    'ecdhCurve': 'auto',
-    'keepAlive': true,
-});
-// check here if we have a arg like this: binance.fetchOrders()
-const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/;
-if (callRegex.test (exchangeId)) {
-    const res = callRegex.exec (exchangeId) as any;
-    exchangeId = res[1];
-    methodName = res[2];
-    params = res[3].split (',').map ((x) => x.trim ());
-}
-try {
-    if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
-        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ...settings });
+
+/**
+ *
+ */
+function loadSettingsAndCreateExchange () {
+    if (showHistory) {
+        return;
+    }
+    // set up keys and settings, if any
+    const keysGlobal = path.resolve ('keys.json');
+    const keysLocal = path.resolve ('keys.local.json');
+
+    if (fs.existsSync (keysGlobal)) {
+        allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
+    } else if (fs.existsSync (keysLocal)) {
+        allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
     } else {
-        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ...settings });
+    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
     }
-    if (exchange === undefined) {
-        process.exit ();
+
+    const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
+
+    const timeout = 30000;
+    const httpsAgent = new Agent ({
+        'ecdhCurve': 'auto',
+        'keepAlive': true,
+    });
+    // check here if we have a arg like this: binance.fetchOrders()
+    const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/;
+    if (callRegex.test (exchangeId)) {
+        const res = callRegex.exec (exchangeId) as any;
+        exchangeId = res[1];
+        methodName = res[2];
+        params = res[3].split (',').map ((x) => x.trim ());
     }
-    if (isSpot) {
-        exchange.options['defaultType'] = 'spot';
-    } else if (isSwap) {
-        exchange.options['defaultType'] = 'swap';
-    } else if (isFuture) {
-        exchange.options['defaultType'] = 'future';
-    } else if (isOption) {
-        exchange.options['defaultType'] = 'option';
-    }
-    if (!noKeys) {
+    try {
+        if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
+            exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ...settings });
+        } else {
+            exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ...settings });
+        }
+        if (exchange === undefined) {
+            process.exit ();
+        }
+        if (isSpot) {
+            exchange.options['defaultType'] = 'spot';
+        } else if (isSwap) {
+            exchange.options['defaultType'] = 'swap';
+        } else if (isFuture) {
+            exchange.options['defaultType'] = 'future';
+        } else if (isOption) {
+            exchange.options['defaultType'] = 'option';
+        }
+        if (!noKeys) {
         // check auth keys in env var
-        const requiredCredentials = exchange.requiredCredentials;
-        for (const [ credential, isRequired ] of Object.entries (requiredCredentials)) {
-            if (isRequired && exchange[credential] === undefined) {
-                const credentialEnvName = (exchangeId + '_' + credential).toUpperCase (); // example: KRAKEN_APIKEY
-                let credentialValue = process.env[credentialEnvName];
-                if (credentialValue) {
-                    if (credentialValue.indexOf ('---BEGIN') > -1) {
-                        credentialValue = (credentialValue as any).replaceAll ('\\n', '\n');
+            const requiredCredentials = exchange.requiredCredentials;
+            for (const [ credential, isRequired ] of Object.entries (requiredCredentials)) {
+                if (isRequired && exchange[credential] === undefined) {
+                    const credentialEnvName = (exchangeId + '_' + credential).toUpperCase (); // example: KRAKEN_APIKEY
+                    let credentialValue = process.env[credentialEnvName];
+                    if (credentialValue) {
+                        if (credentialValue.indexOf ('---BEGIN') > -1) {
+                            credentialValue = (credentialValue as any).replaceAll ('\\n', '\n');
+                        }
+                        exchange[credential] = credentialValue;
                     }
-                    exchange[credential] = credentialValue;
                 }
             }
         }
-    }
-    if (testnet) {
-        exchange.setSandboxMode (true);
-    }
-} catch (e) {
-    log.red (e);
-    printUsage ();
-    process.exit ();
-}
-
-//-----------------------------------------------------------------------------
-
-/**
- *
- * @param exchange
- * @param methodName
- * @param args
- * @param result
- */
-function createRequestTemplate (exchange, methodName, args, result) {
-    const final = {
-        'description': 'Fill this with a description of the method call',
-        'method': methodName,
-        'url': exchange.last_request_url ?? '',
-        'input': args,
-        'output': exchange.last_request_body ?? undefined,
-    };
-    log ('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')');
-    log.green ('-------------------------------------------');
-    log (JSON.stringify (final, null, 2));
-    log.green ('-------------------------------------------');
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
-        log.green ('auto-saving static result');
-        add_static_result ('request', exchange.id, methodName, final);
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-/**
- *
- * @param exchange
- * @param methodName
- * @param args
- * @param result
- */
-function createResponseTemplate (exchange, methodName, args, result) {
-    const final = {
-        'description': 'Fill this with a description of the method call',
-        'method': methodName,
-        'input': args,
-        'httpResponse': exchange.parseJson (exchange.last_http_response),
-        'parsedResponse': result,
-    };
-    log ('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')');
-    log.green ('-------------------------------------------');
-    log (jsonStringify (final, 2));
-    log.green ('-------------------------------------------');
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
-        log.green ('auto-saving static result');
-        add_static_result ('response', exchange.id, methodName, final);
+        if (testnet) {
+            exchange.setSandboxMode (true);
+        }
+    } catch (e) {
+        log.red (e);
+        printUsage ();
+        process.exit ();
     }
 }
 
@@ -348,44 +265,18 @@ function printUsage () {
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-/**
- *
- */
-function getCacheDirectory () {
-    const homeDir = os.homedir ();
-    if (process.platform === 'win32') {
-        return path.join (process.env.LOCALAPPDATA || path.join (homeDir, 'AppData', 'Local'), 'ccxt-cli', 'cache');
-    } else if (process.platform === 'darwin') {  // macOS
-        return path.join (homeDir, 'Library', 'Caches', 'ccxt-cli');
-    } else {  // Linux & Others
-        return path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
-    }
-}
 
 /**
  *
  */
-function checkCache () {
+function printSavedCommand () {
     const cachePath = getCacheDirectory ();
-    const marketsPath = path.join (cachePath, 'markets');
-    if (!fs.existsSync (cachePath)) {
-        try {
-            fs.mkdirSync (cachePath, {
-                'recursive': true,
-            });
-        } catch (e) {
-            log.red ('Error creating cache directory', cachePath);
-        }
-    } else if (!fs.existsSync (marketsPath)) {
-        try {
-            fs.mkdirSync (marketsPath, {
-                'recursive': true,
-            });
-        } catch (e) {
-            log.red ('Error creating cache directory', cachePath);
-        }
-    }
+    const historyPath = path.join (cachePath, 'history');
+    const historyFile = path.join (historyPath, 'commands.json');
+    const list = JSON.parse (fs.readFileSync (historyFile).toString ()) || [];
+    printHumanReadable ('', list);
 }
+
 //-----------------------------------------------------------------------------
 const printHumanReadable = (exchange, result) => {
     if (raw) {
@@ -540,12 +431,21 @@ function parseMethodArgs (exchange, params) {
  *
  */
 async function run () {
+    loadSettingsAndCreateExchange ();
     checkCache ();
+
+    if (showHistory) {
+        printSavedCommand ();
+        process.exit ();
+    }
+
     if (!exchangeId) {
         printUsage ();
         process.exit ();
     }
+
     let args = parseMethodArgs (exchange, params);
+    saveCommand (args.join (' '));
 
     if (cors) {
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/';

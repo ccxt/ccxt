@@ -1,0 +1,81 @@
+
+import fs from 'fs';
+import path from 'path';
+import ansi from 'ansicolor';
+import ololog from 'ololog';
+import os from 'os';
+
+ansi.nice;
+const log = ololog.configure ({ 'locate': false }).unlimited;
+
+/**
+ *
+ */
+function getCacheDirectory () {
+    const homeDir = os.homedir ();
+    if (process.platform === 'win32') {
+        return path.join (process.env.LOCALAPPDATA || path.join (homeDir, 'AppData', 'Local'), 'ccxt-cli', 'cache');
+    } else if (process.platform === 'darwin') {  // macOS
+        return path.join (homeDir, 'Library', 'Caches', 'ccxt-cli');
+    } else {  // Linux & Others
+        return path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
+    }
+}
+
+/**
+ *
+ */
+function checkCache () {
+    const cachePath = getCacheDirectory ();
+    const marketsPath = path.join (cachePath, 'markets');
+    if (!fs.existsSync (cachePath)) {
+        try {
+            fs.mkdirSync (cachePath, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', cachePath);
+        }
+    } else if (!fs.existsSync (marketsPath)) {
+        try {
+            fs.mkdirSync (marketsPath, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', cachePath);
+        }
+    }
+}
+
+/**
+ *
+ * @param command
+ */
+function saveCommand (command: string) {
+    const cachePath = getCacheDirectory ();
+    const historyPath = path.join (cachePath, 'history');
+    if (!fs.existsSync (historyPath)) {
+        try {
+            fs.mkdirSync (historyPath, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', cachePath);
+        }
+    }
+    const historyFile = path.join (historyPath, 'commands.json');
+    let list: any[] = [];
+    if (!fs.existsSync (historyFile)) {
+        fs.writeFileSync (historyFile, JSON.stringify (list, null, 2));
+    } else {
+        list = JSON.parse (fs.readFileSync (historyFile).toString ()) || [];
+    }
+    list.push (command);
+    fs.writeFileSync (historyFile, JSON.stringify (list, null, 2));
+}
+
+export {
+    checkCache,
+    getCacheDirectory,
+    saveCommand,
+};
