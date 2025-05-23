@@ -1,0 +1,9518 @@
+{
+  "MAX/TWD": {
+    "id": "maxtwd",
+    "lowercaseId": null,
+    "symbol": "MAX/TWD",
+    "base": "MAX",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "max",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 20,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "maxtwd",
+      "status": "active",
+      "base_unit": "max",
+      "base_unit_precision": "2",
+      "min_base_amount": "20.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BTC/TWD": {
+    "id": "btctwd",
+    "lowercaseId": null,
+    "symbol": "BTC/TWD",
+    "base": "BTC",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "btc",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1e-8,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.00008,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "btctwd",
+      "status": "active",
+      "base_unit": "btc",
+      "base_unit_precision": "8",
+      "min_base_amount": "8.0e-05",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ETH/TWD": {
+    "id": "ethtwd",
+    "lowercaseId": null,
+    "symbol": "ETH/TWD",
+    "base": "ETH",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "eth",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.000001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.002,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "ethtwd",
+      "status": "active",
+      "base_unit": "eth",
+      "base_unit_precision": "6",
+      "min_base_amount": "0.002",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LTC/TWD": {
+    "id": "ltctwd",
+    "lowercaseId": null,
+    "symbol": "LTC/TWD",
+    "base": "LTC",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "ltc",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.06,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "ltctwd",
+      "status": "active",
+      "base_unit": "ltc",
+      "base_unit_precision": "4",
+      "min_base_amount": "0.06",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BCH/TWD": {
+    "id": "bchtwd",
+    "lowercaseId": null,
+    "symbol": "BCH/TWD",
+    "base": "BCH",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "bch",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.000001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.014,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bchtwd",
+      "status": "active",
+      "base_unit": "bch",
+      "base_unit_precision": "6",
+      "min_base_amount": "0.014",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "USDT/TWD": {
+    "id": "usdttwd",
+    "lowercaseId": null,
+    "symbol": "USDT/TWD",
+    "base": "USDT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "usdt",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 8,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "usdttwd",
+      "status": "active",
+      "base_unit": "usdt",
+      "base_unit_precision": "2",
+      "min_base_amount": "8.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ETH/BTC": {
+    "id": "ethbtc",
+    "lowercaseId": null,
+    "symbol": "ETH/BTC",
+    "base": "ETH",
+    "quote": "BTC",
+    "settle": null,
+    "baseId": "eth",
+    "quoteId": "btc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.000001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.002,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 0.00008,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "ethbtc",
+      "status": "active",
+      "base_unit": "eth",
+      "base_unit_precision": "4",
+      "min_base_amount": "0.002",
+      "quote_unit": "btc",
+      "quote_unit_precision": "6",
+      "min_quote_amount": "8.0e-05",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "MAX/USDT": {
+    "id": "maxusdt",
+    "lowercaseId": null,
+    "symbol": "MAX/USDT",
+    "base": "MAX",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "max",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 20,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "maxusdt",
+      "status": "active",
+      "base_unit": "max",
+      "base_unit_precision": "2",
+      "min_base_amount": "20.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BTC/USDT": {
+    "id": "btcusdt",
+    "lowercaseId": null,
+    "symbol": "BTC/USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "btc",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.000001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.00008,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "btcusdt",
+      "status": "active",
+      "base_unit": "btc",
+      "base_unit_precision": "6",
+      "min_base_amount": "8.0e-05",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ETH/USDT": {
+    "id": "ethusdt",
+    "lowercaseId": null,
+    "symbol": "ETH/USDT",
+    "base": "ETH",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "eth",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.00001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.002,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "ethusdt",
+      "status": "active",
+      "base_unit": "eth",
+      "base_unit_precision": "5",
+      "min_base_amount": "0.002",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": true
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BCH/USDT": {
+    "id": "bchusdt",
+    "lowercaseId": null,
+    "symbol": "BCH/USDT",
+    "base": "BCH",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "bch",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.00001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.014,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bchusdt",
+      "status": "active",
+      "base_unit": "bch",
+      "base_unit_precision": "5",
+      "min_base_amount": "0.014",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LTC/USDT": {
+    "id": "ltcusdt",
+    "lowercaseId": null,
+    "symbol": "LTC/USDT",
+    "base": "LTC",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "ltc",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.00001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.06,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "ltcusdt",
+      "status": "active",
+      "base_unit": "ltc",
+      "base_unit_precision": "5",
+      "min_base_amount": "0.06",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "XRP/TWD": {
+    "id": "xrptwd",
+    "lowercaseId": null,
+    "symbol": "XRP/TWD",
+    "base": "XRP",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "xrp",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 3,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "xrptwd",
+      "status": "active",
+      "base_unit": "xrp",
+      "base_unit_precision": "2",
+      "min_base_amount": "3.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "XRP/USDT": {
+    "id": "xrpusdt",
+    "lowercaseId": null,
+    "symbol": "XRP/USDT",
+    "base": "XRP",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "xrp",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.00001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 3,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "xrpusdt",
+      "status": "active",
+      "base_unit": "xrp",
+      "base_unit_precision": "2",
+      "min_base_amount": "3.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "5",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BCNT/TWD": {
+    "id": "bcnttwd",
+    "lowercaseId": null,
+    "symbol": "BCNT/TWD",
+    "base": "BCNT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "bcnt",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 1700,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bcnttwd",
+      "status": "active",
+      "base_unit": "bcnt",
+      "base_unit_precision": "1",
+      "min_base_amount": "1700.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BCNT/USDT": {
+    "id": "bcntusdt",
+    "lowercaseId": null,
+    "symbol": "BCNT/USDT",
+    "base": "BCNT",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "bcnt",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.00001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 1700,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bcntusdt",
+      "status": "active",
+      "base_unit": "bcnt",
+      "base_unit_precision": "1",
+      "min_base_amount": "1700.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "5",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "USDC/TWD": {
+    "id": "usdctwd",
+    "lowercaseId": null,
+    "symbol": "USDC/TWD",
+    "base": "USDC",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "usdc",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 8,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "usdctwd",
+      "status": "active",
+      "base_unit": "usdc",
+      "base_unit_precision": "2",
+      "min_base_amount": "8.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LINK/TWD": {
+    "id": "linktwd",
+    "lowercaseId": null,
+    "symbol": "LINK/TWD",
+    "base": "LINK",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "link",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.4,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "linktwd",
+      "status": "active",
+      "base_unit": "link",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.4",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "COMP/TWD": {
+    "id": "comptwd",
+    "lowercaseId": null,
+    "symbol": "COMP/TWD",
+    "base": "COMP",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "comp",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.11,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "comptwd",
+      "status": "active",
+      "base_unit": "comp",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.11",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SAND/USDT": {
+    "id": "sandusdt",
+    "lowercaseId": null,
+    "symbol": "SAND/USDT",
+    "base": "SAND",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "sand",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.00001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 11,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "sandusdt",
+      "status": "active",
+      "base_unit": "sand",
+      "base_unit_precision": "1",
+      "min_base_amount": "11.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "5",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "USDC/USDT": {
+    "id": "usdcusdt",
+    "lowercaseId": null,
+    "symbol": "USDC/USDT",
+    "base": "USDC",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "usdc",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 8,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "usdcusdt",
+      "status": "active",
+      "base_unit": "usdc",
+      "base_unit_precision": "2",
+      "min_base_amount": "8.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LINK/USDT": {
+    "id": "linkusdt",
+    "lowercaseId": null,
+    "symbol": "LINK/USDT",
+    "base": "LINK",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "link",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.4,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "linkusdt",
+      "status": "active",
+      "base_unit": "link",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.4",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "GRT/TWD": {
+    "id": "grttwd",
+    "lowercaseId": null,
+    "symbol": "GRT/TWD",
+    "base": "GRT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "grt",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 26,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "grttwd",
+      "status": "active",
+      "base_unit": "grt",
+      "base_unit_precision": "1",
+      "min_base_amount": "26.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "YFI/TWD": {
+    "id": "yfitwd",
+    "lowercaseId": null,
+    "symbol": "YFI/TWD",
+    "base": "YFI",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "yfi",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.00001,
+      "price": 1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.0009,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "yfitwd",
+      "status": "active",
+      "base_unit": "yfi",
+      "base_unit_precision": "5",
+      "min_base_amount": "0.0009",
+      "quote_unit": "twd",
+      "quote_unit_precision": "0",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "DOGE/TWD": {
+    "id": "dogetwd",
+    "lowercaseId": null,
+    "symbol": "DOGE/TWD",
+    "base": "DOGE",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "doge",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 17,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "dogetwd",
+      "status": "active",
+      "base_unit": "doge",
+      "base_unit_precision": "1",
+      "min_base_amount": "17.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "DOGE/USDT": {
+    "id": "dogeusdt",
+    "lowercaseId": null,
+    "symbol": "DOGE/USDT",
+    "base": "DOGE",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "doge",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 17,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "dogeusdt",
+      "status": "active",
+      "base_unit": "doge",
+      "base_unit_precision": "0",
+      "min_base_amount": "17.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ADA/TWD": {
+    "id": "adatwd",
+    "lowercaseId": null,
+    "symbol": "ADA/TWD",
+    "base": "ADA",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "ada",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 7,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "adatwd",
+      "status": "active",
+      "base_unit": "ada",
+      "base_unit_precision": "1",
+      "min_base_amount": "7.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "COMP/USDT": {
+    "id": "compusdt",
+    "lowercaseId": null,
+    "symbol": "COMP/USDT",
+    "base": "COMP",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "comp",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.11,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "compusdt",
+      "status": "active",
+      "base_unit": "comp",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.11",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "DOT/TWD": {
+    "id": "dottwd",
+    "lowercaseId": null,
+    "symbol": "DOT/TWD",
+    "base": "DOT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "dot",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.8,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "dottwd",
+      "status": "active",
+      "base_unit": "dot",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.8",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "DOT/USDT": {
+    "id": "dotusdt",
+    "lowercaseId": null,
+    "symbol": "DOT/USDT",
+    "base": "DOT",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "dot",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.8,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "dotusdt",
+      "status": "active",
+      "base_unit": "dot",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.8",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "POL/TWD": {
+    "id": "poltwd",
+    "lowercaseId": null,
+    "symbol": "POL/TWD",
+    "base": "POL",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "pol",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 13,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "poltwd",
+      "status": "active",
+      "base_unit": "pol",
+      "base_unit_precision": "1",
+      "min_base_amount": "13.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "POL/USDT": {
+    "id": "polusdt",
+    "lowercaseId": null,
+    "symbol": "POL/USDT",
+    "base": "POL",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "pol",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 13,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "polusdt",
+      "status": "active",
+      "base_unit": "pol",
+      "base_unit_precision": "1",
+      "min_base_amount": "13.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ADA/USDT": {
+    "id": "adausdt",
+    "lowercaseId": null,
+    "symbol": "ADA/USDT",
+    "base": "ADA",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "ada",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 7,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "adausdt",
+      "status": "active",
+      "base_unit": "ada",
+      "base_unit_precision": "1",
+      "min_base_amount": "7.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SOL/TWD": {
+    "id": "soltwd",
+    "lowercaseId": null,
+    "symbol": "SOL/TWD",
+    "base": "SOL",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "sol",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.032,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "soltwd",
+      "status": "active",
+      "base_unit": "sol",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.032",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SOL/USDT": {
+    "id": "solusdt",
+    "lowercaseId": null,
+    "symbol": "SOL/USDT",
+    "base": "SOL",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "sol",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.032,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "solusdt",
+      "status": "active",
+      "base_unit": "sol",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.032",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SHIB/TWD": {
+    "id": "shibtwd",
+    "lowercaseId": null,
+    "symbol": "SHIB/TWD",
+    "base": "SHIB",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "shib",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 1e-7
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 250000,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "shibtwd",
+      "status": "active",
+      "base_unit": "shib",
+      "base_unit_precision": "-3",
+      "min_base_amount": "250000.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "7",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SHIB/USDT": {
+    "id": "shibusdt",
+    "lowercaseId": null,
+    "symbol": "SHIB/USDT",
+    "base": "SHIB",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "shib",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 250000,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "shibusdt",
+      "status": "active",
+      "base_unit": "shib",
+      "base_unit_precision": "-3",
+      "min_base_amount": "250000.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "8",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "SAND/TWD": {
+    "id": "sandtwd",
+    "lowercaseId": null,
+    "symbol": "SAND/TWD",
+    "base": "SAND",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "sand",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 11,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "sandtwd",
+      "status": "active",
+      "base_unit": "sand",
+      "base_unit_precision": "1",
+      "min_base_amount": "11.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "GALA/TWD": {
+    "id": "galatwd",
+    "lowercaseId": null,
+    "symbol": "GALA/TWD",
+    "base": "GALA",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "gala",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 170,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "galatwd",
+      "status": "active",
+      "base_unit": "gala",
+      "base_unit_precision": "1",
+      "min_base_amount": "170.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "MANA/TWD": {
+    "id": "manatwd",
+    "lowercaseId": null,
+    "symbol": "MANA/TWD",
+    "base": "MANA",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "mana",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 12,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "manatwd",
+      "status": "active",
+      "base_unit": "mana",
+      "base_unit_precision": "1",
+      "min_base_amount": "12.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ALICE/TWD": {
+    "id": "alicetwd",
+    "lowercaseId": null,
+    "symbol": "ALICE/TWD",
+    "base": "ALICE",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "alice",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 5,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "alicetwd",
+      "status": "active",
+      "base_unit": "alice",
+      "base_unit_precision": "2",
+      "min_base_amount": "5.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LOOKS/TWD": {
+    "id": "lookstwd",
+    "lowercaseId": null,
+    "symbol": "LOOKS/TWD",
+    "base": "LOOKS",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "looks",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 140,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "lookstwd",
+      "status": "active",
+      "base_unit": "looks",
+      "base_unit_precision": "1",
+      "min_base_amount": "140.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "RLY/TWD": {
+    "id": "rlytwd",
+    "lowercaseId": null,
+    "symbol": "RLY/TWD",
+    "base": "RLY",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "rly",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 3500,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "rlytwd",
+      "status": "active",
+      "base_unit": "rly",
+      "base_unit_precision": "0",
+      "min_base_amount": "3500.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LOOT/TWD": {
+    "id": "loottwd",
+    "lowercaseId": null,
+    "symbol": "LOOT/TWD",
+    "base": "LOOT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "loot",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 460,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "loottwd",
+      "status": "active",
+      "base_unit": "loot",
+      "base_unit_precision": "1",
+      "min_base_amount": "460.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "LOOT/USDT": {
+    "id": "lootusdt",
+    "lowercaseId": null,
+    "symbol": "LOOT/USDT",
+    "base": "LOOT",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "loot",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 460,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "lootusdt",
+      "status": "active",
+      "base_unit": "loot",
+      "base_unit_precision": "0",
+      "min_base_amount": "460.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "MASK/USDT": {
+    "id": "maskusdt",
+    "lowercaseId": null,
+    "symbol": "MASK/USDT",
+    "base": "MASK",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "mask",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 2,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "maskusdt",
+      "status": "active",
+      "base_unit": "mask",
+      "base_unit_precision": "1",
+      "min_base_amount": "2.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "APE/TWD": {
+    "id": "apetwd",
+    "lowercaseId": null,
+    "symbol": "APE/TWD",
+    "base": "APE",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "ape",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 5,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "apetwd",
+      "status": "active",
+      "base_unit": "ape",
+      "base_unit_precision": "2",
+      "min_base_amount": "5.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "APE/USDT": {
+    "id": "apeusdt",
+    "lowercaseId": null,
+    "symbol": "APE/USDT",
+    "base": "APE",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "ape",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 5,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "apeusdt",
+      "status": "active",
+      "base_unit": "ape",
+      "base_unit_precision": "1",
+      "min_base_amount": "5.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "RLY/USDT": {
+    "id": "rlyusdt",
+    "lowercaseId": null,
+    "symbol": "RLY/USDT",
+    "base": "RLY",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "rly",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 3500,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "rlyusdt",
+      "status": "active",
+      "base_unit": "rly",
+      "base_unit_precision": "0",
+      "min_base_amount": "3500.0",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "XTZ/TWD": {
+    "id": "xtztwd",
+    "lowercaseId": null,
+    "symbol": "XTZ/TWD",
+    "base": "XTZ",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "xtz",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 4.6,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "xtztwd",
+      "status": "active",
+      "base_unit": "xtz",
+      "base_unit_precision": "1",
+      "min_base_amount": "4.6",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "GMT/TWD": {
+    "id": "gmttwd",
+    "lowercaseId": null,
+    "symbol": "GMT/TWD",
+    "base": "GMT",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "gmt",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 34,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "gmttwd",
+      "status": "active",
+      "base_unit": "gmt",
+      "base_unit_precision": "2",
+      "min_base_amount": "34.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "GST/TWD": {
+    "id": "gsttwd",
+    "lowercaseId": null,
+    "symbol": "GST/TWD",
+    "base": "GST",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "gst",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 370,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "gsttwd",
+      "status": "active",
+      "base_unit": "gst",
+      "base_unit_precision": "1",
+      "min_base_amount": "370.0",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BNB/TWD": {
+    "id": "bnbtwd",
+    "lowercaseId": null,
+    "symbol": "BNB/TWD",
+    "base": "BNB",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "bnb",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.013,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bnbtwd",
+      "status": "active",
+      "base_unit": "bnb",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.013",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "BNB/USDT": {
+    "id": "bnbusdt",
+    "lowercaseId": null,
+    "symbol": "BNB/USDT",
+    "base": "BNB",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "bnb",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.001,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.013,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "bnbusdt",
+      "status": "active",
+      "base_unit": "bnb",
+      "base_unit_precision": "3",
+      "min_base_amount": "0.013",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ENS/TWD": {
+    "id": "enstwd",
+    "lowercaseId": null,
+    "symbol": "ENS/TWD",
+    "base": "ENS",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "ens",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.2,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "enstwd",
+      "status": "active",
+      "base_unit": "ens",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.2",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ETC/TWD": {
+    "id": "etctwd",
+    "lowercaseId": null,
+    "symbol": "ETC/TWD",
+    "base": "ETC",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "etc",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.23,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "etctwd",
+      "status": "active",
+      "base_unit": "etc",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.23",
+      "quote_unit": "twd",
+      "quote_unit_precision": "1",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ETC/USDT": {
+    "id": "etcusdt",
+    "lowercaseId": null,
+    "symbol": "ETC/USDT",
+    "base": "ETC",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "etc",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.23,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "etcusdt",
+      "status": "active",
+      "base_unit": "etc",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.23",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ARB/TWD": {
+    "id": "arbtwd",
+    "lowercaseId": null,
+    "symbol": "ARB/TWD",
+    "base": "ARB",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "arb",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 7.9,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "arbtwd",
+      "status": "active",
+      "base_unit": "arb",
+      "base_unit_precision": "1",
+      "min_base_amount": "7.9",
+      "quote_unit": "twd",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "ARB/USDT": {
+    "id": "arbusdt",
+    "lowercaseId": null,
+    "symbol": "ARB/USDT",
+    "base": "ARB",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "arb",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.1,
+      "price": 0.0001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 7.9,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "arbusdt",
+      "status": "active",
+      "base_unit": "arb",
+      "base_unit_precision": "1",
+      "min_base_amount": "7.9",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "4",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "AVAX/TWD": {
+    "id": "avaxtwd",
+    "lowercaseId": null,
+    "symbol": "AVAX/TWD",
+    "base": "AVAX",
+    "quote": "TWD",
+    "settle": null,
+    "baseId": "avax",
+    "quoteId": "twd",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.17,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 250,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "avaxtwd",
+      "status": "active",
+      "base_unit": "avax",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.17",
+      "quote_unit": "twd",
+      "quote_unit_precision": "2",
+      "min_quote_amount": "250.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  },
+  "AVAX/USDT": {
+    "id": "avaxusdt",
+    "lowercaseId": null,
+    "symbol": "AVAX/USDT",
+    "base": "AVAX",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "avax",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0015,
+    "maker": 0.0005,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.01,
+      "price": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 0.17,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": "avaxusdt",
+      "status": "active",
+      "base_unit": "avax",
+      "base_unit_precision": "2",
+      "min_base_amount": "0.17",
+      "quote_unit": "usdt",
+      "quote_unit_precision": "3",
+      "min_quote_amount": "8.0",
+      "m_wallet_supported": false
+    },
+    "tierBased": true,
+    "percentage": true,
+    "tiers": {
+      "taker": [
+        [
+          0,
+          0.0015
+        ],
+        [
+          3000000,
+          0.00135
+        ],
+        [
+          10000000,
+          0.0012
+        ],
+        [
+          30000000,
+          0.00105
+        ],
+        [
+          150000000,
+          0.0009
+        ],
+        [
+          300000000,
+          0.00075
+        ],
+        [
+          600000000,
+          0.0006
+        ],
+        [
+          1000000000,
+          0.00055
+        ],
+        [
+          1500000000,
+          0.0005
+        ],
+        [
+          2000000000,
+          0.00045
+        ]
+      ],
+      "maker": [
+        [
+          0,
+          0.0005
+        ],
+        [
+          3000000,
+          0.00045
+        ],
+        [
+          10000000,
+          0.0004
+        ],
+        [
+          30000000,
+          0.00035
+        ],
+        [
+          150000000,
+          0.0003
+        ],
+        [
+          300000000,
+          0.00025
+        ],
+        [
+          600000000,
+          0.0002
+        ],
+        [
+          1000000000,
+          0.0001
+        ],
+        [
+          1500000000,
+          0
+        ],
+        [
+          2000000000,
+          0
+        ]
+      ]
+    }
+  }
+}
