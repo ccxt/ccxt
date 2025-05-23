@@ -8,7 +8,7 @@
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "jsdoc"],
+  "plugins": ["@typescript-eslint"],
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript", "plugin:jsdoc/recommended-typescript-error"],
   "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*", "abstract/*"],
   "rules": {
@@ -83,7 +83,6 @@
     "camelcase": "off",
     "no-lonely-if": "off",
     "no-mixed-operators": "off",
-    "jsdoc/no-types": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
       "hoist": "all", // just for cleanest practices
@@ -99,10 +98,6 @@
     "consistent-return": "off",
     "no-await-in-loop": "off",
     "prefer-exponentiation-operator": "off",
-    "jsdoc/check-tag-names": ["error", {
-      "definedTags": ["method"]
-    }],
-    "jsdoc/require-param-description": "off"
   },
   "settings": {
     "import/resolver": {
@@ -112,11 +107,6 @@
     },
     "import/parsers": {
       "@typescript-eslint/parser": [".ts", ".js"]
-    },
-    "jsdoc": {
-      "tagNamePreference": {
-        "function": "method"
-      }
-  }
+    }
   }
 }
