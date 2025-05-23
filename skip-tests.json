@@ -1310,7 +1310,9 @@
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchCurrencies":{
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "deposit":"not provider",
+                "type":"not provided"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
