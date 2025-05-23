@@ -45,6 +45,12 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
+            },
+            "fetchCurrencies": {
+                "fee": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
             }
         }
     },
@@ -1214,21 +1220,6 @@
             }
         },
         "timeout": 120000
-    },
-    "kuna": {
-        "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpsProxy": "http://188.245.226.105:3128",
-        "skipMethods": {
-            "loadMarkets": {
-                "active":"is undefined"
-            },
-            "fetchCurrencies": {
-                "deposit":"is undefined",
-                "withdraw":"is undefined",
-                "active":"is undefined",
-                "precision":"somewhat strange atm https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2337"
-            }
-        }
     },
     "kucoin": {
         "skipMethods":{
