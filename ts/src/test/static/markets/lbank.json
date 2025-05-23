@@ -65,13 +65,13 @@
     "percentage": null
   },
   "BTC/USDT": {
-    "id": "xbt_usdt",
+    "id": "btc_usdt",
     "lowercaseId": null,
     "symbol": "BTC/USDT",
     "base": "BTC",
     "quote": "USDT",
     "settle": null,
-    "baseId": "xbt",
+    "baseId": "btc",
     "quoteId": "usdt",
     "settleId": null,
     "type": "spot",
@@ -94,8 +94,8 @@
     "strike": null,
     "optionType": null,
     "precision": {
-      "amount": 0.01,
-      "price": 0.00001
+      "amount": 0.0001,
+      "price": 0.01
     },
     "limits": {
       "leverage": {
@@ -103,7 +103,7 @@
         "max": null
       },
       "amount": {
-        "min": 250,
+        "min": 0.0001,
         "max": null
       },
       "price": {
@@ -121,10 +121,10 @@
     },
     "created": null,
     "info": {
-      "symbol": "xbt_usdt",
-      "quantityAccuracy": "2",
-      "minTranQua": "250",
-      "priceAccuracy": "5"
+      "symbol": "btc_usdt",
+      "quantityAccuracy": "4",
+      "minTranQua": "0.0001",
+      "priceAccuracy": "2"
     },
     "tierBased": null,
     "percentage": null
@@ -514,7 +514,7 @@
       "priceLimitUpperValue": "0.01",
       "symbol": "LTCUSDT",
       "volumeTick": "0.001",
-      "indexPrice": "100.94520000",
+      "indexPrice": "101.17540000",
       "minOrderVolume": "0.001",
       "priceTick": "0.01",
       "maxOrderVolume": "100000.0",
@@ -533,13 +533,13 @@
     "percentage": null
   },
   "BTC/USDT:USDT": {
-    "id": "XBTUSDT",
+    "id": "BTCUSDT",
     "lowercaseId": null,
     "symbol": "BTC/USDT:USDT",
     "base": "BTC",
     "quote": "USDT",
     "settle": "USDT",
-    "baseId": "XBT",
+    "baseId": "BTC",
     "quoteId": "USDT",
     "settleId": "USDT",
     "type": "swap",
@@ -562,8 +562,8 @@
     "strike": null,
     "optionType": null,
     "precision": {
-      "amount": 0.1,
-      "price": 0.00001
+      "amount": 0.0001,
+      "price": 0.1
     },
     "limits": {
       "leverage": {
@@ -571,15 +571,15 @@
         "max": null
       },
       "amount": {
-        "min": 0.1,
-        "max": 22212350
+        "min": 0.0001,
+        "max": 600
       },
       "price": {
-        "min": 0.2,
-        "max": 0.2
+        "min": 0.01,
+        "max": 0.01
       },
       "cost": {
-        "min": 5,
+        "min": 1,
         "max": null
       }
     },
@@ -589,23 +589,23 @@
     },
     "created": null,
     "info": {
-      "priceLimitUpperValue": "0.2",
-      "symbol": "XBTUSDT",
-      "volumeTick": "0.1",
-      "indexPrice": "0.0074",
-      "minOrderVolume": "0.1",
-      "priceTick": "0.00001",
-      "maxOrderVolume": "22212350.0",
-      "baseCurrency": "XBT",
-      "maxLeverage": "20",
+      "priceLimitUpperValue": "0.01",
+      "symbol": "BTCUSDT",
+      "volumeTick": "0.0001",
+      "indexPrice": "110781.92400000",
+      "minOrderVolume": "0.0001",
+      "priceTick": "0.1",
+      "maxOrderVolume": "600.0",
+      "baseCurrency": "BTC",
+      "maxLeverage": "200",
       "volumeMultiple": "1.0",
       "exchangeID": "Exchange",
       "priceCurrency": "USDT",
-      "priceLimitLowerValue": "0.2",
+      "priceLimitLowerValue": "0.01",
       "clearCurrency": "USDT",
-      "symbolName": "XBTUSDT",
-      "defaultLeverage": "1.0",
-      "minOrderCost": "5.0"
+      "symbolName": "BTCUSDT",
+      "defaultLeverage": "20.0",
+      "minOrderCost": "1.0"
     },
     "tierBased": null,
     "percentage": null
@@ -670,7 +670,7 @@
       "priceLimitUpperValue": "0.2",
       "symbol": "ADAUSDT",
       "volumeTick": "1.0",
-      "indexPrice": "0.82035780",
+      "indexPrice": "0.82570760",
       "minOrderVolume": "1.0",
       "priceTick": "0.0001",
       "maxOrderVolume": "200000000.0",
@@ -748,7 +748,7 @@
       "priceLimitUpperValue": "0.01",
       "symbol": "XRPUSDT",
       "volumeTick": "0.1",
-      "indexPrice": "2.44620000",
+      "indexPrice": "2.45178800",
       "minOrderVolume": "0.1",
       "priceTick": "0.0001",
       "maxOrderVolume": "6500000000.0",
@@ -826,7 +826,7 @@
       "priceLimitUpperValue": "0.2",
       "symbol": "TRXUSDT",
       "volumeTick": "1.0",
-      "indexPrice": "0.27329360",
+      "indexPrice": "0.27340180",
       "minOrderVolume": "1.0",
       "priceTick": "0.00001",
       "maxOrderVolume": "50000000.0",
@@ -969,7 +969,7 @@
       "priceLimitUpperValue": "0.01",
       "symbol": "ETHUSDT",
       "volumeTick": "0.001",
-      "indexPrice": "2684.32200000",
+      "indexPrice": "2694.93200000",
       "minOrderVolume": "0.001",
       "priceTick": "0.01",
       "maxOrderVolume": "6000.0",

@@ -213,6 +213,7 @@ export default class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT', // not BTC!
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
