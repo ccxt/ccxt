@@ -72,6 +72,7 @@
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run ./go/cli/main.go",
     "export-exchanges": "node build/export-exchanges",
+    "clean-removed-exchanges": "node build/remove-delisted-exchange-files",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
     "git-unignore-generated-files": "node build/git-ignore-generated-files.cjs --unignore",
