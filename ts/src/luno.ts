@@ -275,7 +275,7 @@ export default class luno extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        if (this.checkRequiredCredentials (false)) {
+        if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
         const response = await this.privateGetSendNetworks (params);
