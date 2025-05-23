@@ -5,7 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1230,11 +1230,10 @@ export default class bullish extends Exchange {
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        const isMarketOrder = type === 'market';
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly) {
             type = 'POST_ONLY';
+            params = this.omit (params, 'postOnly');
         }
         let timeInForce = 'GTC';
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
@@ -1871,6 +1870,117 @@ export default class bullish extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchPositions
+     * @description fetch all open positions
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter');
+        }
+        const request: Dict = {
+            'tradingAccountId': tradingAccountId,
+        };
+        const response = await this.privateGetV1DerivativesPositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //         "tradingAccountId": "111000000000001",
+        //         "symbol": "BTC-USDC-PERP",
+        //         "side": "BUY",
+        //         "quantity": "1.00000000",
+        //         "notional": "1.0000",
+        //         "entryNotional": "1.0000",
+        //         "mtmPnl": "1.0000",
+        //         "reportedMtmPnl": "1.0000",
+        //         "reportedFundingPnl": "1.0000",
+        //         "realizedPnl": "1.0000",
+        //         "settlementAssetSymbol": "USDC",
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "updatedAtTimestamp": "1621490985000"
+        //         }
+        //     ]
+        //
+        const results = this.parsePositions (response, symbols);
+        return this.filterByArrayPositions (results, 'symbol', symbols, false);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     [
+        //         {
+        //         "tradingAccountId": "111000000000001",
+        //         "symbol": "BTC-USDC-PERP",
+        //         "side": "BUY",
+        //         "quantity": "1.00000000",
+        //         "notional": "1.0000",
+        //         "entryNotional": "1.0000",
+        //         "mtmPnl": "1.0000",
+        //         "reportedMtmPnl": "1.0000",
+        //         "reportedFundingPnl": "1.0000",
+        //         "realizedPnl": "1.0000",
+        //         "settlementAssetSymbol": "USDC",
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "updatedAtTimestamp": "1621490985000"
+        //         }
+        //     ]
+        //
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = market['symbol'];
+        const datetime = this.iso8601 (this.safeInteger (position, 'createdAtTimestamp'));
+        const timestamp = this.safeString (position, 'createdAtTimestamp');
+        const updatedTimestamp = this.safeString (position, 'updatedAtTimestamp');
+        const side = this.safeString (position, 'side');
+        const ebtryPrice = this.safeNumber (position, 'entryNotional');
+        const markPrice = this.safeNumber (position, 'mtmPnl');
+        const notional = this.safeNumber (position, 'notional');
+        const lastPrice = this.safeNumber (position, 'reportedFundingPnl');
+        const collateral = this.safeNumber (position, 'quantity');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'account'),
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastUpdateTimestamp': updatedTimestamp,
+            'hedged': undefined,
+            'side': side,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'entryPrice': ebtryPrice,
+            'markPrice': markPrice,
+            'lastPrice': lastPrice,
+            'notional': notional,
+            'leverage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': undefined,
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
