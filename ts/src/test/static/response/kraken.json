@@ -3,6 +3,104 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "USDT": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "ZUSD": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-8,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USD": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        },
+                        "id": "ZUSD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USD",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "order with cost",
