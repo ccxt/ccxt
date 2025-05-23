@@ -1,0 +1,277 @@
+{
+    "exchange": "bitflex",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchCurrensies": [
+            {
+                "description": "Fetch currensies",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo",
+                "input": []
+            },
+            {
+                "description": "Fetch markets with type token",
+                "method": "fetchMarkets",
+                "url": "https://api.bitflex.com/openapi/v1/brokerInfo?type=token",
+                "input": [
+                  {
+                    "type": "token"
+                  }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/depth/merged?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book with limit 41",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/depth?symbol=ETHUSDT&limit=41",
+                "input": [
+                  "ETH/USDT",
+                  41
+                ]
+            },
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/depth/merged?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book for swap with limit 3",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/depth/merged?symbol=ETH-SWAP-USDT&limit=3",
+                "input": [
+                  "ETH/USDT:USDT",
+                  3
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/trades?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for spot with timestamp 1713887085730",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT",
+                  1713887085730
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with timestamp 1713887085730 and limit 3",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/trades?symbol=ETHUSDT&limit=3",
+                "input": [
+                  "ETH/USDT",
+                  1713887085730,
+                  3
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with timestamp 1713887262370 limit 48",
+                "method": "fetchTrades",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/trades?symbol=ETH-SWAP-USDT&limit=48",
+                "input": [
+                  "ETH/USDT:USDT",
+                  1713887262370,
+                  48
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?timestamp=1713888110834&signature=5c7fd5c4cfe8b94e97ec547fd64ffa4b5287a368ceba34859aff8b7e592e43b1",
+                "input": []
+            },
+            {
+                "description": "Fetch my trades for spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?symbol=ETHUSDT&timestamp=1713888241247&signature=46a7557908b4abd1db3de54be1b9e43bb195b0d2e3f27cd2a239e43dfb4bb8d2",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/contract/v1/myTrades?symbol=ETH-SWAP-USDT&timestamp=1713888265573&signature=2e9a79388a3f86307963d2b9e28fc9c3163c7d71b9a9bdb071a1d5862035d9f9",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for spot with timestamp 1713525400088",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/v1/myTrades?symbol=ETHUSDT&startTime=1713525400088&timestamp=1713888307219&signature=720203afd39b25ecbc32905c9c70cb8aae89120169f56a05ec97e8cd5ade9d2c",
+                "input": [
+                  "ETH/USDT",
+                  1713525400088
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap with timestamp 1668428379035160576 and limit 4",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitflex.com/openapi/contract/v1/myTrades?symbol=ETH-SWAP-USDT&limit=4&startTime=1668428379035160576&timestamp=1713888433023&signature=e6fc3adfc6049098b5daed31eff31545423bf2d05488ca5b5880a1a21aec0d9c",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "1668428379035160576",
+                  4
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitflex.com/openapi/quote/v1/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitflex.com/openapi/quote/v1/klines?symbol=ETH-SWAP-USDT&interval=1m",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api.bitflex.com/openapi/quote/v1/ticker/24hr?symbol=ETHUSDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api.bitflex.com/openapi/quote/v1/contract/ticker/24hr?symbol=ETH-SWAP-USDT",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBidsAdks": [
+            {
+                "description": "Fetch bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api.bitflex.com/openapi/quote/v1/ticker/bookTicker",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitflex.com/openapi/v1/account?timestamp=1713895891306&signature=ae31353b01c82932b9a58b631fdb279881ff2e14d81ad9376463a9492475588f",
+                "input": []
+            },
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "url": "https://api.bitflex.com/openapi/contract/v1/account?timestamp=1713896205431&signature=7009571170c8de94827a664af6ba623f3381b0d665d859ce48f1a72c986d5c3c",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create spot market order",
+                "method": "createOrder",
+                "url": "https://api.bitflex.com/openapi/v1/order?symbol=ETHUSDT&side=BUY&type=MARKET&quantity=31&timestamp=1713900495454&signature=d12ab9d9e67faeac1c5da1c6334b1ba5193edc97d0ea63289d8e5f9a34265045",
+                "input": [
+                  "ETH/USDT",
+                  "market",
+                  "buy",
+                  0.01,
+                  3100
+                ]
+              }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot market order",
+                "method": "fetchOrder",
+                "url": "https://api.bitflex.com/openapi/v1/order?orderId=1670712881241456896&timestamp=1713900744784&signature=ec94cb9f8aad4628f1b1289d27bac4ffb1d148caf19f6f2da74072456583ec9c",
+                "input": [
+                  "1670712881241456896"
+                ]
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed spot orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.bitflex.com/openapi/v1/historyOrders?timestamp=1713901286584&signature=4f709b450e7dd8adeefc482f0f55e48bf3d9cd51d373d493dbaf268f759c86d9",
+                "input": []
+            },
+            {
+                "description": "Fetch canceled and closed swap orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.bitflex.com/openapi/contract/v1/historyOrders?symbol=ETH-SWAP-USDT&timestamp=1713902008774&signature=071be87de335668d904c042fd8bc7a404179edb0da0e59ef12eb5873df6b7dbd",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.bitflex.com/openapi/v1/subAccount/query?timestamp=1713902129526&signature=33bd79620ec7b248ab3ef114ff9fe95b2d0f1d474ab8bd3420104903286548ce",
+                "input": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitflex.com/openapi/v1/depositOrders?timestamp=1713902412450&signature=797725dce32c693092ad99542d452f226daa60b31df6fa9d330a5c77fe726655",
+                "input": []
+            }
+        ]
+    }
+}
