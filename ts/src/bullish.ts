@@ -89,9 +89,9 @@ export default class bullish extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
@@ -186,8 +186,8 @@ export default class bullish extends Exchange {
                         'v1/users/hmac/login': 1, // done
                         'v1/accounts/trading-accounts': 1, // done
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
+                        'v1/derivatives-positions': 1, // done
+                        'v1/history/derivatives-settlement': 1, // done
                         'v1/history/transfer': 1,
                         'v1/history/borrow-interest': 1,
                     },
@@ -1919,6 +1919,64 @@ export default class bullish extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
+    /**
+     * @method
+     * @name bullish#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/derivatives-settlement
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @param {string} [params.tradingAccountId] the trading account id
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositionHistory() requires a tradingAccountId parameter');
+        }
+        request['tradingAccountId'] = tradingAccountId;
+        if (since !== undefined) {
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'until');
+        if (until !== undefined) {
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        }
+        const response = await this.privateGetV1HistoryDerivativesSettlement (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "tradingAccountId": "111000000000001",
+        //             "symbol": "BTC-USDC-PERP",
+        //             "side": "BUY",
+        //             "settlementQuantity": "1.00000000",
+        //             "deltaTradingQuantity": "1.00000000",
+        //             "mtmPnl": "1.0000",
+        //             "fundingPnl": "1.0000",
+        //             "eventType": "settlementUpdate",
+        //             "settlementMarkPrice": "1.0000",
+        //             "settlementIndexPrice": "1.0000",
+        //             "settlementFundingRate": "10.0",
+        //             "settlementDatetime": "2021-05-20T01:01:01.000Z",
+        //             "settlementTimestamp": "1621490985000"
+        //         }
+        //     ]
+        //
+        const positions = this.parsePositions (response);
+        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
+    }
+
     parsePosition (position: Dict, market: Market = undefined) {
         //
         //     [
@@ -1947,7 +2005,7 @@ export default class bullish extends Exchange {
         const timestamp = this.safeString (position, 'createdAtTimestamp');
         const updatedTimestamp = this.safeString (position, 'updatedAtTimestamp');
         const side = this.safeString (position, 'side');
-        const ebtryPrice = this.safeNumber (position, 'entryNotional');
+        const entryPrice = this.safeNumber (position, 'entryNotional');
         const markPrice = this.safeNumber (position, 'mtmPnl');
         const notional = this.safeNumber (position, 'notional');
         const lastPrice = this.safeNumber (position, 'reportedFundingPnl');
@@ -1963,7 +2021,7 @@ export default class bullish extends Exchange {
             'side': side,
             'contracts': undefined,
             'contractSize': undefined,
-            'entryPrice': ebtryPrice,
+            'entryPrice': entryPrice,
             'markPrice': markPrice,
             'lastPrice': lastPrice,
             'notional': notional,
