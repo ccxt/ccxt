@@ -420,7 +420,7 @@ export default class lbank extends Exchange {
 
     /**
      * @method
-     * @name bigone#fetchCurrencies
+     * @name lbank#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
