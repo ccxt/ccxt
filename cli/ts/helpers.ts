@@ -26,6 +26,13 @@ const log = ololog.configure ({ 'locate': false }).unlimited;
 
 const fsPromises = fs.promises;
 
+const httpsAgent = new Agent ({
+    'ecdhCurve': 'auto',
+    'keepAlive': true,
+});
+
+const timeout = 30000;
+
 //-----------------------------------------------------------------------------
 
 /**
@@ -371,10 +378,6 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions) {
     const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
 
     const timeout = 30000;
-    const httpsAgent = new Agent ({
-        'ecdhCurve': 'auto',
-        'keepAlive': true,
-    });
 
     try {
         if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
@@ -447,6 +450,40 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions) {
 
 /**
  *
+ * @param cliOptions
+ */
+function handleDebug (cliOptions) {
+    if (cliOptions.debug) {
+        if (httpsAgent.freeSockets) {
+            const keys = Object.keys (httpsAgent.freeSockets);
+            if (keys.length) {
+                const firstKey = keys[0];
+                const httpAgent = httpsAgent.freeSockets[firstKey];
+                log (firstKey, (httpAgent as any).length);
+            }
+        }
+    }
+}
+
+/**
+ *
+ * @param cliOptions
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param result
+ */
+function handleStaticTests (cliOptions, exchange, methodName, args, result) {
+    if (cliOptions.request || cliOptions.static) {
+        createRequestTemplate (exchange, methodName, args, result);
+    }
+    if (cliOptions.response || cliOptions.static) {
+        createResponseTemplate (exchange, methodName, args, result);
+    }
+}
+
+/**
+ *
  * @param value
  * @param previous
  */
@@ -472,4 +509,6 @@ export {
     loadSettingsAndCreateExchange,
     collectKeyValue,
     injectMissingUndefined,
+    handleDebug,
+    handleStaticTests,
 };

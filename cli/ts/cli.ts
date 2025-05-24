@@ -1,9 +1,7 @@
-import fs from 'fs';
-import path from 'path';
 import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
-import { createRequestTemplate, createResponseTemplate, countAllParams, handleMarketsLoading, setNoSend, parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, injectMissingUndefined } from './helpers.js';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests } from './helpers.js';
 import { checkCache, saveCommand } from './cache.js';
 
 let ccxt;
@@ -157,10 +155,12 @@ async function run () {
     while (true) {
         try {
             const args = parseMethodArgs (exchange, params, methodName, cliOptions);
+
             if (!cliOptions.raw || cliOptions.details) {
                 const methodArgsPrint = JSON.stringify (args);
                 log (exchange.id + '.' + methodName, '(' + methodArgsPrint.substring (1, methodArgsPrint.length - 1) + ')');
             }
+
             const result = await exchange[methodName] (...args);
             end = exchange.milliseconds ();
             if (!isWsMethod && !cliOptions.raw) {
@@ -184,13 +184,9 @@ async function run () {
                     'ms\n'
                 );
             }
-            if (cliOptions.request || cliOptions.static) {
-                createRequestTemplate (exchange, methodName, args, result);
-            }
-            if (cliOptions.response || cliOptions.static) {
-                createResponseTemplate (exchange, methodName, args, result);
-            }
             start = end;
+
+            handleStaticTests (cliOptions, exchange, methodName, args, result);
         } catch (e) {
             if (e instanceof ExchangeError) {
                 log.red (e.constructor.name, e.message);
@@ -201,16 +197,9 @@ async function run () {
             // rethrow for call-stack // other errors
             throw e;
         }
-        if (cliOptions.debug) {
-            if (httpsAgent.freeSockets) {
-                const keys = Object.keys (httpsAgent.freeSockets);
-                if (keys.length) {
-                    const firstKey = keys[0];
-                    const httpAgent = httpsAgent.freeSockets[firstKey];
-                    log (firstKey, (httpAgent as any).length);
-                }
-            }
-        }
+
+        handleDebug (cliOptions);
+
         if (!cliOptions.poll && !isWsMethod && !cliOptions.i) {
             break;
         }
