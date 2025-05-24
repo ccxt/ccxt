@@ -703,53 +703,14 @@ export default class kraken extends krakenRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.watchMultiHelper ('bidask', 'spread', symbols, undefined, params);
+        params['event_trigger'] = 'bbo';
+        const ticker = await this.watchMultiHelper ('bidask', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
-    }
-
-    handleBidAsk (client: Client, message, subscription) {
-        //
-        //     [
-        //         7208974, // channelID
-        //         [
-        //             "63758.60000", // bid
-        //             "63759.10000", // ask
-        //             "1726814731.089778", // timestamp
-        //             "0.00057917", // bid_volume
-        //             "0.15681688" // ask_volume
-        //         ],
-        //         "spread",
-        //         "XBT/USDT"
-        //     ]
-        //
-        const parsedTicker = this.parseWsBidAsk (message);
-        const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
-        const messageHash = this.getMessageHash ('bidask', undefined, symbol);
-        client.resolve (parsedTicker, messageHash);
-    }
-
-    parseWsBidAsk (ticker, market = undefined) {
-        const data = this.safeList (ticker, 1, []);
-        const marketId = this.safeString (ticker, 3);
-        market = this.safeValue (this.options['marketsByWsName'], marketId);
-        const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.parseToInt (this.safeInteger (data, 2)) * 1000;
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'ask': this.safeString (data, 1),
-            'askVolume': this.safeString (data, 4),
-            'bid': this.safeString (data, 0),
-            'bidVolume': this.safeString (data, 3),
-            'info': ticker,
-        }, market);
     }
 
     /**
@@ -1595,7 +1556,11 @@ export default class kraken extends krakenRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+            if (params['event_trigger'] !== undefined) {
+                messageHashes.push (this.getMessageHash (channelName, undefined, this.symbol (symbols[i])));
+            } else {
+                messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+            }
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -1605,8 +1570,9 @@ export default class kraken extends krakenRest {
             },
             'req_id': this.requestId (),
         };
+        request['params'] = this.deepExtend (request['params'], params);
         const url = this.urls['api']['ws']['publicV2'];
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscriptionArgs);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, subscriptionArgs);
     }
 
     /**
@@ -1777,7 +1743,6 @@ export default class kraken extends krakenRest {
                 // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
-                'spread': this.handleBidAsk,
                 'trade': this.handleTrades,
                 // private
                 'openOrders': this.handleOrders,
