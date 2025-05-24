@@ -39,6 +39,7 @@ export default class kraken extends krakenRest {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'privateV2': 'wss://ws-auth.kraken.com/v2',
+                        'publicV2': 'wss://ws.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -362,8 +363,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelOrdersWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancel multiple orders
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -392,8 +393,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelOrderWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancels an open order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -439,8 +440,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelAllOrdersWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
      * @description cancel all open orders
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -483,52 +484,55 @@ export default class kraken extends krakenRest {
 
     handleTicker (client, message, subscription) {
         //
-        //     [
-        //         0, // channelID
-        //         {
-        //             "a": [ "5525.40000", 1, "1.000" ], // ask, wholeAskVolume, askVolume
-        //             "b": [ "5525.10000", 1, "1.000" ], // bid, wholeBidVolume, bidVolume
-        //             "c": [ "5525.10000", "0.00398963" ], // closing price, volume
-        //             "h": [ "5783.00000", "5783.00000" ], // high price today, high price 24h ago
-        //             "l": [ "5505.00000", "5505.00000" ], // low price today, low price 24h ago
-        //             "o": [ "5760.70000", "5763.40000" ], // open price today, open price 24h ago
-        //             "p": [ "5631.44067", "5653.78939" ], // vwap today, vwap 24h ago
-        //             "t": [ 11493, 16267 ], // number of trades today, 24 hours ago
-        //             "v": [ "2634.11501494", "3591.17907851" ], // volume today, volume 24 hours ago
-        //         },
-        //         "ticker",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "ticker",
+        //         "type": "snapshot",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC/USD",
+        //                 "bid": 108359.8,
+        //                 "bid_qty": 0.01362603,
+        //                 "ask": 108359.9,
+        //                 "ask_qty": 17.17988863,
+        //                 "last": 108359.8,
+        //                 "volume": 2158.32346723,
+        //                 "vwap": 108894.5,
+        //                 "low": 106824,
+        //                 "high": 111300,
+        //                 "change": -2679.9,
+        //                 "change_pct": -2.41
+        //             }
+        //         ]
+        //     }
         //
-        const wsName = message[3];
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        const ticker = data[0];
+        const symbol = this.safeString (ticker, 'symbol');
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
-        const ticker = message[1];
-        const vwap = this.safeString (ticker['p'], 0);
+        const vwap = this.safeString (ticker, 'vwap');
         let quoteVolume = undefined;
-        const baseVolume = this.safeString (ticker['v'], 0);
+        const baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = Precise.stringMul (baseVolume, vwap);
         }
-        const last = this.safeString (ticker['c'], 0);
+        const last = this.safeString (ticker, 'last');
         const result = this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString (ticker['h'], 0),
-            'low': this.safeString (ticker['l'], 0),
-            'bid': this.safeString (ticker['b'], 0),
-            'bidVolume': this.safeString (ticker['b'], 2),
-            'ask': this.safeString (ticker['a'], 0),
-            'askVolume': this.safeString (ticker['a'], 2),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bid_qty'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'ask_qty'),
             'vwap': vwap,
-            'open': this.safeString (ticker['o'], 0),
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'change_pct'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -654,7 +658,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -670,7 +674,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1593,22 +1597,15 @@ export default class kraken extends krakenRest {
         for (let i = 0; i < symbols.length; i++) {
             messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
         }
-        // for WS subscriptions, we can't use .marketIds (symbols), instead a custom is field needed
-        const markets = this.marketsForSymbols (symbols);
-        const wsMarketIds = [];
-        for (let i = 0; i < markets.length; i++) {
-            const wsMarketId = this.safeString (markets[i]['info'], 'wsname');
-            wsMarketIds.push (wsMarketId);
-        }
         const request: Dict = {
-            'event': 'subscribe',
-            'reqid': this.requestId (),
-            'pair': wsMarketIds,
-            'subscription': {
-                'name': channelName,
+            'method': 'subscribe',
+            'params': {
+                'channel': channelName,
+                'symbol': symbols,
             },
+            'req_id': this.requestId (),
         };
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws']['publicV2'];
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscriptionArgs);
     }
 
@@ -1780,7 +1777,6 @@ export default class kraken extends krakenRest {
                 // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
-                'ticker': this.handleTicker,
                 'spread': this.handleBidAsk,
                 'trade': this.handleTrades,
                 // private
@@ -1796,6 +1792,7 @@ export default class kraken extends krakenRest {
             if (channel !== undefined) {
                 const methods: Dict = {
                     'balances': this.handleBalance,
+                    'ticker': this.handleTicker,
                 };
                 const method = this.safeValue (methods, channel);
                 if (method !== undefined) {
