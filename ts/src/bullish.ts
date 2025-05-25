@@ -5,7 +5,7 @@ import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -118,8 +118,8 @@ export default class bullish extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
-                'transfer': false,
-                'withdraw': false,
+                'transfer': true,
+                'withdraw': true,
                 'ws': true,
             },
             'timeframes': {
@@ -162,18 +162,18 @@ export default class bullish extends Exchange {
                         'v1/markets/{symbol}/candle': 1, // done
                         'v1/history/markets/{symbol}/trades': 1, // done
                         'v1/history/markets/{symbol}/funding-rate': 1, // done
-                        'v1/index-prices': 1, // todo ask what method to use
-                        'v1/index-prices/{assetSymbol}': 1, // todo ask what method to use
+                        'v1/index-prices': 1, // not used
+                        'v1/index-prices/{assetSymbol}': 1, // not used
                     },
                 },
                 'private': {
                     'get': {
                         'v2/orders': 1, // done
                         'v2/orders/{orderId}': 1, // done
-                        'v2/amm-instructions': 1, // todo ask what method to use
-                        'v2/amm-instructions/{instructionId}': 1, // todo ask what method to use
-                        'v1/wallets/transactions': 1, // todo complete after withdrawal
-                        'v1/wallets/limits/{symbol}': 1, // todo ask what method to use
+                        'v2/amm-instructions': 1, // not used
+                        'v2/amm-instructions/{instructionId}': 1, // not used
+                        'v1/wallets/transactions': 1, // todo complete after withdraw
+                        'v1/wallets/limits/{symbol}': 1, // not used
                         'v1/wallets/deposit-instructions/crypto/{symbol}': 1, // done
                         'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1, // not used
                         'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
@@ -194,10 +194,10 @@ export default class bullish extends Exchange {
                     'post': {
                         'v2/orders': 1, // done
                         'v2/command': 1, // done
-                        'v2/amm-instructions': 1, // todo ask what method to use
-                        'v1/wallets/withdrawal': 1,
+                        'v2/amm-instructions': 1, // not used
+                        'v1/wallets/withdrawal': 1, // todo check
                         'v2/users/login': 1, // done
-                        'v1/command?commandType=V1TransferAsset': 1, // todo ask how to make this method
+                        'v1/command?commandType=V1TransferAsset': 1, // todo check
                         'v1/simulate-portfolio-margin': 1, // todo ask what method to use
                     },
                 },
@@ -312,7 +312,7 @@ export default class bullish extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const code = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name');
-            const precision = this.safeInteger (currency, 'precision');
+            const precision = this.safeString (currency, 'precision');
             const minFee = Precise.stringMax (this.safeString (currency, 'minFee'), '0.00000');
             result[code] = {
                 'id': id,
@@ -322,7 +322,7 @@ export default class bullish extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': minFee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -2058,7 +2058,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
         await this.signIn ();
         const request: Dict = {};
@@ -2101,8 +2101,53 @@ export default class bullish extends Exchange {
         return this.parseTransfers (response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bullish#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account ID to transfer from
+     * @param {string} toAccount account ID to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        await this.signIn ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'command': {
+                'commandType': 'V1TransferAsset',
+                'assetSymbol': currency['id'],
+                'quantity': this.currencyToPrecision (code, amount),
+                'fromTradingAccountId': fromAccount,
+                'toTradingAccountId': toAccount,
+            },
+        };
+        const response = await this.privatePostV1CommandCommandTypeV1TransferAsset (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Command acknowledged - TransferAsset",
+        //         "requestId": "633909659774222336"
+        //     }
+        //
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
+        const transfer = this.parseTransfer (response, currency);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            transfer['currency'] = code;
+        }
+        return transfer;
+    }
+
     parseTransfer (transfer, currency: Currency = undefined) {
         //
+        // fetchTransfers
         //     {
         //         "requestId": "1",
         //         "toTradingAccountId": "111000000000001",
@@ -2116,8 +2161,18 @@ export default class bullish extends Exchange {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z"
         //     }
         //
+        // transfer
+        //     {
+        //         "message": "Command acknowledged - TransferAsset",
+        //         "requestId": "633909659774222336"
+        //     }
+        //
         const timestamp = this.safeInteger (transfer, 'createdAtTimestamp');
         const currencyId = this.safeString (transfer, 'assetSymbol');
+        let status = this.safeString (transfer, 'status');
+        if (status === undefined) {
+            status = this.safeString (transfer, 'message');
+        }
         return {
             'id': this.safeString (transfer, 'requestId'),
             'timestamp': timestamp,
@@ -2126,7 +2181,7 @@ export default class bullish extends Exchange {
             'amount': this.safeNumber (transfer, 'quantity'),
             'fromAccount': this.safeString (transfer, 'fromTradingAccountId'),
             'toAccount': this.safeString (transfer, 'toTradingAccountId'),
-            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
+            'status': this.parseTransferStatus (status),
             'info': transfer,
         };
     }
@@ -2136,6 +2191,7 @@ export default class bullish extends Exchange {
             'CLOSED': 'ok',
             'OPEN': 'pending',
             'REJECTED': 'failed',
+            'Command acknowledged - TransferAsset': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
