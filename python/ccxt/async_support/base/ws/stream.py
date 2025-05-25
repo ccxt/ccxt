@@ -17,8 +17,8 @@ class Stream:
         self.max_messages_per_topic = max_messages_per_topic
         self.verbose = verbose
         self.active_watch_functions: List[str, List[Any]] = []
-        if self.verbose:
-            print('stream initialized')
+        # Add a dictionary to track the last index per topic
+        self.topic_indexes: Dict[Topic, int] = {}
 
     def produce(self, topic: Topic, payload: Any, error: Any = None) -> None:
         """
@@ -29,9 +29,13 @@ class Stream:
         """
         if topic not in self.topics:
             self.topics[topic] = []
-
+        # Ensure topic_indexes is initialized
+        if topic not in self.topic_indexes:
+            self.topic_indexes[topic] = -1
+        # Increment the index for this topic
+        self.topic_indexes[topic] += 1
+        index = self.topic_indexes[topic]
         messages = self.topics[topic]
-        index = self.get_last_index (topic) + 1
 
         message = Message(payload, error, self, topic, index)
 
@@ -89,11 +93,9 @@ class Stream:
         :param Topic topic: The topic to get the last index for.
         :returns int: The last index for the topic.
         """
-        last_index = -1
-        messages = self.topics.get(topic, [])
-        if len(messages) > 0:
-            last_index = messages[-1].metadata.index
-        return last_index
+        if topic in self.topic_indexes:
+            return self.topic_indexes[topic]
+        return -1
 
     def send_to_consumers(self, consumers, message):
         for consumer in consumers:

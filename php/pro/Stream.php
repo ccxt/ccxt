@@ -36,22 +36,24 @@ class Stream {
     public $topics = array();
     private $consumers = array();
     public $active_watch_functions = array();
+    public $topicIndexes = array();
 
     public function __construct($max_messages_per_topic = 0, $verbose = false) {
         $this->max_messages_per_topic = $max_messages_per_topic;
         $this->verbose = $verbose;
-        if ($this->verbose) {
-            print_r ('stream initialized');
-        }
+        $this->topicIndexes = array();
     }
 
     public function produce($topic, $payload, $error = null) {
         if (!isset($this->topics[$topic])) {
             $this->topics[$topic] = [];
         }
-
+        if (!isset($this->topicIndexes[$topic])) {
+            $this->topicIndexes[$topic] = -1;
+        }
+        $this->topicIndexes[$topic] += 1;
+        $index = $this->topicIndexes[$topic];
         $messages = $this->topics[$topic];
-        $index = $this->get_last_index($topic) + 1;
         $message = new Message($payload, $error, $this, $topic, $index);
 
         if (count($messages) > $this->max_messages_per_topic) {
@@ -97,13 +99,10 @@ class Stream {
     }
 
     private function get_last_index($topic): int {
-        $last_index = -1;
-        if (isset($this->topics[$topic]) && count($this->topics[$topic]) > 0) {
-            $messages = $this->topics[$topic];
-            $last_message = end($messages);
-            $last_index = $last_message->metadata->index;
+        if (isset($this->topicIndexes[$topic])) {
+            return $this->topicIndexes[$topic];
         }
-        return $last_index;
+        return -1;
     }
 
     private function send_to_consumers($consumers, $message) {
@@ -123,6 +122,7 @@ class Stream {
     public function close () {
         $this->topics = [];
         $this->consumers = [];
+        $this->topicIndexes = array();
         if ($this->verbose) {
             print_r ("Closed stream\n");
         }

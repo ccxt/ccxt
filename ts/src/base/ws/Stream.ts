@@ -10,6 +10,8 @@ export class Stream implements BaseStream {
 
     public consumers: Dictionary<Consumer[]>;
 
+    public topicIndexes: Dictionary<Int> = {};
+
     public activeWatchFunctions: any[] = [];
 
     constructor (maxMessagesPerTopic = 100, verbose = false) {
@@ -21,18 +23,20 @@ export class Stream implements BaseStream {
         this.verbose = verbose;
         this.topics = {};
         this.consumers = {};
-        if (this.verbose) {
-            console.log ('stream initialized')
-        }
+        this.topicIndexes = {};
     }
 
     produce (topic: Topic, payload: any, error: any = null): void {
         if (!this.topics[topic]) {
             this.topics[topic] = [];
         }
+        if (!(topic in this.topicIndexes)) {
+            this.topicIndexes[topic] = -1;
+        }
 
+        this.topicIndexes[topic] += 1;
+        const index = this.topicIndexes[topic];
         const messages = this.topics[topic];
-        const index = this.getLastIndex (topic) + 1;
 
         const message: Message = {
             payload,
@@ -114,12 +118,10 @@ export class Stream implements BaseStream {
      * @returns The last index of the topic.
      */
     getLastIndex (topic: Topic): Int {
-        let lastIndex = -1
-        const messages = this.topics[topic];
-        if (messages && messages.length > 0) {
-            lastIndex = messages[messages.length - 1].metadata.index;
+        if (topic in this.topicIndexes) {
+            return this.topicIndexes[topic];
         }
-        return lastIndex;
+        return -1;
     }
 
     /**

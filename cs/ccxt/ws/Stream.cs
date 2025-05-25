@@ -12,6 +12,7 @@ public class Stream : IBaseStream
     private Dictionary<string, List<Message>> topics;
     private Dictionary<string, List<Consumer>> consumers;
     public List<Dictionary<string, object>> activeWatchFunctions;
+    private Dictionary<string, int> topicIndexes;
     public Stream(int? maxMessagesPerTopic = null, bool? verbose = null)
     {
         Init(maxMessagesPerTopic, verbose);
@@ -24,10 +25,7 @@ public class Stream : IBaseStream
         this.topics = new Dictionary<string, List<Message>>();
         this.consumers = new Dictionary<string, List<Consumer>>();
         this.activeWatchFunctions = new List<Dictionary<string, object>>();
-        if (verbose.HasValue && verbose.Value)
-        {
-            Console.WriteLine("Stream initialized");
-        }
+        this.topicIndexes = new Dictionary<string, int>();
     }
 
     public void produce(object topic2, object payload, object error = null)
@@ -37,9 +35,13 @@ public class Stream : IBaseStream
         {
             topics[topic] = new List<Message>();
         }
-
+        if (!topicIndexes.ContainsKey(topic))
+        {
+            topicIndexes[topic] = -1;
+        }
+        topicIndexes[topic] += 1;
+        var index = topicIndexes[topic];
         var messages = topics[topic];
-        var index = GetLastIndex(topic) + 1;
 
         var message = new Message
         {
@@ -143,11 +145,10 @@ public class Stream : IBaseStream
 
     public int GetLastIndex(string topic)
     {
-        if (topics.ContainsKey(topic) && topics[topic].Count > 0)
+        if (topicIndexes.ContainsKey(topic))
         {
-            return topics[topic].Last().metadata.index;
+            return topicIndexes[topic];
         }
-
         return -1;
     }
 
