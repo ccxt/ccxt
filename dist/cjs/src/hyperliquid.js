@@ -8,7 +8,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -357,7 +357,7 @@ class hyperliquid extends hyperliquid$1 {
             const id = i;
             const name = this.safeString(data, 'name');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -379,7 +379,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }

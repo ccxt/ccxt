@@ -37,7 +37,6 @@ var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
 var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
-var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
@@ -79,7 +78,6 @@ var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
 var huobijp = require('./src/huobijp.js');
 var hyperliquid = require('./src/hyperliquid.js');
-var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
@@ -164,7 +162,6 @@ var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
 var huobijp$1 = require('./src/pro/huobijp.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
-var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
@@ -194,7 +191,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.83';
+const version = '4.4.85';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -222,7 +219,6 @@ const exchanges = {
     'bitstamp': bitstamp,
     'bitteam': bitteam,
     'bitvavo': bitvavo,
-    'bl3p': bl3p,
     'blockchaincom': blockchaincom,
     'blofin': blofin,
     'btcalpha': btcalpha,
@@ -264,7 +260,6 @@ const exchanges = {
     'huobi': huobi,
     'huobijp': huobijp,
     'hyperliquid': hyperliquid,
-    'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
     'kraken': kraken,
@@ -351,7 +346,6 @@ const pro = {
     'huobi': huobi$1,
     'huobijp': huobijp$1,
     'hyperliquid': hyperliquid$1,
-    'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
     'krakenfutures': krakenfutures$1,
@@ -454,7 +448,6 @@ exports.bitso = bitso;
 exports.bitstamp = bitstamp;
 exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
-exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.blofin = blofin;
 exports.btcalpha = btcalpha;
@@ -496,7 +489,6 @@ exports.htx = htx;
 exports.huobi = huobi;
 exports.huobijp = huobijp;
 exports.hyperliquid = hyperliquid;
-exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;
 exports.kraken = kraken;

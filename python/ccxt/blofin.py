@@ -57,6 +57,7 @@ class blofin(Exchange, ImplicitAPI):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'createTakeProfitOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -110,6 +111,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
@@ -137,8 +139,8 @@ class blofin(Exchange, ImplicitAPI):
                 'repayCrossMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
-                'setPositionMode': False,
+                'setMarginMode': True,
+                'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
                 'withdraw': False,
@@ -201,11 +203,14 @@ class blofin(Exchange, ImplicitAPI):
                         'account/positions': 1,
                         'account/leverage-info': 1,
                         'account/margin-mode': 1,
+                        'account/position-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'trade/orders-algo-history': 1,  # todo new
+                        'trade/order/price-range': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
                         'copytrading/instruments': 1,
@@ -222,6 +227,8 @@ class blofin(Exchange, ImplicitAPI):
                         'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
+                        'account/set-margin-mode': 1,
+                        'account/set-position-mode': 1,
                         'trade/order': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-order': 1,
@@ -1140,6 +1147,9 @@ class blofin(Exchange, ImplicitAPI):
         request['marginMode'] = marginMode
         triggerPrice = self.safe_string(params, 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        isHedged = self.safe_bool(params, 'hedged', False)
+        if isHedged:
+            request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
         params = self.omit(params, ['timeInForce'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
@@ -1155,7 +1165,7 @@ class blofin(Exchange, ImplicitAPI):
             request['type'] = 'post_only'
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
-        params = self.omit(params, ['stopLoss', 'takeProfit'])
+        params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         if isStopLoss or isTakeProfit:
@@ -1172,6 +1182,8 @@ class blofin(Exchange, ImplicitAPI):
         elif triggerPrice is not None:
             request['orderType'] = 'trigger'
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            if isMarketOrder:
+                request['orderPrice'] = '-1'
         return self.extend(request, params)
 
     def parse_order_status(self, status: Str):
@@ -1322,6 +1334,7 @@ class blofin(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: stop loss trigger price(will use privatePostTradeOrderTpsl)
         :param float [params.takeProfitPrice]: take profit trigger price(will use privatePostTradeOrderTpsl)
         :param str [params.positionSide]: *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+        :param boolean [params.hedged]: if True, the positionSide will be set to long/short instead of net, default is False
         :param str [params.clientOrderId]: a unique id for the order
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
@@ -1342,6 +1355,9 @@ class blofin(Exchange, ImplicitAPI):
         isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        if reduceOnly is not None:
+            params['reduceOnly'] = 'true' if reduceOnly else 'false'
         if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostTradeOrderTpsl(tpslRequest)
@@ -2148,6 +2164,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
+        :param str [params.positionSide]: 'long' or 'short' - required for hedged mode in isolated margin
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2269,12 +2286,96 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': self.safe_string(marginMode, 'marginMode'),
         }
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://docs.blofin.com/index.html#set-margin-mode
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str [symbol]: unified market symbol(not used in blofin setMarginMode)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated'])
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request: dict = {
+            'marginMode': marginMode,
+        }
+        response = self.privatePostAccountSetMarginMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "marginMode": "isolated"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way
+
+        https://docs.blofin.com/index.html#get-position-mode
+
+        :param str [symbol]: unified symbol of the market to fetch the position mode for(not used in blofin fetchPositionMode)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.privateGetAccountPositionMode(params)
+        data = self.safe_dict(response, 'data', {})
+        positionMode = self.safe_string(data, 'positionMode')
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "positionMode": "long_short_mode"
+        #         }
+        #     }
+        #
+        return {
+            'info': data,
+            'hedged': positionMode == 'long_short_mode',
+        }
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://docs.blofin.com/index.html#set-position-mode
+
+        :param bool hedged: set to True to use hedged mode, False for one-way mode
+        :param str [symbol]: not used by blofin setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        request: dict = {
+            'positionMode': 'long_short_mode' if hedged else 'net_mode',
+        }
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "positionMode": "net_mode"
+        #         }
+        #     }
+        #
+        return self.privatePostAccountSetPositionMode(self.extend(request, params))
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

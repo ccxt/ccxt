@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.83'
+__version__ = '4.4.85'
 
 # ----------------------------------------------------------------------------
 
@@ -108,7 +108,6 @@ from ccxt.bitso import bitso                                          # noqa: F4
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.bitteam import bitteam                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
-from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.blofin import blofin                                        # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
@@ -150,7 +149,6 @@ from ccxt.htx import htx                                              # noqa: F4
 from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.huobijp import huobijp                                      # noqa: F401
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
-from ccxt.idex import idex                                            # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
@@ -217,7 +215,6 @@ exchanges = [
     'bitstamp',
     'bitteam',
     'bitvavo',
-    'bl3p',
     'blockchaincom',
     'blofin',
     'btcalpha',
@@ -259,7 +256,6 @@ exchanges = [
     'huobi',
     'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'indodax',
     'kraken',

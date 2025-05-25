@@ -532,6 +532,9 @@ export interface Greeks {
     theta: number;
     vega: number;
     rho: number;
+    vanna?: number;
+    volga?: number;
+    charm?: number;
     bidSize: number;
     askSize: number;
     bidImpliedVolatility: number;

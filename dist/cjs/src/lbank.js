@@ -8,7 +8,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lbank
@@ -876,7 +876,7 @@ class lbank extends lbank$1 {
         if (market['swap']) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp);
+        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
     }
     parseTrade(trade, market = undefined) {
         //

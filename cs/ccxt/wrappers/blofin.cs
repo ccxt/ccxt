@@ -360,6 +360,12 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// boolean : if true, the positionSide will be set to long/short instead of net, default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.clientOrderId</term>
     /// <description>
     /// string : a unique id for the order
@@ -858,6 +864,12 @@ public partial class blofin
     /// string : 'cross' or 'isolated'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : 'long' or 'short' - required for hedged mode in isolated margin
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -932,5 +944,83 @@ public partial class blofin
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol (not used in blofin setMarginMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<MarginMode> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by blofin setPositionMode ()
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

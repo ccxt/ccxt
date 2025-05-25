@@ -40,7 +40,7 @@ export default class kraken extends krakenRest {
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol, default is undefined
+     * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -51,7 +51,7 @@ export default class kraken extends krakenRest {
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -62,7 +62,7 @@ export default class kraken extends krakenRest {
      * @name kraken#cancelAllOrdersWs
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
