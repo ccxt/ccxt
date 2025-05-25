@@ -542,6 +542,7 @@ export default class bullish extends Exchange {
         let future = false;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
+        let expiryDatetime: Str = undefined;
         if (type === 'spot') {
             spot = true;
         } else if (type === 'swap') {
@@ -559,6 +560,7 @@ export default class bullish extends Exchange {
             const parts = rawSymbol.split ('-');
             const datePart = this.safeString (parts, 2);
             symbol = base + '/' + quote + '-' + datePart;
+            expiryDatetime = this.safeString (market, 'expiryDatetime');
         }
         const margin = this.safeValue (market, 'marginTradingEnabled', false);
         return this.safeMarketStructure ({
@@ -582,8 +584,8 @@ export default class bullish extends Exchange {
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
             'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'expiry': this.parse8601 (expiryDatetime),
+            'expiryDatetime': expiryDatetime,
             'strike': undefined,
             'optionType': undefined,
             'limits': {
