@@ -335,7 +335,7 @@ export default class swyftx extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    async fetchCurrencies (): Promise<Currencies> {
         /**
          * @method
          * @name swyftx#fetchCurrencies
@@ -344,7 +344,7 @@ export default class swyftx extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const url = this.urls['api']['public'] + '/markets/assets/';
-        const response = await this.fetch (url, 'GET', undefined, params);
+        const response = await this.fetch (url, 'GET');
         //
         //     [
         //         {
@@ -1339,12 +1339,54 @@ export default class swyftx extends Exchange {
     }
 
     needsAuthentication (url: string, method: string): boolean {
-        // Determine if the request needs authentication based on URL or other criteria
-        // For Swyftx, private API calls need authentication.
-        // We also need to exclude the auth/refresh endpoint itself from needing an existing accessToken.
-        const isAuthRefresh = url.includes ('auth/refresh');
-        const isPrivateApi = url.startsWith (this.urls['api']['private']);
-        return isPrivateApi && !isAuthRefresh;
+        const isAuthRefresh = url.includes ('auth/refresh/'); // auth/refresh itself does not need pre-existing token
+        if (isAuthRefresh) {
+            return false;
+        }
+
+        const baseUrl = this.urls['api']['private']; // In Swyftx, public and private URLs are the same
+        if (!url.startsWith(baseUrl)) {
+            return false; // Not an API call for this exchange
+        }
+
+        let path = url.substring(baseUrl.length);
+        const queryIndex = path.indexOf('?');
+        if (queryIndex !== -1) {
+            path = path.substring(0, queryIndex);
+        }
+
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        if (path.endsWith('/')) {
+            path = path.slice(0, -1);
+        }
+
+        const privateApis = this.safeValue(this.api, 'private');
+        if (!privateApis) {
+            return false;
+        }
+
+        const httpMethod = method.toLowerCase();
+        const methodEndpoints = this.safeValue(privateApis, httpMethod, []) as string[];
+
+        for (const endpointTemplateInput of methodEndpoints) {
+            let endpointTemplate = endpointTemplateInput;
+            if (endpointTemplate.startsWith('/')) {
+                endpointTemplate = endpointTemplate.substring(1);
+            }
+            if (endpointTemplate.endsWith('/')) {
+                endpointTemplate = endpointTemplate.slice(0, -1);
+            }
+
+            const regexPattern = '^' + endpointTemplate.replace(/{[^}]+}/g, '[^/]+') + '$';
+            const regex = new RegExp(regexPattern);
+
+            if (regex.test(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
