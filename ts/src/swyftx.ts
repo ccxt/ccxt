@@ -192,7 +192,7 @@ export default class swyftx extends Exchange {
         }
     }
 
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets (): Promise<Market[]> {
         /**
          * @method
          * @name swyftx#fetchMarkets
@@ -202,7 +202,7 @@ export default class swyftx extends Exchange {
          */
         // First fetch all available assets
         const assetsUrl = this.urls['api']['public'] + '/markets/assets/';
-        const assetsResponse = await this.fetch (assetsUrl, 'GET', undefined, params);
+        const assetsResponse = await this.fetch (assetsUrl, 'GET', undefined);
         //
         //     [
         //         {
@@ -431,7 +431,7 @@ export default class swyftx extends Exchange {
     //     return result;
     // }
 
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    async fetchTradingFees (): Promise<TradingFees> {
         /**
          * @method
          * @name swyftx#fetchTradingFees
@@ -461,18 +461,17 @@ export default class swyftx extends Exchange {
         return result;
     }
 
-    async fetchFundingLimits (params = {}): Promise<Dict> {
+    async fetchFundingLimits (): Promise<Dict> {
         /**
          * @method
          * @name swyftx#fetchFundingLimits
          * @description fetch withdrawal limits
-         * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object} a list of withdrawal limit structures
          */
         await this.loadMarkets ();
         // Make the request
         const path = 'limits/withdrawal/';
-        const signed = this.sign (path, 'private', 'GET', params);
+        const signed = this.sign (path, 'private', 'GET');
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
 
         //
@@ -501,7 +500,7 @@ export default class swyftx extends Exchange {
         };
     }
 
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, ): Promise<Ticker> {
         /**
          * @method
          * @name swyftx#fetchTicker
@@ -514,7 +513,7 @@ export default class swyftx extends Exchange {
         const market = this.market (symbol);
         // Fetch live rates for the quote currency (typically AUD)
         const url = this.urls['api']['public'] + '/live-rates/' + market['quoteId'] + '/';
-        const response = await this.fetch (url, 'GET', undefined, params);
+        const response = await this.fetch (url, 'GET', undefined);
         // Extract the rate info for the base asset
         const rateInfo = this.safeValue (response, market['baseId']);
         if (!rateInfo) {
@@ -524,7 +523,7 @@ export default class swyftx extends Exchange {
         const detailUrl = this.urls['api']['public'] + '/markets/info/detail/' + market['base'] + '/';
         let detailInfo = {};
         try {
-            detailInfo = await this.fetch (detailUrl, 'GET', undefined, params);
+            detailInfo = await this.fetch (detailUrl, 'GET', undefined);
         } catch (e) {
             // Detail info is optional, continue without it
         }
@@ -1082,7 +1081,7 @@ export default class swyftx extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, ): Promise<Order> {
         /**
          * @method
          * @name swyftx#fetchOrder
@@ -1097,7 +1096,7 @@ export default class swyftx extends Exchange {
         // Construct URL path
         const path = 'orders/byId/' + id;
         // Make the request
-        const signed = this.sign (path, 'private', 'GET', params);
+        const signed = this.sign (path, 'private', 'GET');
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
 
         //
@@ -1129,7 +1128,7 @@ export default class swyftx extends Exchange {
         return this.parseOrder (response);
     }
 
-    async authenticate (params = {}) {
+    async authenticate () {
         const path = 'auth/refresh/';
         const request = {
             'apiKey': this.apiKey,
@@ -1145,7 +1144,7 @@ export default class swyftx extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined): Promise<Order[]> {
         /**
          * @method
          * @name swyftx#fetchOpenOrders
@@ -1156,7 +1155,7 @@ export default class swyftx extends Exchange {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const orders = await this.fetchOrders (symbol, since, limit, params);
+        const orders = await this.fetchOrders (symbol, since, limit);
         return this.filterByArray (orders, 'status', [ 'open', 'partially_filled' ], false);
     }
 
@@ -1279,15 +1278,13 @@ export default class swyftx extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (!this.accessToken) {
-                // Perform authentication to get accessToken
-                // This is a simplified approach; consider rate limiting and error handling for auth
-                // await this.authenticate (); // This will be called before the actual request
+                await this.authenticate ();
             }
             headers = {
                 'Content-Type': 'application/json',
@@ -1312,6 +1309,10 @@ export default class swyftx extends Exchange {
                 body = this.json (params);
             }
         } else {
+            headers = {
+                'Content-Type': 'application/json',
+                'User-Agent': 'ccxt/' + this.version,
+            };
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1324,31 +1325,19 @@ export default class swyftx extends Exchange {
             if (!this.accessToken) {
                 await this.authenticate ();
             }
-            // Re-sign the request with the accessToken if it's a private endpoint
-            // This assumes the original call to sign might not have had the accessToken
-            // and the headers need to be reconstructed.
-            // For simplicity, we'll rely on the sign method being called again by the request pipeline
-            // or ensure headers are correctly set after authentication.
-            // A more robust solution might involve a request interceptor pattern.
         }
-        // The actual fetch call will use the headers potentially updated by authenticate()
-        // or the re-signed request.
-        // For now, we assume the headers passed to this.fetch are already correct
-        // or that the ccxt base class handles re-signing if necessary after authentication.
         return super.fetch (url, method, headers, body);
     }
 
     needsAuthentication (url: string, method: string): boolean {
-        const isAuthRefresh = url.includes ('auth/refresh/'); // auth/refresh itself does not need pre-existing token
+        const isAuthRefresh = url.includes ('auth/refresh/');
         if (isAuthRefresh) {
             return false;
         }
-
-        const baseUrl = this.urls['api']['private']; // In Swyftx, public and private URLs are the same
+        const baseUrl = this.urls['api']['private'];
         if (!url.startsWith(baseUrl)) {
             return false; // Not an API call for this exchange
         }
-
         let path = url.substring(baseUrl.length);
         const queryIndex = path.indexOf('?');
         if (queryIndex !== -1) {
@@ -1366,10 +1355,8 @@ export default class swyftx extends Exchange {
         if (!privateApis) {
             return false;
         }
-
         const httpMethod = method.toLowerCase();
         const methodEndpoints = this.safeValue(privateApis, httpMethod, []) as string[];
-
         for (const endpointTemplateInput of methodEndpoints) {
             let endpointTemplate = endpointTemplateInput;
             if (endpointTemplate.startsWith('/')) {

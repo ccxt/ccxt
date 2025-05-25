@@ -36,7 +36,7 @@ async function example () {
     const amount = 0.01;
 
     await exchange.loadMarkets ();
-    await exchange.loadAssetMapping ();
+    // await exchange.loadAssetMapping ();
 
     const market = exchange.market (symbol);
 
