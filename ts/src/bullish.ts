@@ -213,9 +213,10 @@ export default class bullish extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'networksById': {
-                    'ETH': 'ERC20',
+                'networks': {
+                    'BTC': 'BTC',
                     'EOS': 'EOS',
+                    'ERC20': 'ETH',
                 },
                 'tradingAccountId': '111309424211255',
             },
@@ -1542,17 +1543,18 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'command': {
                 'commandType': 'V1Withdraw',
-                'destinationId': '1560ec0b406c0d909bb9f5f827dd6aa14a1f638884f33a2a3134878102e78038',
+                'destinationId': address,
                 'symbol': currency['id'],
-                'network': 'ETH',
-                'quantity': this.amountToPrecision (code, amount),
+                'quantity': this.currencyToPrecision (code, amount),
             },
         };
-        // let networkCode: Str = undefined;
-        // [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        // if (networkCode !== undefined) {
-        //     request['chain'] = this.networkCodeToId (networkCode);
-        // }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode);
+        } else {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
+        }
         const response = await this.privatePostV1WalletsWithdrawal (this.extend (request, params));
         //
         //     {
