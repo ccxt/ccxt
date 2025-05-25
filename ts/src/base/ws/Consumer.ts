@@ -12,6 +12,8 @@ export default class Consumer {
 
     public backlog: Message[];
 
+    private static readonly MAX_BACKLOG_SIZE = 100; // Maximum number of messages in backlog
+
     constructor (fn: ConsumerFunction, synchronous: boolean, currentIndex: Int) {
         this.fn = fn;
         this.synchronous = synchronous;
@@ -22,6 +24,9 @@ export default class Consumer {
 
     publish (message: Message) {
         this.backlog.push (message);
+        if (this.backlog.length > Consumer.MAX_BACKLOG_SIZE) {
+            console.warn (`WebSocket consumer backlog is too large (${this.backlog.length} messages). This might indicate a performance issue or message processing bottleneck.`);
+        }
         this._run ();
     }
 

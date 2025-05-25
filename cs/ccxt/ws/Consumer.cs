@@ -31,6 +31,8 @@ namespace ccxt.pro
 
     public class Consumer
     {
+        private const int MAX_BACKLOG_SIZE = 100;  // Maximum number of messages in backlog
+        
         public ConsumerFunction fn { get; private set; }
         public bool synchronous { get; private set; }
         public int currentIndex { get; private set; }
@@ -49,6 +51,10 @@ namespace ccxt.pro
         public void publish(Message message)
         {
             backlog.Enqueue(message);
+            if (backlog.Count > MAX_BACKLOG_SIZE)
+            {
+                Console.WriteLine($"Warning: WebSocket consumer backlog is too large ({backlog.Count} messages). This might indicate a performance issue or message processing bottleneck.");
+            }
             Run();
         }
 

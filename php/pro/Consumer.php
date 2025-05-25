@@ -7,6 +7,8 @@ use React\Promise;
 
 class Consumer
 {
+    private const MAX_BACKLOG_SIZE = 100;  // Maximum number of messages in backlog
+    
     public $fn;
     public $synchronous;
     public $currentIndex;
@@ -24,6 +26,9 @@ class Consumer
     public function publish($message)
     {
         array_push($this->backlog, $message);
+        if (count($this->backlog) > self::MAX_BACKLOG_SIZE) {
+            error_log("Warning: WebSocket consumer backlog is too large (" . count($this->backlog) . " messages). This might indicate a performance issue or message processing bottleneck.");
+        }
         $this->run();
     }
 

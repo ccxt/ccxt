@@ -3,6 +3,8 @@ from typing import List
 from ....base.types import Message, ConsumerFunction
 
 class Consumer:
+    MAX_BACKLOG_SIZE = 100  # Maximum number of messages in backlog
+
     def __init__(self, fn: ConsumerFunction, synchronous: bool, current_index: int):
         self.fn = fn
         self.synchronous = synchronous
@@ -13,6 +15,8 @@ class Consumer:
 
     def publish(self, message: Message) -> None:
         self.backlog.append(message)
+        if len(self.backlog) > self.MAX_BACKLOG_SIZE:
+            print(f"Warning: WebSocket consumer backlog is too large ({len(self.backlog)} messages). This might indicate a performance issue or message processing bottleneck.")
         asyncio.ensure_future(self._run())
 
     async def _run(self) -> None:
