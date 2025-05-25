@@ -176,8 +176,8 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
 - Public API
   - `fetchStatus` → `watchStatus` → `subscribeStatus`
   - `fetchOrderBook` → `watchOrderBook` → `subscribeOrderBook`
-  - `fetchTicker` → `watchTicker` → `subscribeTicker`
-  - `fetchTickers` → `watchTickers` → `subscribeTickers`
+  - `fetchTicker` → `watchTicker` → `subscribeTicker`
+  - `fetchTickers` → `watchTickers` → `subscribeTickers`
   - `fetchOHLCV` → `watchOHLCV` → `subscribeOHLCV`
   - `fetchTrades` → `watchTrades` → `subscribeTrades`
   - `fetchTradesForSymbols` → `watchTradesForSymbols`  → `subscribeTradesForSymbols`
@@ -261,6 +261,71 @@ You can change the parameters in exchange.streaming.
     })
     ```
 
+### Setting maxMessagesPerTopic in Different Languages
+
+You can set `maxMessagesPerTopic` in two ways:
+
+1. During exchange initialization using the `streaming` config:
+2. Directly accessing the stream property after initialization
+
+Here are examples for each language:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+// Method 1: During initialization
+const exchange = new ccxt.pro.binance({
+    'streaming': {
+        'maxMessagesPerTopic': 1000
+    }
+});
+
+// Method 2: After initialization
+exchange.stream.maxMessagesPerTopic = 1000;
+```
+
+#### **Python**
+```python
+# Method 1: During initialization
+exchange = ccxt.pro.binance({
+    'streaming': {
+        'maxMessagesPerTopic': 1000
+    }
+})
+
+# Method 2: After initialization
+exchange.stream.max_messages_per_topic = 1000
+```
+
+#### **PHP**
+```php
+// Method 1: During initialization
+$exchange = new \ccxt\pro\binance(array(
+    'streaming' => array(
+        'maxMessagesPerTopic' => 1000
+    )
+));
+
+// Method 2: After initialization
+$exchange->stream->max_messages_per_topic = 1000;
+```
+
+#### **C#**
+```csharp
+// Method 1: During initialization
+var exchange = new binance(new Dictionary<string, object> {
+    { "streaming", new Dictionary<string, object> {
+        { "maxMessagesPerTopic", 1000 }
+    }}
+});
+
+// Method 2: After initialization
+exchange.stream.maxMessagesPerTopic = 1000;
+```
+<!-- tabs:end -->
+
+Note: Setting `maxMessagesPerTopic` to 0 will disable message history storage, which can be useful for high-throughput scenarios where you only need the latest message.
+
 ### Callback Functions
 When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
 
@@ -283,8 +348,8 @@ export interface Message {
 ### Synchronous vs. Asynchronous Consumption
 You can choose to consume messages synchronously or asynchronously:
 
-Synchronous consumption means that the library will wait for one message to be fully processed in the callback before moving on to the next message. This is useful for ensuring order but can slow down processing if the callback function takes a long time to execute.
-Asynchronous consumption allows the library to continue delivering messages without waiting for the callback to complete, suitable for high-throughput environments where order may not be as critical.
+- **Synchronous consumption** means that the library will wait for one message to be fully processed in the callback before moving on to the next message. This is useful for ensuring order but can slow down processing if the callback function takes a long time to execute.
+- **Asynchronous consumption** allows the library to continue delivering messages without waiting for the callback to complete, suitable for high-throughput environments where order may not be as critical.
 
 ### Example Usage
 #### subscribeTickers example
@@ -297,7 +362,7 @@ async subscribeTickers(symbols?: string[], callback: ConsumerFunction, synchrono
 - **symbols**: Optional array of symbols to monitor. If omitted, subscribes to updates for all symbols.
 - **callback**: Function to execute with each message.
 - **synchronous**: Determines if messages should be processed synchronously (true by default).
-*params*: Extra parameters for the exchange API endpoint.
+- **params**: Extra parameters for the exchange API endpoint.
 
 <!-- tabs:start -->
 #### **Javascript**
@@ -353,22 +418,23 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
     }
 ```
 <!-- tabs:end -->
-### Streaming helpers
-#### All raw messages
+
+### Streaming Helpers
+#### All Raw Messages
 You can use the function `subscribeRaw(callback, synchroneous = true)` to subscribe to all raw messages published to the stream
-### Subscribe to errors
+### Subscribe to Errors
 You can use the function `subscribeErrors(callback, synchroneous = true)` to subscribe to all errors thrown to the stream
-#### Access topic history 
+#### Access Topic History 
 The stream will keep a history of all the messages, use `getMessageHistory(topic)` to access them.
 The history size is set by `stream.maxMessagesPerTopic`
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-const history = exchange.stream.getMessageHistory (topic)
+const history = exchange.stream.getMessageHistory(topic)
 ```
 #### **Python**
 ```python
-history = exchange.stream.get_message_history (topic)
+history = exchange.stream.get_message_history(topic)
 ```
 #### **PHP**
 ```php
@@ -380,28 +446,91 @@ var history = exchange.stream.getMessageHistory(topic);
 ```
 <!-- tabs:end -->
 
-#### Unsubscribe stream callback
+#### Unsubscribe Stream Callback
 You can use `exchange.stream.unsubcribe(topic, consumeFunction)` to unsubscribe a callback from stream topic. However notice this won't unsubscribe the stream from the exchange.
 The function will return true if the callback as found and unsubscribed and false if not.
 
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-const history = exchange.stream.getMessageHistory (topic)
+const unsubscribed = exchange.stream.unsubscribe(topic, callback)
 ```
 #### **Python**
 ```python
-history = exchange.stream.get_message_history (topic)
+unsubscribed = exchange.stream.unsubscribe(topic, callback)
 ```
 #### **PHP**
 ```php
-$history = $exchange->stream->get_message_history($topic)
+$unsubscribed = $exchange->stream->unsubscribe($topic, $callback)
 ```
 #### **C#**
 ```csharp
-var history = exchange.stream.getMessageHistory(topic);
+var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
 ```
 <!-- tabs:end -->
+
+### Core Functionality
+- Acts as a message broker that manages topics and their subscribers
+- Maintains message history for each topic
+- Supports both synchronous and asynchronous message processing
+- Implements a message backlog system
+
+### Key Features
+#### Message Management
+- `maxMessagesPerTopic`: Configurable limit for message history per topic (default: 100)
+- Messages are stored with metadata including:
+  - Stream reference
+  - Topic
+  - Index
+  - Message history
+
+#### Topic Operations
+##### Publishing Messages
+- `produce(topic, payload, error)`: Publishes messages to a topic
+- Automatically manages message history limits
+- Notifies all subscribers of new messages
+
+##### Subscription Management
+- `subscribe(topic, consumerFn, synchronous)`: Registers a consumer for a topic
+- `unsubscribe(topic, consumerFn)`: Removes a consumer from a topic
+- Supports both synchronous and asynchronous consumers
+
+##### Message History
+- `getMessageHistory(topic)`: Retrieves message history for a topic
+- `getLastIndex(topic)`: Gets the last message index for a topic
+
+#### Stream Lifecycle
+- `init()`: Initializes or resets the stream
+- `close()`: Cleans up the stream by resetting topics and unsubscribing consumers
+- `addWatchFunction()`: Supports reconnection functionality
+
+### Consumer Class
+#### Core Functionality
+- Handles individual message processing for subscribers
+- Manages message backlog and processing order
+- Supports both synchronous and asynchronous execution
+
+#### Key Features
+##### Message Processing
+- Maintains a currentIndex to track processed messages
+- Implements a backlog system for message queuing
+- Processes messages in order based on their index
+
+##### Processing Modes
+###### Synchronous Processing
+- Messages are processed one at a time
+- Waits for each message to complete before processing the next
+- Uses async/await for proper flow control
+
+###### Asynchronous Processing
+- Messages are processed without waiting for completion
+- Suitable for non-blocking operations
+
+##### Message Handling
+- `publish(message)`: Adds messages to the backlog
+- `_run()`: Processes the message backlog
+- `_handleMessage(message)`: Executes the consumer function with the message
+
 ## Streaming Specifics
 
 Despite of the numerous commonalities, streaming-based APIs have their own specifics, because of their connection-based nature.
