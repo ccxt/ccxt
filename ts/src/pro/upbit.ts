@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 
 import upbitRest from '../upbit.js';
@@ -377,6 +376,7 @@ export default class upbit extends upbitRest {
         const marketId = this.safeString (message, 'code');
         const messageHash = 'candle.1s:' + marketId;
         const ohlcv = this.parseOHLCV (message);
+        this.streamProduce ('ohlcvs', ohlcv);
         client.resolve (ohlcv, messageHash);
     }
 
