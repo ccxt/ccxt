@@ -260,6 +260,24 @@ You can change the parameters in exchange.streaming.
     })
     ```
 
+#### Accesing the stream directly
+You can also subscribe to the raw streams to access all messages received by the websockets, or to create several subscriptions to the same stream
+Here is the flow of a websocket message through the subscribe functions:
+1. **Raw Messages**
+   - All WebSocket messages are initially sent to the 'raw' topic
+   - Subscribe to raw messages using `subscribeRaw(callback)`
+   - This gives you access to every message before any processing
+
+2. **Type-Based Topics**
+   - Messages are categorized by type (e.g., tickers, trades, orderbook)
+   - Each type has its own topic (e.g., 'tickers', 'trades')
+   - Subscribe to all messages of a specific type using methods like `subscribeTickers(callback)`
+
+3. **Symbol-Specific Topics**
+   - Messages are further categorized by trading pair
+   - Topics follow the format `type::symbol` (e.g., 'tickers::BTC/USDT')
+   - Subscribe to specific symbol messages using methods like `subscribeTicker(symbol, callback)`
+
 ### Setting maxMessagesPerTopic in Different Languages
 
 You can set `maxMessagesPerTopic` in two ways:
