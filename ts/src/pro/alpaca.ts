@@ -185,6 +185,7 @@ export default class alpaca extends alpacaRest {
         const parsed = this.parseOHLCV (message);
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol;
+        this.streamProduce ('ohlcvs', parsed);
         client.resolve (stored, messageHash);
     }
 
