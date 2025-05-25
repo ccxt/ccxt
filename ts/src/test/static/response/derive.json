@@ -33,23 +33,192 @@
                 "httpResponse": {
                     "result": [
                         {
-                            "currency": "USDC",
-                            "spot_price": "1.000092571200000128",
-                            "spot_price_24h": "1.000409753400000000"
+                            "currency": "SEI",
+                            "instrument_types": [
+                                "perp"
+                            ],
+                            "protocol_asset_addresses": {
+                                "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+                                "option": null,
+                                "spot": null,
+                                "underlying_erc20": null
+                            },
+                            "managers": [
+                                {
+                                    "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+                                    "margin_type": "SM",
+                                    "currency": null
+                                }
+                            ],
+                            "srm_im_discount": "0",
+                            "srm_mm_discount": "0",
+                            "pm2_collateral_discounts": [],
+                            "borrow_apy": "0",
+                            "supply_apy": "0",
+                            "total_borrow": "0",
+                            "total_supply": "0",
+                            "asset_cap_and_supply_per_manager": {
+                                "perp": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "0",
+                                            "interest_cap": "2000000",
+                                            "manager_currency": null
+                                        }
+                                    ]
+                                },
+                                "option": {},
+                                "erc20": {}
+                            },
+                            "market_type": "SRM_PERP_ONLY",
+                            "spot_price": "0.2193542905042081",
+                            "spot_price_24h": "0.238381655533635830"
+                        },
+                        {
+                            "currency": "BTC",
+                            "instrument_types": [
+                                "perp",
+                                "option",
+                                "erc20"
+                            ],
+                            "protocol_asset_addresses": {
+                                "perp": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+                                "option": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+                                "spot": "0x7da2D398dddDfC946Efd2C758c4688D21887790d",
+                                "underlying_erc20": "0x9b80ab732a6F1030326Af0014f106E12C4Db18EC"
+                            },
+                            "managers": [
+                                {
+                                    "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+                                    "margin_type": "SM",
+                                    "currency": null
+                                },
+                                {
+                                    "address": "0x45DA02B9cCF384d7DbDD7b2b13e705BADB43Db0D",
+                                    "margin_type": "PM",
+                                    "currency": null
+                                }
+                            ],
+                            "srm_im_discount": "0.6975",
+                            "srm_mm_discount": "0.75",
+                            "pm2_collateral_discounts": [],
+                            "borrow_apy": "0",
+                            "supply_apy": "0",
+                            "total_borrow": "0",
+                            "total_supply": "742534449000",
+                            "asset_cap_and_supply_per_manager": {
+                                "perp": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "112.3748",
+                                            "interest_cap": "12000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "16.3563",
+                                            "interest_cap": "12000",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                },
+                                "option": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "613.5349",
+                                            "interest_cap": "100000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "685.962",
+                                            "interest_cap": "100000",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                },
+                                "erc20": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "742534449000",
+                                            "interest_cap": "1600000000000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "0",
+                                            "interest_cap": "0",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                }
+                            },
+                            "market_type": "ALL",
+                            "spot_price": "104588.93998372475",
+                            "spot_price_24h": "105578.623755349730000000"
                         }
-                    ]
+                    ],
+                    "id": "ef016e8c-bf55-4158-bc30-082d8af48b0a"
                 },
                 "parsedResponse": {
-                    "USDC": {
-                        "id": "USDC",
-                        "name": null,
-                        "code": "USDC",
+                    "SEI": {
+                        "info": {
+                            "currency": "SEI",
+                            "instrument_types": [
+                                "perp"
+                            ],
+                            "protocol_asset_addresses": {
+                                "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+                                "option": null,
+                                "spot": null,
+                                "underlying_erc20": null
+                            },
+                            "managers": [
+                                {
+                                    "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+                                    "margin_type": "SM",
+                                    "currency": null
+                                }
+                            ],
+                            "srm_im_discount": "0",
+                            "srm_mm_discount": "0",
+                            "pm2_collateral_discounts": [],
+                            "borrow_apy": "0",
+                            "supply_apy": "0",
+                            "total_borrow": "0",
+                            "total_supply": "0",
+                            "asset_cap_and_supply_per_manager": {
+                                "perp": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "0",
+                                            "interest_cap": "2000000",
+                                            "manager_currency": null
+                                        }
+                                    ]
+                                },
+                                "option": {},
+                                "erc20": {}
+                            },
+                            "market_type": "SRM_PERP_ONLY",
+                            "spot_price": "0.2193542905042081",
+                            "spot_price_24h": "0.238381655533635830"
+                        },
+                        "id": "SEI",
+                        "numericId": null,
+                        "code": "SEI",
                         "precision": null,
+                        "type": null,
+                        "name": null,
                         "active": null,
-                        "fee": null,
-                        "networks": null,
                         "deposit": null,
                         "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
                         "limits": {
                             "deposit": {
                                 "min": null,
@@ -59,11 +228,116 @@
                                 "min": null,
                                 "max": null
                             }
-                        },
+                        }
+                    },
+                    "BTC": {
                         "info": {
-                            "currency": "USDC",
-                            "spot_price": "1.000092571200000128",
-                            "spot_price_24h": "1.000409753400000000"
+                            "currency": "BTC",
+                            "instrument_types": [
+                                "perp",
+                                "option",
+                                "erc20"
+                            ],
+                            "protocol_asset_addresses": {
+                                "perp": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+                                "option": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+                                "spot": "0x7da2D398dddDfC946Efd2C758c4688D21887790d",
+                                "underlying_erc20": "0x9b80ab732a6F1030326Af0014f106E12C4Db18EC"
+                            },
+                            "managers": [
+                                {
+                                    "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+                                    "margin_type": "SM",
+                                    "currency": null
+                                },
+                                {
+                                    "address": "0x45DA02B9cCF384d7DbDD7b2b13e705BADB43Db0D",
+                                    "margin_type": "PM",
+                                    "currency": null
+                                }
+                            ],
+                            "srm_im_discount": "0.6975",
+                            "srm_mm_discount": "0.75",
+                            "pm2_collateral_discounts": [],
+                            "borrow_apy": "0",
+                            "supply_apy": "0",
+                            "total_borrow": "0",
+                            "total_supply": "742534449000",
+                            "asset_cap_and_supply_per_manager": {
+                                "perp": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "112.3748",
+                                            "interest_cap": "12000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "16.3563",
+                                            "interest_cap": "12000",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                },
+                                "option": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "613.5349",
+                                            "interest_cap": "100000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "685.962",
+                                            "interest_cap": "100000",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                },
+                                "erc20": {
+                                    "SM": [
+                                        {
+                                            "current_open_interest": "742534449000",
+                                            "interest_cap": "1600000000000",
+                                            "manager_currency": null
+                                        }
+                                    ],
+                                    "PM": [
+                                        {
+                                            "current_open_interest": "0",
+                                            "interest_cap": "0",
+                                            "manager_currency": "BTC"
+                                        }
+                                    ]
+                                }
+                            },
+                            "market_type": "ALL",
+                            "spot_price": "104588.93998372475",
+                            "spot_price_24h": "105578.623755349730000000"
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": null,
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
                         }
                     }
                 }

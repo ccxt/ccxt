@@ -34,6 +34,12 @@ export default class mexc extends mexcRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchBidsAsks': true,
+                'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -491,12 +497,15 @@ export default class mexc extends mexcRest {
         }, market);
     }
     async watchSpotPublic(channel, messageHash, params = {}) {
+        const unsubscribed = this.safeBool(params, 'unsubscribed', false);
+        params = this.omit(params, ['unsubscribed']);
         const url = this.urls['api']['ws']['spot'];
+        const method = (unsubscribed) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
         const request = {
-            'method': 'SUBSCRIPTION',
+            'method': method,
             'params': [channel],
         };
-        return await this.watch(url, messageHash, this.extend(request, params), channel);
+        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async watchSpotPrivate(channel, messageHash, params = {}) {
         this.checkRequiredCredentials();
@@ -788,12 +797,6 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue(client.subscriptions, messageHash);
         const limit = this.safeInteger(subscription, 'limit');
-        if (subscription === true) {
-            // we set client.subscriptions[messageHash] to 1
-            // once we have received the first delta and initialized the orderbook
-            client.subscriptions[messageHash] = 1;
-            this.orderbooks[symbol] = this.countedOrderBook({});
-        }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
@@ -1414,6 +1417,297 @@ export default class mexc extends mexcRest {
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], messageHash);
+    }
+    /**
+     * @method
+     * @name mexc#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        let url = undefined;
+        let channel = undefined;
+        if (market['spot']) {
+            let miniTicker = false;
+            [miniTicker, params] = this.handleOptionAndParams(params, 'watchTicker', 'miniTicker');
+            if (miniTicker) {
+                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
+            }
+            else {
+                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
+            }
+            url = this.urls['api']['ws']['spot'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic(channel, messageHash, params);
+        }
+        else {
+            channel = 'unsub.ticker';
+            const requestParams = {
+                'symbol': market['id'],
+            };
+            url = this.urls['api']['ws']['swap'];
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
+        }
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    /**
+     * @method
+     * @name mexc#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined);
+        const messageHashes = [];
+        const firstSymbol = this.safeString(symbols, 0);
+        let market = undefined;
+        if (firstSymbol !== undefined) {
+            market = this.market(firstSymbol);
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
+        const isSpot = (type === 'spot');
+        const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
+        const request = {};
+        if (isSpot) {
+            let miniTicker = false;
+            [miniTicker, params] = this.handleOptionAndParams(params, 'watchTickers', 'miniTicker');
+            const topics = [];
+            if (!miniTicker) {
+                if (symbols === undefined) {
+                    throw new ArgumentsRequired(this.id + ' watchTickers required symbols argument for the bookTicker channel');
+                }
+                const marketIds = this.marketIds(symbols);
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    messageHashes.push('unsubscribe:ticker:' + symbols[i]);
+                    const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+                    topics.push(channel);
+                }
+            }
+            else {
+                topics.push('spot@public.miniTickers.v3.api@UTC+8');
+                if (symbols === undefined) {
+                    messageHashes.push('unsubscribe:spot:ticker');
+                }
+                else {
+                    for (let i = 0; i < symbols.length; i++) {
+                        messageHashes.push('unsubscribe:ticker:' + symbols[i]);
+                    }
+                }
+            }
+            request['method'] = 'UNSUBSCRIPTION';
+            request['params'] = topics;
+        }
+        else {
+            request['method'] = 'unsub.tickers';
+            request['params'] = {};
+            messageHashes.push('unsubscribe:ticker');
+        }
+        const client = this.client(url);
+        this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        this.handleUnsubscriptions(client, messageHashes);
+        return undefined;
+    }
+    /**
+     * @method
+     * @name mexc#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        let marketType = undefined;
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
+        }
+        const markets = this.marketsForSymbols(symbols);
+        [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
+        const isSpot = marketType === 'spot';
+        if (!isSpot) {
+            throw new NotSupported(this.id + ' watchBidsAsks only support spot market');
+        }
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            if (isSpot) {
+                const market = this.market(symbols[i]);
+                topics.push('spot@public.bookTicker.v3.api@' + market['id']);
+            }
+            messageHashes.push('unsubscribe:bidask:' + symbols[i]);
+        }
+        const url = this.urls['api']['ws']['spot'];
+        const request = {
+            'method': 'UNSUBSCRIPTION',
+            'params': topics,
+        };
+        const client = this.client(url);
+        this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        this.handleUnsubscriptions(client, messageHashes);
+        return undefined;
+    }
+    /**
+     * @method
+     * @name mexc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframeId = this.safeString(timeframes, timeframe);
+        const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
+        let url = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
+            params['unsubscribed'] = true;
+            this.watchSpotPublic(channel, messageHash, params);
+        }
+        else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.kline';
+            const requestParams = {
+                'symbol': market['id'],
+                'interval': timeframeId,
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
+        }
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    /**
+     * @method
+     * @name mexc#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + symbol;
+        let url = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic(channel, messageHash, params);
+        }
+        else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.depth';
+            const requestParams = {
+                'symbol': market['id'],
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
+        }
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    /**
+     * @method
+     * @name mexc#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const messageHash = 'unsubscribe:trades:' + symbol;
+        let url = undefined;
+        if (market['spot']) {
+            url = this.urls['api']['ws']['spot'];
+            const channel = 'spot@public.deals.v3.api@' + market['id'];
+            params['unsubscribed'] = true;
+            this.watchSpotPublic(channel, messageHash, params);
+        }
+        else {
+            url = this.urls['api']['ws']['swap'];
+            const channel = 'unsub.deal';
+            const requestParams = {
+                'symbol': market['id'],
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
+        }
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    handleUnsubscriptions(client, messageHashes) {
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const subMessageHash = messageHash.replace('unsubscribe:', '');
+            this.cleanUnsubscription(client, subMessageHash, messageHash);
+            if (messageHash.indexOf('ticker') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:ticker:', '');
+                if (symbol.indexOf('unsubscribe') >= 0) {
+                    // unWatchTickers
+                    const symbols = Object.keys(this.tickers);
+                    for (let j = 0; j < symbols.length; j++) {
+                        delete this.tickers[symbols[j]];
+                    }
+                }
+                else if (symbol in this.tickers) {
+                    delete this.tickers[symbol];
+                }
+            }
+            else if (messageHash.indexOf('bidask') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:bidask:', '');
+                if (symbol in this.bidsasks) {
+                    delete this.bidsasks[symbol];
+                }
+            }
+            else if (messageHash.indexOf('candles') >= 0) {
+                const splitHashes = messageHash.split(':');
+                let symbol = this.safeString(splitHashes, 2);
+                if (splitHashes.length > 4) {
+                    symbol += ':' + this.safeString(splitHashes, 3);
+                }
+                if (symbol in this.ohlcvs) {
+                    delete this.ohlcvs[symbol];
+                }
+            }
+            else if (messageHash.indexOf('orderbook') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:orderbook:', '');
+                if (symbol in this.orderbooks) {
+                    delete this.orderbooks[symbol];
+                }
+            }
+            else if (messageHash.indexOf('trades') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:trades:', '');
+                if (symbol in this.trades) {
+                    delete this.trades[symbol];
+                }
+            }
+        }
     }
     async authenticate(subscriptionHash, params = {}) {
         // we only need one listenKey since ccxt shares connections

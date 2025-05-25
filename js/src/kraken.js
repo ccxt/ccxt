@@ -1758,22 +1758,15 @@ export default class kraken extends Exchange {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error": [],
@@ -1904,15 +1897,13 @@ export default class kraken extends Exchange {
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, 'price', price);
-        // when type = trailling stop returns price = '+50.0000%'
-        if ((price !== undefined) && price.endsWith('%')) {
+        // when type = trailing stop returns price = '+50.0000%'
+        if ((price !== undefined) && (price.endsWith('%') || Precise.stringEquals(price, '0.00000') || Precise.stringEquals(price, '0'))) {
             price = undefined; // this is not the price we want
         }
-        if ((price === undefined) || Precise.stringEquals(price, '0')) {
+        if (price === undefined) {
             price = this.safeString(description, 'price2');
-        }
-        if ((price === undefined) || Precise.stringEquals(price, '0')) {
-            price = this.safeString(order, 'price', price);
+            price = this.safeString2(order, 'limitprice', 'price', price);
         }
         const flags = this.safeString(order, 'oflags', '');
         let isPostOnly = flags.indexOf('post') > -1;
@@ -1934,7 +1925,7 @@ export default class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        let id = this.safeStringN(order, ['id', 'txid', 'amend_id']);
+        let id = this.safeStringN(order, ['id', 'txid', 'order_id', 'amend_id']);
         if ((id === undefined) || (id.startsWith('['))) {
             const txid = this.safeList(order, 'txid');
             id = this.safeString(txid, 0);

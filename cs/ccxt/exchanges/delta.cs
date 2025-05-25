@@ -442,31 +442,49 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetAssets(parameters);
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":[
-        //                     {"limit":"0.1","rate":"0"},
-        //                     {"limit":"1","rate":"0.05"},
-        //                     {"limit":"5","rate":"0.075"},
-        //                     {"limit":"10","rate":"0.1"},
-        //                     {"limit":"9999999999999999","rate":"0"}
-        //                 ],
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             },
+        //    {
+        //        "result": [
+        //            {
+        //                "base_withdrawal_fee": "0.005000000000000000",
+        //                "id": "1",
+        //                "interest_credit": false,
+        //                "interest_slabs": null,
+        //                "kyc_deposit_limit": "0.000000000000000000",
+        //                "kyc_withdrawal_limit": "0.000000000000000000",
+        //                "min_withdrawal_amount": "0.010000000000000000",
+        //                "minimum_precision": "4",
+        //                "name": "Ethereum",
+        //                "networks": [
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0025",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.010000000000000000",
+        //                        "minimum_deposit_confirmations": "12",
+        //                        "network": "ERC20",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    },
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0001",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.000300000000000000",
+        //                        "minimum_deposit_confirmations": "15",
+        //                        "network": "BEP20(BSC)",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    }
+        //                ],
+        //                "precision": "18",
+        //                "sort_priority": "3",
+        //                "symbol": "ETH",
+        //                "variable_withdrawal_fee": "0.000000000000000000"
+        //            },
         //         ],
         //         "success":true
         //     }
@@ -479,20 +497,43 @@ public partial class delta : Exchange
             object id = this.safeString(currency, "symbol");
             object numericId = this.safeInteger(currency, "id");
             object code = this.safeCurrencyCode(id);
-            object depositStatus = this.safeString(currency, "deposit_status");
-            object withdrawalStatus = this.safeString(currency, "withdrawal_status");
-            object depositsEnabled = (isEqual(depositStatus, "enabled"));
-            object withdrawalsEnabled = (isEqual(withdrawalStatus, "enabled"));
-            object active = isTrue(depositsEnabled) && isTrue(withdrawalsEnabled);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chains = this.safeList(currency, "networks", new List<object>() {});
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object chain = getValue(chains, j);
+                object networkId = this.safeString(chain, "network");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "name", this.safeString(chain, "name") },
+                    { "info", chain },
+                    { "active", isEqual(this.safeString(chain, "status"), "enabled") },
+                    { "deposit", isEqual(this.safeString(chain, "deposit_status"), "enabled") },
+                    { "withdraw", isEqual(this.safeString(chain, "withdrawal_status"), "enabled") },
+                    { "fee", this.safeNumber(chain, "base_withdrawal_fee") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_deposit_amount") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
                 { "code", code },
                 { "name", this.safeString(currency, "name") },
                 { "info", currency },
-                { "active", active },
-                { "deposit", depositsEnabled },
-                { "withdraw", withdrawalsEnabled },
+                { "active", null },
+                { "deposit", isEqual(this.safeString(currency, "deposit_status"), "enabled") },
+                { "withdraw", isEqual(this.safeString(currency, "withdrawal_status"), "enabled") },
                 { "fee", this.safeNumber(currency, "base_withdrawal_fee") },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "precision"))) },
                 { "limits", new Dictionary<string, object>() {
@@ -505,9 +546,9 @@ public partial class delta : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
+                { "networks", networks },
                 { "type", "crypto" },
-            };
+            });
         }
         return result;
     }

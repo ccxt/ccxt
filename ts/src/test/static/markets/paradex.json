@@ -323,5 +323,88 @@
             "interest_rate": "0.0001",
             "clamp_rate": "0.0005"
         }
+    },
+    "BTC/USD:USDC-117000-P": {
+        "id": "BTC-USD-117000-P",
+        "symbol": "BTC/USD:USDC-117000-P",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "option",
+        "spot": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0003,
+        "maker": 0.0003,
+        "contractSize": 1,
+        "expiry": 0,
+        "strike": 117000,
+        "optionType": "put",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 2
+            },
+            "price": {},
+            "cost": {
+                "min": 100
+            }
+        },
+        "info": {
+            "symbol": "BTC-USD-117000-P",
+            "base_currency": "BTC",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.001",
+            "price_tick_size": "0.1",
+            "min_notional": "100",
+            "open_at": 1746692122210,
+            "expiry_at": 0,
+            "asset_kind": "PERP_OPTION",
+            "market_kind": "cross",
+            "position_limit": "30",
+            "price_bands_width": "0.05",
+            "iv_bands_width": "0.05",
+            "max_open_orders": 150,
+            "max_funding_rate": "0",
+            "option_cross_margin_params": {
+                "imf": {
+                    "long_itm": "0.05",
+                    "short_itm": "0.075",
+                    "short_otm": "0.05",
+                    "short_put_cap": "0.5",
+                    "premium_multiplier": "1"
+                },
+                "mmf": {
+                    "long_itm": "0.025",
+                    "short_itm": "0.0375",
+                    "short_otm": "0.025",
+                    "short_put_cap": "0.5",
+                    "premium_multiplier": "0.5"
+                }
+            },
+            "price_feed_id": "",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "2",
+            "max_funding_rate_change": "0",
+            "max_tob_spread": "2",
+            "interest_rate": "0",
+            "clamp_rate": "0",
+            "option_type": "PUT",
+            "strike_price": "117000",
+            "funding_period_hours": 24,
+            "tags": []
+        }
     }
 }

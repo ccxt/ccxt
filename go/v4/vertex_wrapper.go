@@ -20,6 +20,21 @@ func NewVertex(userConfig map[string]interface{}) Vertex {
 
 /**
  * @method
+ * @name vertex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Vertex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name vertex#fetchMarkets
  * @description retrieves data on all markets for vertex
  * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols

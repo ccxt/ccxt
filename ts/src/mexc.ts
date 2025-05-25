@@ -1090,7 +1090,6 @@ export default class mexc extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'coin');
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
             const networks: Dict = {};
             const chains = this.safeValue (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
@@ -1112,13 +1111,14 @@ export default class mexc extends Exchange {
                             'max': this.safeString (chain, 'withdrawMax'),
                         },
                     },
+                    'contract': this.safeString (chain, 'contract'),
                 };
             }
             result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'name': name,
+                'name': this.safeString (currency, 'name'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,

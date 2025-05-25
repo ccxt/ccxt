@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.82'
+__version__ = '4.4.85'
 
 # -----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.fast_client import FastClient
+from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
@@ -279,7 +279,28 @@ class Exchange(BaseExchange):
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
+
     async def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            This method is asynchronous.
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if (reload and not self.reloading_markets) or not self.markets_loading:
             self.reloading_markets = True
             coroutine = self.load_markets_helper(reload, params)
@@ -387,7 +408,9 @@ class Exchange(BaseExchange):
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
+            # we use aiohttp instead of fastClient now because of this
+            # https://github.com/ccxt/ccxt/pull/25995
+            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
             self.clients[url].proxy = self.get_ws_proxy()
         return self.clients[url]
 

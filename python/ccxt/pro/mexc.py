@@ -39,6 +39,12 @@ class mexc(ccxt.async_support.mexc):
                 'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchBidsAsks': True,
+                'unWatchOHLCV': True,
+                'unWatchOrderBook': True,
+                'unWatchTrades': True,
             },
             'urls': {
                 'api': {
@@ -471,12 +477,15 @@ class mexc(ccxt.async_support.mexc):
         }, market)
 
     async def watch_spot_public(self, channel, messageHash, params={}):
+        unsubscribed = self.safe_bool(params, 'unsubscribed', False)
+        params = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
+        method = 'UNSUBSCRIPTION' if (unsubscribed) else 'SUBSCRIPTION'
         request: dict = {
-            'method': 'SUBSCRIPTION',
+            'method': method,
             'params': [channel],
         }
-        return await self.watch(url, messageHash, self.extend(request, params), channel)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def watch_spot_private(self, channel, messageHash, params={}):
         self.check_required_credentials()
@@ -759,11 +768,6 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'orderbook:' + symbol
         subscription = self.safe_value(client.subscriptions, messageHash)
         limit = self.safe_integer(subscription, 'limit')
-        if subscription is True:
-            # we set client.subscriptions[messageHash] to 1
-            # once we have received the first delta and initialized the orderbook
-            client.subscriptions[messageHash] = 1
-            self.orderbooks[symbol] = self.counted_order_book({})
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
@@ -1350,6 +1354,247 @@ class mexc(ccxt.async_support.mexc):
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = 'unsubscribe:ticker:' + market['symbol']
+        url = None
+        channel = None
+        if market['spot']:
+            miniTicker = False
+            miniTicker, params = self.handle_option_and_params(params, 'watchTicker', 'miniTicker')
+            if miniTicker:
+                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8'
+            else:
+                channel = 'spot@public.bookTicker.v3.api@' + market['id']
+            url = self.urls['api']['ws']['spot']
+            params['unsubscribed'] = True
+            self.watch_spot_public(channel, messageHash, params)
+        else:
+            channel = 'unsub.ticker'
+            requestParams: dict = {
+                'symbol': market['id'],
+            }
+            url = self.urls['api']['ws']['swap']
+            self.watch_swap_public(channel, messageHash, requestParams, params)
+        client = self.client(url)
+        self.handle_unsubscriptions(client, [messageHash])
+        return None
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None)
+        messageHashes = []
+        firstSymbol = self.safe_string(symbols, 0)
+        market = None
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+        type = None
+        type, params = self.handle_market_type_and_params('watchTickers', market, params)
+        isSpot = (type == 'spot')
+        url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
+        request: dict = {}
+        if isSpot:
+            miniTicker = False
+            miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
+            topics = []
+            if not miniTicker:
+                if symbols is None:
+                    raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
+                marketIds = self.market_ids(symbols)
+                for i in range(0, len(marketIds)):
+                    marketId = marketIds[i]
+                    messageHashes.append('unsubscribe:ticker:' + symbols[i])
+                    channel = 'spot@public.bookTicker.v3.api@' + marketId
+                    topics.append(channel)
+            else:
+                topics.append('spot@public.miniTickers.v3.api@UTC+8')
+                if symbols is None:
+                    messageHashes.append('unsubscribe:spot:ticker')
+                else:
+                    for i in range(0, len(symbols)):
+                        messageHashes.append('unsubscribe:ticker:' + symbols[i])
+            request['method'] = 'UNSUBSCRIPTION'
+            request['params'] = topics
+        else:
+            request['method'] = 'unsub.tickers'
+            request['params'] = {}
+            messageHashes.append('unsubscribe:ticker')
+        client = self.client(url)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.handle_unsubscriptions(client, messageHashes)
+        return None
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, False, True)
+        marketType = None
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
+        markets = self.markets_for_symbols(symbols)
+        marketType, params = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        isSpot = marketType == 'spot'
+        if not isSpot:
+            raise NotSupported(self.id + ' watchBidsAsks only support spot market')
+        messageHashes = []
+        topics = []
+        for i in range(0, len(symbols)):
+            if isSpot:
+                market = self.market(symbols[i])
+                topics.append('spot@public.bookTicker.v3.api@' + market['id'])
+            messageHashes.append('unsubscribe:bidask:' + symbols[i])
+        url = self.urls['api']['ws']['spot']
+        request: dict = {
+            'method': 'UNSUBSCRIPTION',
+            'params': topics,
+        }
+        client = self.client(url)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.handle_unsubscriptions(client, messageHashes)
+        return None
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframeId = self.safe_string(timeframes, timeframe)
+        messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe
+        url = None
+        if market['spot']:
+            url = self.urls['api']['ws']['spot']
+            channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId
+            params['unsubscribed'] = True
+            self.watch_spot_public(channel, messageHash, params)
+        else:
+            url = self.urls['api']['ws']['swap']
+            channel = 'unsub.kline'
+            requestParams: dict = {
+                'symbol': market['id'],
+                'interval': timeframeId,
+            }
+            self.watch_swap_public(channel, messageHash, requestParams, params)
+        client = self.client(url)
+        self.handle_unsubscriptions(client, [messageHash])
+        return None
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified array of symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:orderbook:' + symbol
+        url = None
+        if market['spot']:
+            url = self.urls['api']['ws']['spot']
+            channel = 'spot@public.increase.depth.v3.api@' + market['id']
+            params['unsubscribed'] = True
+            self.watch_spot_public(channel, messageHash, params)
+        else:
+            url = self.urls['api']['ws']['swap']
+            channel = 'unsub.depth'
+            requestParams: dict = {
+                'symbol': market['id'],
+            }
+            self.watch_swap_public(channel, messageHash, requestParams, params)
+        client = self.client(url)
+        self.handle_unsubscriptions(client, [messageHash])
+        return None
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribes from the trades channel
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:trades:' + symbol
+        url = None
+        if market['spot']:
+            url = self.urls['api']['ws']['spot']
+            channel = 'spot@public.deals.v3.api@' + market['id']
+            params['unsubscribed'] = True
+            self.watch_spot_public(channel, messageHash, params)
+        else:
+            url = self.urls['api']['ws']['swap']
+            channel = 'unsub.deal'
+            requestParams: dict = {
+                'symbol': market['id'],
+            }
+            self.watch_swap_public(channel, messageHash, requestParams, params)
+        client = self.client(url)
+        self.handle_unsubscriptions(client, [messageHash])
+        return None
+
+    def handle_unsubscriptions(self, client: Client, messageHashes: List[str]):
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            subMessageHash = messageHash.replace('unsubscribe:', '')
+            self.clean_unsubscription(client, subMessageHash, messageHash)
+            if messageHash.find('ticker') >= 0:
+                symbol = messageHash.replace('unsubscribe:ticker:', '')
+                if symbol.find('unsubscribe') >= 0:
+                    # unWatchTickers
+                    symbols = list(self.tickers.keys())
+                    for j in range(0, len(symbols)):
+                        del self.tickers[symbols[j]]
+                elif symbol in self.tickers:
+                    del self.tickers[symbol]
+            elif messageHash.find('bidask') >= 0:
+                symbol = messageHash.replace('unsubscribe:bidask:', '')
+                if symbol in self.bidsasks:
+                    del self.bidsasks[symbol]
+            elif messageHash.find('candles') >= 0:
+                splitHashes = messageHash.split(':')
+                symbol = self.safe_string(splitHashes, 2)
+                if len(splitHashes) > 4:
+                    symbol += ':' + self.safe_string(splitHashes, 3)
+                if symbol in self.ohlcvs:
+                    del self.ohlcvs[symbol]
+            elif messageHash.find('orderbook') >= 0:
+                symbol = messageHash.replace('unsubscribe:orderbook:', '')
+                if symbol in self.orderbooks:
+                    del self.orderbooks[symbol]
+            elif messageHash.find('trades') >= 0:
+                symbol = messageHash.replace('unsubscribe:trades:', '')
+                if symbol in self.trades:
+                    del self.trades[symbol]
 
     async def authenticate(self, subscriptionHash, params={}):
         # we only need one listenKey since ccxt shares connections

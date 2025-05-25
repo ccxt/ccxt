@@ -1972,7 +1972,7 @@ func  (this *gate) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
             "code": code,
             "type": typeVar,
             "precision": precision,
-            "limits": this.Limits,
+            "limits": nil,
             "networks": map[string]interface{} {},
             "info": []interface{}{},
         })

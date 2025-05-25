@@ -52,6 +52,21 @@ func (this *Bitget) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name bitget#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitget) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitget#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
  * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever

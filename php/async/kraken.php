@@ -1817,22 +1817,15 @@ class kraken extends Exchange {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr" => 'sell 0.00010000 XBTUSDT @ market',
-        //        "event" => 'addOrderStatus',
-        //        "reqid" => 1,
-        //        "status" => 'ok',
-        //        "txid" => 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr" => "order edited $price = 9000.00000000",
-        //        "event" => "editOrderStatus",
-        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
-        //        "reqid" => 3,
-        //        "status" => "ok",
-        //        "txid" => "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id" => "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error" => array(),
@@ -1958,15 +1951,13 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
-        // when type = trailling stop returns $price = '+50.0000%'
-        if (($price !== null) && str_ends_with($price, '%')) {
+        // when type = trailing stop returns $price = '+50.0000%'
+        if (($price !== null) && (str_ends_with($price, '%') || Precise::string_equals($price, '0.00000') || Precise::string_equals($price, '0'))) {
             $price = null; // this is not the $price we want
         }
-        if (($price === null) || Precise::string_equals($price, '0')) {
+        if ($price === null) {
             $price = $this->safe_string($description, 'price2');
-        }
-        if (($price === null) || Precise::string_equals($price, '0')) {
-            $price = $this->safe_string($order, 'price', $price);
+            $price = $this->safe_string_2($order, 'limitprice', 'price', $price);
         }
         $flags = $this->safe_string($order, 'oflags', '');
         $isPostOnly = mb_strpos($flags, 'post') > -1;
@@ -1987,7 +1978,7 @@ class kraken extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_n($order, array( 'id', 'txid', 'amend_id' ));
+        $id = $this->safe_string_n($order, array( 'id', 'txid', 'order_id', 'amend_id' ));
         if (($id === null) || (str_starts_with($id, '['))) {
             $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);

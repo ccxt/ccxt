@@ -428,36 +428,31 @@ public partial class coinlist : Exchange
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "asset");
             object code = this.safeCurrencyCode(id);
+            object isFiat = isEqual(code, "USD");
             object isTransferable = this.safeBool(currency, "is_transferable", false);
-            object withdrawEnabled = isTransferable;
-            object depositEnabled = isTransferable;
-            object active = isTransferable;
-            object decimalPlaces = this.safeString(currency, "decimal_places");
-            object precision = this.parseNumber(this.parsePrecision(decimalPlaces));
-            object minWithdrawal = this.safeString(currency, "min_withdrawal");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "name", code },
                 { "info", currency },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "active", null },
+                { "deposit", isTransferable },
+                { "withdraw", isTransferable },
                 { "fee", null },
-                { "precision", precision },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimal_places"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdrawal },
+                        { "min", this.safeNumber(currency, "min_withdrawal") },
                         { "max", null },
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-            };
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            });
         }
         return result;
     }

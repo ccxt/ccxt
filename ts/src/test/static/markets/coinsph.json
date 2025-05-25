@@ -1,24 +1,42 @@
 {
     "BTC/USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-7,
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1e-7,
                 "max": 99999999999
@@ -28,10 +46,15 @@
                 "max": 99999999999
             },
             "cost": {
-                "min": 1
-            },
-            "leverage": {}
+                "min": 1,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "BTCUSDT",
             "status": "trading",
@@ -63,7 +86,8 @@
                 },
                 {
                     "filterType": "NOTIONAL",
-                    "minNotional": "1"
+                    "minNotional": "1",
+                    "maxNotional": "50000"
                 },
                 {
                     "filterType": "MIN_NOTIONAL",
@@ -71,8 +95,8 @@
                 },
                 {
                     "filterType": "STATIC_PRICE_RANGE",
-                    "priceUp": "99999999.00000000",
-                    "priceDown": "0.01000000"
+                    "priceUp": "99999999.000000000000000000",
+                    "priceDown": "0.010000000000000000"
                 },
                 {
                     "filterType": "PERCENT_PRICE_BY_SIDE",
@@ -80,11 +104,6 @@
                     "bidMultiplierDown": "0.20000000",
                     "askMultiplierUp": "5.00000000",
                     "askMultiplierDown": "0.20000000"
-                },
-                {
-                    "filterType": "PERCENT_PRICE_INDEX",
-                    "multiplierUp": "1.10000000",
-                    "multiplierDown": "0.90000000"
                 },
                 {
                     "filterType": "PERCENT_PRICE_ORDER_SIZE",
@@ -193,25 +212,42 @@
     },
     "ETH/USDT": {
         "id": "ETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.000001,
                 "max": 99999999999
@@ -221,9 +257,15 @@
                 "max": 99999999999
             },
             "cost": {
-                "min": 1
+                "min": 1,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "ETHUSDT",
             "status": "trading",
@@ -256,7 +298,7 @@
                 {
                     "filterType": "NOTIONAL",
                     "minNotional": "1",
-                    "maxNotional": "8800"
+                    "maxNotional": "50000"
                 },
                 {
                     "filterType": "MIN_NOTIONAL",
@@ -264,8 +306,8 @@
                 },
                 {
                     "filterType": "STATIC_PRICE_RANGE",
-                    "priceUp": "99999999.00000000",
-                    "priceDown": "0.01000000"
+                    "priceUp": "99999999.000000000000000000",
+                    "priceDown": "0.010000000000000000"
                 },
                 {
                     "filterType": "PERCENT_PRICE_BY_SIDE",
@@ -273,11 +315,6 @@
                     "bidMultiplierDown": "0.20000000",
                     "askMultiplierUp": "5.00000000",
                     "askMultiplierDown": "0.20000000"
-                },
-                {
-                    "filterType": "PERCENT_PRICE_INDEX",
-                    "multiplierUp": "1.10000000",
-                    "multiplierDown": "0.90000000"
                 },
                 {
                     "filterType": "PERCENT_PRICE_ORDER_SIZE",

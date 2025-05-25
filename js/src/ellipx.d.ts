@@ -1,5 +1,5 @@
 import Exchange from './abstract/ellipx.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
 /**
  * @class ellipx
  * @augments Exchange
@@ -73,7 +73,6 @@ export default class ellipx extends Exchange {
      * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: any): Currency;
     /**
      * @method
      * @name ellipx#fetchTrades
@@ -222,7 +221,7 @@ export default class ellipx extends Exchange {
      * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
-     * @param {string} code Currency code
+     * @param {string} code unified currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
      * @param {string} [tag] Additional tag/memo for currencies that require it

@@ -364,7 +364,7 @@ func  (this *hyperliquid) FetchCurrencies(optionalArgs ...interface{}) <- chan i
                 var id interface{} = i
                 var name interface{} = this.SafeString(data, "name")
                 var code interface{} = this.SafeCurrencyCode(name)
-                AddElementToObject(result, code, map[string]interface{} {
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "id": id,
             "name": name,
             "code": code,
@@ -386,7 +386,7 @@ func  (this *hyperliquid) FetchCurrencies(optionalArgs ...interface{}) <- chan i
                     "max": nil,
                 },
             },
-        })
+        }))
             }
         
             ch <- result
