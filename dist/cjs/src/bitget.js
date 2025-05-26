@@ -2390,7 +2390,7 @@ class bitget extends bitget$1 {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': this.currencyToPrecision(code, amount, networkCode),
             'transferType': 'on_chain',
         };
         if (tag !== undefined) {
@@ -2415,8 +2415,6 @@ class bitget extends bitget$1 {
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
-            result['timestamp'] = this.milliseconds();
-            result['datetime'] = this.iso8601(this.milliseconds());
             result['amount'] = amount;
             result['tag'] = tag;
             result['address'] = address;
