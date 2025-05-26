@@ -24,24 +24,45 @@ export default class swyftx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'cancelOrder': true,
-                'createOrder': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': false,
-                'fetchCurrencies': true,
-                'fetchFundingLimits': true,
+                /**
+                 * Public API
+                 * Exchange Information, Fee Schedules, and Trading Rules
+                 */
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchCurrencies': true,
+                'fetchTradingLimits': false, 
+                /**
+                 * Market Data
+                 */
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTrades': true,
-                'fetchTradingFees': true,
-                'fetchTradingLimits': true,
+                'fetchOrderBook': false, // Swyftx does not expose orderbooks via API, only via UI on Pro
+                'fetchTrades': false, // Swyftx does not expose public trades via API
+                'fetchOHLCV': true,
+                /**
+                 * Private API
+                 * Trading
+                 */
+                'fetchBalance': true,
+                'fetchAccounts': false,
+                'createOrder': true,
+                'cancelOrder': true,
+                'editOrder': false, // TODO
+                /**
+                 * Trading history
+                 */
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrders': true,
+                'fetchMyTrades': false, // we can try to emulate but the one-to-one order→trade mapping hides partial fills
+                /**
+                 * Funding
+                 */
+                'fetchDepositAddress': false, // TODO
+                'fetchDeposits': false, // TODO
+                'fetchWithdrawals': false, // TODO
+                'fetchTransactions': false, // TODO
+                'fetchLedger': false, // TODO
                 'withdraw': true,
             },
             'timeframes': {
@@ -163,43 +184,14 @@ export default class swyftx extends Exchange {
         });
     }
 
-    async loadAssetMapping () {
-        if (this.options['assetsByCode'] !== undefined) {
-            return;
-        }
-        const url = this.urls['api']['public'] + '/markets/assets/';
-        const assets = await this.fetch (url, 'GET');
-        const assetsByCode: Dict = {};
-        const assetsById: Dict = {};
-        for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
-            const code = this.safeString (asset, 'code');
-            const id = this.safeString (asset, 'id');
-            assetsByCode[code] = asset;
-            assetsById[id] = asset;
-        }
-        this.options['assetsByCode'] = assetsByCode;
-        this.options['assetsById'] = assetsById;
-    }
-
-    async fetchMarketInfo (assetCode: string, type: 'basic' | 'detail' = 'basic') {
-        const endpoint = type === 'detail' ? 'markets/info/detail/' : 'markets/info/basic/';
-        const url = this.urls['api']['public'] + endpoint + assetCode + '/';
-        try {
-            return await this.fetch (url, 'GET');
-        } catch (e) {
-            return {};
-        }
-    }
-
+    /**
+     * @method
+     * @name swyftx#fetchMarkets
+     * @description retrieves data on all markets for swyftx
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @returns {[object]} an array of objects representing market data
+     */
     async fetchMarkets (): Promise<Market[]> {
-        /**
-         * @method
-         * @name swyftx#fetchMarkets
-         * @description retrieves data on all markets for swyftx
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
-         */
         // First fetch all available assets
         const assetsUrl = this.urls['api']['public'] + '/markets/assets/';
         const assetsResponse = await this.fetch (assetsUrl, 'GET', undefined);
@@ -335,14 +327,14 @@ export default class swyftx extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies (): Promise<Currencies> {
-        /**
-         * @method
-         * @name swyftx#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const url = this.urls['api']['public'] + '/markets/assets/';
         const response = await this.fetch (url, 'GET');
         //
@@ -405,40 +397,43 @@ export default class swyftx extends Exchange {
         return result;
     }
 
-    // async fetchTradingLimits (symbol: Str = undefined, params = {}): Promise<Dict> {
-    //     /**
-    //      * @method
-    //      * @name swyftx#fetchTradingLimits
-    //      * @description fetch the trading limits for one or all markets
-    //      * @param {string|undefined} symbol unified market symbol
-    //      * @param {object} params extra parameters specific to the exchange API endpoint
-    //      * @returns {object} a dictionary of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
-    //      */
-    //     await this.loadMarkets ();
-    //     const markets = this.markets;
-    //     const keys = Object.keys (markets);
-    //     const result: Dict = {};
-    //     for (let i = 0; i < keys.length; i++) {
-    //         const key = keys[i];
-    //         const market = markets[key];
-    //         if (symbol === undefined || market['symbol'] === symbol) {
-    //             result[market['symbol']] = {
-    //                 'info': market['info'],
-    //                 'limits': market['limits'],
-    //             };
-    //         }
-    //     }
-    //     return result;
-    // }
+    async loadAssetMapping () {
+        if (this.options['assetsByCode'] !== undefined) {
+            return;
+        }
+        const url = this.urls['api']['public'] + '/markets/assets/';
+        const assets = await this.fetch (url, 'GET');
+        const assetsByCode: Dict = {};
+        const assetsById: Dict = {};
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            const code = this.safeString (asset, 'code');
+            const id = this.safeString (asset, 'id');
+            assetsByCode[code] = asset;
+            assetsById[id] = asset;
+        }
+        this.options['assetsByCode'] = assetsByCode;
+        this.options['assetsById'] = assetsById;
+    }
 
+    async fetchMarketInfo (assetCode: string, type: 'basic' | 'detail' = 'basic') {
+        const endpoint = type === 'detail' ? 'markets/info/detail/' : 'markets/info/basic/';
+        const url = this.urls['api']['public'] + endpoint + assetCode + '/';
+        try {
+            return await this.fetch (url, 'GET');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    /**
+     * @method
+     * @name swyftx#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees (): Promise<TradingFees> {
-        /**
-         * @method
-         * @name swyftx#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         // Swyftx has a flat fee structure
         // This should ideally be fetched from their API if available
@@ -461,19 +456,17 @@ export default class swyftx extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchFundingLimits
+     * @description fetch withdrawal limits
+     * @returns {object} a list of withdrawal limit structures
+     */
     async fetchFundingLimits (): Promise<Dict> {
-        /**
-         * @method
-         * @name swyftx#fetchFundingLimits
-         * @description fetch withdrawal limits
-         * @returns {object} a list of withdrawal limit structures
-         */
         await this.loadMarkets ();
-        // Make the request
         const path = 'limits/withdrawal/';
         const signed = this.sign (path, 'private', 'GET');
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
-
         //
         //     {
         //         "used": 100,
@@ -482,7 +475,6 @@ export default class swyftx extends Exchange {
         //         "rollingCycleHrs": 24
         //     }
         //
-
         const limit = this.safeNumber (response, 'limit');
         const used = this.safeNumber (response, 'used');
         const remaining = this.safeNumber (response, 'remaining');
@@ -500,15 +492,15 @@ export default class swyftx extends Exchange {
         };
     }
 
-    async fetchTicker (symbol: string, ): Promise<Ticker> {
-        /**
-         * @method
-         * @name swyftx#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the swyftx api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name swyftx#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the swyftx api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // Fetch live rates for the quote currency (typically AUD)
@@ -533,15 +525,15 @@ export default class swyftx extends Exchange {
         }), market);
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information for each market over the last 24 hours
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name swyftx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information for each market over the last 24 hours
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         // Fetch live rates for AUD (quote currency id: 1)
         const audId = '1';
@@ -626,126 +618,19 @@ export default class swyftx extends Exchange {
         }, market);
     }
 
-    // TODO:
-    // async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-    //     /**
-    //      * @method
-    //      * @name swyftx#fetchOrderBook
-    //      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    //      * @param {string} symbol unified symbol of the market to fetch the order book for
-    //      * @param {int|undefined} limit the maximum amount of order book entries to return
-    //      * @param {object} params extra parameters specific to the swyftx api endpoint
-    //      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-    //      */
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const request: Dict = {
-    //         'marketId': market['id'],
-    //     };
-    //     const response = await this.publicGetOrdersMarketId (this.extend (request, params));
-    //     //
-    //     //     {
-    //     //         "bids": [
-    //     //             {
-    //     //                 "price": "63980.0",
-    //     //                 "amount": "1.5"
-    //     //             },
-    //     //             ...
-    //     //         ],
-    //     //         "asks": [
-    //     //             {
-    //     //                 "price": "64020.0",
-    //     //                 "amount": "1.0"
-    //     //             },
-    //     //             ...
-    //     //         ]
-    //     //     }
-    //     //
-    //     const orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
-    //     return orderbook;
-    // }
-
-    // async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-    //     /**
-    //      * @method
-    //      * @name swyftx#fetchTrades
-    //      * @description get the list of most recent trades for a particular symbol
-    //      * @param {string} symbol unified symbol of the market to fetch trades for
-    //      * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-    //      * @param {int|undefined} limit the maximum amount of trades to fetch
-    //      * @param {object} params extra parameters specific to the exchange API endpoint
-    //      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-    //      */
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const request: Dict = {
-    //         'marketId': market['id'],
-    //     };
-    //     if (limit !== undefined) {
-    //         request['limit'] = limit;
-    //     }
-    //     const response = await this.publicGetTradesMarketId (this.extend (request, params));
-    //     //
-    //     //     [
-    //     //         {
-    //     //             "id": "12345",
-    //     //             "price": "64000.0",
-    //     //             "amount": "0.1",
-    //     //             "side": "buy",
-    //     //             "timestamp": 1611234567890
-    //     //         },
-    //     //         ...
-    //     //     ]
-    //     //
-    //     return this.parseTrades (response, market, since, limit);
-    // }
-
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
-        //
-        //     {
-        //         "id": "12345",
-        //         "price": "64000.0",
-        //         "amount": "0.1",
-        //         "side": "buy",
-        //         "timestamp": 1611234567890
-        //     }
-        //
-        const id = this.safeString (trade, 'id');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'amount');
-        const side = this.safeString (trade, 'side');
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const symbol = market ? market['symbol'] : undefined;
-        return this.safeTrade ({
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': undefined,
-        }, market);
-    }
-
+    /**
+     * @method
+     * @name swyftx#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+     * @param {int|undefined} limit the maximum amount of candles to fetch
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] 'ask' or 'bid' (default: 'ask')
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name swyftx#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} [params.side] 'ask' or 'bid' (default: 'ask')
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe);
@@ -765,7 +650,6 @@ export default class swyftx extends Exchange {
         if (limit !== undefined && limit > 10000) {
             throw new BadRequest (this.id + ' fetchOHLCV() limit cannot exceed 10000');
         }
-        // Construct the URL path
         const path = 'charts/v2/getBars/' + market['base'] + '/' + market['quote'] + '/' + side + '/';
         const query: Dict = {
             'resolution': resolution,
@@ -823,17 +707,49 @@ export default class swyftx extends Exchange {
         ];
     }
 
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "id": "12345",
+        //         "price": "64000.0",
+        //         "amount": "0.1",
+        //         "side": "buy",
+        //         "timestamp": 1611234567890
+        //     }
+        //
+        const id = this.safeString (trade, 'id');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        const side = this.safeString (trade, 'side');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const symbol = market ? market['symbol'] : undefined;
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name swyftx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} params extra parameters specific to the swyftx api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name swyftx#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the swyftx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets ();
-        await this.loadAssetMapping (); // Ensure we have asset ID to code mapping
-        // Make the request
+        await this.loadAssetMapping ();
         const path = 'user/balance/';
         const signed = this.sign (path, 'private', 'GET', params);
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
@@ -885,19 +801,19 @@ export default class swyftx extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name swyftx#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency1 to buy or sell
+     * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} params extra parameters specific to the swyftx api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name swyftx#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency1 to buy or sell
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the swyftx api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // Determine order type code
@@ -943,7 +859,6 @@ export default class swyftx extends Exchange {
         if (trigger !== undefined) {
             request['trigger'] = trigger;
         }
-        // Make the request
         const path = 'orders';
         const signed = this.sign (path, 'private', 'POST', this.extend (request, params));
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
@@ -976,16 +891,16 @@ export default class swyftx extends Exchange {
         }), market);
     }
 
+    /**
+     * @method
+     * @name swyftx#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id (orderUuid)
+     * @param {string|undefined} symbol unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the swyftx api endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name swyftx#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id (orderUuid)
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the swyftx api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'orderUuid': id,
@@ -1019,27 +934,25 @@ export default class swyftx extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string|undefined} symbol unified market symbol of the market orders were made in
+     * @param {int|undefined} since the earliest time in ms to fetch orders for
+     * @param {int|undefined} limit the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {number} [params.page] page number for pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name swyftx#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {number} [params.page] page number for pagination
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
-        // Construct URL path with optional assetCode
         let path = 'orders/';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             path += market['base'] + '/';
         }
-        // Add query parameters
         const query: Dict = {};
         if (limit !== undefined) {
             query['limit'] = limit;
@@ -1049,7 +962,6 @@ export default class swyftx extends Exchange {
             query['page'] = page;
         }
         params = this.omit (params, 'page');
-        // Make the request
         const url = this.urls['api']['private'] + '/' + path;
         const signed = this.sign (path, 'private', 'GET', this.extend (query, params));
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
@@ -1081,24 +993,21 @@ export default class swyftx extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id the order id (orderUuid)
+     * @param {string|undefined} symbol unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, ): Promise<Order> {
-        /**
-         * @method
-         * @name swyftx#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} id the order id (orderUuid)
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
-        await this.loadAssetMapping (); // Ensure we have asset ID to code mapping for fee parsing
-        // Construct URL path
+        await this.loadAssetMapping ();
         const path = 'orders/byId/' + id;
-        // Make the request
         const signed = this.sign (path, 'private', 'GET');
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
-
         //
         //     {
         //         "orderUuid": "ord_123abc...",
@@ -1124,8 +1033,33 @@ export default class swyftx extends Exchange {
         //         "feeUserCountryValue": 40.25
         //     }
         //
-
         return this.parseOrder (response);
+    }
+
+    parseTradeFromOrder (order: any, market: any = undefined) {
+        const ord         = this.parseOrder (order, market);
+        const timestamp   = this.safeInteger (order, 'updated_time');
+        const side        = ord.side;
+        const price       = ord.price;
+        const amount      = ord.amount;     // filled = amount for closed orders
+        const cost        = ord.cost;
+        const fee         = ord.fee;
+
+        return {
+            info:        order,
+            id:          order.orderUuid,
+            order:       order.orderUuid,
+            timestamp:   timestamp,
+            datetime:    this.iso8601 (timestamp),
+            symbol:      ord.symbol,
+            side:        side,
+            price:       price,
+            amount:      amount,
+            cost:        cost,
+            takerOrMaker: undefined,
+            fee:         fee,
+            type:        ord.type, // limit / market
+        };
     }
 
     async authenticate () {
@@ -1144,17 +1078,17 @@ export default class swyftx extends Exchange {
         return response;
     }
 
+    /**
+     * @method
+     * @name swyftx#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string|undefined} symbol unified market symbol
+     * @param {int|undefined} since the earliest time in ms to fetch open orders for
+     * @param {int|undefined} limit the maximum number of open order structures to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined): Promise<Order[]> {
-        /**
-         * @method
-         * @name swyftx#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of open order structures to retrieve
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const orders = await this.fetchOrders (symbol, since, limit);
         return this.filterByArray (orders, 'status', [ 'open', 'partially_filled' ], false);
     }
@@ -1380,7 +1314,6 @@ export default class swyftx extends Exchange {
         if (!response) {
             return undefined; // fallback to default error handler
         }
-        // Check for error in response
         const error = this.safeString (response, 'error');
         const message = this.safeString (response, 'message', error);
         const errorCode = this.safeString (response, 'code');
