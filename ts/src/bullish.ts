@@ -203,7 +203,7 @@ export default class bullish extends Exchange {
                 },
             },
             'fees': {
-                'trading': { // to do check
+                'trading': {
                     'tierBased': false,
                     'percentage': true,
                     'taker': this.parseNumber ('0.001'),
