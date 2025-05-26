@@ -3396,9 +3396,8 @@ export default class htx extends Exchange {
         //            }
         //        ]
         //    }
-        //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
@@ -3406,19 +3405,11 @@ export default class htx extends Exchange {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue (entry, 'chains', []);
-            const networks: Dict = {};
-            const instStatus = this.safeString (entry, 'instStatus');
             const assetType = this.safeString (entry, 'assetType');
             const type = assetType === '1' ? 'crypto' : 'fiat';
-            const currencyActive = instStatus === 'normal';
-            let minPrecision = undefined;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
+            this.options['networkChainIdsByNames'][code] = {};
+            const chains = this.safeList (entry, 'chains', []);
+            const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -3426,49 +3417,34 @@ export default class htx extends Exchange {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode (uniqueChainId);
-                minDeposit = this.safeNumber (chainEntry, 'minDepositAmt');
-                minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
-                const depositStatus = this.safeString (chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
-                const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber (chainEntry, 'minDepositAmt'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': this.parseNumber (precision),
+                    'active': undefined,
+                    'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeString (entry, 'instStatus') === 'normal',
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'name': undefined,
                 'type': type,
@@ -3478,17 +3454,17 @@ export default class htx extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'precision': this.parseNumber (minPrecision),
+                'precision': undefined,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
